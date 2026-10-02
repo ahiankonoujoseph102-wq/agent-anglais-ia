@@ -1,0 +1,8 @@
+# Hébergement mutualisé (Hostinger) : si le domaine pointe sur la racine du
+# projet au lieu du dossier public/, on redirige tout vers public/ et on
+# interdit l'accès aux fichiers sensibles (.env, vendor, storage…).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(\.env|\.git|composer\.(json|lock)|artisan|vendor|storage|bootstrap|config|database|routes|tests|app|lang|resources)(/|$) - [F,L]
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
