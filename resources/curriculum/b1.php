@@ -48,7 +48,7 @@ return [
                 'lesson learned' => 'leçon tirée',
             ],
             'grammar' => [
-                "Present perfect pour l'expérience sans date : « I've worked in three countries », « Have you ever been to Abuja? ».",
+                "Present perfect pour l'expérience sans date : « I've worked in three countries », « Have you ever been to Accra? ».",
                 "Prétérit dès qu'il y a un moment précis : « I went there in 2019 » (pas « I have been there in 2019 »).",
                 "Already, yet, just avec le present perfect : « I've just finished », « I haven't paid yet ».",
             ],
@@ -70,9 +70,9 @@ return [
                 '« Since » + point de départ (since 2020), « for » + durée (for five years) : « depuis » a deux traductions.',
             ],
             'situations' => [
-                ['title' => 'Présentation en formation', 'description' => "Au premier jour d'une formation professionnelle, vous racontez votre parcours et vos expériences au groupe.", 'tags' => ['work', 'education']],
-                ['title' => "Rencontre d'entrepreneurs", 'description' => 'À un événement de la chambre de commerce, échangez sur vos expériences de commerce avec un entrepreneur ghanéen.', 'tags' => ['business', 'conversation']],
-                ['title' => 'Candidature à une bourse', 'description' => 'Un jury vous demande ce que vous avez déjà accompli et ce que vous avez appris de vos difficultés.', 'tags' => ['studies', 'exam']],
+                ['title' => 'Présentation en formation', 'description' => 'Au premier jour d\'une formation professionnelle à Lomé animée en anglais, vous racontez votre parcours au groupe.', 'tags' => ['work', 'education']],
+                ['title' => 'Rencontre d\'entrepreneurs', 'description' => 'À un événement de la Chambre de commerce du Togo, échangez sur vos expériences avec un entrepreneur ghanéen.', 'tags' => ['business', 'conversation']],
+                ['title' => 'Candidature à une bourse', 'description' => 'Un jury anglophone réuni à Lomé vous demande ce que vous avez déjà accompli et ce que vous avez appris de vos difficultés.', 'tags' => ['studies', 'exam']],
             ],
         ],
 
@@ -127,9 +127,9 @@ return [
                 'Faux ami : « an injury » = une blessure ; « une injure » = an insult.',
             ],
             'situations' => [
-                ['title' => 'Déclaration de vol', 'description' => "On vous a volé votre téléphone dans un bus à Accra : racontez l'incident au policier.", 'tags' => ['travel', 'admin']],
-                ['title' => 'Retard de livraison', 'description' => "Votre camion est tombé en panne sur la route de Cotonou : expliquez au client ce qui s'est passé.", 'tags' => ['business', 'transport', 'phone']],
-                ['title' => 'Histoire entre amis', 'description' => 'Racontez à un ami une aventure drôle ou effrayante vécue en voyage, il réagit et pose des questions.', 'tags' => ['conversation', 'family']],
+                ['title' => 'Déclaration de vol à Accra', 'description' => 'On vous a volé votre téléphone dans un trotro à Accra : racontez l\'incident au policier.', 'tags' => ['travel', 'admin']],
+                ['title' => 'Retard de livraison', 'description' => 'Votre camion est tombé en panne sur la route d\'Aflao : expliquez à votre client d\'Accra ce qui s\'est passé.', 'tags' => ['business', 'transport', 'phone']],
+                ['title' => 'Une histoire de zémidjan', 'description' => 'Racontez à un ami anglophone une aventure drôle ou effrayante vécue en zémidjan dans les embouteillages de Lomé.', 'tags' => ['conversation', 'transport']],
             ],
         ],
 
@@ -183,9 +183,9 @@ return [
                 'Faux ami : « a formation » ≠ une formation professionnelle → training.',
             ],
             'situations' => [
-                ['title' => 'Entretien dans une banque', 'description' => 'Entretien pour un poste de chargé de clientèle : questions sur vos points forts et faibles.', 'tags' => ['work', 'admin']],
-                ['title' => 'Entretien en ligne', 'description' => 'Entretien vidéo avec une entreprise de logistique basée à Lagos : expliquez comment vous gérez la pression.', 'tags' => ['work', 'transport', 'tech']],
-                ['title' => "Simulation d'oral d'admission", 'description' => "Préparez l'oral d'admission d'un master anglophone : motivations et projet professionnel.", 'tags' => ['studies', 'exam']],
+                ['title' => 'Entretien dans une banque', 'description' => 'Entretien pour un poste de chargé de clientèle dans une banque de Lomé : questions sur vos points forts et faibles.', 'tags' => ['work', 'admin']],
+                ['title' => 'Entretien au port autonome', 'description' => 'Entretien en anglais avec une entreprise de logistique du port autonome de Lomé : comment gérez-vous la pression ?', 'tags' => ['work', 'transport']],
+                ['title' => 'Oral d\'admission', 'description' => 'Vous préparez l\'oral d\'admission d\'un master enseigné en anglais à l\'université de Lomé.', 'tags' => ['studies', 'exam']],
             ],
         ],
 
@@ -241,9 +241,9 @@ return [
                 'Faux ami : « a delay » = un retard ; « un délai » de livraison = delivery time / lead time.',
             ],
             'situations' => [
-                ['title' => 'Commande à un fournisseur nigérian', 'description' => 'Vous commandez des pagnes à un fournisseur de Kano : quantité, prix, acompte, livraison.', 'tags' => ['business', 'phone']],
-                ['title' => 'Au port de Lomé', 'description' => "Vous suivez le dédouanement d'un conteneur avec un transitaire anglophone.", 'tags' => ['business', 'transport', 'admin']],
-                ['title' => 'Négociation avec un grossiste', 'description' => 'Un grossiste ghanéen veut acheter vos produits en gros : négociez prix et conditions de paiement.', 'tags' => ['business', 'market']],
+                ['title' => 'Commande à un fournisseur d\'Accra', 'description' => 'Vous commandez des pagnes à un fournisseur d\'Accra : quantité, prix, acompte, livraison à Lomé.', 'tags' => ['business', 'phone']],
+                ['title' => 'Au port autonome de Lomé', 'description' => 'Vous suivez le dédouanement d\'un conteneur avec un transitaire anglophone au port autonome de Lomé.', 'tags' => ['business', 'transport', 'admin']],
+                ['title' => 'Négociation avec un grossiste', 'description' => 'Un grossiste ghanéen veut acheter vos produits en gros au Grand Marché : négociez prix et conditions de paiement.', 'tags' => ['business', 'market']],
             ],
         ],
 
@@ -297,9 +297,9 @@ return [
                 'Faux ami : « eventually » ≠ éventuellement ; « actually » ≠ actuellement.',
             ],
             'situations' => [
-                ['title' => 'Débat à la radio', 'description' => 'Une radio anglophone vous interroge sur le chômage des jeunes : donnez et défendez votre avis.', 'tags' => ['conversation', 'exam']],
-                ['title' => "Réunion d'équipe", 'description' => "Votre équipe discute d'un nouvel horaire de travail : donnez votre avis et réagissez à celui des autres.", 'tags' => ['work']],
-                ['title' => 'Discussion en classe', 'description' => "En cours, on débat de l'usage du téléphone à l'école : avantages et inconvénients.", 'tags' => ['education', 'studies']],
+                ['title' => 'Débat à la radio', 'description' => 'Une radio de Lomé ouvre son antenne en anglais sur l\'emploi des jeunes : donnez et défendez votre avis.', 'tags' => ['conversation', 'exam']],
+                ['title' => 'Réunion d\'équipe', 'description' => 'Votre équipe à Lomé discute d\'un nouvel horaire de travail : donnez votre avis et réagissez à celui de vos collègues anglophones.', 'tags' => ['work']],
+                ['title' => 'Débat en classe', 'description' => 'En cours d\'anglais dans un lycée de Lomé, on débat de l\'usage du téléphone à l\'école : avantages et inconvénients.', 'tags' => ['education', 'studies']],
             ],
         ],
 
@@ -352,9 +352,9 @@ return [
                 'Faux ami : « deceived » = trompé ; « déçu » = disappointed.',
             ],
             'situations' => [
-                ['title' => 'Marchandise abîmée', 'description' => "Les cartons reçus d'un fournisseur ghanéen sont endommagés : faites une réclamation au téléphone.", 'tags' => ['business', 'phone']],
-                ['title' => 'Client mécontent', 'description' => "Vous êtes au service client : un client anglophone se plaint d'une facture erronée.", 'tags' => ['work', 'business']],
-                ['title' => "Chambre d'hôtel", 'description' => "Votre chambre réservée à Lagos a été donnée à quelqu'un d'autre : obtenez une solution.", 'tags' => ['travel']],
+                ['title' => 'Marchandise abîmée', 'description' => 'Les cartons reçus d\'un fournisseur d\'Accra sont endommagés : faites une réclamation au téléphone.', 'tags' => ['business', 'phone']],
+                ['title' => 'Client mécontent', 'description' => 'Vous êtes au service client d\'une entreprise de Lomé : un client anglophone se plaint d\'une facture erronée.', 'tags' => ['work', 'business']],
+                ['title' => 'Chambre d\'hôtel à Accra', 'description' => 'Votre chambre réservée à Accra a été donnée à quelqu\'un d\'autre : obtenez une solution.', 'tags' => ['travel']],
             ],
         ],
 
@@ -408,9 +408,9 @@ return [
                 "« I use to » ✗ au présent → au présent on dit « I usually… » ; used to n'existe qu'au passé.",
             ],
             'situations' => [
-                ['title' => 'Sensibilisation au centre de santé', 'description' => 'Vous êtes agent de santé : conseillez un patient anglophone sur son alimentation et sa tension.', 'tags' => ['health', 'work']],
-                ['title' => 'Bonnes résolutions', 'description' => 'Avec un ami, comparez vos anciennes et nouvelles habitudes de vie.', 'tags' => ['conversation', 'family']],
-                ['title' => 'Santé au travail', 'description' => 'Votre entreprise organise une journée santé : discutez du stress au travail avec un collègue.', 'tags' => ['work', 'health']],
+                ['title' => 'Sensibilisation au centre de santé', 'description' => 'Vous êtes agent de santé à Kara : conseillez un patient anglophone sur son alimentation et sa tension.', 'tags' => ['health', 'work']],
+                ['title' => 'Bonnes résolutions', 'description' => 'Avec un ami, comparez vos anciennes et nouvelles habitudes de vie : sport à la plage de Lomé, alimentation, sommeil.', 'tags' => ['conversation', 'family']],
+                ['title' => 'Santé au travail', 'description' => 'Votre entreprise de Lomé organise une journée santé : discutez du stress au travail avec un collègue anglophone.', 'tags' => ['work', 'health']],
             ],
         ],
 
@@ -452,7 +452,7 @@ return [
                 'Parler de ses habitudes : « I spend about three hours a day on my phone, mostly on WhatsApp. »',
             ],
             'pronunciation' => [
-                'Le son [ʃ] de social et share (comme « ch ») ; privacy se dit [ˈprɪvəsi] (UK) ou [ˈpraɪvəsi] (US).',
+                'Le son [ʃ] de social et share (comme « ch ») ; privacy se dit [ˈprɪvəsi] (anglais britannique) ou [ˈpraɪvəsi] (anglais américain).',
                 'Les sigles : on épelle (« an S-M-S », « a P-D-F »).',
             ],
             'spoken' => [
@@ -464,15 +464,15 @@ return [
                 'Faux ami : « a reportage » est rare ; « un reportage » = a report / a documentary.',
             ],
             'situations' => [
-                ['title' => 'Arnaque sur WhatsApp', 'description' => "Un proche a reçu un message suspect : expliquez-lui ce qu'on vous a dit et comment vérifier.", 'tags' => ['phone', 'family', 'tech']],
-                ['title' => 'Promouvoir sa boutique', 'description' => 'Vous discutez avec un ami nigérian de la meilleure façon de vendre vos produits sur les réseaux sociaux.', 'tags' => ['business', 'tech']],
-                ['title' => 'Exposé sur le numérique', 'description' => 'En classe, vous présentez les dangers et avantages des réseaux sociaux pour les jeunes.', 'tags' => ['studies', 'education']],
+                ['title' => 'Arnaque sur WhatsApp', 'description' => 'Un proche à Lomé a reçu un message suspect sur WhatsApp : expliquez-lui ce qu\'on vous a dit et comment vérifier.', 'tags' => ['phone', 'family', 'tech']],
+                ['title' => 'Vendre sur les réseaux', 'description' => 'Vous discutez avec un ami ghanéen de la meilleure façon de vendre vos produits du Grand Marché sur les réseaux sociaux.', 'tags' => ['business', 'tech']],
+                ['title' => 'Exposé sur le numérique', 'description' => 'À l\'université de Lomé, vous présentez les dangers et les avantages des réseaux sociaux pour les jeunes.', 'tags' => ['studies', 'education']],
             ],
         ],
 
         // 9
         [
-            'title' => "Voyage d'affaires au Nigeria",
+            'title' => "Voyage d'affaires à Accra",
             'objectives' => [
                 'organiser un voyage : vol, hôtel, rendez-vous',
                 "parler de rendez-vous fixés et d'horaires",
@@ -494,8 +494,8 @@ return [
                 'trade fair' => 'foire commerciale',
                 'accommodation' => 'hébergement',
                 'per diem' => 'indemnité journalière',
-                'visa on arrival' => "visa à l'arrivée",
-                'jet lag' => 'décalage horaire',
+                'border post' => 'poste frontière',
+                'coach' => 'car, autocar',
                 'to pick someone up' => "aller chercher quelqu'un",
             ],
             'grammar' => [
@@ -505,24 +505,24 @@ return [
             'functions' => [
                 'Fixer un rendez-vous : « Are you free on Wednesday afternoon? Shall we say 3 pm at your office? »',
                 "Reporter : « I'm afraid my flight has been delayed. Could we push the meeting to Thursday? »",
-                "Confirmer : « Just to confirm: we're meeting at the Lagos trade fair, stand B12. »",
+                "Confirmer : « Just to confirm: we're meeting at the Accra trade fair, stand B12. »",
             ],
             'pronunciation' => [
-                'Schedule : [ˈʃedjuːl] (UK) ou [ˈskedʒuːl] (US) — les deux sont corrects.',
+                'Schedule : [ˈʃedjuːl] (anglais britannique) ou [ˈskedʒuːl] (anglais américain) — les deux sont corrects.',
                 'Les heures avec am / pm : « three pm » [ˌθriː piː ˈem].',
             ],
             'spoken' => [
                 "« Let's touch base when you land » = on fait le point quand tu atterris.",
-                "« I'm running a bit late, traffic is crazy » = j'ai un peu de retard, la circulation est folle (classique à Lagos !).",
+                "« I'm running a bit late, traffic is crazy » = j'ai un peu de retard, la circulation est folle (classique sur la route Lomé–Accra !).",
             ],
             'pitfalls' => [
                 'Faux ami : « to assist » = aider ; « assister à une réunion » = to attend a meeting.',
                 'Faux ami : « a location » = un emplacement ; « une location » = a rental.',
             ],
             'situations' => [
-                ['title' => 'Préparer le voyage', 'description' => 'Vous organisez au téléphone avec votre contact nigérian le programme de votre visite à Lagos.', 'tags' => ['business', 'travel', 'phone']],
-                ['title' => 'Vol annulé', 'description' => 'Votre vol pour Abuja est annulé : trouvez une solution au comptoir de la compagnie.', 'tags' => ['travel', 'transport']],
-                ['title' => 'Foire commerciale', 'description' => 'À une foire commerciale à Lagos, prenez rendez-vous avec un distributeur intéressé.', 'tags' => ['business', 'work']],
+                ['title' => 'Préparer le voyage', 'description' => 'Vous organisez au téléphone avec votre contact d\'Accra le programme de votre visite d\'affaires.', 'tags' => ['business', 'travel', 'phone']],
+                ['title' => 'Car annulé', 'description' => 'Votre car Lomé–Accra est annulé : trouvez une solution au guichet de la compagnie.', 'tags' => ['travel', 'transport']],
+                ['title' => 'Foire commerciale d\'Accra', 'description' => 'À une foire commerciale à Accra, prenez rendez-vous avec un distributeur intéressé par vos produits.', 'tags' => ['business', 'work']],
             ],
         ],
 
@@ -576,9 +576,9 @@ return [
                 'Faux ami : « to realise » = se rendre compte ; « réaliser un projet » = to carry out / achieve.',
             ],
             'situations' => [
-                ['title' => "Si j'étais ministre", 'description' => "Un ami vous demande ce que vous feriez si vous étiez ministre de l'Éducation ou du Commerce.", 'tags' => ['conversation', 'education']],
-                ['title' => 'Conseil à un employé', 'description' => 'Un jeune collègue hésite à démissionner : conseillez-le avec « If I were you… ».', 'tags' => ['work']],
-                ['title' => 'Projet communautaire', 'description' => "Votre association imagine ce qu'elle ferait avec un financement : présentez vos idées.", 'tags' => ['business', 'conversation']],
+                ['title' => 'Si j\'étais ministre', 'description' => 'Un ami vous demande ce que vous feriez si vous étiez ministre de l\'Éducation ou du Commerce au Togo.', 'tags' => ['conversation', 'education']],
+                ['title' => 'Conseil à un employé', 'description' => 'Un jeune collègue de votre entreprise à Lomé hésite à démissionner : conseillez-le avec « If I were you… ».', 'tags' => ['work']],
+                ['title' => 'Projet pour le quartier', 'description' => 'Votre association de quartier à Lomé imagine ce qu\'elle ferait avec un financement : présentez vos idées.', 'tags' => ['business', 'conversation']],
             ],
         ],
 
@@ -632,9 +632,9 @@ return [
                 "Faux ami : « a coupure » n'existe pas : « coupure de courant » = power cut / blackout.",
             ],
             'situations' => [
-                ['title' => 'Réunion de quartier', 'description' => 'Avec des voisins, vous discutez des inondations dans votre quartier et préparez des propositions pour la mairie.', 'tags' => ['conversation', 'admin']],
-                ['title' => "Projet d'ONG", 'description' => 'Vous présentez à une ONG anglophone un projet de recyclage des sacs plastique.', 'tags' => ['work', 'business']],
-                ['title' => 'Journaliste étranger', 'description' => 'Un journaliste vous interroge sur les défis de votre ville et ce qui a été fait.', 'tags' => ['conversation', 'travel']],
+                ['title' => 'Réunion de quartier', 'description' => 'Avec des voisins, vous discutez des inondations de la saison des pluies à Lomé et préparez des propositions pour la mairie.', 'tags' => ['conversation', 'admin']],
+                ['title' => 'Projet d\'ONG', 'description' => 'Vous présentez à une ONG anglophone installée à Lomé un projet de recyclage des sacs plastique.', 'tags' => ['work', 'business']],
+                ['title' => 'Journaliste en visite', 'description' => 'Un journaliste anglophone de passage à Lomé vous interroge sur les défis de la ville : déchets, circulation, érosion côtière.', 'tags' => ['conversation', 'travel']],
             ],
         ],
 
@@ -687,9 +687,9 @@ return [
                 'Faux ami : « an audience » = un public ; « une audience » au tribunal = a hearing.',
             ],
             'situations' => [
-                ['title' => 'Pitch devant des investisseurs', 'description' => 'Vous présentez votre projet de commerce en trois minutes à des investisseurs anglophones.', 'tags' => ['business', 'work']],
-                ['title' => "Soutenance de fin d'études", 'description' => 'Vous présentez votre mémoire à un jury et répondez à leurs questions.', 'tags' => ['studies', 'exam']],
-                ['title' => 'Réunion de service', 'description' => 'Vous présentez les résultats du mois à votre équipe et à votre responsable.', 'tags' => ['work']],
+                ['title' => 'Pitch devant des investisseurs', 'description' => 'Vous présentez votre projet de commerce en trois minutes à des investisseurs anglophones réunis à Lomé.', 'tags' => ['business', 'work']],
+                ['title' => 'Soutenance de fin d\'études', 'description' => 'Vous présentez votre mémoire à l\'université de Kara devant un jury et répondez à ses questions.', 'tags' => ['studies', 'exam']],
+                ['title' => 'Réunion de service', 'description' => 'Vous présentez les résultats du mois de votre agence de Lomé à votre équipe et à votre responsable anglophone.', 'tags' => ['work']],
             ],
         ],
 

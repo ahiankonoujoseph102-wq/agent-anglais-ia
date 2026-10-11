@@ -27,6 +27,7 @@ Le professeur est un **personnage animé en 3D** dans le navigateur, dont la bou
 - **Paiement manuel uniquement** : aucune API ni aucun prestataire de paiement en ligne. Coordonnées de paiement **uniquement** dans `config/payment.php`. Au Togo : « Mixx by Yas » et « Flooz », jamais « T-Money ».
 - **Interface entièrement en français**, **pensée d'abord pour le téléphone**, **légère en données** (pas de police web, pas de framework CSS, pas d'image inutile).
 - **Aucune clé secrète dans le code** : tout passe par `.env` (lu via `config/*.php`, jamais `env()` ailleurs que dans `config/`).
+- **Public d'abord togolais** : les situations du programme se passent au Togo (Grand Marché et port autonome de Lomé, zémidjans et taxis, universités de Lomé et de Kara, administration, accueil de visiteurs anglophones…). Le **Ghana** est le seul autre pays cité, comme voisin anglophone (frontière d'Aflao, achats et affaires à Accra). Les variétés de langue (anglais britannique, américain, du Ghana) peuvent être nommées pour la prononciation ; aucun autre pays. `tests/Unit/CurriculumTest.php` le vérifie.
 - **Vocabulaire imposé** : le document délivré après un bilan de niveau réussi est une **attestation** de niveau — jamais « certificat » ni « diplôme ».
 - **Nom commercial, formules, prix, durées et coordonnées du centre** : uniquement dans `config/platform.php`. Jamais en dur dans le code ou les vues → `config('platform.name')`, `App\Support\Plan::all()`, `config('platform.contact')`, etc.
 

@@ -113,11 +113,11 @@ class QuestionnaireTest extends TestCase
 
         $program = $user->activeProgram()->sole();
 
-        // Unité 1 du A1 : la situation « Un visiteur du Ghana » (commerce) passe en premier pour une commerçante.
+        // Unité 1 du A1 : la situation commerciale passe en premier pour une commerçante.
         $first = $program->programLessons()->where('unit_number', 1)->orderBy('lesson_number')->first();
         $first->setRelation('program', $program);
 
-        $this->assertSame('Un visiteur du Ghana', $first->situation()->title);
+        $this->assertSame('Un commerçant d\'Accra à la boutique', $first->situation()->title);
         $this->assertTrue($first->highlighted);
 
         // Chaque unité garde ses 3 situations, chacune une fois.

@@ -70,9 +70,9 @@ return [
                 'Faux ami : « to resume » = reprendre ; « résumer » = to sum up / summarise.',
             ],
             'situations' => [
-                ['title' => 'Réunion de projet', 'description' => 'Réunion avec des partenaires ghanéens sur un projet commun : prenez la parole, interrompez et faites le résumé.', 'tags' => ['work', 'business']],
-                ['title' => 'Téléconférence régionale', 'description' => 'Téléconférence avec les bureaux de Lagos et Accra : la connexion est mauvaise, gérez les échanges et clarifiez.', 'tags' => ['work', 'phone', 'tech']],
-                ['title' => "Conseil d'association", 'description' => "Vous présidez la réunion d'une association et devez faire respecter l'ordre du jour.", 'tags' => ['conversation', 'admin']],
+                ['title' => 'Réunion de projet', 'description' => 'Réunion à Lomé avec des partenaires d\'Accra sur un projet commun : prenez la parole, interrompez et faites le résumé.', 'tags' => ['work', 'business']],
+                ['title' => 'Visioconférence Lomé–Accra', 'description' => 'Visioconférence entre vos bureaux de Lomé et d\'Accra : la connexion est mauvaise, gérez les échanges et clarifiez.', 'tags' => ['work', 'phone', 'tech']],
+                ['title' => 'Conseil d\'association', 'description' => 'Vous présidez la réunion d\'une association d\'anciens élèves de Kara et devez faire respecter l\'ordre du jour.', 'tags' => ['conversation', 'admin']],
             ],
         ],
 
@@ -127,9 +127,9 @@ return [
                 '« We are agree on » ✗ → « We agree on » / « We have agreed on » ✓.',
             ],
             'situations' => [
-                ['title' => 'Contrat de distribution', 'description' => "Vous négociez avec une entreprise nigériane l'exclusivité de la distribution de ses produits au Togo et au Bénin.", 'tags' => ['business']],
-                ['title' => "Salaire à l'embauche", 'description' => 'On vous propose un poste : négociez votre salaire et vos avantages avec la responsable RH.', 'tags' => ['work']],
-                ['title' => "Location d'entrepôt", 'description' => "Négociez le loyer et la durée du bail d'un entrepôt avec un propriétaire ghanéen.", 'tags' => ['business', 'admin']],
+                ['title' => 'Contrat de distribution', 'description' => 'Vous négociez avec une entreprise d\'Accra l\'exclusivité de la distribution de ses produits au Togo.', 'tags' => ['business']],
+                ['title' => 'Salaire à l\'embauche', 'description' => 'Une entreprise du port autonome de Lomé vous propose un poste : négociez votre salaire et vos avantages en anglais.', 'tags' => ['work']],
+                ['title' => 'Location d\'entrepôt', 'description' => 'Vous négociez le loyer et la durée du bail d\'un entrepôt près du port avec un investisseur ghanéen.', 'tags' => ['business', 'admin']],
             ],
         ],
 
@@ -183,9 +183,9 @@ return [
                 "Faux ami : « a formation » ≠ formation → training ; « to form » ≠ former quelqu'un → to train.",
             ],
             'situations' => [
-                ['title' => 'Entretien de promotion', 'description' => 'Vous défendez votre candidature à un poste de responsable régional devant la direction.', 'tags' => ['work']],
-                ['title' => "Entretien d'évaluation", 'description' => 'Votre manager anglophone fait le bilan de votre année : résultats, difficultés, objectifs.', 'tags' => ['work']],
-                ['title' => 'Réseautage', 'description' => "Lors d'un événement professionnel à Accra, présentez votre parcours à une personne influente.", 'tags' => ['business', 'conversation']],
+                ['title' => 'Entretien de promotion', 'description' => 'Vous défendez votre candidature à un poste de responsable régional devant la direction anglophone de votre entreprise à Lomé.', 'tags' => ['work']],
+                ['title' => 'Entretien d\'évaluation', 'description' => 'Votre manager anglophone, en visite à Lomé, fait le bilan de votre année : résultats, difficultés, objectifs.', 'tags' => ['work']],
+                ['title' => 'Réseautage à Accra', 'description' => 'Lors d\'un événement professionnel à Accra, présentez votre parcours à une personne influente.', 'tags' => ['business', 'conversation']],
             ],
         ],
 
@@ -239,9 +239,9 @@ return [
                 'Evidence est indénombrable : « a piece of evidence », jamais « an evidence ».',
             ],
             'situations' => [
-                ['title' => 'Débat sur la fuite des cerveaux', 'description' => "Dans un débat universitaire, défendez ou critiquez l'idée que les jeunes diplômés devraient rester en Afrique.", 'tags' => ['studies', 'exam', 'conversation']],
-                ['title' => "Table ronde sur l'éducation", 'description' => "Vous participez à une table ronde sur l'enseignement de l'anglais dans les écoles francophones.", 'tags' => ['education', 'work']],
-                ['title' => 'Discussion entre amis', 'description' => "Un débat animé entre amis sur l'impact des réseaux sociaux sur la jeunesse.", 'tags' => ['conversation', 'family']],
+                ['title' => 'Débat sur l\'emploi des jeunes', 'description' => 'Dans un débat à l\'université de Lomé, défendez ou critiquez l\'idée que les jeunes qui sortent de l\'université devraient créer leur entreprise plutôt que chercher un emploi.', 'tags' => ['studies', 'exam', 'conversation']],
+                ['title' => 'Table ronde sur l\'éducation', 'description' => 'Vous participez à une table ronde sur l\'enseignement de l\'anglais dans les écoles togolaises.', 'tags' => ['education', 'work']],
+                ['title' => 'Discussion entre amis', 'description' => 'Un débat animé entre amis sur l\'impact des réseaux sociaux sur la jeunesse togolaise.', 'tags' => ['conversation', 'family']],
             ],
         ],
 
@@ -295,9 +295,9 @@ return [
                 "Faux ami : « a concurrent » n'existe pas en ce sens → competitor ; « concurrence » = competition.",
             ],
             'situations' => [
-                ['title' => 'Présenter sa marque', 'description' => "Vous présentez votre marque de jus local à un acheteur d'une chaîne de supermarchés ghanéenne.", 'tags' => ['business', 'market']],
-                ['title' => 'Réunion marketing', 'description' => 'Vous analysez les ventes du trimestre avec votre équipe et proposez une campagne WhatsApp.', 'tags' => ['work', 'business', 'tech']],
-                ['title' => 'Étude de cas', 'description' => "En école de commerce, vous analysez à l'oral la stratégie d'une entreprise africaine.", 'tags' => ['studies', 'exam']],
+                ['title' => 'Présenter sa marque', 'description' => 'Vous présentez votre marque de jus de fruits togolais à l\'acheteur d\'une chaîne de supermarchés d\'Accra.', 'tags' => ['business', 'market']],
+                ['title' => 'Réunion marketing', 'description' => 'Vous analysez les ventes du trimestre avec votre équipe à Lomé et proposez une campagne sur WhatsApp.', 'tags' => ['work', 'business', 'tech']],
+                ['title' => 'Étude de cas', 'description' => 'En école de commerce à Lomé, vous analysez à l\'oral la stratégie d\'une entreprise togolaise.', 'tags' => ['studies', 'exam']],
             ],
         ],
 
@@ -351,9 +351,9 @@ return [
                 "Faux ami : « to excuse oneself » = demander à partir ; « s'excuser » = to apologise.",
             ],
             'situations' => [
-                ['title' => "Bilan d'un projet raté", 'description' => 'Votre lancement de produit a échoué : analysez avec votre associé ce que vous auriez dû faire.', 'tags' => ['business', 'work']],
-                ['title' => 'Colis perdu', 'description' => "Un colis envoyé à Lagos n'est jamais arrivé : faites des hypothèses avec le transporteur.", 'tags' => ['transport', 'business', 'phone']],
-                ['title' => 'Conseils à un cadet', 'description' => 'Un jeune vous demande des conseils : racontez ce que vous auriez fait différemment à son âge.', 'tags' => ['family', 'conversation', 'studies']],
+                ['title' => 'Bilan d\'un projet raté', 'description' => 'Le lancement de votre produit au Grand Marché a échoué : analysez avec votre associé ce que vous auriez dû faire.', 'tags' => ['business', 'work']],
+                ['title' => 'Colis perdu', 'description' => 'Un colis envoyé à Accra n\'est jamais arrivé : faites des hypothèses avec le transporteur.', 'tags' => ['transport', 'business', 'phone']],
+                ['title' => 'Conseils à un cadet', 'description' => 'Un jeune de votre famille, étudiant à Kara, vous demande des conseils : racontez ce que vous auriez fait différemment à son âge.', 'tags' => ['family', 'conversation', 'studies']],
             ],
         ],
 
@@ -395,7 +395,7 @@ return [
                 "Passer du formel à l'amical : « Thanks a lot for your help — speak soon! »",
             ],
             'pronunciation' => [
-                'Dicter la ponctuation : comma, full stop (UK) / period (US), colon, dash, new paragraph.',
+                'Dicter la ponctuation : comma, full stop (anglais britannique) / period (anglais américain), colon, dash, new paragraph.',
                 'Lire une adresse e-mail : « k dot mensah at gmail dot com ».',
             ],
             'spoken' => [
@@ -407,9 +407,9 @@ return [
                 'Faux ami : « eventually » dans un e-mail ne signifie pas « éventuellement » : utilisez « if necessary » ou « possibly ».',
             ],
             'situations' => [
-                ['title' => 'Relance de paiement', 'description' => 'Vous dictez au professeur un e-mail de relance poli mais ferme pour un client nigérian en retard de paiement.', 'tags' => ['business', 'work']],
-                ['title' => 'Candidature par e-mail', 'description' => "Vous préparez l'e-mail qui accompagne votre CV pour un poste dans une ONG anglophone.", 'tags' => ['work']],
-                ['title' => 'Message à un professeur', 'description' => 'Vous rédigez un message formel à un enseignant pour demander un délai pour votre mémoire.', 'tags' => ['studies', 'education']],
+                ['title' => 'Relance de paiement', 'description' => 'Vous dictez au professeur un e-mail de relance poli mais ferme pour un client d\'Accra en retard de paiement.', 'tags' => ['business', 'work']],
+                ['title' => 'Candidature par e-mail', 'description' => 'Vous préparez l\'e-mail qui accompagne votre CV pour un poste dans une ONG anglophone installée à Lomé.', 'tags' => ['work']],
+                ['title' => 'Message à un professeur', 'description' => 'Vous rédigez un message formel à votre directeur de mémoire de l\'université de Lomé pour demander un délai.', 'tags' => ['studies', 'education']],
             ],
         ],
 
@@ -463,15 +463,15 @@ return [
                 "Faux ami : « a consultation » est une réunion d'avis ; une « consultation médicale » = an appointment / a check-up.",
             ],
             'situations' => [
-                ['title' => 'Campagne de vaccination', 'description' => "Vous expliquez à une famille anglophone le déroulement d'une campagne de vaccination.", 'tags' => ['health', 'family']],
-                ['title' => 'Accueil hospitalier', 'description' => "Vous êtes agent d'accueil : expliquez les étapes d'une hospitalisation à un patient ghanéen.", 'tags' => ['health', 'work', 'admin']],
-                ['title' => 'Rapport de mission', 'description' => "Vous présentez à un bailleur de fonds les résultats d'une campagne de sensibilisation.", 'tags' => ['work', 'health']],
+                ['title' => 'Campagne de vaccination', 'description' => 'Vous expliquez à une famille anglophone installée à Lomé le déroulement d\'une campagne de vaccination.', 'tags' => ['health', 'family']],
+                ['title' => 'Accueil hospitalier', 'description' => 'Vous êtes agent d\'accueil au CHU de Kara : expliquez les étapes d\'une hospitalisation à un patient ghanéen.', 'tags' => ['health', 'work', 'admin']],
+                ['title' => 'Rapport de mission', 'description' => 'Vous présentez à un bailleur de fonds anglophone les résultats d\'une campagne de sensibilisation dans la région des Savanes.', 'tags' => ['work', 'health']],
             ],
         ],
 
         // 9
         [
-            'title' => 'Technologie et innovation en Afrique',
+            'title' => 'Technologie et innovation au Togo',
             'objectives' => [
                 'décrire une innovation et son impact',
                 "expliquer le fonctionnement d'un service numérique",
@@ -507,7 +507,7 @@ return [
                 'Spéculer : « In ten years, AI is likely to change how farmers sell their crops. »',
             ],
             'pronunciation' => [
-                'Data : [ˈdeɪtə] (UK) ou [ˈdætə] (US) ; jamais « da-ta » à la française.',
+                'Data : [ˈdeɪtə] (anglais britannique) ou [ˈdætə] (anglais américain) ; jamais « da-ta » à la française.',
                 "Mots composés : l'accent est sur le premier élément — SMARTphone, START-up.",
             ],
             'spoken' => [
@@ -519,9 +519,9 @@ return [
                 'Faux ami : « a computer scientist » = informaticien ; « informatique » = IT / computing.',
             ],
             'situations' => [
-                ['title' => 'Présenter une application', 'description' => 'Vous présentez une application de paiement mobile à des commerçants anglophones et répondez à leurs craintes.', 'tags' => ['tech', 'business', 'market']],
-                ['title' => 'Conférence tech à Accra', 'description' => "Dans une conférence technologique, vous échangez avec un développeur ghanéen sur l'innovation locale.", 'tags' => ['tech', 'work', 'travel']],
-                ['title' => 'Débat en classe', 'description' => "Vous débattez de l'impact de l'intelligence artificielle sur l'emploi en Afrique.", 'tags' => ['studies', 'tech']],
+                ['title' => 'Présenter une application', 'description' => 'Vous présentez une application de paiement mobile à des commerçantes du Grand Marché et répondez à leurs craintes.', 'tags' => ['tech', 'business', 'market']],
+                ['title' => 'Conférence tech à Accra', 'description' => 'Dans une conférence technologique à Accra, vous échangez avec un développeur ghanéen sur l\'innovation au Togo.', 'tags' => ['tech', 'work', 'travel']],
+                ['title' => 'Débat en classe', 'description' => 'À l\'université de Lomé, vous débattez de l\'impact de l\'intelligence artificielle sur l\'emploi au Togo.', 'tags' => ['studies', 'tech']],
             ],
         ],
 
@@ -574,9 +574,9 @@ return [
                 "Faux ami : « to support » = soutenir ; « supporter quelqu'un » (le tolérer) = to put up with / to stand.",
             ],
             'situations' => [
-                ['title' => "Conflit dans l'équipe", 'description' => "Deux collègues ne s'entendent pas sur la répartition du travail : vous servez de médiateur.", 'tags' => ['work']],
-                ['title' => 'Client agressif', 'description' => 'Un client mécontent élève la voix au téléphone : calmez la situation et trouvez une solution.', 'tags' => ['business', 'phone']],
-                ['title' => 'Malentendu familial', 'description' => 'Un malentendu avec un parent vivant au Ghana : vous en parlez calmement pour le régler.', 'tags' => ['family', 'conversation']],
+                ['title' => 'Conflit dans l\'équipe', 'description' => 'Deux collègues de votre agence de Lomé ne s\'entendent pas sur la répartition du travail : vous servez de médiateur.', 'tags' => ['work']],
+                ['title' => 'Client agressif', 'description' => 'Un client d\'Accra mécontent élève la voix au téléphone : calmez la situation et trouvez une solution.', 'tags' => ['business', 'phone']],
+                ['title' => 'Malentendu familial', 'description' => 'Un malentendu avec un parent installé à Accra : vous en parlez calmement pour le régler.', 'tags' => ['family', 'conversation']],
             ],
         ],
 
@@ -630,9 +630,9 @@ return [
                 "Faux ami : « to resign a contract » n'existe pas : « résilier » = to terminate / cancel.",
             ],
             'situations' => [
-                ['title' => 'Créer une société au Ghana', 'description' => "Vous vous renseignez auprès d'un conseiller sur les démarches pour enregistrer votre entreprise à Accra.", 'tags' => ['business', 'admin', 'travel']],
-                ['title' => 'Litige de location', 'description' => 'Votre propriétaire refuse de rendre la caution : expliquez vos droits en vous appuyant sur le bail.', 'tags' => ['admin', 'conversation']],
-                ['title' => 'Contrat de travail', 'description' => 'Avant de signer, vous posez des questions précises sur les clauses de votre contrat de travail.', 'tags' => ['work', 'admin']],
+                ['title' => 'Créer une société au Ghana', 'description' => 'Vous vous renseignez auprès d\'un conseiller sur les démarches pour ouvrir une filiale de votre entreprise à Accra.', 'tags' => ['business', 'admin', 'travel']],
+                ['title' => 'Litige de location', 'description' => 'Votre propriétaire à Lomé refuse de rendre la caution : expliquez vos droits à un avocat anglophone en vous appuyant sur le bail.', 'tags' => ['admin', 'conversation']],
+                ['title' => 'Contrat de travail', 'description' => 'Avant de signer avec une entreprise anglophone de Lomé, vous posez des questions précises sur les clauses de votre contrat.', 'tags' => ['work', 'admin']],
             ],
         ],
 
@@ -685,9 +685,9 @@ return [
                 'Faux ami : « to realise » ≠ réaliser une présentation → to give / deliver a presentation.',
             ],
             'situations' => [
-                ['title' => 'Convaincre un bailleur', 'description' => 'Vous présentez un projet agricole à un bailleur de fonds international et répondez à ses objections.', 'tags' => ['business', 'work']],
-                ['title' => 'Concours de pitch', 'description' => 'Concours de jeunes entrepreneurs à Lagos : vous avez cinq minutes pour convaincre le jury.', 'tags' => ['business', 'travel', 'exam']],
-                ['title' => 'Proposition à la direction', 'description' => "Vous proposez à votre direction d'adopter un nouvel outil de gestion et vous défendez le budget.", 'tags' => ['work', 'tech']],
+                ['title' => 'Convaincre un bailleur', 'description' => 'Vous présentez un projet agricole de la région des Plateaux à un bailleur de fonds international et répondez à ses objections.', 'tags' => ['business', 'work']],
+                ['title' => 'Concours de pitch', 'description' => 'Concours de jeunes entrepreneurs à Lomé : vous avez cinq minutes pour convaincre un jury anglophone.', 'tags' => ['business', 'exam']],
+                ['title' => 'Proposition à la direction', 'description' => 'Vous proposez à la direction de votre entreprise à Lomé d\'adopter un nouvel outil de gestion et vous défendez le budget.', 'tags' => ['work', 'tech']],
             ],
         ],
 

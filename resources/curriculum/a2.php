@@ -69,9 +69,9 @@ return [
                 'Le passé composé français ne se traduit pas par have + participe quand le moment est précis : « I have seen him yesterday » ✗ → « I saw him yesterday » ✓.',
             ],
             'situations' => [
-                ['title' => 'Rapport au chef', 'description' => 'Votre responsable vous demande ce que vous avez fait hier pendant la journée de travail.', 'tags' => ['work']],
-                ['title' => 'Retour de Kumasi', 'description' => 'Vous racontez à un ami anglophone votre journée au marché de Kumasi, au Ghana.', 'tags' => ['travel', 'market', 'conversation']],
-                ['title' => 'Absent au cours', 'description' => "Un camarade de classe vous demande pourquoi vous étiez absent hier ; expliquez ce qui s'est passé.", 'tags' => ['studies', 'education']],
+                ['title' => 'Rapport au chef', 'description' => 'Votre responsable anglophone vous demande ce que vous avez fait hier pendant votre journée au port de Lomé.', 'tags' => ['work']],
+                ['title' => 'Retour d\'Accra', 'description' => 'Vous racontez à un ami votre journée d\'achats au marché de Makola, à Accra.', 'tags' => ['travel', 'market', 'conversation']],
+                ['title' => 'Absent au cours', 'description' => 'Un camarade de l\'université de Lomé vous demande pourquoi vous étiez absent hier ; expliquez ce qui s\'est passé.', 'tags' => ['studies', 'education']],
             ],
         ],
 
@@ -125,9 +125,9 @@ return [
                 '« I was very amused » ✗ (amusé par une blague) → « I had a lot of fun » ✓.',
             ],
             'situations' => [
-                ['title' => 'Raconter le mariage', 'description' => 'Vous racontez à une collègue nigériane le mariage traditionnel auquel vous êtes allé le week-end dernier.', 'tags' => ['family', 'conversation', 'work']],
-                ['title' => 'Présenter une fête nationale', 'description' => "Un visiteur étranger vous demande comment on fête l'indépendance ou une fête religieuse dans votre pays.", 'tags' => ['conversation', 'travel']],
-                ['title' => 'Message de félicitations', 'description' => "Vous laissez un message vocal WhatsApp à un partenaire d'affaires pour féliciter sa famille d'une naissance.", 'tags' => ['phone', 'business']],
+                ['title' => 'Raconter un mariage traditionnel', 'description' => 'Vous racontez à une collègue ghanéenne le mariage traditionnel auquel vous êtes allé le week-end dernier à Kpalimé.', 'tags' => ['family', 'conversation', 'work']],
+                ['title' => 'Présenter une fête togolaise', 'description' => 'Un visiteur anglophone vous demande comment on fête l\'Indépendance du 27 avril ou une fête religieuse au Togo.', 'tags' => ['conversation', 'travel']],
+                ['title' => 'Message de félicitations', 'description' => 'Vous laissez un message vocal WhatsApp à un partenaire d\'affaires d\'Accra pour féliciter sa famille d\'une naissance.', 'tags' => ['phone', 'business']],
             ],
         ],
 
@@ -181,9 +181,9 @@ return [
                 '« Than » et non « that » après un comparatif : « bigger than », pas « bigger that ».',
             ],
             'situations' => [
-                ['title' => 'Acheter un téléphone', 'description' => 'Dans une boutique de téléphones, comparez deux modèles avec le vendeur et choisissez.', 'tags' => ['market', 'phone', 'tech']],
-                ['title' => 'Fournisseurs', 'description' => 'Vous comparez au téléphone les prix et la qualité de deux fournisseurs de tissu au Nigeria.', 'tags' => ['business', 'phone']],
-                ['title' => 'Choisir une université', 'description' => 'Avec un conseiller, comparez deux universités anglophones (coût, distance, réputation).', 'tags' => ['studies', 'education']],
+                ['title' => 'Acheter un téléphone', 'description' => 'Dans une boutique de téléphones du Grand Marché, comparez deux modèles avec le vendeur et choisissez.', 'tags' => ['market', 'phone', 'tech']],
+                ['title' => 'Comparer deux fournisseurs', 'description' => 'Vous comparez au téléphone les prix et la qualité de deux fournisseurs de tissu, l\'un à Lomé, l\'autre à Accra.', 'tags' => ['business', 'phone']],
+                ['title' => 'Choisir son université', 'description' => 'Avec un conseiller, comparez l\'université de Lomé et celle de Kara pour un programme en anglais : coût, distance, cours.', 'tags' => ['studies', 'education']],
             ],
         ],
 
@@ -236,9 +236,9 @@ return [
                 'Faux ami : « un portable » = a mobile phone / cell phone ; « a portable » est un adjectif (transportable).',
             ],
             'situations' => [
-                ['title' => 'Appeler un client à Accra', 'description' => 'Vous appelez un client pour confirmer une livraison ; la secrétaire prend un message.', 'tags' => ['business', 'phone', 'work']],
-                ['title' => 'Message vocal WhatsApp', 'description' => 'Vous laissez un message vocal à un ami nigérian pour fixer un rendez-vous.', 'tags' => ['phone', 'conversation']],
-                ['title' => 'Service client', 'description' => "Votre forfait internet ne marche pas : appelez le service client d'un opérateur anglophone.", 'tags' => ['phone', 'tech']],
+                ['title' => 'Appeler un client à Accra', 'description' => 'Vous appelez un client d\'Accra pour confirmer une livraison ; sa secrétaire prend un message.', 'tags' => ['business', 'phone', 'work']],
+                ['title' => 'Message vocal WhatsApp', 'description' => 'Vous laissez un message vocal à un ami ghanéen pour fixer un rendez-vous à Lomé.', 'tags' => ['phone', 'conversation']],
+                ['title' => 'Service client', 'description' => 'Votre forfait internet ne marche pas pendant un séjour à Accra : vous expliquez le problème à un conseiller du service client.', 'tags' => ['phone', 'tech']],
             ],
         ],
 
@@ -285,16 +285,16 @@ return [
             ],
             'spoken' => [
                 "« How long's the journey? » = combien de temps dure le trajet ?",
-                'Au Ghana, « chale » = mon ami (familier, pidgin local).',
+                'Au Ghana, « chale » = mon ami (très familier, on l\'entend à Accra).',
             ],
             'pitfalls' => [
                 'Luggage est indénombrable : « my luggage is heavy », jamais « luggages ».',
                 'Faux ami : « journey » = trajet, voyage ; « journée » = day.',
             ],
             'situations' => [
-                ['title' => 'À la gare routière de Lomé', 'description' => "Achetez un billet pour Accra, demandez l'heure de départ, la durée et le prix des bagages.", 'tags' => ['travel', 'transport']],
-                ['title' => "Poste frontière d'Aflao", 'description' => "L'agent ghanéen vous demande le motif de votre séjour, votre adresse et ce que vous transportez.", 'tags' => ['travel', 'admin', 'business']],
-                ['title' => 'Bureau de change', 'description' => 'Vous changez des francs CFA en cédis et vérifiez le taux et la somme reçue.', 'tags' => ['travel', 'business']],
+                ['title' => 'À la gare routière de Lomé', 'description' => 'Achetez un billet pour Accra, demandez l\'heure de départ, la durée et le prix des bagages.', 'tags' => ['travel', 'transport']],
+                ['title' => 'Poste frontière d\'Aflao', 'description' => 'L\'agent ghanéen de la frontière d\'Aflao vous demande le motif de votre séjour, votre adresse et ce que vous transportez.', 'tags' => ['travel', 'admin', 'business']],
+                ['title' => 'Bureau de change', 'description' => 'Avant de passer à Aflao, vous changez des francs CFA en cédis et vérifiez le taux et la somme reçue.', 'tags' => ['travel', 'business']],
             ],
         ],
 
@@ -347,9 +347,9 @@ return [
                 'Faux ami : « a starter » = une entrée ; « an entry » = une inscription, un accès.',
             ],
             'situations' => [
-                ['title' => "Arrivée à l'hôtel à Abuja", 'description' => "Vous faites le check-in pour un séminaire et demandez le code Wi-Fi et l'heure du petit-déjeuner.", 'tags' => ['travel', 'work']],
-                ['title' => 'Un problème dans la chambre', 'description' => 'La climatisation ne marche pas et la chambre est bruyante : réclamez poliment à la réception.', 'tags' => ['travel']],
-                ['title' => "Dîner d'affaires", 'description' => "Au restaurant avec un partenaire, commandez, réglez une erreur de commande et demandez l'addition.", 'tags' => ['business']],
+                ['title' => 'Arrivée à l\'hôtel à Accra', 'description' => 'Vous faites le check-in à Accra pour un séminaire et demandez le code Wi-Fi et l\'heure du petit-déjeuner.', 'tags' => ['travel', 'work']],
+                ['title' => 'Réclamation d\'un client à Lomé', 'description' => 'Vous êtes réceptionniste à Lomé : un client anglophone se plaint que la climatisation ne marche pas.', 'tags' => ['work', 'travel']],
+                ['title' => 'Dîner d\'affaires', 'description' => 'Dans un restaurant de Lomé avec un partenaire ghanéen, commandez, réglez une erreur de commande et demandez l\'addition.', 'tags' => ['business']],
             ],
         ],
 
@@ -403,9 +403,9 @@ return [
                 'Faux ami : « une ordonnance » = a prescription ; « an ordinance » est un règlement municipal.',
             ],
             'situations' => [
-                ['title' => 'Consultation à Lagos', 'description' => 'Expliquez vos symptômes de paludisme à un médecin et comprenez son traitement.', 'tags' => ['health', 'travel']],
-                ['title' => 'Infirmier et patient', 'description' => 'Vous êtes infirmier : interrogez un patient anglophone sur ses symptômes et ses allergies.', 'tags' => ['health', 'work']],
-                ['title' => 'Déplacer un rendez-vous', 'description' => 'Appelez la clinique pour reporter le rendez-vous de votre mère.', 'tags' => ['health', 'phone', 'family']],
+                ['title' => 'Consultation à Accra', 'description' => 'En voyage à Accra, vous expliquez vos symptômes de paludisme à un médecin et comprenez son traitement.', 'tags' => ['health', 'travel']],
+                ['title' => 'Infirmier et patient', 'description' => 'Vous êtes infirmier au CHU Sylvanus Olympio : interrogez un patient anglophone sur ses symptômes et ses allergies.', 'tags' => ['health', 'work']],
+                ['title' => 'Déplacer un rendez-vous', 'description' => 'Appelez une clinique de Lomé pour reporter le rendez-vous de votre mère avec un médecin anglophone.', 'tags' => ['health', 'phone', 'family']],
             ],
         ],
 
@@ -459,9 +459,9 @@ return [
                 'Faux ami : « a lecture » est un cours magistral ; « la lecture » = reading.',
             ],
             'situations' => [
-                ['title' => "Inscription de l'enfant", 'description' => "À l'école internationale, demandez les frais, l'uniforme et l'emploi du temps pour votre enfant.", 'tags' => ['education', 'family', 'admin']],
-                ['title' => 'Entretien de bourse', 'description' => 'Vous présentez vos études et vos résultats à un jury de bourse anglophone.', 'tags' => ['studies', 'exam']],
-                ['title' => 'Premier cours', 'description' => 'Vous êtes enseignant et expliquez les règles de la classe à de nouveaux élèves anglophones.', 'tags' => ['education', 'work']],
+                ['title' => 'Inscription à l\'école bilingue', 'description' => 'Dans une école bilingue de Lomé, demandez les frais, l\'uniforme et l\'emploi du temps pour votre enfant.', 'tags' => ['education', 'family', 'admin']],
+                ['title' => 'Entretien de bourse', 'description' => 'Vous présentez vos études à l\'université de Lomé à un jury de bourse anglophone.', 'tags' => ['studies', 'exam']],
+                ['title' => 'Premier cours', 'description' => 'Vous êtes enseignant à Kara et expliquez les règles de la classe à de nouveaux élèves anglophones.', 'tags' => ['education', 'work']],
             ],
         ],
 
@@ -514,9 +514,9 @@ return [
                 'Faux ami : « actually » = en fait ; « actuellement » = currently.',
             ],
             'situations' => [
-                ['title' => 'Premier entretien', 'description' => "Un recruteur d'une ONG anglophone vous pose les questions classiques d'un premier entretien.", 'tags' => ['work', 'exam']],
-                ['title' => 'Appeler pour une annonce', 'description' => 'Vous appelez pour vous renseigner sur une offre de chauffeur-livreur à temps partiel.', 'tags' => ['work', 'phone', 'transport']],
-                ['title' => "Stage à l'étranger", 'description' => "Vous présentez votre parcours d'étudiant pour obtenir un stage dans une entreprise ghanéenne.", 'tags' => ['studies', 'work']],
+                ['title' => 'Premier entretien', 'description' => 'Le recruteur d\'une ONG installée à Lomé vous pose les questions classiques d\'un premier entretien.', 'tags' => ['work', 'exam']],
+                ['title' => 'Appeler pour une annonce', 'description' => 'Vous appelez pour vous renseigner sur une offre de chauffeur-livreur à temps partiel dans une entreprise de Lomé.', 'tags' => ['work', 'phone', 'transport']],
+                ['title' => 'Stage à Accra', 'description' => 'Vous présentez votre parcours d\'étudiant pour obtenir un stage dans une entreprise d\'Accra.', 'tags' => ['studies', 'work']],
             ],
         ],
 
@@ -569,9 +569,9 @@ return [
                 '« He is like his father » (caractère) vs « He looks like his father » (physique).',
             ],
             'situations' => [
-                ['title' => "Accueillir à l'aéroport", 'description' => "Vous devez accueillir un collègue que vous n'avez jamais vu : décrivez-vous au téléphone pour vous reconnaître.", 'tags' => ['travel', 'work', 'phone']],
-                ['title' => 'Recommander un employé', 'description' => "Votre partenaire cherche un vendeur : décrivez le caractère d'une personne que vous recommandez.", 'tags' => ['business', 'work']],
-                ['title' => 'Parler de ses proches', 'description' => 'Vous décrivez vos frères et sœurs à un ami : physique et caractère, en les comparant.', 'tags' => ['family', 'conversation']],
+                ['title' => 'Accueillir à l\'aéroport de Lomé', 'description' => 'Vous devez accueillir à l\'aéroport un collègue d\'Accra que vous n\'avez jamais vu : décrivez-vous au téléphone pour vous reconnaître.', 'tags' => ['travel', 'work', 'phone']],
+                ['title' => 'Recommander un employé', 'description' => 'Votre partenaire ghanéen cherche un vendeur pour sa boutique de Lomé : décrivez le caractère d\'une personne que vous recommandez.', 'tags' => ['business', 'work']],
+                ['title' => 'Parler de ses proches', 'description' => 'Vous décrivez vos frères et sœurs, restés à Kara, à un ami anglophone : physique et caractère, en les comparant.', 'tags' => ['family', 'conversation']],
             ],
         ],
 
@@ -625,9 +625,9 @@ return [
                 "Faux ami : « a formulary » n'existe pas au sens de formulaire : dites a form.",
             ],
             'situations' => [
-                ['title' => "Envoyer de l'argent", 'description' => "Dans une agence de transfert, envoyez de l'argent à un proche au Nigeria et demandez les frais.", 'tags' => ['admin', 'family', 'business']],
-                ['title' => 'Ouvrir un compte professionnel', 'description' => 'Vous ouvrez un compte pour votre entreprise dans une banque anglophone : documents à fournir.', 'tags' => ['business', 'admin']],
-                ['title' => 'Demande de visa', 'description' => "À l'ambassade, un agent vous aide à remplir le formulaire de visa en vous posant les questions.", 'tags' => ['admin', 'travel']],
+                ['title' => 'Envoyer de l\'argent', 'description' => 'Dans une agence de transfert de Lomé, envoyez de l\'argent à un proche à Accra et demandez les frais.', 'tags' => ['admin', 'family', 'business']],
+                ['title' => 'Ouvrir un compte professionnel', 'description' => 'Vous ouvrez un compte pour votre entreprise dans une banque de Lomé qui travaille en anglais : documents à fournir.', 'tags' => ['business', 'admin']],
+                ['title' => 'Permis de séjour d\'un collègue', 'description' => 'Vous aidez un collègue ghanéen à comprendre les documents à fournir pour sa carte de séjour au Togo.', 'tags' => ['admin', 'work']],
             ],
         ],
 
@@ -680,9 +680,9 @@ return [
                 'Faux ami : « eventually » = finalement, à terme ; « éventuellement » = possibly.',
             ],
             'situations' => [
-                ['title' => "Projet d'entreprise", 'description' => 'Vous présentez à un investisseur vos projets pour votre commerce dans les cinq prochaines années.', 'tags' => ['business', 'work']],
-                ['title' => 'Après le diplôme', 'description' => 'Un ami vous demande ce que vous allez faire après vos études : travail, voyage, master.', 'tags' => ['studies', 'conversation']],
-                ['title' => 'Promesse à un client', 'description' => 'Un client mécontent attend sa commande : rassurez-le et promettez une date de livraison.', 'tags' => ['business', 'phone']],
+                ['title' => 'Projet d\'entreprise', 'description' => 'Vous présentez à un investisseur anglophone vos projets pour votre commerce à Lomé dans les cinq prochaines années.', 'tags' => ['business', 'work']],
+                ['title' => 'Après la licence à Kara', 'description' => 'Un ami vous demande ce que vous allez faire après vos études à l\'université de Kara : travail, voyage, master.', 'tags' => ['studies', 'conversation']],
+                ['title' => 'Promesse à un client', 'description' => 'Un client d\'Accra attend sa commande : rassurez-le et promettez une date de livraison.', 'tags' => ['business', 'phone']],
             ],
         ],
 

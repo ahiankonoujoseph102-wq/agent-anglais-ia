@@ -52,7 +52,7 @@ return [
                 'excuse me' => 'excusez-moi',
             ],
             'grammar' => [
-                'Le verbe to be au présent : I am, you are, he/she is (« I am Kofi », « She is from Benin »).',
+                'Le verbe to be au présent : I am, you are, he/she is (« I am Kofi », « She is from Kara »).',
                 'Les pronoms personnels sujets : I, you, he, she, we, they.',
                 "Les questions avec what et where : « What's your name? », « Where are you from? ».",
             ],
@@ -74,9 +74,9 @@ return [
                 "« Excuse me » sert à attirer l'attention ; pour s'excuser d'une erreur, on dit « Sorry ».",
             ],
             'situations' => [
-                ['title' => 'Premier jour de formation', 'description' => 'Vous arrivez dans une formation à Lomé. Saluez le formateur et présentez-vous à votre voisin : nom, pays, ville.', 'tags' => ['studies', 'education', 'work']],
-                ['title' => 'Un visiteur du Ghana', 'description' => "Un commerçant d'Accra entre dans votre boutique. Saluez-le, demandez son nom et d'où il vient, présentez-vous.", 'tags' => ['business', 'market', 'conversation']],
-                ['title' => 'Rencontre à un mariage', 'description' => 'À un mariage, vous rencontrez un cousin anglophone de la mariée. Faites connaissance poliment.', 'tags' => ['family', 'conversation']],
+                ['title' => 'Premier jour à l\'université de Lomé', 'description' => 'À la rentrée, un enseignant invité anglophone salue les étudiants de votre amphi. Saluez-le et présentez-vous : nom, ville d\'origine, quartier.', 'tags' => ['studies', 'education']],
+                ['title' => 'Un commerçant d\'Accra à la boutique', 'description' => 'Un commerçant venu d\'Accra entre dans votre boutique du quartier Bè. Saluez-le, demandez son nom et d\'où il vient, présentez-vous.', 'tags' => ['business', 'market', 'conversation']],
+                ['title' => 'Accueil d\'un visiteur à l\'hôtel', 'description' => 'Vous travaillez à la réception d\'un hôtel du boulevard du Mono. Accueillez un visiteur anglophone qui arrive à Lomé et présentez-vous.', 'tags' => ['work', 'travel', 'conversation']],
             ],
         ],
 
@@ -125,17 +125,17 @@ return [
                 "Le « s » final de brothers, sisters, parents se prononce : c'est la marque du pluriel.",
             ],
             'spoken' => [
-                "« I've got » est plus courant à l'oral britannique que « I have ».",
-                '« Mum » (Royaume-Uni, Ghana, Nigeria) et « Mom » (États-Unis) : les deux existent.',
+                "« I've got » est très courant à l'oral, plus que « I have » ; au Ghana, on l'entend partout.",
+                '« Mum » (anglais britannique, utilisé au Ghana) et « Mom » (anglais américain) : les deux existent.',
             ],
             'pitfalls' => [
                 "His / her dépend du possesseur, pas de l'objet : « Kofi and his mother » (pas « her mother »).",
                 'Parents veut dire père et mère seulement ; pour toute la famille élargie, dites relatives.',
             ],
             'situations' => [
-                ['title' => 'La photo de famille', 'description' => 'Vous montrez une photo de famille sur votre téléphone à un collègue anglophone. Présentez chaque personne.', 'tags' => ['family', 'phone', 'conversation']],
-                ['title' => "Formulaire à l'ambassade", 'description' => 'Un agent vous pose des questions sur votre situation familiale : marié(e), enfants, âge des enfants.', 'tags' => ['admin', 'travel']],
-                ['title' => 'Pause au bureau', 'description' => 'Pendant la pause, une collègue nigériane vous parle de ses enfants. Posez-lui des questions et parlez des vôtres.', 'tags' => ['work', 'conversation']],
+                ['title' => 'La photo de famille sur WhatsApp', 'description' => 'Une collègue ghanéenne vous demande de lui montrer les photos de votre famille sur WhatsApp. Présentez chaque personne.', 'tags' => ['family', 'phone', 'conversation']],
+                ['title' => 'Famille d\'accueil à Lomé', 'description' => 'Vous accueillez chez vous, à Agoè, un jeune volontaire anglophone. Présentez-lui les membres de la famille.', 'tags' => ['family', 'conversation', 'travel']],
+                ['title' => 'Pause au bureau', 'description' => 'Pendant la pause, un collègue ghanéen de votre entreprise à Lomé vous parle de ses enfants. Posez-lui des questions et parlez des vôtres.', 'tags' => ['work', 'conversation']],
             ],
         ],
 
@@ -182,16 +182,16 @@ return [
             ],
             'spoken' => [
                 'On dit souvent « oh » au lieu de « zero » dans un numéro de téléphone.',
-                '« Double five » = 55 dans un numéro ; aux États-Unis on dit plutôt « five five ».',
+                '« Double five » = 55 dans un numéro ; en anglais américain on dit plutôt « five five ».',
             ],
             'pitfalls' => [
                 "« I have 30 years » est une traduction du français : dites « I'm thirty ».",
                 'Les lettres E et I sont inversées par rapport au français : E se dit « i », I se dit « aï ».',
             ],
             'situations' => [
-                ['title' => 'Échanger les numéros', 'description' => 'Après une réunion, un partenaire ghanéen vous demande votre numéro WhatsApp. Dictez-le et notez le sien.', 'tags' => ['phone', 'business', 'work']],
-                ['title' => "Inscription à l'école", 'description' => "À l'accueil d'une école anglophone, vous épelez votre nom et donnez l'âge de votre enfant.", 'tags' => ['education', 'admin', 'family']],
-                ['title' => "Le standard de l'hôpital", 'description' => 'Vous appelez un hôpital à Accra pour un proche : épelez son nom et laissez votre numéro.', 'tags' => ['health', 'phone']],
+                ['title' => 'Échanger les numéros au port', 'description' => 'Après une réunion au port autonome de Lomé, un transitaire ghanéen vous demande votre numéro WhatsApp. Dictez-le et notez le sien.', 'tags' => ['phone', 'business', 'work']],
+                ['title' => 'Inscription à l\'école internationale', 'description' => 'À l\'accueil d\'une école bilingue de Lomé, vous épelez votre nom et donnez l\'âge et la classe de votre enfant.', 'tags' => ['education', 'admin', 'family']],
+                ['title' => 'Le standard de la clinique', 'description' => 'Vous appelez une clinique de Lomé où un médecin anglophone consulte : épelez le nom d\'un proche et laissez votre numéro.', 'tags' => ['health', 'phone']],
             ],
         ],
 
@@ -248,9 +248,9 @@ return [
                 'Faux ami : « monnaie » (pièces à rendre) se dit change, pas money.',
             ],
             'situations' => [
-                ['title' => "Au marché d'Adawlato", 'description' => 'Un touriste anglophone veut acheter des tomates et du poisson à votre étal. Donnez les prix et négociez.', 'tags' => ['market', 'business']],
-                ['title' => 'Faire ses courses à Accra', 'description' => 'En voyage au Ghana, vous achetez du riz et des oignons au marché de Makola. Demandez les prix et négociez.', 'tags' => ['travel', 'market']],
-                ['title' => 'Commande pour la boutique', 'description' => "Vous appelez un grossiste nigérian pour connaître les prix d'un sac de riz et d'un carton d'huile.", 'tags' => ['business', 'phone']],
+                ['title' => 'Au Grand Marché de Lomé', 'description' => 'Une touriste anglophone veut acheter du pagne et des tomates à votre étal du Grand Marché. Donnez les prix et négociez.', 'tags' => ['market', 'business']],
+                ['title' => 'Faire ses courses à Accra', 'description' => 'En voyage à Accra, vous achetez du riz et des oignons au marché de Makola. Demandez les prix en cédis et négociez.', 'tags' => ['travel', 'market']],
+                ['title' => 'Commande au grossiste', 'description' => 'Vous appelez un grossiste d\'Accra pour connaître le prix d\'un sac de riz et d\'un carton d\'huile livrés à Lomé.', 'tags' => ['business', 'phone']],
             ],
         ],
 
@@ -305,9 +305,9 @@ return [
                 'Room est une pièce en général ; la chambre à coucher se dit bedroom.',
             ],
             'situations' => [
-                ['title' => 'Louer une chambre', 'description' => 'Un étudiant nigérian cherche une chambre à louer à Cotonou. Décrivez votre logement et le quartier.', 'tags' => ['business', 'studies']],
-                ['title' => 'Accueillir un collègue', 'description' => 'Un collègue anglophone vient dîner chez vous. Expliquez-lui où se trouve votre maison par rapport à des repères.', 'tags' => ['work', 'conversation', 'family']],
-                ['title' => 'Hôtel à Lagos', 'description' => "Vous arrivez à l'hôtel. Demandez s'il y a une pharmacie, un distributeur et une mosquée ou une église près de l'hôtel.", 'tags' => ['travel', 'health']],
+                ['title' => 'Louer une chambre près du campus', 'description' => 'Un étudiant ghanéen cherche une chambre à louer près de l\'université de Lomé. Décrivez la chambre et le quartier.', 'tags' => ['business', 'studies']],
+                ['title' => 'Accueillir un collègue', 'description' => 'Un collègue anglophone vient dîner chez vous à Hédzranawoé. Expliquez-lui où se trouve la maison à partir du carrefour le plus proche.', 'tags' => ['work', 'conversation', 'family']],
+                ['title' => 'Le quartier de l\'hôtel', 'description' => 'Un client anglophone d\'un hôtel de Lomé vous demande s\'il y a une pharmacie, un distributeur et une église près de l\'hôtel.', 'tags' => ['travel', 'health', 'work']],
             ],
         ],
 
@@ -362,9 +362,9 @@ return [
                 "« Half past seven » = 7 h 30 (pas 6 h 30 comme l'allemand « halb sieben »).",
             ],
             'situations' => [
-                ['title' => 'Entretien pour un petit emploi', 'description' => 'Un recruteur vous demande à quelle heure vous pouvez commencer et comment se passe votre journée.', 'tags' => ['work']],
-                ['title' => "Emploi du temps de l'étudiant", 'description' => "Un ami étudiant anglophone vous compare sa journée à l'université avec la vôtre.", 'tags' => ['studies', 'conversation']],
-                ['title' => 'Rendez-vous téléphonique', 'description' => 'Un client veut passer à votre boutique : fixez une heure qui convient aux deux.', 'tags' => ['business', 'phone']],
+                ['title' => 'Entretien pour un petit emploi', 'description' => 'Le gérant anglophone d\'un restaurant de Lomé vous demande à quelle heure vous pouvez commencer et comment se passe votre journée.', 'tags' => ['work']],
+                ['title' => 'Emploi du temps à l\'université de Kara', 'description' => 'Un étudiant ghanéen en échange à l\'université de Kara compare sa journée de cours avec la vôtre.', 'tags' => ['studies', 'conversation']],
+                ['title' => 'Rendez-vous téléphonique', 'description' => 'Un client d\'Accra veut passer à votre boutique pendant son séjour à Lomé : fixez une heure qui convient aux deux.', 'tags' => ['business', 'phone']],
             ],
         ],
 
@@ -412,16 +412,16 @@ return [
             ],
             'spoken' => [
                 "« I'm starving! » = je meurs de faim (exagération courante).",
-                '« Can I get…? » est très utilisé (surtout aux États-Unis) pour commander.',
+                '« Can I get…? » est très utilisé (surtout en anglais américain) pour commander.',
             ],
             'pitfalls' => [
                 "On n'« a » pas faim en anglais, on « est » : « I'm hungry » (pas « I have hunger »).",
                 "« I would like a coffee » : ne dites pas « I want » au serveur, c'est trop direct.",
             ],
             'situations' => [
-                ['title' => 'Au maquis avec un client', 'description' => 'Vous invitez un client ghanéen dans un maquis. Expliquez-lui les plats et commandez pour vous deux.', 'tags' => ['business', 'conversation']],
-                ['title' => 'Restaurant à Accra', 'description' => 'En voyage, vous lisez la carte, posez des questions sur les plats et commandez.', 'tags' => ['travel']],
-                ['title' => 'Recevoir à la maison', 'description' => 'Une amie anglophone vient chez vous. Proposez-lui à boire et à manger et parlez de vos plats préférés.', 'tags' => ['family', 'conversation']],
+                ['title' => 'Au maquis avec un client', 'description' => 'Vous invitez un client ghanéen dans un maquis de Lomé. Expliquez-lui l\'akoumé, le fufu et le poisson braisé, et commandez pour vous deux.', 'tags' => ['business', 'conversation']],
+                ['title' => 'Restaurant à Accra', 'description' => 'En voyage à Accra, vous lisez la carte, posez des questions sur les plats et commandez.', 'tags' => ['travel']],
+                ['title' => 'Recevoir à la maison', 'description' => 'Une amie anglophone vient chez vous. Proposez-lui à boire et à manger et parlez de vos plats togolais préférés.', 'tags' => ['family', 'conversation']],
             ],
         ],
 
@@ -439,7 +439,7 @@ return [
                 'traffic lights' => 'feux de circulation',
                 'bus station' => 'gare routière',
                 'taxi' => 'taxi',
-                'motorbike taxi' => 'taxi-moto (zémidjan, okada)',
+                'motorbike taxi' => 'taxi-moto (zémidjan)',
                 'turn left / right' => 'tournez à gauche / à droite',
                 'go straight on' => 'allez tout droit',
                 'stop here' => 'arrêtez-vous ici',
@@ -466,7 +466,7 @@ return [
                 'Straight [streɪt] : le « gh » ne se prononce pas.',
             ],
             'spoken' => [
-                '« Drop me here » / « Drop me at the junction » : très courant au Ghana et au Nigeria.',
+                '« Drop me here » / « Drop me at the junction » : très courant au Ghana, et utile avec les visiteurs à Lomé.',
                 "« It's about five minutes' walk » = c'est à environ cinq minutes à pied.",
             ],
             'pitfalls' => [
@@ -474,9 +474,9 @@ return [
                 "Faux ami : « car » en anglais = voiture ; l'autocar se dit coach ou bus.",
             ],
             'situations' => [
-                ['title' => 'Un touriste perdu', 'description' => 'Un touriste anglophone cherche le marché des féticheurs à Lomé. Indiquez-lui le chemin depuis le rond-point.', 'tags' => ['conversation', 'travel']],
-                ['title' => 'Taxi à Lagos', 'description' => "À la sortie de l'aéroport de Lagos, vous négociez le prix d'un taxi jusqu'à votre hôtel.", 'tags' => ['travel', 'transport']],
-                ['title' => 'Livraison client', 'description' => "Vous êtes livreur ; un client au téléphone vous guide jusqu'à sa maison.", 'tags' => ['transport', 'work', 'phone']],
+                ['title' => 'Un touriste perdu à Lomé', 'description' => 'Un touriste anglophone cherche le marché des féticheurs d\'Akodessewa. Indiquez-lui le chemin depuis le rond-point du port.', 'tags' => ['conversation', 'travel']],
+                ['title' => 'Zémidjan pour l\'aéroport', 'description' => 'Un visiteur anglophone doit aller de Tokoin à l\'aéroport de Lomé. Aidez-le à négocier le prix avec un conducteur de zémidjan.', 'tags' => ['transport', 'travel']],
+                ['title' => 'Livraison client', 'description' => 'Vous êtes livreur à Lomé ; un client anglophone vous guide au téléphone jusqu\'à sa maison à Baguida.', 'tags' => ['transport', 'work', 'phone']],
             ],
         ],
 
@@ -514,7 +514,7 @@ return [
             ],
             'functions' => [
                 "Dire son métier : « I'm a tailor. I make clothes for men and women. »",
-                "Dire où l'on travaille : « I work for a transport company in Cotonou. »",
+                "Dire où l'on travaille : « I work for a transport company in Lomé. »",
                 "Demander : « What do you do? — I'm self-employed. I sell phones. »",
             ],
             'pronunciation' => [
@@ -530,9 +530,9 @@ return [
                 'Faux ami : a library est une bibliothèque ; la librairie se dit bookshop.',
             ],
             'situations' => [
-                ['title' => 'Salon professionnel', 'description' => 'À une foire commerciale, présentez votre métier et votre entreprise à un visiteur anglophone.', 'tags' => ['business', 'work']],
-                ['title' => 'Le centre de santé', 'description' => 'Un médecin anglophone en mission vous demande quel est votre rôle dans le centre de santé.', 'tags' => ['health', 'work']],
-                ['title' => "Conseiller d'orientation", 'description' => "Un étudiant parle de ses études et du métier qu'il veut faire plus tard.", 'tags' => ['studies', 'education']],
+                ['title' => 'Salon professionnel à Lomé', 'description' => 'À la Foire internationale de Lomé, présentez votre métier et votre entreprise à un visiteur ghanéen.', 'tags' => ['business', 'work']],
+                ['title' => 'Le centre de santé', 'description' => 'Un médecin anglophone en mission dans un centre de santé de Kara vous demande quel est votre rôle.', 'tags' => ['health', 'work']],
+                ['title' => 'Conseiller d\'orientation', 'description' => 'Un étudiant de l\'université de Kara parle de ses études et du métier qu\'il veut faire plus tard.', 'tags' => ['studies', 'education']],
             ],
         ],
 
@@ -548,7 +548,7 @@ return [
                 'clothes' => 'vêtements',
                 'shirt' => 'chemise',
                 'dress' => 'robe',
-                'trousers / pants' => 'pantalon (UK / US)',
+                'trousers / pants' => 'pantalon (anglais britannique / américain)',
                 'shoes' => 'chaussures',
                 'fabric / wax print' => 'tissu / pagne wax',
                 'size' => 'taille',
@@ -586,9 +586,9 @@ return [
                 'Clothes est toujours pluriel ; un vêtement = a piece of clothing.',
             ],
             'situations' => [
-                ['title' => 'Chez la couturière', 'description' => 'Une cliente anglophone veut faire coudre une robe en wax : couleurs, tissu, taille et date de livraison.', 'tags' => ['business', 'market']],
-                ['title' => 'Valise pour Accra', 'description' => 'Un ami vous demande quels vêtements prendre pour un voyage au Ghana en pleine saison des pluies.', 'tags' => ['travel', 'conversation']],
-                ['title' => "Tenue pour l'entretien", 'description' => "Vous préparez un entretien d'embauche : discutez de la tenue à porter avec un proche.", 'tags' => ['work', 'family']],
+                ['title' => 'Chez la couturière', 'description' => 'Une cliente ghanéenne veut faire coudre une robe en pagne dans votre atelier de Lomé : couleurs, tissu, taille et date de livraison.', 'tags' => ['business', 'market']],
+                ['title' => 'Valise pour Accra', 'description' => 'Un ami vous demande quels vêtements prendre pour un voyage à Accra en pleine saison des pluies.', 'tags' => ['travel', 'conversation']],
+                ['title' => 'Tenue pour l\'entretien', 'description' => 'Vous préparez un entretien d\'embauche dans une entreprise du port de Lomé : discutez de la tenue avec un proche.', 'tags' => ['work', 'family']],
             ],
         ],
 
@@ -643,9 +643,9 @@ return [
                 'Faux ami : un « médecin » est a doctor ; « medicine » désigne le médicament (ou la médecine).',
             ],
             'situations' => [
-                ['title' => 'À la pharmacie à Lagos', 'description' => 'En voyage, vous avez de la fièvre. Expliquez vos symptômes au pharmacien et demandez la posologie.', 'tags' => ['health', 'travel']],
-                ['title' => 'Appeler son chef', 'description' => 'Vous êtes malade : appelez votre responsable pour dire que vous ne pouvez pas venir travailler.', 'tags' => ['work', 'phone', 'health']],
-                ['title' => 'Enfant malade', 'description' => 'Vous emmenez votre enfant chez un médecin anglophone : expliquez où il a mal et depuis quand.', 'tags' => ['family', 'health']],
+                ['title' => 'À la pharmacie à Lomé', 'description' => 'Un visiteur anglophone a de la fièvre. Aidez-le à expliquer ses symptômes au pharmacien et à comprendre la posologie.', 'tags' => ['health', 'travel']],
+                ['title' => 'Appeler son chef', 'description' => 'Vous êtes malade : appelez votre responsable anglophone, à son bureau de Lomé, pour dire que vous ne pouvez pas venir travailler.', 'tags' => ['work', 'phone', 'health']],
+                ['title' => 'Enfant malade', 'description' => 'Vous emmenez votre enfant chez un médecin anglophone d\'une clinique de Lomé : expliquez où il a mal et depuis quand.', 'tags' => ['family', 'health']],
             ],
         ],
 
@@ -699,9 +699,9 @@ return [
                 "Faux ami : « to visit » s'utilise pour une ville ou une personne ; « visiter un appartement » = to view a flat.",
             ],
             'situations' => [
-                ['title' => 'Compétences pour un emploi', 'description' => 'Un employeur anglophone vous demande ce que vous savez faire : langues, informatique, permis de conduire.', 'tags' => ['work', 'tech']],
-                ['title' => 'Invitation au mariage', 'description' => "Invitez un collègue ghanéen au mariage de votre frère ; il accepte ou s'excuse.", 'tags' => ['family', 'conversation']],
-                ['title' => 'Projet de voyage', 'description' => 'Vous racontez à un ami ce que vous allez faire pendant vos vacances à Accra.', 'tags' => ['travel', 'conversation']],
+                ['title' => 'Compétences pour un emploi', 'description' => 'Une ONG installée à Lomé vous demande ce que vous savez faire : langues, informatique, permis de conduire.', 'tags' => ['work', 'tech']],
+                ['title' => 'Invitation au mariage', 'description' => 'Invitez un collègue ghanéen au mariage de votre frère à Aného ; il accepte ou s\'excuse.', 'tags' => ['family', 'conversation']],
+                ['title' => 'Projet de voyage à Accra', 'description' => 'Vous racontez à un ami ce que vous allez faire pendant votre week-end à Accra.', 'tags' => ['travel', 'conversation']],
             ],
         ],
 
