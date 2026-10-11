@@ -1,6 +1,6 @@
 # agent-anglais-ia — Teacher Joe
 
-Plateforme web d'apprentissage de l'anglais avec un professeur IA animé : évaluation gratuite, programme personnel, séances quotidiennes limitées dans le temps, abonnement par mobile money. Laravel, pensée pour le téléphone et pour l'Afrique francophone.
+Plateforme web d'apprentissage de l'anglais avec un professeur IA animé : évaluation gratuite, programme personnel, séances quotidiennes limitées dans le temps, abonnement payé par Mobile Money et validé par l’administrateur. Laravel, pensée pour le téléphone et pour l'Afrique francophone.
 
 ## Démarrage rapide
 
@@ -30,4 +30,4 @@ php artisan test
 
 Le nom commercial, les formules, les prix et les durées se règlent dans `config/platform.php`. Les clés secrètes vont uniquement dans `.env`.
 
-Toute la documentation pour les développeurs (architecture, conventions, déploiement Hostinger) est dans [`CLAUDE.md`](CLAUDE.md).
+Toute la documentation pour les développeurs (architecture, conventions, déploiement sur Laravel Cloud) est dans [`CLAUDE.md`](CLAUDE.md).

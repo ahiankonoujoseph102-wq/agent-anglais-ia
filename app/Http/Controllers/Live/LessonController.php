@@ -32,7 +32,10 @@ class LessonController extends Controller
         $user = $request->user();
 
         if ($user->activeSubscription === null) {
-            return to_route('dashboard')->with('status', self::NO_SUBSCRIPTION);
+            // Abonnement expiré ou jamais pris : on guide vers le (re)nouvellement.
+            return to_route('payment.plans')->with('status', $user->latestSubscription !== null
+                ? 'Votre abonnement a expiré : renouvelez-le pour reprendre vos séances.'
+                : self::NO_SUBSCRIPTION);
         }
 
         $lesson = $this->openLesson($user);

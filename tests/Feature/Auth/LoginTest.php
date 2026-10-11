@@ -51,7 +51,7 @@ class LoginTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $this->post('/connexion', ['phone' => $admin->phone, 'password' => 'password'])
-            ->assertRedirect(route('admin.users.index'));
+            ->assertRedirect(route('admin.payments.pending'));
     }
 
     public function test_user_is_sent_back_to_the_page_they_wanted(): void
@@ -113,6 +113,6 @@ class LoginTest extends TestCase
     {
         $this->actingAs(User::factory()->admin()->create())
             ->get('/connexion')
-            ->assertRedirect(route('admin.users.index'));
+            ->assertRedirect(route('admin.payments.pending'));
     }
 }

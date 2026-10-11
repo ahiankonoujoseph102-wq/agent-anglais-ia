@@ -45,7 +45,7 @@ class LessonTest extends TestCase
         $this->actingAs($user)->postJson('/seance/connexion')
             ->assertForbidden()
             ->assertJsonPath('message', 'Votre abonnement n\'est pas actif : choisissez une formule pour suivre vos séances.');
-        $this->actingAs($user)->get('/seance')->assertRedirect('/espace');
+        $this->actingAs($user)->get('/seance')->assertRedirect('/abonnement');
 
         Http::assertNothingSent();
     }

@@ -17,5 +17,7 @@
         <button type="submit" class="btn btn-block">Se connecter</button>
     </form>
 
+    <p><a href="{{ route('password.forgot') }}">Mot de passe oublié ?</a></p>
+
     <p>Pas encore de compte ? <a href="{{ route('register') }}">Créer un compte</a></p>
 </x-layout>

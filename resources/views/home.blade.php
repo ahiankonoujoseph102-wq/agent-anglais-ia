@@ -21,7 +21,7 @@
             <li><strong>Créez votre compte</strong> avec votre nom et votre numéro de téléphone.</li>
             <li><strong>Passez l'évaluation orale gratuite</strong> ({{ config('platform.assessment.max_minutes') }} minutes au maximum) avec le professeur.</li>
             <li><strong>Découvrez votre niveau</strong>, de A1 (débutant) à C2 (maîtrise).</li>
-            <li><strong>Abonnez-vous</strong> par mobile money : Flooz ou Mixx by Yas.</li>
+            <li><strong>Abonnez-vous</strong> par Mobile Money ({{ implode(', ', $operators) }}).</li>
             <li><strong>Construisez votre programme</strong> personnel avec le professeur.</li>
             <li><strong>Pratiquez chaque jour</strong> pendant une séance orale à durée fixe.</li>
         </ol>
@@ -39,6 +39,6 @@
                 </div>
             @endforeach
         </div>
-        <p class="muted small">Paiement par mobile money. L'évaluation de niveau est offerte.</p>
+        <p class="muted small">Paiement par Mobile Money ({{ implode(', ', $countries) }}). L'évaluation de niveau est offerte.</p>
     </section>
 </x-layout>

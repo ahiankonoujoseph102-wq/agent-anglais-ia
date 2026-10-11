@@ -26,7 +26,7 @@
             <tbody>
                 @foreach ($users as $user)
                     <tr>
-                        <td data-label="Nom">{{ $user->name }}</td>
+                        <td data-label="Nom"><a href="{{ route('admin.users.show', $user) }}">{{ $user->name }}</a></td>
                         <td data-label="Téléphone"><a href="tel:{{ $user->phone }}">{{ $user->phone }}</a></td>
                         <td data-label="Niveau">
                             @if ($user->level)

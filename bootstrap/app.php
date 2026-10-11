@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
         ]);
+
+        // Mot de passe provisoire : changement obligatoire avant tout le reste.
+        $middleware->appendToGroup('web', EnsurePasswordIsChanged::class);
 
         $middleware->redirectUsersTo(
             fn (Request $request) => AuthenticatedSessionController::homeFor($request->user()),

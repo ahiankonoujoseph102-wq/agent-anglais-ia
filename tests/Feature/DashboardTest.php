@@ -122,7 +122,8 @@ class DashboardTest extends TestCase
         $this->actingAs($user)
             ->get('/espace')
             ->assertSee('Pas d\'abonnement actif', false)
-            ->assertSee('Choisissez une formule');
+            ->assertSee('Votre abonnement a expiré')
+            ->assertSee('Renouveler');
     }
 
     public function test_subscription_keeps_the_conditions_it_was_sold_with(): void

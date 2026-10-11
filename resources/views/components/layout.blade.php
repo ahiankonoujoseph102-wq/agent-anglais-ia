@@ -20,7 +20,12 @@
             <nav class="nav" aria-label="Navigation principale">
                 @auth
                     @if (auth()->user()->isAdmin())
-                        <a href="{{ route('admin.users.index') }}">Administration</a>
+                        <a href="{{ route('admin.payments.pending') }}">
+                            Administration
+                            @if ($pendingPaymentsCount > 0)
+                                <span class="badge badge-alert" title="Paiements en attente">{{ $pendingPaymentsCount }}</span>
+                            @endif
+                        </a>
                     @endif
                     <a href="{{ route('dashboard') }}">Mon espace</a>
                     <form method="POST" action="{{ route('logout') }}">
@@ -47,7 +52,18 @@
 
     <footer class="site-footer">
         <div class="container">
-            &copy; {{ date('Y') }} {{ config('platform.name') }} — Apprenez l'anglais avec votre professeur IA.
+            <p>
+                <strong>{{ config('platform.name') }}</strong> — {{ config('platform.contact.address') }}<br>
+                {{ config('platform.contact.hours') }}<br>
+                @foreach (config('platform.contact.phones') as $phone)
+                    <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}">{{ $phone }}</a>@if (! $loop->last) · @endif
+                @endforeach
+                <br>
+                <a href="mailto:{{ config('platform.contact.email') }}">{{ config('platform.contact.email') }}</a>
+                · <a href="{{ \App\Support\WhatsApp::url(config('platform.contact.whatsapp')) }}" target="_blank" rel="noopener">WhatsApp</a>
+                · <a href="{{ route('contact') }}">Contact</a>
+            </p>
+            <p>&copy; {{ date('Y') }} {{ config('platform.name') }} — Apprenez l'anglais avec votre professeur IA.</p>
         </div>
     </footer>
 </body>
