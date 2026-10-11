@@ -69,9 +69,9 @@ return [
                 "Imply ≠ infer : le locuteur sous-entend (implies), l'auditeur déduit (infers).",
             ],
             'situations' => [
-                ['title' => 'Rédiger une recommandation', 'description' => "Vous choisissez avec soin les mots d'une lettre de recommandation pour un collaborateur, à l'oral avec le professeur.", 'tags' => ['work']],
-                ['title' => 'Négociation tendue', 'description' => 'Dans une négociation, vous reformulez vos propos pour éviter un mot qui a vexé votre interlocuteur.', 'tags' => ['business']],
-                ['title' => 'Analyse de discours', 'description' => "Vous analysez avec le professeur les connotations d'un discours politique anglophone.", 'tags' => ['studies', 'exam']],
+                ['title' => 'Rédiger une recommandation', 'description' => 'Vous choisissez avec soin, à l\'oral avec le professeur, les mots d\'une lettre de recommandation pour un collaborateur de Lomé.', 'tags' => ['work']],
+                ['title' => 'Négociation tendue', 'description' => 'Dans une négociation à Accra, vous reformulez vos propos pour éviter un mot qui a vexé votre interlocuteur.', 'tags' => ['business']],
+                ['title' => 'Analyse de discours', 'description' => 'Vous analysez avec le professeur les connotations d\'un discours prononcé en anglais à Lomé lors d\'une conférence internationale.', 'tags' => ['studies', 'exam']],
             ],
         ],
 
@@ -125,9 +125,9 @@ return [
                 'Faux ami : « to argue » = se disputer OU argumenter ; « argument » peut aussi signifier dispute.',
             ],
             'situations' => [
-                ['title' => 'Débat télévisé', 'description' => "Débat télévisé sur l'avenir énergétique de l'Afrique de l'Ouest face à un contradicteur habile.", 'tags' => ['conversation', 'exam']],
-                ['title' => "Plaidoyer d'ONG", 'description' => "Vous plaidez devant des bailleurs internationaux pour le financement d'un programme d'éducation.", 'tags' => ['work', 'education']],
-                ['title' => "Assemblée d'actionnaires", 'description' => "Vous convainquez des actionnaires sceptiques d'approuver une acquisition au Nigeria.", 'tags' => ['business']],
+                ['title' => 'Débat télévisé', 'description' => 'Débat sur une télévision togolaise, en anglais, sur l\'avenir énergétique du Togo face à un contradicteur habile.', 'tags' => ['conversation', 'exam']],
+                ['title' => 'Plaidoyer d\'ONG', 'description' => 'Vous plaidez à Lomé devant des bailleurs internationaux pour le financement d\'un programme d\'éducation dans la région des Savanes.', 'tags' => ['work', 'education']],
+                ['title' => 'Assemblée d\'actionnaires', 'description' => 'Vous convainquez des actionnaires sceptiques d\'approuver l\'ouverture d\'une succursale à Accra.', 'tags' => ['business']],
             ],
         ],
 
@@ -180,9 +180,9 @@ return [
                 'Faux ami : « a compromise » est positif (un compromis) ; « to compromise someone » = compromettre.',
             ],
             'situations' => [
-                ['title' => 'Médiation entre partenaires', 'description' => 'Vous servez de médiateur entre un fournisseur ghanéen et un distributeur togolais en conflit.', 'tags' => ['business', 'work']],
-                ['title' => 'Négociation intergouvernementale', 'description' => 'Simulation de négociation sur la libre circulation des marchandises au sein de la CEDEAO.', 'tags' => ['admin', 'exam']],
-                ['title' => "Fusion d'entreprises", 'description' => "Vous négociez les conditions d'une fusion entre deux entreprises de transport régional.", 'tags' => ['business', 'transport']],
+                ['title' => 'Médiation entre partenaires', 'description' => 'Vous servez de médiateur entre un fournisseur d\'Accra et un distributeur de Lomé en conflit.', 'tags' => ['business', 'work']],
+                ['title' => 'Négociation transfrontalière', 'description' => 'Simulation de négociation entre délégations togolaise et ghanéenne sur la fluidité du passage des marchandises à Aflao.', 'tags' => ['admin', 'exam']],
+                ['title' => 'Fusion d\'entreprises', 'description' => 'Vous négociez les conditions d\'une fusion entre une entreprise de transport de Lomé et une entreprise d\'Accra.', 'tags' => ['business', 'transport']],
             ],
         ],
 
@@ -235,8 +235,8 @@ return [
                 "Faux ami : « to improvise » est correct, mais « on improvise » se dit plus naturellement « we'll wing it ».",
             ],
             'situations' => [
-                ['title' => 'Question surprise en conférence', 'description' => 'Le modérateur vous pose une question inattendue devant 200 personnes.', 'tags' => ['work', 'conversation']],
-                ['title' => 'Toast improvisé', 'description' => "On vous demande au dernier moment de porter un toast au mariage d'un ami nigérian.", 'tags' => ['family', 'conversation']],
+                ['title' => 'Question surprise en conférence', 'description' => 'Le modérateur d\'une conférence à Lomé vous pose une question inattendue devant deux cents personnes.', 'tags' => ['work', 'conversation']],
+                ['title' => 'Toast improvisé', 'description' => 'On vous demande au dernier moment de porter un toast en anglais au mariage d\'un ami togolais qui épouse une Ghanéenne.', 'tags' => ['family', 'conversation']],
                 ['title' => 'Oral surprise', 'description' => 'Épreuve orale : un sujet tiré au sort, deux minutes de préparation, cinq minutes de parole.', 'tags' => ['exam', 'studies']],
             ],
         ],
@@ -290,9 +290,9 @@ return [
                 "Faux ami : « to precise » n'existe pas ; « to specify / clarify ».",
             ],
             'situations' => [
-                ['title' => "Lettre au conseil d'administration", 'description' => "Vous dictez et peaufinez avec le professeur une lettre stratégique au conseil d'administration.", 'tags' => ['business', 'work']],
-                ['title' => 'Note pour un ministre', 'description' => "Vous rédigez à l'oral une note de synthèse d'une page pour un responsable public anglophone.", 'tags' => ['admin', 'work']],
-                ['title' => 'Article de revue', 'description' => "Vous retravaillez l'introduction d'un article académique soumis à une revue anglophone.", 'tags' => ['studies', 'exam']],
+                ['title' => 'Lettre au conseil d\'administration', 'description' => 'Vous dictez et peaufinez avec le professeur une lettre stratégique au conseil d\'administration de votre entreprise de Lomé.', 'tags' => ['business', 'work']],
+                ['title' => 'Note pour un directeur', 'description' => 'Vous rédigez à l\'oral une note de synthèse d\'une page pour un directeur d\'administration togolaise qui reçoit des partenaires anglophones.', 'tags' => ['admin', 'work']],
+                ['title' => 'Article de revue', 'description' => 'Vous retravaillez l\'introduction d\'un article académique de l\'université de Lomé soumis à une revue anglophone.', 'tags' => ['studies', 'exam']],
             ],
         ],
 
@@ -345,9 +345,9 @@ return [
                 'Prudence avec le sarcasme en contexte multiculturel : il peut être pris au premier degré.',
             ],
             'situations' => [
-                ['title' => 'Pause avec des Britanniques', 'description' => "Pendant une pause, des collègues britanniques plaisantent avec beaucoup d'ironie : comprenez et répondez.", 'tags' => ['work', 'conversation']],
-                ['title' => 'Discours avec humour', 'description' => "Vous ouvrez un discours d'entreprise par une touche d'autodérision bien dosée.", 'tags' => ['business', 'work']],
-                ['title' => 'Humour nigérian', 'description' => 'Un ami de Lagos vous raconte des histoires drôles pleines de références culturelles : suivez et réagissez.', 'tags' => ['conversation', 'travel']],
+                ['title' => 'Pause avec des collègues anglophones', 'description' => 'Pendant une pause à Lomé, des collègues anglophones plaisantent avec beaucoup d\'ironie : comprenez et répondez.', 'tags' => ['work', 'conversation']],
+                ['title' => 'Discours avec humour', 'description' => 'Vous ouvrez par une touche d\'autodérision bien dosée le discours de fin d\'année de votre entreprise à Lomé.', 'tags' => ['business', 'work']],
+                ['title' => 'Humour à Accra', 'description' => 'Un ami d\'Accra vous raconte des histoires drôles pleines de références locales : suivez et réagissez.', 'tags' => ['conversation', 'travel']],
             ],
         ],
 
@@ -401,9 +401,9 @@ return [
                 'Faux ami : « to ignore » = ne pas tenir compte volontairement ; « ignorer » (ne pas savoir) = not to know / to be unaware.',
             ],
             'situations' => [
-                ['title' => "Comité d'éthique", 'description' => "Dans un comité d'éthique hospitalier, vous discutez d'un cas délicat de consentement.", 'tags' => ['health', 'work']],
-                ['title' => 'Séminaire de philosophie', 'description' => "Séminaire universitaire sur la notion d'Ubuntu face à l'individualisme contemporain.", 'tags' => ['studies', 'education']],
-                ['title' => 'Dilemme en entreprise', 'description' => 'Un fournisseur propose un « arrangement » : débattez avec votre associé de la bonne conduite à tenir.', 'tags' => ['business', 'work']],
+                ['title' => 'Comité d\'éthique', 'description' => 'Dans le comité d\'éthique d\'un hôpital de Lomé, vous discutez en anglais d\'un cas délicat de consentement.', 'tags' => ['health', 'work']],
+                ['title' => 'Séminaire de philosophie', 'description' => 'Séminaire à l\'université de Lomé sur la solidarité africaine face à l\'individualisme contemporain.', 'tags' => ['studies', 'education']],
+                ['title' => 'Dilemme en entreprise', 'description' => 'Un fournisseur d\'Accra propose un « arrangement » : débattez avec votre associé de la bonne conduite à tenir.', 'tags' => ['business', 'work']],
             ],
         ],
 
@@ -442,11 +442,11 @@ return [
             'functions' => [
                 'Analyser : « The novel explores the tension between tradition and change through the eyes of a young narrator. »',
                 'Interpréter un proverbe : « This proverb could be read as a warning against pride. »',
-                "Défendre une variété d'anglais : « Nigerian English isn't “broken” English — it's a legitimate variety with its own norms. »",
+                "Défendre une variété d'anglais : « Ghanaian English isn't “broken” English — it's a legitimate variety with its own norms. »",
             ],
             'pronunciation' => [
                 'Lire un poème à voix haute : rythme, accent, pauses de fin de vers.',
-                'Comprendre les variétés : Nigerian English, Ghanaian English, Kenyan English, South African English.',
+                'Comprendre les variétés : anglais britannique, anglais américain, anglais du Ghana — et l\'anglais parlé par les Togolais.',
             ],
             'spoken' => [
                 "« It's a page-turner » = c'est un livre qu'on ne lâche pas.",
@@ -457,9 +457,9 @@ return [
                 'Faux ami : « a library » ≠ une librairie (bookshop).',
             ],
             'situations' => [
-                ['title' => 'Club de lecture', 'description' => 'Dans un club de lecture anglophone, vous présentez et analysez un roman africain que vous avez aimé.', 'tags' => ['conversation', 'education']],
-                ['title' => 'Conférence sur les langues', 'description' => "Vous intervenez sur la place de l'anglais et des langues africaines dans l'éducation.", 'tags' => ['education', 'studies']],
-                ['title' => 'Proverbes et sagesse', 'description' => 'Vous expliquez à des amis britanniques le sens de proverbes de votre région et cherchez leurs équivalents anglais.', 'tags' => ['conversation', 'family']],
+                ['title' => 'Club de lecture', 'description' => 'Dans un club de lecture anglophone de Lomé, vous présentez et analysez un roman africain que vous avez aimé.', 'tags' => ['conversation', 'education']],
+                ['title' => 'Conférence sur les langues', 'description' => 'Vous intervenez sur la place de l\'anglais, du français, de l\'éwé et du kabiyè dans l\'éducation au Togo.', 'tags' => ['education', 'studies']],
+                ['title' => 'Proverbes et sagesse', 'description' => 'Vous expliquez à des amis anglophones le sens de proverbes togolais et cherchez leurs équivalents anglais.', 'tags' => ['conversation', 'family']],
             ],
         ],
 
@@ -512,9 +512,9 @@ return [
                 'Faux ami : « a manifestation » = un signe ; « une manifestation » (événement) = an event, (protestation) = a demonstration.',
             ],
             'situations' => [
-                ['title' => "Panel d'experts", 'description' => 'Vous intervenez comme expert de votre secteur dans un panel international et répondez aux questions pointues.', 'tags' => ['work', 'business']],
-                ['title' => 'Soutenance de thèse', 'description' => 'Vous défendez vos résultats face à un jury exigeant.', 'tags' => ['studies', 'exam']],
-                ['title' => 'Formation de professionnels', 'description' => 'Vous formez des professionnels de santé anglophones à une nouvelle pratique.', 'tags' => ['health', 'education']],
+                ['title' => 'Panel d\'experts', 'description' => 'Vous intervenez comme expert de votre secteur dans un panel international organisé à Lomé et répondez aux questions pointues.', 'tags' => ['work', 'business']],
+                ['title' => 'Soutenance de thèse', 'description' => 'Vous défendez vos résultats à l\'université de Lomé face à un jury exigeant.', 'tags' => ['studies', 'exam']],
+                ['title' => 'Formation de professionnels', 'description' => 'Vous formez des professionnels de santé ghanéens à une nouvelle pratique lors d\'un atelier à Lomé.', 'tags' => ['health', 'education']],
             ],
         ],
 
@@ -568,9 +568,9 @@ return [
                 "Le « nous » de modestie français se traduit rarement : utilisez « I » ou le nom de l'organisation.",
             ],
             'situations' => [
-                ['title' => 'Sommet régional', 'description' => "Vous prononcez la déclaration de votre délégation lors d'un sommet régional à Abuja.", 'tags' => ['admin', 'travel']],
-                ['title' => 'Réunion bilatérale', 'description' => 'Réunion bilatérale tendue avec un partenaire étranger sur un accord commercial.', 'tags' => ['business', 'admin']],
-                ['title' => 'Simulation des Nations unies', 'description' => "Vous représentez un pays dans une simulation universitaire de l'ONU.", 'tags' => ['studies', 'exam']],
+                ['title' => 'Sommet à Lomé', 'description' => 'Vous prononcez la déclaration de votre délégation lors d\'un sommet régional organisé à Lomé.', 'tags' => ['admin', 'travel']],
+                ['title' => 'Réunion bilatérale', 'description' => 'Réunion tendue entre représentants togolais et ghanéens sur un accord commercial.', 'tags' => ['business', 'admin']],
+                ['title' => 'Simulation des Nations unies', 'description' => 'Vous représentez une délégation dans une simulation universitaire de l\'ONU à l\'université de Lomé.', 'tags' => ['studies', 'exam']],
             ],
         ],
 
@@ -623,9 +623,9 @@ return [
                 'Faux ami : « to resume » ≠ résumer → to sum up / summarise.',
             ],
             'situations' => [
-                ['title' => 'Interprète en réunion', 'description' => "Vous servez d'interprète entre un commerçant togolais et un acheteur nigérian.", 'tags' => ['business', 'market']],
-                ['title' => 'Synthèse pour la direction', 'description' => 'Vous résumez en trois minutes un long rapport anglophone pour votre direction francophone.', 'tags' => ['work', 'admin']],
-                ['title' => 'Consultation médicale', 'description' => 'Vous aidez un proche francophone à comprendre un médecin anglophone, en restituant les nuances.', 'tags' => ['health', 'family']],
+                ['title' => 'Interprète au Grand Marché', 'description' => 'Vous servez d\'interprète entre une commerçante togolaise et un acheteur d\'Accra.', 'tags' => ['business', 'market']],
+                ['title' => 'Synthèse pour la direction', 'description' => 'Vous résumez en trois minutes un long rapport en anglais pour votre direction francophone à Lomé.', 'tags' => ['work', 'admin']],
+                ['title' => 'Consultation médicale', 'description' => 'Vous aidez un proche francophone à comprendre un médecin anglophone d\'une clinique de Lomé, en restituant les nuances.', 'tags' => ['health', 'family']],
             ],
         ],
 
@@ -662,7 +662,7 @@ return [
                 "Les structures d'appel : « Let us…», « May we never forget… », « Imagine a future where… ».",
             ],
             'functions' => [
-                'Raconter : « I had been knocking on doors for months when a market woman in Adjamé gave me my first chance. »',
+                'Raconter : « I had been knocking on doors for months when a market woman at the Grand Marché in Lomé gave me my first chance. »',
                 'Transmettre une vision : « Imagine a generation of young Africans who negotiate, create and lead in any language. »',
                 "Mobiliser : « This is not my project. It's ours. Let's build it together. »",
             ],
@@ -679,9 +679,9 @@ return [
                 'Faux ami : « an anecdote » est un récit court ; « anecdotique » (sans importance) = trivial / insignificant.',
             ],
             'situations' => [
-                ['title' => 'Discours aux employés', 'description' => 'Pour les dix ans de votre entreprise, vous racontez son histoire et présentez la vision des dix prochaines.', 'tags' => ['business', 'work']],
-                ['title' => 'Remise de diplômes', 'description' => "Vous êtes invité à parler aux jeunes diplômés d'une université anglophone.", 'tags' => ['education', 'studies']],
-                ['title' => 'Mobilisation communautaire', 'description' => "Vous mobilisez votre communauté autour d'un projet de santé grâce à une histoire personnelle.", 'tags' => ['health', 'conversation', 'family']],
+                ['title' => 'Discours aux employés', 'description' => 'Pour les dix ans de votre entreprise de Lomé, vous racontez son histoire et présentez la vision des dix prochaines.', 'tags' => ['business', 'work']],
+                ['title' => 'Cérémonie de fin d\'études', 'description' => 'Vous êtes invité à parler aux étudiants qui terminent leur cursus à l\'université de Kara.', 'tags' => ['education', 'studies']],
+                ['title' => 'Mobilisation communautaire', 'description' => 'Vous mobilisez votre quartier de Lomé autour d\'un projet de santé grâce à une histoire personnelle.', 'tags' => ['health', 'conversation', 'family']],
             ],
         ],
 
