@@ -8,11 +8,12 @@ use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Tests\Concerns\BuildsPrograms;
 use Tests\TestCase;
 
 class RenewalTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuildsPrograms, RefreshDatabase;
 
     public function test_reminder_appears_three_days_before_the_end(): void
     {
@@ -21,6 +22,7 @@ class RenewalTest extends TestCase
             'starts_at' => now()->subDays(26),
             'ends_at' => now()->addDays(4),
         ]);
+        $this->buildProgram($user);
 
         $this->actingAs($user)->get('/espace')->assertDontSee('Renouveler');
 
@@ -51,6 +53,7 @@ class RenewalTest extends TestCase
             'starts_at' => now()->subDays(29),
             'ends_at' => now()->addDay(),
         ]);
+        $this->buildProgram($user);
 
         $this->actingAs($user)->get('/seance')->assertOk();
 

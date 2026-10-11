@@ -25,8 +25,21 @@ class DashboardController extends Controller
             && $latestSubscription?->is($subscription)
             && $subscription->ends_at->lte(now()->addDays((int) config('payment.renewal_reminder_days')));
 
+        $program = $user->activeProgram;
+        $current = $program?->currentLesson;
+        $current?->setRelation('program', $program);
+
         return view('dashboard', [
             'user' => $user,
+            'program' => $program,
+            'currentLesson' => $current,
+            'progress' => $program?->progressPercent(),
+            'streak' => $user->streakDays(),
+            'skills' => $user->skillAverages(),
+            'openErrors' => $user->openErrors()->limit(5)->get(),
+            'openErrorsCount' => $user->openErrors()->count(),
+            'attestations' => $user->attestations()->orderBy('level')->get(),
+            'lastLevelTest' => $user->levelTests()->latest('id')->first(),
             'assessment' => $assessment,
             'canTakeAssessment' => $canTakeAssessment,
             'subscription' => $subscription,

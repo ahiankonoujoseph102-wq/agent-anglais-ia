@@ -9,11 +9,12 @@ use App\Enums\SubscriptionStatus;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\BuildsPrograms;
 use Tests\TestCase;
 
 class DashboardTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuildsPrograms, RefreshDatabase;
 
     public function test_new_learner_sees_empty_dashboard(): void
     {
@@ -52,9 +53,17 @@ class DashboardTest extends TestCase
         $user = User::factory()->level(Level::A1)->create();
         Subscription::factory()->for($user)->create();
 
-        $this->actingAs($user)
+        // Sans programme, l'apprenant construit d'abord son programme personnel.
+        $this->actingAs($user)->get('/espace')
+            ->assertSee('Construire mon programme')
+            ->assertSee(route('program.questionnaire', 1));
+
+        $this->buildProgram($user);
+
+        $this->actingAs($user->fresh())
             ->get('/espace')
             ->assertSee('Commencer ma séance')
+            ->assertSee('Unité 1')
             ->assertSee(route('lesson.show'));
     }
 
@@ -62,6 +71,7 @@ class DashboardTest extends TestCase
     {
         $user = User::factory()->level(Level::B1)->create();
         $subscription = Subscription::factory()->for($user)->forPlan('intensif')->create();
+        $this->buildProgram($user);
 
         // 10 minutes déjà consommées aujourd'hui, en deux séances.
         foreach ([240, 360] as $seconds) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
 use App\Models\Lesson;
+use App\Models\LevelTest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
@@ -19,6 +20,7 @@ class UsageController extends Controller
         $totals = [
             'Évaluations' => $this->totals(Assessment::query()),
             'Séances' => $this->totals(Lesson::query()->whereNotNull('started_at')),
+            'Bilans de niveau' => $this->totals(LevelTest::query()),
         ];
 
         $learners = User::query()
@@ -55,7 +57,7 @@ class UsageController extends Controller
     }
 
     /**
-     * @param  Builder<Assessment>|Builder<Lesson>  $query
+     * @param  Builder<Assessment>|Builder<Lesson>|Builder<LevelTest>  $query
      * @return array{count: int, seconds: int, input: int, output: int}
      */
     private function totals(Builder $query): array

@@ -25,4 +25,15 @@ enum Level: string
             self::C2 => 'Maîtrise',
         };
     }
+
+    /**
+     * Le niveau suivant, ou null après C2.
+     */
+    public function next(): ?self
+    {
+        $cases = self::cases();
+        $index = array_search($this, $cases, true);
+
+        return $cases[$index + 1] ?? null;
+    }
 }
