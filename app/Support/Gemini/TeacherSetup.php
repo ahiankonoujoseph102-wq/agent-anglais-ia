@@ -3,7 +3,10 @@
 namespace App\Support\Gemini;
 
 use App\Enums\Level;
+use App\Enums\Skill;
 use App\Models\User;
+use App\Support\Curriculum\Curriculum;
+use App\Support\Curriculum\Unit;
 
 /**
  * Construit la configuration de conversation du professeur à partir de
@@ -14,6 +17,8 @@ class TeacherSetup
     public const RECORD_ASSESSMENT_RESULT = 'record_assessment_result';
 
     public const END_LESSON = 'end_lesson';
+
+    public const RECORD_LEVEL_TEST_RESULT = 'record_level_test_result';
 
     /**
      * @return array<string, mixed>
@@ -46,18 +51,32 @@ class TeacherSetup
     }
 
     /**
+     * @param  string|null  $context  profil, leçon du jour et erreurs (App\Support\Curriculum\LessonContext)
      * @return array<string, mixed>
      */
-    public static function lesson(User $user, int $minutes, ?string $resumeHandle = null): array
+    public static function lesson(User $user, int $minutes, ?string $resumeHandle = null, ?string $context = null): array
     {
+        $scores = [];
+
+        foreach (Skill::cases() as $skill) {
+            $scores[$skill->value] = ['type' => 'INTEGER', 'description' => 'Mark from 1 to 5 ('.$skill->value.').'];
+        }
+
         return self::setup(
-            self::instructions('lesson', $user, $minutes),
+            self::instructions('lesson', $user, $minutes, [
+                'context' => $context ?? 'No programme context: practise free conversation adapted to the learner\'s level.',
+            ]),
             [[
                 'name' => self::END_LESSON,
-                'description' => 'Records the summary of the lesson and the homework, written in French, before saying goodbye.',
+                'description' => 'Records the structured report of the lesson before saying goodbye.',
                 'parameters' => [
                     'type' => 'OBJECT',
                     'properties' => [
+                        'lesson_status' => [
+                            'type' => 'STRING',
+                            'enum' => ['completed', 'repeat'],
+                            'description' => '"completed" if the objectives of today\'s lesson are reached, "repeat" if it must be done again.',
+                        ],
                         'summary' => [
                             'type' => 'STRING',
                             'description' => 'Short summary of the lesson in French (what was learned, key phrases).',
@@ -66,8 +85,74 @@ class TeacherSetup
                             'type' => 'STRING',
                             'description' => 'One small homework for the next lesson, in French.',
                         ],
+                        'errors' => [
+                            'type' => 'ARRAY',
+                            'description' => 'New mistakes made by the learner today.',
+                            'items' => [
+                                'type' => 'OBJECT',
+                                'properties' => [
+                                    'wrong' => ['type' => 'STRING', 'description' => 'What the learner said.'],
+                                    'correct' => ['type' => 'STRING', 'description' => 'The correct form.'],
+                                    'explanation' => ['type' => 'STRING', 'description' => 'Very short explanation in French.'],
+                                ],
+                                'required' => ['wrong', 'correct'],
+                            ],
+                        ],
+                        'reviewed_errors' => [
+                            'type' => 'ARRAY',
+                            'description' => 'Errors from "ERRORS TO REVIEW" checked today.',
+                            'items' => [
+                                'type' => 'OBJECT',
+                                'properties' => [
+                                    'id' => ['type' => 'INTEGER', 'description' => 'Error id given in the instructions.'],
+                                    'corrected' => ['type' => 'BOOLEAN', 'description' => 'True if the learner said it correctly today.'],
+                                ],
+                                'required' => ['id', 'corrected'],
+                            ],
+                        ],
+                        'scores' => [
+                            'type' => 'OBJECT',
+                            'description' => 'Marks from 1 (very weak) to 5 (excellent) for the learner\'s level.',
+                            'properties' => $scores,
+                            'required' => array_keys($scores),
+                        ],
                     ],
-                    'required' => ['summary', 'homework'],
+                    'required' => ['lesson_status', 'summary', 'homework', 'scores'],
+                ],
+            ]],
+            $resumeHandle,
+        );
+    }
+
+    /**
+     * Bilan oral de fin de niveau.
+     *
+     * @return array<string, mixed>
+     */
+    public static function levelTest(User $user, Level $level, int $minutes, ?string $resumeHandle = null): array
+    {
+        $units = array_map(
+            fn (Unit $unit) => sprintf('%d. %s — grammar: %s', $unit->number, $unit->title, implode(' / ', $unit->grammar)),
+            Curriculum::units($level),
+        );
+
+        return self::setup(
+            self::instructions('level_test', $user, $minutes, ['level' => $level->value, 'units' => implode("\n", $units)]),
+            [[
+                'name' => self::RECORD_LEVEL_TEST_RESULT,
+                'description' => 'Records the result of the end-of-level oral test.',
+                'parameters' => [
+                    'type' => 'OBJECT',
+                    'properties' => [
+                        'passed' => ['type' => 'BOOLEAN', 'description' => 'True if the learner has the level.'],
+                        'feedback' => ['type' => 'STRING', 'description' => 'Short feedback in French: strengths and what to improve.'],
+                        'units_to_review' => [
+                            'type' => 'ARRAY',
+                            'description' => 'If failed: numbers (1 to 12) of the units to work on again.',
+                            'items' => ['type' => 'INTEGER'],
+                        ],
+                    ],
+                    'required' => ['passed', 'feedback'],
                 ],
             ]],
             $resumeHandle,
@@ -87,7 +172,10 @@ class TeacherSetup
     /**
      * Consignes complètes : personnage + niveau + déroulé propre à la conversation.
      */
-    public static function instructions(string $kind, User $user, int $minutes): string
+    /**
+     * @param  array<string, int|string>  $extra  marqueurs supplémentaires (:context, :units…)
+     */
+    public static function instructions(string $kind, User $user, int $minutes, array $extra = []): string
     {
         $level = $user->level?->value ?? 'unknown';
 
@@ -97,7 +185,7 @@ class TeacherSetup
             trim((string) config("teacher.{$kind}")),
         ]);
 
-        return self::fill($text, [
+        return self::fill($text, $extra + [
             'platform' => config('platform.name'),
             'name' => $user->name,
             'level' => $level,

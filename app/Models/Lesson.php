@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 /**
  * Une séance orale quotidienne avec le professeur.
  */
-#[Fillable(['subscription_id', 'program_id', 'date', 'allowed_seconds', 'used_seconds', 'started_at', 'ended_at', 'status', 'topic', 'summary', 'homework'])]
+#[Fillable(['subscription_id', 'program_id', 'program_lesson_id', 'date', 'allowed_seconds', 'used_seconds', 'started_at', 'ended_at', 'status', 'topic', 'summary', 'homework', 'outcome'])]
 class Lesson extends Model
 {
     use IsLiveConversation;
@@ -34,6 +34,12 @@ class Lesson extends Model
             'connections' => 'integer',
             'input_tokens' => 'integer',
             'output_tokens' => 'integer',
+            'score_fluency' => 'integer',
+            'score_pronunciation' => 'integer',
+            'score_grammar' => 'integer',
+            'score_vocabulary' => 'integer',
+            'score_comprehension' => 'integer',
+            'reported_at' => 'datetime',
         ];
     }
 
@@ -59,6 +65,14 @@ class Lesson extends Model
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
+    }
+
+    /**
+     * @return BelongsTo<ProgramLesson, $this>
+     */
+    public function programLesson(): BelongsTo
+    {
+        return $this->belongsTo(ProgramLesson::class);
     }
 
     public function isInProgress(): bool

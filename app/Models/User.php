@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\ErrorStatus;
 use App\Enums\Level;
 use App\Enums\PaymentStatus;
 use App\Enums\Role;
+use App\Enums\Skill;
 use App\Enums\SubscriptionStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -14,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 
 /**
  * Le rôle, le niveau et l'obligation de changer de mot de passe ne sont
@@ -91,6 +94,112 @@ class User extends Authenticatable
     public function lessons(): HasMany
     {
         return $this->hasMany(Lesson::class);
+    }
+
+    /**
+     * Le programme en cours (un seul actif à la fois).
+     *
+     * @return HasOne<Program, $this>
+     */
+    public function activeProgram(): HasOne
+    {
+        return $this->hasOne(Program::class)->ofMany(['id' => 'max'], fn ($query) => $query->where('is_active', true));
+    }
+
+    /**
+     * @return HasMany<LearnerError, $this>
+     */
+    public function learnerErrors(): HasMany
+    {
+        return $this->hasMany(LearnerError::class);
+    }
+
+    /**
+     * Erreurs encore à revoir, les plus fréquentes d'abord.
+     *
+     * @return HasMany<LearnerError, $this>
+     */
+    public function openErrors(): HasMany
+    {
+        return $this->learnerErrors()
+            ->where('status', ErrorStatus::Open)
+            ->orderByDesc('times_seen')
+            ->orderBy('id');
+    }
+
+    /**
+     * @return HasMany<LevelTest, $this>
+     */
+    public function levelTests(): HasMany
+    {
+        return $this->hasMany(LevelTest::class);
+    }
+
+    /**
+     * @return HasMany<Attestation, $this>
+     */
+    public function attestations(): HasMany
+    {
+        return $this->hasMany(Attestation::class);
+    }
+
+    /**
+     * Nombre de jours consécutifs (jusqu'à aujourd'hui, ou hier si rien encore aujourd'hui)
+     * avec au moins une minute de séance.
+     */
+    public function streakDays(): int
+    {
+        $days = $this->lessons()
+            ->where('used_seconds', '>=', 60)
+            ->where('date', '>=', today()->subDays(366))
+            ->distinct()
+            ->orderByDesc('date')
+            ->pluck('date')
+            ->map(fn ($date) => Carbon::parse($date)->toDateString())
+            ->unique()
+            ->values();
+
+        $expected = today();
+
+        if ($days->first() !== $expected->toDateString()) {
+            $expected = today()->subDay();
+        }
+
+        $streak = 0;
+
+        foreach ($days as $day) {
+            if ($day !== $expected->toDateString()) {
+                break;
+            }
+
+            $streak++;
+            $expected = $expected->subDay();
+        }
+
+        return $streak;
+    }
+
+    /**
+     * Moyenne des notes (1 à 5) des dernières séances notées, par compétence.
+     *
+     * @return array<string, float|null>
+     */
+    public function skillAverages(int $lastLessons = 10): array
+    {
+        $lessons = $this->lessons()
+            ->whereNotNull('reported_at')
+            ->latest('id')
+            ->limit($lastLessons)
+            ->get(array_map(fn (Skill $skill) => $skill->column(), Skill::cases()));
+
+        $averages = [];
+
+        foreach (Skill::cases() as $skill) {
+            $scores = $lessons->pluck($skill->column())->filter();
+            $averages[$skill->value] = $scores->isEmpty() ? null : round($scores->avg(), 1);
+        }
+
+        return $averages;
     }
 
     /**

@@ -456,13 +456,33 @@ async function handleFunctionCall(call) {
             response = { result: 'error', message: result.data.message ?? 'not saved' };
         }
     } else if (call.name === 'end_lesson' && mode === 'lesson') {
-        const result = await post(urls.result, { summary: args.summary, homework: args.homework });
+        // Bilan structuré : leçon terminée ou à reprendre, erreurs, notes, devoir.
+        const result = await post(urls.result, args);
+        const errors = (args.errors ?? []).map((error) => `<li><span lang="en">${escapeHtml(error.wrong)}</span> → <strong lang="en">${escapeHtml(error.correct)}</strong></li>`).join('');
+
         showOutcome('<h2>Résumé de la séance</h2>'
             + `<p>${escapeHtml(args.summary)}</p>`
+            + (args.lesson_status === 'repeat' ? '<p><strong>Cette leçon sera reprise à la prochaine séance.</strong></p>' : '')
+            + (errors ? `<h3>Erreurs à revoir</h3><ul>${errors}</ul>` : '')
             + (args.homework ? `<h3>Devoir</h3><p>${escapeHtml(args.homework)}</p>` : ''));
 
         if (!result.ok) {
-            response = { result: 'error' };
+            response = { result: 'error', message: result.data.message ?? 'not saved' };
+        }
+    } else if (call.name === 'record_level_test_result' && mode === 'level_test') {
+        const result = await post(urls.result, args);
+
+        if (result.ok && result.data.passed) {
+            showOutcome(`<h2>Bilan réussi : niveau ${escapeHtml(result.data.level)} validé !</h2>`
+                + `<p>${escapeHtml(args.feedback)}</p>`
+                + (result.data.next_level ? `<p>Votre programme ${escapeHtml(result.data.next_level)} est prêt.</p>` : '')
+                + (result.data.attestation_url ? `<p><a class="btn" href="${escapeHtml(result.data.attestation_url)}">Télécharger mon attestation</a></p>` : ''));
+        } else if (result.ok) {
+            showOutcome('<h2>Encore un petit effort !</h2>'
+                + `<p>${escapeHtml(args.feedback)}</p>`
+                + `<p>Unités à reprendre : ${escapeHtml((result.data.units_to_review ?? []).join(', '))}.</p>`);
+        } else {
+            response = { result: 'error', message: result.data.message ?? 'not saved' };
         }
     } else {
         response = { result: 'error', message: 'unknown function' };
@@ -607,9 +627,10 @@ async function finish(reason, message = '') {
     }
 
     if (ui.outcome.hidden && state.config) {
-        showOutcome(mode === 'assessment'
-            ? '<h2>Évaluation terminée</h2><p>Votre résultat apparaît dans votre espace s\'il a été enregistré.</p>'
-            : '<h2>Séance terminée</h2><p>Merci et à demain !</p>');
+        showOutcome({
+            assessment: '<h2>Évaluation terminée</h2><p>Votre résultat apparaît dans votre espace s\'il a été enregistré.</p>',
+            level_test: '<h2>Bilan terminé</h2><p>Le résultat apparaît dans votre espace s\'il a été enregistré.</p>',
+        }[mode] ?? '<h2>Séance terminée</h2><p>Merci et à demain !</p>');
     }
 
     state.config = state.config && { ...state.config, warning_seconds: 0 };

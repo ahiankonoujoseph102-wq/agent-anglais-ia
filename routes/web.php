@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AssessmentController as AdminAssessmentController;
+use App\Http\Controllers\Admin\InactiveLearnerController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\UsageController;
 use App\Http\Controllers\Admin\UserController;
@@ -12,11 +13,16 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Live\AssessmentController;
 use App\Http\Controllers\Live\LessonController;
+use App\Http\Controllers\Live\LevelTestController;
 use App\Http\Controllers\Payment\PaymentController;
+use App\Http\Controllers\Program\AttestationController;
+use App\Http\Controllers\Program\LessonHistoryController;
+use App\Http\Controllers\Program\ProgramController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/contact', ContactController::class)->name('contact');
+Route::get('/attestation/verifier/{code}', [AttestationController::class, 'verify'])->name('attestation.verify');
 
 Route::middleware('guest')->group(function () {
     Route::get('/inscription', [RegisteredUserController::class, 'create'])->name('register');
@@ -52,6 +58,23 @@ Route::middleware('auth')->group(function () {
         Route::post('/fin', 'finish')->middleware('throttle:10,1')->name('finish');
     });
 
+    // Programme personnel : questionnaire en 4 écrans, calendrier, unités, historique.
+    Route::get('/programme', [ProgramController::class, 'show'])->name('program.show');
+    Route::get('/programme/questionnaire/{step}', [ProgramController::class, 'questionnaire'])->whereNumber('step')->name('program.questionnaire');
+    Route::post('/programme/questionnaire/{step}', [ProgramController::class, 'saveStep'])->whereNumber('step')->name('program.questionnaire.store');
+    Route::get('/programme/unites/{number}', [ProgramController::class, 'unit'])->whereNumber('number')->name('program.unit');
+    Route::get('/mes-seances', LessonHistoryController::class)->name('lessons.history');
+    Route::get('/attestations/{attestation}/telecharger', [AttestationController::class, 'download'])->name('attestation.download');
+
+    // Bilan oral de fin de niveau.
+    Route::prefix('bilan-niveau')->name('level-test.')->controller(LevelTestController::class)->group(function () {
+        Route::get('/', 'show')->name('show');
+        Route::post('/connexion', 'connect')->middleware('throttle:10,1')->name('connect');
+        Route::post('/signal', 'signal')->middleware('throttle:30,1')->name('signal');
+        Route::post('/resultat', 'result')->middleware('throttle:10,1')->name('result');
+        Route::post('/fin', 'finish')->middleware('throttle:10,1')->name('finish');
+    });
+
     // Séance du jour des abonnés.
     Route::prefix('seance')->name('lesson.')->controller(LessonController::class)->group(function () {
         Route::get('/', 'show')->name('show');
@@ -76,4 +99,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/inscrits/{user}/mot-de-passe', [UserController::class, 'temporaryPassword'])->name('users.password');
     Route::delete('/inscrits/{user}/evaluation', [AdminAssessmentController::class, 'destroy'])->name('assessments.destroy');
     Route::get('/consommation', [UsageController::class, 'index'])->name('usage.index');
+    Route::get('/inactifs', [InactiveLearnerController::class, 'index'])->name('inactive.index');
+    Route::get('/inactifs/{user}/whatsapp', [InactiveLearnerController::class, 'whatsapp'])->name('inactive.whatsapp');
 });

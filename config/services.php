@@ -61,6 +61,11 @@ return [
         'connect_window_seconds' => 60,
         // Nombre maximal de connexions (jetons) par séance ou par évaluation.
         'max_connections' => (int) env('GEMINI_MAX_CONNECTIONS', 8),
+        // Tâches en texte (rédaction de messages, présentation du programme) :
+        // modèle léger et économique, appelé depuis le serveur (API Interactions).
+        // Source : ai.google.dev/gemini-api/docs/models (relevé d'octobre 2026).
+        'text_model' => env('GEMINI_TEXT_MODEL', 'gemini-3.5-flash-lite'),
+        'text_api_version' => env('GEMINI_TEXT_API_VERSION', 'v1beta'),
         // Tarifs payants en dollars US par million de jetons, pour estimer le coût
         // dans l'espace administrateur (tarif « audio », le plus cher).
         // Source : ai.google.dev/gemini-api/docs/pricing (relevé d'octobre 2026).

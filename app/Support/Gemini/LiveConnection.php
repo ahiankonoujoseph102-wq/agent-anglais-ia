@@ -4,6 +4,7 @@ namespace App\Support\Gemini;
 
 use App\Models\Assessment;
 use App\Models\Lesson;
+use App\Models\LevelTest;
 use Illuminate\Support\Carbon;
 
 /**
@@ -44,7 +45,7 @@ class LiveConnection
      * @param  array<string, string>  $cues
      * @return array<string, mixed>
      */
-    public function attach(Assessment|Lesson $conversation, array $token, array $setup, array $cues, int $warningSeconds, bool $resumed): array
+    public function attach(Assessment|Lesson|LevelTest $conversation, array $token, array $setup, array $cues, int $warningSeconds, bool $resumed): array
     {
         $conversation->token_expires_at = $token['expires_at'];
         $conversation->connections++;

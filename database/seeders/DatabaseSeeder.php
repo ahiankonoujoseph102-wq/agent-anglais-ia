@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\Level;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Curriculum\ProgramBuilder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -29,6 +30,16 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Subscription::factory()->for($learner)->forPlan('essentiel')->create();
+
+        // Programme personnel déjà construit, comme après le questionnaire.
+        app(ProgramBuilder::class)->build($learner, Level::A2, [
+            'goal' => 'business',
+            'occupation' => 'Commerçant au Grand Marché de Lomé',
+            'interests' => 'football, musique',
+            'study_days' => [1, 2, 3, 4, 5],
+            'study_time' => '18:30',
+            'difficulties' => ['speaking', 'pronunciation'],
+        ]);
 
         User::factory(10)->create();
     }

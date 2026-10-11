@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Live;
 
 use App\Enums\LessonStatus;
+use App\Enums\Level;
+use App\Enums\ProgramStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Live\ConnectRequest;
 use App\Http\Requests\Live\LessonReportRequest;
 use App\Http\Requests\Live\SignalRequest;
 use App\Models\Lesson;
+use App\Models\ProgramLesson;
 use App\Models\User;
+use App\Support\Curriculum\LessonContext;
+use App\Support\Curriculum\LessonReport;
 use App\Support\Duration;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
@@ -36,6 +41,10 @@ class LessonController extends Controller
             return to_route('payment.plans')->with('status', $user->latestSubscription !== null
                 ? 'Votre abonnement a expiré : renouvelez-le pour reprendre vos séances.'
                 : self::NO_SUBSCRIPTION);
+        }
+
+        if ($gate = $this->programGate($user)) {
+            return redirect($gate['url'])->with('status', $gate['message']);
         }
 
         $lesson = $this->openLesson($user);
@@ -69,6 +78,10 @@ class LessonController extends Controller
             return $this->refuse(self::NO_SUBSCRIPTION, 403);
         }
 
+        if ($gate = $this->programGate($user)) {
+            return $this->refuse($gate['message'], 409);
+        }
+
         $lesson = $this->openLesson($user);
 
         if ($lesson !== null && ! $lesson->canConnectAgain()) {
@@ -83,7 +96,12 @@ class LessonController extends Controller
         }
 
         $deadline = $lesson?->deadline() ?? now()->addSeconds($allowedSeconds);
-        $setup = TeacherSetup::lesson($user, (int) ceil($allowedSeconds / 60), $request->handle());
+        // La leçon du programme : celle de la séance reprise, sinon la prochaine à faire.
+        $program = $user->activeProgram()->first();
+        $programLesson = $lesson?->programLesson ?? $program?->currentLesson()->first();
+        $programLesson?->setRelation('program', $program);
+
+        $setup = TeacherSetup::lesson($user, (int) ceil($allowedSeconds / 60), $request->handle(), $this->context($user, $programLesson));
 
         try {
             $token = $live->request($setup, $deadline);
@@ -97,6 +115,8 @@ class LessonController extends Controller
 
         $lesson ??= $user->lessons()->create([
             'subscription_id' => $subscription->id,
+            'program_id' => $program?->id,
+            'program_lesson_id' => $programLesson?->id,
             'date' => today(),
             'allowed_seconds' => $allowedSeconds,
             'started_at' => now(),
@@ -132,12 +152,18 @@ class LessonController extends Controller
     {
         $lesson = $this->latestLesson($request->user());
 
-        $lesson->update([
-            'summary' => $request->validated('summary'),
-            'homework' => $request->validated('homework'),
-        ]);
+        // Un seul bilan par séance, envoyé pendant la séance ou juste après sa fin.
+        if ($lesson->reported_at !== null || ($lesson->ended_at !== null && $lesson->ended_at->lt(now()->subMinutes(5)))) {
+            return $this->refuse('Le bilan de cette séance est déjà enregistré.', 409);
+        }
 
-        return response()->json(['saved' => true]);
+        LessonReport::record($lesson, $request->validated());
+
+        return response()->json([
+            'saved' => true,
+            'outcome' => $lesson->outcome,
+            'program_status' => $lesson->programLesson?->program->status->value,
+        ]);
     }
 
     public function finish(SignalRequest $request): JsonResponse
@@ -151,6 +177,46 @@ class LessonController extends Controller
         }
 
         return response()->json(['status' => $lesson->status->label()]);
+    }
+
+    /**
+     * Avant les séances : un programme personnel, et pas de bilan de niveau en attente.
+     * Après le programme C2 validé, les séances restent possibles en conversation libre.
+     *
+     * @return array{url: string, message: string}|null
+     */
+    private function programGate(User $user): ?array
+    {
+        $program = $user->activeProgram()->first();
+
+        if ($program === null) {
+            if ($user->attestations()->where('level', Level::C2)->exists()) {
+                return null;
+            }
+
+            return ['url' => route('program.questionnaire', 1), 'message' => 'Avant votre première séance, construisons ensemble votre programme personnel.'];
+        }
+
+        if ($program->status === ProgramStatus::LevelTestDue) {
+            return ['url' => route('level-test.show'), 'message' => 'Vous avez terminé les 12 unités : passez d\'abord votre bilan de fin de niveau.'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Consignes de la séance : profil, leçon du jour, séance précédente, erreurs à revoir.
+     */
+    private function context(User $user, ?ProgramLesson $programLesson): ?string
+    {
+        if ($programLesson === null) {
+            return null;
+        }
+
+        $previous = $user->lessons()->whereNotNull('reported_at')->latest('id')->first();
+        $errors = $user->openErrors()->limit((int) config('program.errors_per_lesson'))->get();
+
+        return LessonContext::describe($user, $programLesson->program, $programLesson, $previous, $errors);
     }
 
     /**

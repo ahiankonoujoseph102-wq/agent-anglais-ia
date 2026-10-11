@@ -10,11 +10,12 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Tests\Concerns\BuildsPrograms;
 use Tests\TestCase;
 
 class LessonTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuildsPrograms, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -29,6 +30,7 @@ class LessonTest extends TestCase
     {
         $user = User::factory()->level(Level::A2)->create(['name' => 'Ama']);
         Subscription::factory()->for($user)->forPlan($plan)->create();
+        $this->buildProgram($user);
 
         return $user;
     }
@@ -210,8 +212,10 @@ class LessonTest extends TestCase
         $this->travel(13)->minutes();
 
         $this->actingAs($user)->postJson('/seance/bilan', [
+            'lesson_status' => 'completed',
             'summary' => 'Les salutations et se présenter.',
             'homework' => 'Se présenter en 5 phrases.',
+            'scores' => ['fluency' => 3, 'pronunciation' => 2, 'grammar' => 3, 'vocabulary' => 4, 'comprehension' => 4],
         ])->assertOk();
 
         $this->actingAs($user)->postJson('/seance/fin', ['output_tokens' => 42])->assertOk();

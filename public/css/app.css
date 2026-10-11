@@ -223,3 +223,28 @@ textarea { resize: vertical; margin-bottom: 8px; }
     .payment-actions { grid-template-columns: 1fr 2fr; align-items: start; }
     .filters { grid-template-columns: repeat(4, 1fr) auto; }
 }
+
+/* Programme et suivi */
+.progress { height: 8px; background: #ece9e2; border-radius: 4px; overflow: hidden; margin: 6px 0; }
+.progress span { display: block; height: 100%; background: #0f8a5f; border-radius: 0 4px 4px 0; }
+.small-value { font-size: 1.1rem; }
+.option { padding: 10px 12px; border: 1px solid var(--c-border); border-radius: var(--radius); margin-bottom: 8px; background: #fff; }
+.days { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 8px; }
+.calendar { list-style: none; padding: 8px 16px; }
+.calendar li { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--c-border); }
+.calendar li:last-child { border-bottom: 0; }
+.calendar .date { min-width: 84px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.calendar .today .date { color: var(--c-primary); }
+.units { list-style: none; padding: 0; }
+.units li { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 8px; }
+.unit-done { background: var(--c-primary-soft); }
+.unit-current { border-color: var(--c-primary); border-width: 2px; }
+.vocabulary dt { font-weight: 600; color: var(--c-text); }
+.error-item { margin: 0 0 10px; }
+.error-item .wrong { text-decoration: line-through; color: var(--c-muted); }
+/* Graphique des compétences : barres horizontales, une seule série, valeur au bout. */
+.skills-chart { list-style: none; padding: 0; margin: 0; }
+.skills-chart li { display: grid; grid-template-columns: 124px 1fr 32px; align-items: center; gap: 8px; padding: 6px 0; }
+.skill-track { height: 16px; border-left: 1px solid var(--c-border); }
+.skill-bar { display: block; height: 16px; background: #0f8a5f; border-radius: 0 4px 4px 0; }
+.skill-value { font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; }

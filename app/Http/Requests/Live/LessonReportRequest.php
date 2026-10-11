@@ -2,10 +2,11 @@
 
 namespace App\Http\Requests\Live;
 
+use App\Enums\Skill;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Bilan de séance rédigé par le professeur (fonction « end_lesson »).
+ * Bilan structuré transmis par le professeur en fin de séance (fonction « end_lesson »).
  */
 class LessonReportRequest extends FormRequest
 {
@@ -14,9 +15,24 @@ class LessonReportRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
+            'lesson_status' => ['required', 'in:completed,repeat'],
             'summary' => ['required', 'string', 'max:4000'],
             'homework' => ['nullable', 'string', 'max:2000'],
+            'errors' => ['nullable', 'array', 'max:20'],
+            'errors.*.wrong' => ['required', 'string', 'max:255'],
+            'errors.*.correct' => ['required', 'string', 'max:255'],
+            'errors.*.explanation' => ['nullable', 'string', 'max:500'],
+            'reviewed_errors' => ['nullable', 'array', 'max:20'],
+            'reviewed_errors.*.id' => ['required', 'integer'],
+            'reviewed_errors.*.corrected' => ['required', 'boolean'],
+            'scores' => ['required', 'array'],
         ];
+
+        foreach (Skill::cases() as $skill) {
+            $rules['scores.'.$skill->value] = ['required', 'integer', 'between:1,5'];
+        }
+
+        return $rules;
     }
 }
