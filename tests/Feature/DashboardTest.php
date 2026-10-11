@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AssessmentStatus;
 use App\Enums\LessonStatus;
 use App\Enums\Level;
 use App\Enums\SubscriptionStatus;
@@ -25,7 +26,36 @@ class DashboardTest extends TestCase
             ->assertSee('Pas encore évalué')
             ->assertSee('Pas d\'abonnement actif', false)
             ->assertSee('Disponible avec un abonnement')
-            ->assertSee('Votre évaluation gratuite');
+            ->assertSee('Votre évaluation gratuite')
+            ->assertSee(route('assessment.show'));
+    }
+
+    public function test_interrupted_assessment_without_level_is_explained(): void
+    {
+        $user = User::factory()->create();
+        $user->assessment()->create([
+            'status' => AssessmentStatus::Abandoned,
+            'started_at' => now()->subHour(),
+            'allowed_seconds' => 300,
+            'used_seconds' => 40,
+        ]);
+
+        $this->actingAs($user)
+            ->get('/espace')
+            ->assertOk()
+            ->assertSee('Contactez-nous pour la repasser.')
+            ->assertDontSee(route('assessment.show'));
+    }
+
+    public function test_subscriber_can_open_the_daily_lesson(): void
+    {
+        $user = User::factory()->level(Level::A1)->create();
+        Subscription::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->get('/espace')
+            ->assertSee('Commencer ma séance')
+            ->assertSee(route('lesson.show'));
     }
 
     public function test_dashboard_shows_level_plan_and_time_left_today(): void

@@ -35,9 +35,39 @@ return [
         ],
     ],
 
-    // Phase 2+ : intelligence et voix du professeur.
+    /*
+    | Intelligence et voix du professeur : API Gemini Live.
+    | La clé ne quitte jamais le serveur : le navigateur reçoit seulement un
+    | jeton éphémère, à usage unique et à durée limitée.
+    | Les consignes du professeur sont dans config/teacher.php.
+    */
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
+        // Modèle audio natif de l'API Live (voir ai.google.dev/gemini-api/docs/models).
+        'live_model' => env('GEMINI_LIVE_MODEL', 'gemini-3.8-live'),
+        // Version de l'API pour les jetons éphémères et la connexion « Constrained ».
+        'api_version' => env('GEMINI_API_VERSION', 'v1alpha'),
+        'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com'),
+        'websocket_url' => env('GEMINI_WEBSOCKET_URL', 'wss://generativelanguage.googleapis.com'),
+        // Voix du professeur (vide = voix par défaut du modèle).
+        'voice' => env('GEMINI_VOICE'),
+        // Durée de vie maximale d'un jeton (et donc d'une connexion), en minutes.
+        // Tout le temps de validité d'un jeton est décompté, même si le navigateur
+        // disparaît : une valeur courte limite la perte en cas de coupure.
+        // La connexion Live dure de toute façon environ 10 min : le navigateur
+        // en redemande une, en reprenant la conversation, tant qu'il reste du temps.
+        'token_minutes' => (int) env('GEMINI_TOKEN_MINUTES', 5),
+        // Délai laissé au navigateur pour ouvrir la connexion avec le jeton, en secondes.
+        'connect_window_seconds' => 60,
+        // Nombre maximal de connexions (jetons) par séance ou par évaluation.
+        'max_connections' => (int) env('GEMINI_MAX_CONNECTIONS', 8),
+        // Tarifs payants en dollars US par million de jetons, pour estimer le coût
+        // dans l'espace administrateur (tarif « audio », le plus cher).
+        // Source : ai.google.dev/gemini-api/docs/pricing (relevé d'octobre 2026).
+        'pricing' => [
+            'input_per_million' => (float) env('GEMINI_PRICE_INPUT', 3.00),
+            'output_per_million' => (float) env('GEMINI_PRICE_OUTPUT', 12.00),
+        ],
     ],
 
     // Phase 2+ : paiement mobile money (Flooz, Mixx by Yas).
