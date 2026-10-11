@@ -1,4 +1,6 @@
 <x-layout title="Inscrits">
+    @include('admin.nav')
+
     <h1>Inscrits</h1>
     <p class="muted">{{ $total }} compte(s) au total.</p>
 

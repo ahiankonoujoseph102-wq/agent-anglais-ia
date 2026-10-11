@@ -28,6 +28,8 @@ return [
     'assessment' => [
         // Durée maximale de l'évaluation, en minutes (une seule par compte).
         'max_minutes' => 5,
+        // Le professeur est prévenu ce nombre de minutes avant la fin pour conclure.
+        'warning_minutes_before_end' => 1,
     ],
 
     /*
@@ -38,6 +40,23 @@ return [
     'lessons' => [
         // Le professeur prévient l'apprenant ce nombre de minutes avant la fin.
         'warning_minutes_before_end' => 2,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Suivi des conversations vocales (évaluation et séances)
+    |--------------------------------------------------------------------------
+    |
+    | Le navigateur envoie un signal toutes les « heartbeat_seconds ». Sans
+    | signal depuis « stale_after_seconds », la conversation est considérée
+    | comme interrompue et clôturée par le serveur.
+    |
+    */
+    'live' => [
+        'heartbeat_seconds' => 15,
+        'stale_after_seconds' => 60,
+        // En dessous de ce temps restant, une nouvelle séance n'est pas ouverte.
+        'min_start_seconds' => 30,
     ],
 
     /*

@@ -20,6 +20,9 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* L'attribut hidden l'emporte toujours (les boutons ont leur propre display). */
+[hidden] { display: none !important; }
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {
@@ -146,3 +149,32 @@ input:focus { border-color: var(--c-primary); }
     .stats { grid-template-columns: repeat(3, 1fr); }
 }
 .next-step { margin-top: 16px; }
+
+/* Onglets de l'administration */
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--c-border); }
+.tabs a { padding: 8px 12px; text-decoration: none; border-bottom: 3px solid transparent; }
+.tabs a.active { border-bottom-color: var(--c-primary); font-weight: 700; }
+.inline-form { display: inline; margin: 0; }
+
+/* Conversation vocale avec le professeur */
+.live { max-width: 520px; margin: 0 auto; }
+.teacher { display: flex; justify-content: center; margin: 4px 0 12px; }
+.face { width: 180px; height: 180px; }
+.face-skin { fill: #8d5a3b; }
+.face-hair { fill: #2b1a12; }
+.face-eyes { fill: #1d1410; animation: blink 5s infinite; transform-origin: 100px 92px; }
+.face-brows { fill: none; stroke: #2b1a12; stroke-width: 4; stroke-linecap: round; }
+.face-mouth { fill: #4a1f1a; }
+@keyframes blink { 0%, 96%, 100% { transform: scaleY(1); } 98% { transform: scaleY(.1); } }
+@media (prefers-reduced-motion: reduce) { .face-eyes { animation: none; } }
+.live-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.live-bar .label { color: var(--c-muted); font-size: .875rem; }
+.timer { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.timer-low { color: var(--c-danger); }
+.live-status { background: var(--c-primary-soft); color: var(--c-primary-dark); border-radius: 999px; padding: 4px 12px; font-size: .875rem; font-weight: 600; text-align: right; }
+.subtitles { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius); padding: 12px; height: 38vh; min-height: 160px; overflow-y: auto; margin-bottom: 12px; }
+.subtitles .line { margin: 0 0 8px; }
+.subtitles .line::before { content: attr(data-speaker) " : "; font-weight: 700; }
+.line-teacher::before { color: var(--c-primary); }
+.line-learner { color: var(--c-muted); }
+.live-actions { display: grid; gap: 10px; }

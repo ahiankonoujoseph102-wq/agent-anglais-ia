@@ -15,3 +15,6 @@ use Illuminate\Support\Facades\Schedule;
 */
 
 Schedule::command('subscriptions:expire')->hourly()->withoutOverlapping();
+
+// Clôture les évaluations et séances finies ou abandonnées (navigateur fermé).
+Schedule::command('live:close-stale')->everyMinute()->withoutOverlapping();
