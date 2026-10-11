@@ -71,7 +71,7 @@ class AccessTest extends TestCase
     {
         $admin = User::factory()->admin()->create();
 
-        $this->actingAs($admin)->get('/admin')->assertRedirect('/admin/inscrits');
+        $this->actingAs($admin)->get('/admin')->assertRedirect('/admin/paiements');
         $this->actingAs($admin)->get('/admin/inscrits')->assertOk();
     }
 

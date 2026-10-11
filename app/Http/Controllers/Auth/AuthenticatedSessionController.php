@@ -40,6 +40,6 @@ class AuthenticatedSessionController extends Controller
      */
     public static function homeFor(?User $user): string
     {
-        return $user?->isAdmin() ? route('admin.users.index') : route('dashboard');
+        return $user?->isAdmin() ? route('admin.payments.pending') : route('dashboard');
     }
 }

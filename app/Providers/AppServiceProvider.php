@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Enums\PaymentStatus;
+use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,5 +33,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Pagination en HTML simple (classes Bootstrap 4, sans Bootstrap), stylée par public/css/app.css.
         Paginator::useBootstrapFour();
+
+        // Compteur de paiements en attente : en-tête et onglets de l'administration.
+        View::composer(['components.layout', 'admin.nav'], function ($view) {
+            $view->with('pendingPaymentsCount', auth()->user()?->isAdmin()
+                ? once(fn () => Payment::query()->where('status', PaymentStatus::Pending)->count())
+                : 0);
+        });
     }
 }

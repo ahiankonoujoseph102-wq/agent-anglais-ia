@@ -14,8 +14,8 @@ return new class extends Migration
             $table->foreignId('subscription_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedInteger('amount');
             $table->string('currency', 10);
-            // Prestataire de paiement (fedapay) et moyen utilisé (flooz, mixx…).
-            $table->string('provider', 30)->default('fedapay');
+            // Moyen de paiement. Table remplacée par la migration 2026_10_12_000001.
+            $table->string('provider', 30)->default('manual');
             $table->string('method', 30)->nullable();
             // Numéro mobile money débité.
             $table->string('phone', 20)->nullable();

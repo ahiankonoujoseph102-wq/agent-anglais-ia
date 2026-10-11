@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Level;
+use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
 use Database\Factories\UserFactory;
@@ -15,8 +16,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 /**
- * Le rôle et le niveau ne sont volontairement pas « fillable » : ils ne
- * doivent jamais pouvoir être fixés depuis un formulaire.
+ * Le rôle, le niveau et l'obligation de changer de mot de passe ne sont
+ * volontairement pas « fillable » : ils ne doivent jamais pouvoir être
+ * fixés depuis un formulaire.
  */
 #[Fillable(['name', 'phone', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -30,6 +32,7 @@ class User extends Authenticatable
      */
     protected $attributes = [
         'role' => Role::Learner->value,
+        'must_change_password' => false,
     ];
 
     /**
@@ -41,6 +44,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'level' => Level::class,
             'role' => Role::class,
+            'must_change_password' => 'boolean',
         ];
     }
 
@@ -87,6 +91,37 @@ class User extends Authenticatable
     public function lessons(): HasMany
     {
         return $this->hasMany(Lesson::class);
+    }
+
+    /**
+     * Le paiement en attente de validation, s'il y en a un (au plus un).
+     *
+     * @return HasOne<Payment, $this>
+     */
+    public function pendingPayment(): HasOne
+    {
+        return $this->hasOne(Payment::class)->where('status', PaymentStatus::Pending);
+    }
+
+    /**
+     * @return HasOne<Payment, $this>
+     */
+    public function latestPayment(): HasOne
+    {
+        return $this->hasOne(Payment::class)->latestOfMany();
+    }
+
+    /**
+     * Le dernier abonnement payé (actif, à venir ou expiré).
+     *
+     * @return HasOne<Subscription, $this>
+     */
+    public function latestSubscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class)->ofMany(
+            ['ends_at' => 'max', 'id' => 'max'],
+            fn ($query) => $query->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Expired]),
+        );
     }
 
     /**
