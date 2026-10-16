@@ -1,0 +1,19 @@
+{
+  "name": "teacher3d-tools",
+  "private": true,
+  "description": "Outils locaux du professeur 3D (génération du modèle, regroupement de three.js). Jamais exécutés sur le serveur.",
+  "type": "module",
+  "scripts": {
+    "model": "node build-teacher-joe.mjs",
+    "vendor": "node build-vendor.mjs"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "4.5.1",
+    "@gltf-transform/extensions": "4.5.1",
+    "@gltf-transform/functions": "4.5.1",
+    "@met4citizen/headaudio": "0.1.0",
+    "esbuild": "0.25.10",
+    "meshoptimizer": "0.25.0",
+    "three": "0.185.1"
+  }
+}

@@ -167,6 +167,16 @@ input:focus { border-color: var(--c-primary); }
 .face-mouth { fill: #4a1f1a; }
 @keyframes blink { 0%, 96%, 100% { transform: scaleY(1); } 98% { transform: scaleY(.1); } }
 @media (prefers-reduced-motion: reduce) { .face-eyes { animation: none; } }
+/* Professeur 3D (remplace le visage SVG quand il est chargé) */
+.teacher { position: relative; flex-wrap: wrap; }
+.teacher3d-stage { display: none; }
+.teacher-3d .face { display: none; }
+.teacher-3d .teacher3d-stage { display: block; width: 100%; height: clamp(210px, 36vh, 340px); border-radius: var(--radius); overflow: hidden; background: #ecd8bd; }
+.teacher3d-canvas { display: block; width: 100%; height: 100%; }
+.teacher3d-loading { width: 100%; text-align: center; font-size: .8rem; color: var(--c-muted); }
+.teacher3d-loading progress { display: block; width: 60%; height: 6px; margin: 4px auto 0; }
+.teacher3d-toggle { display: block; margin: -8px auto 8px; font-size: .8rem; }
+.live[data-teacher="3d"] .subtitles { height: 26vh; }
 .live-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .live-bar .label { color: var(--c-muted); font-size: .875rem; }
 .timer { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; }

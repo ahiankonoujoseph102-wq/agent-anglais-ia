@@ -62,6 +62,7 @@
                 <a href="mailto:{{ config('platform.contact.email') }}">{{ config('platform.contact.email') }}</a>
                 · <a href="{{ \App\Support\WhatsApp::url(config('platform.contact.whatsapp')) }}" target="_blank" rel="noopener">WhatsApp</a>
                 · <a href="{{ route('contact') }}">Contact</a>
+                · <a href="{{ route('credits') }}">Crédits</a>
             </p>
             <p>&copy; {{ date('Y') }} {{ config('platform.name') }} — Apprenez l'anglais avec votre professeur IA.</p>
         </div>

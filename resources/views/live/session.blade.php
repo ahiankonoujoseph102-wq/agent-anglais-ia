@@ -3,7 +3,12 @@
     <div id="live" class="live"
          data-mode="{{ $mode }}"
          data-urls='@json($urls)'
-         data-worklet="{{ asset('js/pcm-capture-worklet.js') }}?v={{ @filemtime(public_path('js/pcm-capture-worklet.js')) }}">
+         data-worklet="{{ asset('js/pcm-capture-worklet.js') }}?v={{ @filemtime(public_path('js/pcm-capture-worklet.js')) }}"
+         @if (\App\Support\Avatar::enabled())
+             data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"
+             data-teacher3d='@json(\App\Support\Avatar::clientConfig())'
+         @endif
+         data-teacher="svg">
 
         <h1>{{ $title }}</h1>
 
@@ -18,7 +23,14 @@
                 <path d="M56 72 Q70 64 84 72 M116 72 Q130 64 144 72" class="face-brows"/>
                 <ellipse id="mouth" cx="100" cy="142" rx="24" ry="3" class="face-mouth"/>
             </svg>
+            {{-- Professeur 3D : chargé en arrière-plan, remplace le visage SVG une fois prêt. --}}
+            <div id="teacher3d" class="teacher3d-stage"></div>
+            <div id="teacher3d-loading" class="teacher3d-loading" hidden>
+                Chargement du professeur 3D…
+                <progress max="100" value="0"></progress>
+            </div>
         </div>
+        <button type="button" id="teacher3d-toggle" class="btn btn-link teacher3d-toggle" hidden></button>
 
         <div class="live-bar">
             <div>
