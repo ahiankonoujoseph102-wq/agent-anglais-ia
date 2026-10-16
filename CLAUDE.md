@@ -45,7 +45,7 @@ Formules de départ (dans `config/platform.php`) :
 - **Phase 2 — Conversation vocale (faite)** : évaluation orale gratuite et séance du jour avec l'API Gemini Live, jetons éphémères, limite de temps imposée par le serveur, consignes du professeur dans `config/teacher.php`, visage SVG animé, mesures de consommation dans l'admin.
 - **Phase 3 — Paiement manuel et comptes (faite)** : paiement Mobile Money déclaré par l'apprenant (capture privée), validation/refus par l'administrateur, activation et renouvellement de l'abonnement, rappel 3 jours avant la fin, mot de passe oublié via WhatsApp + mot de passe provisoire, coordonnées du centre (pied de page, page Contact).
 - **Phase 4 — Programme (faite)** : programme officiel original A1 → C2 (12 unités par niveau), questionnaire et programme personnel (calendrier, progression), séance branchée sur la leçon du jour, bilan structuré (notes, erreurs, devoir), erreurs à revoir, bilan de fin de niveau, attestation PDF, suivi (série, compétences), apprenants inactifs dans l'admin, Gemini texte pour les rédactions.
-- **Phase 5** : personnage 3D animé avec synchronisation labiale.
+- **Phase 5 — Professeur 3D (faite)** : personnage 3D « Teacher Joe » (CC0, créé par script), bouche synchronisée sur la voix (HeadAudio), comportement (repos, écoute, parole, expressions déclenchées par Gemini), décor de classe, chargement en arrière-plan avec cache, retour automatique au visage SVG.
 
 (L'ordre 2/3/4/5 est indicatif ; voir le compte rendu de chaque phase.)
 
@@ -55,7 +55,7 @@ Formules de départ (dans `config/platform.php`) :
 app/
   Console/Commands/      app:create-admin, subscriptions:expire, live:close-stale (évaluations, séances, bilans de niveau)
   Enums/                 Level (A1…C2), Role, *Status — valeurs stockées en anglais, libellés FR via label()
-  Http/Controllers/      HomeController, ContactController, DashboardController, Auth/* (dont PasswordController),
+  Http/Controllers/      HomeController, ContactController, CreditsController, DashboardController, Auth/* (dont PasswordController),
                          Admin/* (PaymentController, UserController, UsageController, AssessmentController)
   Http/Controllers/Live/ AssessmentController (évaluation), LessonController (séance du jour), LevelTestController (bilan de niveau)
   Http/Controllers/Program/ ProgramController (questionnaire, programme, unités), LessonHistoryController, AttestationController
@@ -70,7 +70,8 @@ app/
   Models/Concerns/       IsLiveConversation (règles de temps communes à Assessment, Lesson et LevelTest)
   Enums/ (phase 4)       Goal, Difficulty, Skill, ProgramStatus, ProgramLessonStatus, LevelTestStatus, ErrorStatus
   Support/               PhoneNumber (normalisation E.164), Plan (formules depuis la config), Money, Duration,
-                         PaymentCountry / PaymentOperator (config/payment.php), WhatsApp (liens wa.me), TemporaryPassword
+                         PaymentCountry / PaymentOperator (config/payment.php), WhatsApp (liens wa.me), TemporaryPassword,
+                         Avatar (réglages du professeur 3D pour le navigateur, URL versionnées par empreinte)
   Support/Gemini/        LiveClient (jeton éphémère), LiveConnection, TeacherSetup (consignes + config Live), UsageCost,
                          TextClient (modèle texte léger, API Interactions, renvoie null en cas d'échec)
   Support/Curriculum/    Curriculum, Unit, Situation (lecture du programme officiel), ProgramBuilder, LessonContext,
@@ -80,8 +81,13 @@ config/program.php       mots-clés métier → thèmes, durée du bilan de nive
 config/platform.php      TOUS les réglages commerciaux (+ durée de l'évaluation, préavis de fin, signaux, coordonnées du centre)
 config/payment.php       pays, opérateurs, numéros et titulaires Mobile Money ; WhatsApp ; captures ; délai du rappel
 config/teacher.php       consignes du professeur (modifiables sans toucher au code)
+config/avatar.php        professeur 3D : fichier du modèle, cadrage, expressions proposées à Gemini, crédits
 config/services.php      gemini : clé, modèle Live, version d'API, voix, durée des jetons, tarifs pour l'estimation
-public/js/               live-session.js (conversation vocale), pcm-capture-worklet.js (micro → PCM 16 kHz), copy.js (bouton « Copier »)
+public/js/               live-session.js (conversation vocale), pcm-capture-worklet.js (micro → PCM 16 kHz), copy.js (bouton « Copier »),
+                         teacher-view.js (choix 3D / SVG, progression, repli), teacher-3d.js (scène, animation, lecture labiale)
+public/teacher3d/        models/teacher-joe.glb (personnage), lib/ (three.js regroupé, HeadAudio, LICENSES.txt)
+public/teacher3d-sw.js   service worker : garde en cache les fichiers de /teacher3d/
+tools/teacher3d/         outils LOCAUX (Node) : génération du modèle, regroupement de three.js (voir son README)
 lang/fr/, lang/fr.json   traductions (validation, erreurs HTTP, pagination)
 public/css/app.css       feuille de style unique, écrite à la main, sans compilation
 resources/views/
@@ -139,8 +145,19 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 - Le navigateur se connecte **directement** à Google en WebSocket (`BidiGenerateContentConstrained`) avec un **jeton éphémère** à usage unique demandé par Laravel (`POST /{version}/auth_tokens`). La clé reste dans `.env`. Le jeton **fige** la configuration (modèle, consignes, fonctions) : le navigateur ne peut pas la changer.
 - Audio : micro → PCM 16 bits mono 16 kHz (`audio/pcm;rate=16000`) ; voix reçue en PCM 16 bits 24 kHz. Sous-titres via `inputAudioTranscription` / `outputAudioTranscription`.
 - **Temps imposé par le serveur** : une conversation se déroule d'un seul tenant ; le temps consommé = temps écoulé depuis le début, plafonné à `allowed_seconds`. Chaque jeton expire au plus tard à la fin autorisée (et au plus après `GEMINI_TOKEN_MINUTES`) : Google coupe alors la connexion. Le navigateur renouvelle le jeton avant expiration (et sur `goAway`) en reprenant la conversation (`sessionResumption`). Signal toutes les 15 s (`/signal`) ; sans signal, la conversation est close par `live:close-stale` (cron chaque minute), **décomptée jusqu'à l'expiration du dernier jeton**. Une seule séance ouverte à la fois ; refus de toute connexion quand le temps du jour est épuisé.
-- Le professeur appelle des fonctions : `record_assessment_result(level, feedback)` (évaluation → `assessments` + `users.level`, une seule fois) et `end_lesson(summary, homework)`. Le navigateur les relaie à Laravel puis répond à Gemini.
+- Le professeur appelle des fonctions : `record_assessment_result(level, feedback)` (évaluation → `assessments` + `users.level`, une seule fois) et `end_lesson(summary, homework)`. Le navigateur les relaie à Laravel puis répond à Gemini. `set_expression(expression)` ne sort pas du navigateur (expression du professeur 3D).
 - Les indications « début », « reprise » et « il reste N minutes » sont envoyées par le navigateur au bon moment (textes dans `config/teacher.php`, clé `cues`).
+
+### Professeur 3D (phase 5)
+
+- **Modèle** : « Teacher Joe », homme africain jeune adulte, lunettes, chemise, cravate et gilet vert, assis à son bureau. Personnage **original** créé par `tools/teacher3d/build-teacher-joe.mjs` (aucune ressource tierce), licence **CC0 1.0** (domaine public), auteur : la plateforme. Poids : environ **300 Ko** (meshopt). Recherche faite : aucun modèle libre joignable ne réunissait homme africain + licence commerciale + visèmes + squelette + moins de 5 Mo.
+- **Conventions** (pour pouvoir le remplacer) : os Mixamo, 15 visèmes Oculus, expressions ARKit. Changer de personnage = nouveau GLB dans `public/teacher3d/models/` + `config/avatar.php` (profil `generic` si le squelette n'est pas celui de Teacher Joe : pas de gestes des bras).
+- **Bibliothèques** (statiques, regroupées en local et committées) : three.js 0.185.1 (MIT) et HeadAudio 0.1.0 (MIT, Mika Suominen). Crédits sur la page `/credits` (`config('avatar.credits')`).
+- **Bouche** : HeadAudio (AudioWorklet, MFCC + modèle de visèmes) écoute la voix du professeur avant un retard de 80 ms ajouté au haut-parleur ; repli sur le volume et le timbre si HeadAudio échoue.
+- **Comportement** (`teacher-3d.js`) : respiration, clignements, petits mouvements de tête au repos ; écoute (micro + sous-titres) : buste vers l'avant, tête penchée, hochements ; parole : gestes des mains et accents de la tête ; expressions `welcome`, `happy`, `encouraging`, `attentive`, `thinking`, `goodbye`, `neutral` demandées par Gemini via la fonction **`set_expression`** (déclarée après la fonction principale de chaque conversation quand `avatar.enabled`). Accueil automatique au début, au revoir à la fin.
+- **Téléphone** : chargement en arrière-plan avec barre de progression ; le visage SVG reste affiché tant que la 3D n'est pas prête. Pas de 3D (visage SVG + lien « Afficher le professeur en 3D ») si : mode économie de données, préférence « Visage simple », moins de 1 Go de mémoire, pas de WebGL 2. Pendant l'affichage : 30 images/s au plus ; sous 20 images/s la définition baisse, sous 12 images/s retour automatique au SVG ; idem si le contexte WebGL est perdu. La séance n'est jamais bloquée.
+- **Cache** : le modèle est gardé dans le Cache Storage du navigateur ; le service worker garde les bibliothèques. Les URL portent une empreinte du contenu (`Avatar::asset()`), pas la date du fichier : rien n'est retéléchargé après un déploiement si le fichier n'a pas changé.
+- Désactiver la 3D partout : `AVATAR_3D_ENABLED=false`.
 
 ### Routes (URL en français)
 
@@ -148,6 +165,7 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 |---|---|---|
 | `/` | `home` | public |
 | `/contact` | `contact` | public : coordonnées du centre |
+| `/credits` | `credits` | public : licences et auteurs (professeur 3D, three.js, HeadAudio) |
 | `/mot-de-passe-oublie` | `password.forgot` | invités |
 | `/mot-de-passe/nouveau` (GET, PUT) | `password.change`, `password.update` | connectés (après mot de passe provisoire) |
 | `/inscription` | `register` | invités |
@@ -201,6 +219,7 @@ vendor/bin/pint                   # formatage
 php artisan app:create-admin      # créer / promouvoir un administrateur
 php artisan subscriptions:expire  # aussi lancée chaque heure par le planificateur
 php artisan live:close-stale      # clôt les conversations finies/abandonnées (chaque minute par le planificateur)
+cd tools/teacher3d && npm install && npm run model && npm run vendor   # EN LOCAL : régénère le modèle 3D et les bibliothèques
 ```
 
 La CI (`.github/workflows/tests.yml`) lance Pint et toute la suite de tests contre **MySQL 8**.

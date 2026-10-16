@@ -57,6 +57,31 @@ class TeacherSetupTest extends TestCase
         $this->assertSame('{}', json_encode($setup['outputAudioTranscription']));
     }
 
+    public function test_animated_teacher_expressions_are_declared_after_the_main_function(): void
+    {
+        config(['avatar.enabled' => true]);
+
+        $setup = TeacherSetup::lesson(new User(['name' => 'Afi']), 15);
+        $functions = $setup['tools'][0]['functionDeclarations'];
+
+        $this->assertSame([TeacherSetup::END_LESSON, TeacherSetup::SET_EXPRESSION], array_column($functions, 'name'));
+        $this->assertSame(array_keys(config('avatar.expressions')), $functions[1]['parameters']['properties']['expression']['enum']);
+        $this->assertContains('welcome', $functions[1]['parameters']['properties']['expression']['enum']);
+        $this->assertStringContainsString('never mention it', $functions[1]['description']);
+
+        $assessment = TeacherSetup::assessment(new User(['name' => 'Afi']), 5);
+        $this->assertSame(TeacherSetup::SET_EXPRESSION, $assessment['tools'][0]['functionDeclarations'][1]['name']);
+    }
+
+    public function test_no_expression_function_when_the_animated_teacher_is_disabled(): void
+    {
+        config(['avatar.enabled' => false]);
+
+        $setup = TeacherSetup::lesson(new User(['name' => 'Afi']), 15);
+
+        $this->assertSame([TeacherSetup::END_LESSON], array_column($setup['tools'][0]['functionDeclarations'], 'name'));
+    }
+
     public function test_cost_estimate_uses_configured_prices(): void
     {
         config([

@@ -20,6 +20,8 @@ class TeacherSetup
 
     public const RECORD_LEVEL_TEST_RESULT = 'record_level_test_result';
 
+    public const SET_EXPRESSION = 'set_expression';
+
     /**
      * @return array<string, mixed>
      */
@@ -200,6 +202,10 @@ class TeacherSetup
      */
     private static function setup(string $instructions, array $functions, ?string $resumeHandle): array
     {
+        if ($expression = self::expressionFunction()) {
+            $functions[] = $expression;
+        }
+
         $generationConfig = ['responseModalities' => ['AUDIO']];
 
         if (filled($voice = config('services.gemini.voice'))) {
@@ -220,6 +226,44 @@ class TeacherSetup
             'contextWindowCompression' => ['slidingWindow' => (object) []],
             // Permet de reprendre la conversation sur une nouvelle connexion.
             'sessionResumption' => filled($resumeHandle) ? ['handle' => $resumeHandle] : (object) [],
+        ];
+    }
+
+    /**
+     * Expressions du professeur animé en 3D (config/avatar.php), déclenchées par Gemini.
+     *
+     * @return array<string, mixed>|null
+     */
+    private static function expressionFunction(): ?array
+    {
+        $expressions = config('avatar.enabled') ? config('avatar.expressions', []) : [];
+
+        if ($expressions === []) {
+            return null;
+        }
+
+        $moments = [];
+
+        foreach ($expressions as $name => $moment) {
+            $moments[] = "\"{$name}\": {$moment}";
+        }
+
+        return [
+            'name' => self::SET_EXPRESSION,
+            'description' => 'Changes the facial expression and gesture of your animated face, which the learner sees. '
+                .'Call it silently, never mention it, at key moments: '.implode('; ', $moments).'. '
+                .'It returns immediately: keep talking naturally.',
+            'parameters' => [
+                'type' => 'OBJECT',
+                'properties' => [
+                    'expression' => [
+                        'type' => 'STRING',
+                        'enum' => array_keys($expressions),
+                        'description' => 'Expression to show.',
+                    ],
+                ],
+                'required' => ['expression'],
+            ],
         ];
     }
 

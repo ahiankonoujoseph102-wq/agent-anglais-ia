@@ -8,6 +8,9 @@
  *
  * Audio : micro en PCM 16 bits 16 kHz vers Gemini, voix du professeur reçue en
  * PCM 16 bits 24 kHz. La bouche du visage suit le volume de cette voix.
+ *
+ * Le professeur 3D (teacher-view.js, teacher-3d.js) est facultatif : il se
+ * charge en arrière-plan et reçoit la voix, le micro et les expressions.
  */
 
 const root = document.getElementById('live');
@@ -21,6 +24,21 @@ const ui = {
     intro: $('intro'), status: $('status'), timer: $('timer'), error: $('error'),
     subtitles: $('subtitles'), outcome: $('outcome'), mouth: $('mouth'),
 };
+
+// Professeur 3D, chargé en arrière-plan ; le visage SVG reste affiché en attendant.
+let teacher = null;
+
+if (root.dataset.teacher3d && root.dataset.teacherView) {
+    import(root.dataset.teacherView)
+        .then(({ createTeacherView }) => {
+            teacher = createTeacherView(root, JSON.parse(root.dataset.teacher3d));
+
+            if (state.audio) {
+                teacher.attachAudio(state.audio.context, state.audio.output, state.audio.source);
+            }
+        })
+        .catch((error) => console.warn('Professeur 3D indisponible :', error));
+}
 
 const INPUT_RATE = 16000;
 const OUTPUT_RATE = 24000;
@@ -184,12 +202,17 @@ async function setupAudio() {
     source.connect(capture).connect(silent).connect(context.destination);
     capture.port.onmessage = (event) => sendAudio(event.data);
 
+    // La voix est un peu retardée : la lecture labiale du professeur 3D
+    // (qui écoute avant ce retard) a le temps de préparer la forme de la bouche.
     const output = context.createGain();
+    const delay = context.createDelay(0.5);
+    delay.delayTime.value = 0.08;
     const analyser = context.createAnalyser();
     analyser.fftSize = 512;
-    output.connect(analyser).connect(context.destination);
+    output.connect(delay).connect(analyser).connect(context.destination);
 
-    state.audio = { context, stream, output, analyser, playHead: 0, sources: new Set() };
+    state.audio = { context, stream, source, output, analyser, playHead: 0, sources: new Set() };
+    teacher?.attachAudio(context, output, source);
     animateMouth();
 }
 
@@ -348,6 +371,10 @@ async function connect({ planned = false } = {}) {
                 sendText(isResume ? state.config.cues.resume : state.config.cues.start);
             }
 
+            if (!isResume && !planned) {
+                teacher?.expression('welcome');
+            }
+
             scheduleRenewal();
         }
 
@@ -403,6 +430,7 @@ function handleMessage(message) {
         }
 
         if (content.inputTranscription?.text) {
+            teacher?.learnerSpoke();
             state.teacherLine = null;
             subtitle('learner', content.inputTranscription.text);
         }
@@ -445,7 +473,10 @@ async function handleFunctionCall(call) {
     const args = call.args ?? {};
     let response = { result: 'ok' };
 
-    if (call.name === 'record_assessment_result' && mode === 'assessment') {
+    if (call.name === 'set_expression') {
+        // Expression du professeur animé (sans effet sur le visage simple).
+        teacher?.expression(args.expression);
+    } else if (call.name === 'record_assessment_result' && mode === 'assessment') {
         const result = await post(urls.result, { level: args.level, feedback: args.feedback });
 
         if (result.ok) {
@@ -607,6 +638,8 @@ async function finish(reason, message = '') {
     }
 
     stopPlayback();
+    teacher?.expression('goodbye');
+    teacher?.detachAudio();
     state.audio?.stream.getTracks().forEach((track) => track.stop());
     state.audio?.context.close();
     state.audio = null;

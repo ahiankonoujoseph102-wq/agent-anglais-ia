@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\CreditsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Live\AssessmentController;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/contact', ContactController::class)->name('contact');
+Route::get('/credits', CreditsController::class)->name('credits');
 Route::get('/attestation/verifier/{code}', [AttestationController::class, 'verify'])->name('attestation.verify');
 
 Route::middleware('guest')->group(function () {
