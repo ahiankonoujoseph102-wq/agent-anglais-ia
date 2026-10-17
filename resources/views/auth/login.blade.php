@@ -1,6 +1,6 @@
 <x-layout title="Connexion" narrow>
     <div class="auth-head rise">
-        <span class="icon-bubble"><x-icon name="login" /></span>
+        <span class="icon-bubble icon-bubble-primary"><x-icon name="login" /></span>
         <h1>Connexion</h1>
         <p>Retrouvez votre professeur et votre séance du jour.</p>
     </div>

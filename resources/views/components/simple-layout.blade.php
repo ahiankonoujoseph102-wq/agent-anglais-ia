@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="{{ \App\Support\Asset::url('css/tokens.css') }}">
     <link rel="stylesheet" href="{{ \App\Support\Asset::url('css/app.css') }}">
 </head>
-<body>
+<body data-icon-style="{{ \App\Support\IconStyle::current() }}">
     <header class="site-header">
         <div class="container"><x-logo /></div>
     </header>

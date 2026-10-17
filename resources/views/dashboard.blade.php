@@ -94,7 +94,7 @@
     {{-- Abonné sans évaluation (réinitialisée par l'administrateur) : invitation juste après la prochaine étape. --}}
     @if ($needsAssessment && $subscription)
         <section class="card next-step rise" aria-labelledby="assessment-invite">
-            <div class="card-title"><span class="icon-bubble icon-bubble-accent"><x-icon name="mic" /></span><h2 id="assessment-invite">Passez votre évaluation gratuite</h2></div>
+            <div class="card-title"><span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span><h2 id="assessment-invite">Passez votre évaluation gratuite</h2></div>
             <p>{{ $assessmentMinutes }} minutes au maximum avec {{ config('avatar.model.name') }} pour mesurer votre niveau.</p>
             <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
         </section>
@@ -187,7 +187,7 @@
 
     @if ($assessment?->feedback)
         <section class="card next-step reveal">
-            <div class="card-title"><span class="icon-bubble icon-bubble-accent"><x-icon name="sparkle" /></span><h2>Votre évaluation</h2></div>
+            <div class="card-title"><span class="icon-bubble icon-bubble-accent"><x-icon name="badge-check" /></span><h2>Votre évaluation</h2></div>
             <p>{{ $assessment->feedback }}</p>
         </section>
     @endif

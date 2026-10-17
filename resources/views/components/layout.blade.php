@@ -33,7 +33,7 @@
     <script>document.documentElement.classList.add('js');</script>
     <script type="module" src="{{ Asset::url('js/app.js') }}" data-sw="{{ asset('sw.js') }}"></script>
 </head>
-<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage])>
+<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
     <a class="skip-link" href="#contenu">Aller au contenu</a>
 
     <header class="site-header">
@@ -117,7 +117,7 @@
             @if ($install)
                 {{-- Installation de l'application : affiché par public/js/app.js quand c'est possible. --}}
                 <div class="install" id="install" hidden>
-                    <span class="icon-bubble"><x-icon name="download" /></span>
+                    <span class="icon-bubble icon-bubble-primary"><x-icon name="download" /></span>
                     <p data-install-android>
                         <strong>Installer l'application</strong>
                         Ouvrez {{ config('platform.name') }} directement depuis l'écran d'accueil de votre téléphone.

@@ -8,7 +8,7 @@
     <div class="step-panel">
         @if ($provisional)
             <div class="status-head">
-                <span class="icon-bubble"><x-icon name="check" /></span>
+                <span class="icon-bubble icon-bubble-primary"><x-icon name="check-circle" /></span>
                 <h1>Vous pouvez commencer</h1>
             </div>
             <div class="alert alert-success">
@@ -39,7 +39,7 @@
             </div>
         @elseif ($payment->status === PaymentStatus::Validated)
             <div class="status-head">
-                <span class="icon-bubble"><x-icon name="check" /></span>
+                <span class="icon-bubble icon-bubble-primary"><x-icon name="badge-check" /></span>
                 <h1>Paiement validé</h1>
             </div>
             <div class="alert alert-success">

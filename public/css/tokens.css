@@ -40,6 +40,10 @@
     --c-accent-strong: #B25512;    /* orange pour du texte sur fond clair (4,6:1) */
     --c-accent-ink: #8A3A00;       /* texte sur fond orange pâle (6,9:1) */
     --c-accent-soft: #FFEDE0;      /* fonds orange pâle */
+    --c-accent-line: #FFD2B0;      /* contour des pastilles orange pâle (décoratif) */
+    --c-accent-warm: #E2560B;      /* fin du dégradé orange des pastilles d'icône */
+    --c-accent-duo: #FFC79E;       /* partie remplie des icônes « duotone » */
+    --c-primary-raised: #1D4285;   /* haut du dégradé bleu nuit des pastilles (relief) */
 
     /* Fonds et texte */
     --c-bg: #F4F6FB;               /* fond clair */
@@ -121,4 +125,43 @@
 
     /* Hauteur de la barre de navigation du bas (téléphone, apprenant connecté) */
     --tabbar: 64px;
+}
+
+/*
+ * Pastilles d'icône : trois styles, choisis par config('platform.brand.icon_style')
+ * (attribut data-icon-style du <body>). Chaque style règle des variables : un bloc
+ * peut en montrer un autre (page « Aperçu des icônes »). « fort » = l'essentiel.
+ *   gradient : dégradé orange, icône blanche, ombre douce ;
+ *   duotone  : fond blanc bordé, icône bleu nuit remplie d'orange clair ;
+ *   night    : bleu nuit en relief, icône orange (contraste 5:1), petit reflet.
+ */
+[data-icon-style="gradient"] {
+    --ib-bg: linear-gradient(145deg, var(--c-accent-hover) 0%, var(--c-accent) 45%, var(--c-accent-warm) 100%);
+    --ib-fg: #FFFFFF;
+    --ib-ring: inset 0 1px 0 rgba(255, 255, 255, .35), 0 8px 18px -8px rgba(226, 86, 11, .6);
+    --ib-fill: rgba(255, 255, 255, .22);
+    --ib-strong-bg: linear-gradient(160deg, var(--c-primary-raised) 0%, var(--c-primary) 60%, var(--c-primary-strong) 100%);
+    --ib-strong-fg: #FFFFFF;
+    --ib-strong-ring: inset 0 1px 0 rgba(255, 255, 255, .16), 0 8px 18px -8px rgba(14, 42, 92, .55);
+    --ib-strong-fill: rgba(255, 122, 26, .45);
+}
+[data-icon-style="duotone"] {
+    --ib-bg: #FFFFFF;
+    --ib-fg: var(--c-primary);
+    --ib-ring: inset 0 0 0 1px var(--c-primary-line), 0 3px 8px -4px rgba(14, 42, 92, .25);
+    --ib-fill: var(--c-accent-duo);
+    --ib-strong-bg: var(--c-primary);
+    --ib-strong-fg: #FFFFFF;
+    --ib-strong-ring: 0 6px 14px -6px rgba(14, 42, 92, .5);
+    --ib-strong-fill: rgba(255, 122, 26, .55);
+}
+[data-icon-style="night"] {
+    --ib-bg: linear-gradient(160deg, var(--c-primary-raised) 0%, var(--c-primary) 55%, var(--c-primary-strong) 100%);
+    --ib-fg: var(--c-accent);
+    --ib-ring: inset 0 1px 0 rgba(255, 255, 255, .16), 0 8px 18px -8px rgba(14, 42, 92, .55);
+    --ib-fill: none;
+    --ib-strong-bg: linear-gradient(145deg, var(--c-accent-hover) 0%, var(--c-accent) 55%, var(--c-accent-warm) 100%);
+    --ib-strong-fg: var(--c-primary);
+    --ib-strong-ring: inset 0 1px 0 rgba(255, 255, 255, .35), 0 8px 18px -8px rgba(226, 86, 11, .6);
+    --ib-strong-fill: none;
 }

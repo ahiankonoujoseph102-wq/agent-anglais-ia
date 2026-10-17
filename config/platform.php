@@ -35,6 +35,10 @@ return [
         // Les garder identiques à --c-primary et --c-bg de public/css/tokens.css.
         'theme_color' => '#0E2A5C',
         'background_color' => '#F4F6FB',
+        // Style des pastilles d'icône, sur tout le site (comparer sur /admin/icones) :
+        // « night » (bleu nuit en relief, icône orange), « gradient » (dégradé orange, icône blanche)
+        // ou « duotone » (fond blanc, icône bleu nuit remplie d'orange clair). App\Support\IconStyle.
+        'icon_style' => 'night',
     ],
 
     // Devise utilisée pour les prix.

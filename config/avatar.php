@@ -74,6 +74,13 @@ return [
             'url' => 'https://github.com/sora-xor/sora-font',
         ],
         [
+            'name' => 'Icônes Lucide 1.49.0 (toutes les icônes du site, sauf le logo WhatsApp)',
+            'author' => 'Lucide Icons and Contributors (une partie dérivée de Feather, Cole Bemis)',
+            'license' => 'Licence ISC (et MIT pour les icônes issues de Feather)',
+            'license_url' => 'https://lucide.dev/license',
+            'url' => 'https://lucide.dev',
+        ],
+        [
             'name' => 'three.js (affichage 3D, chargement glTF, décompression meshopt)',
             'author' => 'three.js authors',
             'license' => 'MIT',

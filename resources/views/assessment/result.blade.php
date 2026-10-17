@@ -42,7 +42,7 @@
 
     @if ($hasSubscription)
         <div class="card next-card reveal">
-            <span class="icon-bubble"><x-icon name="mic" /></span>
+            <span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span>
             <div>
                 <h2>Votre accès est ouvert</h2>
                 <p>Retrouvez votre programme et votre séance du jour dans votre espace.</p>
