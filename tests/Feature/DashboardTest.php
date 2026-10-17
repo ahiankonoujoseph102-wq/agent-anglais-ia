@@ -98,8 +98,8 @@ class DashboardTest extends TestCase
             ->assertSee('B1')
             ->assertSee('Intermédiaire')
             ->assertSee('Intensif')
-            ->assertSee('30 min par jour')
-            ->assertSee('20 min')
+            ->assertSee('30 minutes par jour')
+            ->assertSee('20 minutes')
             ->assertSee('Ma séance du jour');
 
         $this->assertSame(1200, $user->remainingSecondsToday());

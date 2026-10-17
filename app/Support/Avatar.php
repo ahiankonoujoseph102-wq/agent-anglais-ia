@@ -10,9 +10,6 @@ namespace App\Support;
  */
 class Avatar
 {
-    /** @var array<string, string> */
-    private static array $versions = [];
-
     public static function enabled(): bool
     {
         return (bool) config('avatar.enabled') && is_file(public_path((string) config('avatar.model.file')));
@@ -29,7 +26,7 @@ class Avatar
 
         return [
             'module' => self::asset('js/teacher-3d.js'),
-            'serviceWorker' => asset('teacher3d-sw.js'),
+            'serviceWorker' => asset('sw.js'),
             'lib' => [
                 'three' => self::asset('teacher3d/lib/three-teacher.min.js'),
                 'headaudio' => self::asset('teacher3d/lib/headaudio.min.js'),
@@ -63,11 +60,6 @@ class Avatar
      */
     public static function asset(string $path): string
     {
-        if (! isset(self::$versions[$path])) {
-            $file = public_path($path);
-            self::$versions[$path] = is_file($file) ? substr(hash_file('xxh128', $file), 0, 12) : '0';
-        }
-
-        return asset($path).'?v='.self::$versions[$path];
+        return Asset::url($path);
     }
 }

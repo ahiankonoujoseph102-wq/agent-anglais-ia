@@ -67,6 +67,13 @@ return [
             'url' => null,
         ],
         [
+            'name' => 'Police Nunito (tout le texte du site, graisses 400 à 800)',
+            'author' => 'The Nunito Project Authors (Vernon Adams, Jacques Le Bailly…)',
+            'license' => 'SIL Open Font License 1.1',
+            'license_url' => 'https://openfontlicense.org',
+            'url' => 'https://github.com/googlefonts/nunito',
+        ],
+        [
             'name' => 'three.js (affichage 3D, chargement glTF, décompression meshopt)',
             'author' => 'three.js authors',
             'license' => 'MIT',
