@@ -499,7 +499,8 @@ main { overflow-x: clip; }
 @keyframes pulse { 50% { opacity: .55; } }
 .live-status { display: inline-flex; align-items: center; gap: 6px; background: var(--c-primary-soft); color: var(--c-primary-strong); border-radius: var(--radius-pill); padding: 6px 12px; font-size: var(--fs-sm); font-weight: var(--fw-bold); text-align: right; }
 .live-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c-primary); flex: none; }
-.intro-tips { list-style: none; padding: 0; margin: 0 0 var(--space-4); display: grid; gap: var(--space-2); font-size: var(--fs-sm); color: var(--c-muted); }
+.intro-text { margin-bottom: var(--space-3); }
+.intro-tips { list-style: none; padding: 0; margin: var(--space-4) 0 0; display: grid; gap: var(--space-2); font-size: var(--fs-sm); color: var(--c-muted); }
 .intro-tips li { display: flex; gap: var(--space-2); align-items: flex-start; }
 .intro-tips .icon { color: var(--c-primary); margin-top: 1px; }
 .subtitles { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-lg); padding: var(--space-3); height: 38vh; min-height: 160px; overflow-y: auto; margin-bottom: var(--space-3); box-shadow: var(--shadow-sm); }
@@ -530,6 +531,31 @@ main { overflow-x: clip; }
 .live-control > span { display: inline-flex; align-items: center; gap: var(--space-2); }
 .live-control-wide { grid-column: 1 / -1; }
 .live-control[aria-pressed="true"] { background: var(--c-accent); color: var(--c-on-accent); box-shadow: none; }
+/* Paysage (téléphone couché) et ordinateur : le professeur à gauche, toujours entier à l'écran,
+   les commandes à droite ; « Commencer » visible sans faire défiler. */
+@media (min-width: 900px), (orientation: landscape) and (max-height: 560px) {
+    .live { max-width: 1080px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: var(--space-5); align-items: start; }
+    .live-head { grid-column: 2; grid-row: 1; }
+    .live-stage { grid-column: 1; grid-row: 1 / span 2; position: sticky; top: var(--space-3); }
+    .live-panel { grid-column: 2; grid-row: 2; min-width: 0; }
+    .live-stage .teacher { height: var(--stage-height); margin-bottom: var(--space-2); }
+    .live-stage .face { height: min(440px, calc(var(--stage-height) - 2 * var(--space-4))); width: auto; }
+    .teacher-3d .teacher3d-stage { height: 100%; }
+    .live { --stage-height: clamp(220px, calc(100vh - 180px), 560px); }
+}
+@media (orientation: landscape) and (max-height: 560px) {
+    .live { --stage-height: max(190px, calc(100vh - 132px)); column-gap: var(--space-4); }
+    .live-head h1 { font-size: var(--fs-lg); }
+    .live-stage { top: var(--space-2); }
+    .intro-text { font-size: var(--fs-sm); }
+    .live[data-teacher="3d"] .subtitles, .subtitles { height: 40vh; min-height: 120px; }
+}
+/* Hauteur réellement visible (barres du navigateur déduites) quand le navigateur la connaît. */
+@supports (height: 1dvh) {
+    @media (min-width: 900px) { .live { --stage-height: clamp(220px, calc(100dvh - 180px), 560px); } }
+    @media (orientation: landscape) and (max-height: 560px) { .live { --stage-height: max(190px, calc(100dvh - 132px)); } }
+}
+
 #outcome { border-top: 4px solid var(--c-accent); animation: rise var(--dur) var(--ease) both; }
 #outcome h2 { color: var(--c-primary); }
 
