@@ -38,8 +38,7 @@
             @endif
         </dl>
 
-        <form method="POST" action="{{ route('admin.users.password', $user) }}"
-              onsubmit="return confirm('Générer un mot de passe provisoire ? L\'ancien ne fonctionnera plus.')">
+        <form method="POST" action="{{ route('admin.users.password', $user) }}" {!! \App\Support\Confirmation::attributes('password.temporary') !!}>
             @csrf
             <button type="submit" class="btn btn-light">Générer un mot de passe provisoire</button>
         </form>
@@ -58,8 +57,7 @@
             @if ($user->assessment->feedback)
                 <p class="muted">{{ $user->assessment->feedback }}</p>
             @endif
-            <form method="POST" action="{{ route('admin.assessments.destroy', $user) }}"
-                  onsubmit="return confirm('Permettre à cet apprenant de repasser l\'évaluation ?')">
+            <form method="POST" action="{{ route('admin.assessments.destroy', $user) }}" {!! \App\Support\Confirmation::attributes('assessment.reset') !!}>
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-light">Réinitialiser l'évaluation</button>

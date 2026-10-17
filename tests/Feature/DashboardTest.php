@@ -16,6 +16,17 @@ class DashboardTest extends TestCase
 {
     use BuildsPrograms, RefreshDatabase;
 
+    private function completedAssessment(User $user, Level $level): void
+    {
+        $user->assessment()->create([
+            'status' => AssessmentStatus::Completed,
+            'started_at' => now()->subDay(),
+            'allowed_seconds' => 300,
+            'used_seconds' => 280,
+            'level' => $level,
+        ]);
+    }
+
     public function test_new_learner_sees_empty_dashboard(): void
     {
         $user = User::factory()->create(['name' => 'Afi']);
@@ -27,7 +38,7 @@ class DashboardTest extends TestCase
             ->assertSee('Pas encore évalué')
             ->assertSee('Pas d\'abonnement actif', false)
             ->assertSee('Disponible avec un abonnement')
-            ->assertSee('Votre évaluation gratuite')
+            ->assertSee('Passez votre évaluation gratuite')
             ->assertSee(route('assessment.show'));
     }
 
@@ -70,6 +81,7 @@ class DashboardTest extends TestCase
     public function test_dashboard_shows_level_plan_and_time_left_today(): void
     {
         $user = User::factory()->level(Level::B1)->create();
+        $this->completedAssessment($user, Level::B1);
         $subscription = Subscription::factory()->for($user)->forPlan('intensif')->create();
         $this->buildProgram($user);
 
@@ -123,6 +135,7 @@ class DashboardTest extends TestCase
     public function test_expired_or_pending_subscriptions_are_ignored(): void
     {
         $user = User::factory()->level(Level::A2)->create();
+        $this->completedAssessment($user, Level::A2);
         Subscription::factory()->for($user)->expired()->create();
         Subscription::factory()->for($user)->create(['status' => SubscriptionStatus::Pending]);
 

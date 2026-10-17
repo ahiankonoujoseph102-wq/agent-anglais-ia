@@ -95,14 +95,12 @@
 
     @if ($actions && $payment->isPending())
         <div class="payment-actions">
-            <form method="POST" action="{{ route('admin.payments.approve', $payment) }}"
-                  onsubmit="return confirm('Valider ce paiement et activer la formule ?')">
+            <form method="POST" action="{{ route('admin.payments.approve', $payment) }}" {!! \App\Support\Confirmation::attributes('payment.approve') !!}>
                 @csrf
                 <button type="submit" class="btn btn-block">Valider</button>
             </form>
 
-            <form method="POST" action="{{ route('admin.payments.reject', $payment) }}"
-                  onsubmit="return confirm('Refuser ce paiement ? L\'accès de l\'apprenant sera coupé aussitôt.')">
+            <form method="POST" action="{{ route('admin.payments.reject', $payment) }}" {!! \App\Support\Confirmation::attributes('payment.reject') !!}>
                 @csrf
                 @php
                     $bag = $errors->getBag('reject-'.$payment->id);

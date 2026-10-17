@@ -69,7 +69,7 @@ class PaymentValidationTest extends TestCase
             ->assertSee('<span class="badge badge-alert" title="Paiements en attente">1</span>', false);
 
         $this->actingAs($learner)->get('/admin/paiements')->assertForbidden();
-        $this->actingAs($learner)->post(route('admin.payments.approve', $payment))->assertForbidden();
+        $this->actingAs($learner)->post(route('admin.payments.approve', $payment), ['confirmed' => 1])->assertForbidden();
         $this->assertTrue($payment->fresh()->isPending());
     }
 
@@ -79,7 +79,7 @@ class PaymentValidationTest extends TestCase
         $payment = $this->pendingPayment($learner, 'intensif');
 
         $this->actingAs($this->admin)
-            ->post(route('admin.payments.approve', $payment))
+            ->post(route('admin.payments.approve', $payment), ['confirmed' => 1])
             ->assertRedirect()
             ->assertSessionHas('status');
 
@@ -100,7 +100,7 @@ class PaymentValidationTest extends TestCase
         $this->assertSame(1800, $learner->fresh()->remainingSecondsToday());
 
         // Un paiement déjà traité ne peut pas l'être une seconde fois.
-        $this->actingAs($this->admin)->post(route('admin.payments.approve', $payment))
+        $this->actingAs($this->admin)->post(route('admin.payments.approve', $payment), ['confirmed' => 1])
             ->assertSessionHas('status', 'Ce paiement a déjà été traité.');
         $this->assertSame(1, $learner->subscriptions()->count());
     }
@@ -114,7 +114,7 @@ class PaymentValidationTest extends TestCase
         ]);
         $payment = $this->pendingPayment($learner, 'semaine');
 
-        $this->actingAs($this->admin)->post(route('admin.payments.approve', $payment))->assertRedirect();
+        $this->actingAs($this->admin)->post(route('admin.payments.approve', $payment), ['confirmed' => 1])->assertRedirect();
 
         $renewal = $payment->fresh()->subscription;
         $this->assertTrue($renewal->starts_at->equalTo($current->ends_at));
@@ -135,13 +135,13 @@ class PaymentValidationTest extends TestCase
 
         $this->actingAs($this->admin)
             ->from('/admin/paiements')
-            ->post(route('admin.payments.reject', $payment), ['reason' => str_repeat('x', 501)])
+            ->post(route('admin.payments.reject', $payment), ['confirmed' => 1, 'reason' => str_repeat('x', 501)])
             ->assertRedirect('/admin/paiements')
             ->assertSessionHasErrors('reason', null, 'reject-'.$payment->id);
         $this->assertTrue($payment->fresh()->isPending());
 
         $this->actingAs($this->admin)
-            ->post(route('admin.payments.reject', $payment), ['reason' => 'Capture illisible.'])
+            ->post(route('admin.payments.reject', $payment), ['confirmed' => 1, 'reason' => 'Capture illisible.'])
             ->assertRedirect();
 
         $payment->refresh();

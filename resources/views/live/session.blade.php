@@ -10,6 +10,7 @@
 <x-layout :title="$title" focus>
     <div id="live" class="live"
          data-mode="{{ $mode }}"
+         data-stop-confirm='@json(\App\Support\Confirmation::for('conversation.stop'))'
          data-urls='@json($urls)'
          data-worklet="{{ \App\Support\Asset::url('js/pcm-capture-worklet.js') }}"
          data-mic-gate="{{ \App\Support\Asset::url('js/mic-gate.js') }}"

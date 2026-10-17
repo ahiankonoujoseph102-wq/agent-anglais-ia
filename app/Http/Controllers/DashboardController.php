@@ -15,6 +15,8 @@ class DashboardController extends Controller
 
         // Une évaluation encore ouverte peut être reprise tant que son temps n'est pas écoulé.
         $canTakeAssessment = $assessment === null || $assessment->closeIfOver();
+        // Jamais passée, réinitialisée par l'administrateur ou en cours : elle passe avant tout le reste.
+        $needsAssessment = $canTakeAssessment;
 
         $subscription = $user->activeSubscription;
         $latestSubscription = $user->latestSubscription;
@@ -42,6 +44,7 @@ class DashboardController extends Controller
             'lastLevelTest' => $user->levelTests()->latest('id')->first(),
             'assessment' => $assessment,
             'canTakeAssessment' => $canTakeAssessment,
+            'needsAssessment' => $needsAssessment,
             'subscription' => $subscription,
             'nextSubscription' => $subscription !== null && ! $latestSubscription?->is($subscription) ? $latestSubscription : null,
             'expiredSubscription' => $subscription === null ? $latestSubscription : null,

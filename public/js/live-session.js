@@ -1286,8 +1286,11 @@ ui.interrupt.addEventListener('click', interruptTeacher);
 ui.pause.addEventListener('click', togglePause);
 ui.mute.addEventListener('click', toggleMute);
 ui.micSelect.addEventListener('change', () => switchMicrophone(ui.micSelect.value));
-ui.stop.addEventListener('click', () => {
-    if (confirm('Terminer maintenant ? Le temps déjà utilisé est décompté.')) {
+// « Terminer » avant la fin : fenêtre de confirmation intégrée (public/js/app.js), jamais de fenêtre du navigateur.
+ui.stop.addEventListener('click', async () => {
+    const answer = window.askConfirmation ? await window.askConfirmation(JSON.parse(root.dataset.stopConfirm)) : true;
+
+    if (answer !== false) {
         finish('user');
     }
 });

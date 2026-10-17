@@ -37,7 +37,7 @@ class TemporaryPasswordTest extends TestCase
             ->assertOk()
             ->assertSee('Générer un mot de passe provisoire');
 
-        $response = $this->actingAs($admin)->post(route('admin.users.password', $learner));
+        $response = $this->actingAs($admin)->post(route('admin.users.password', $learner), ['confirmed' => 1]);
         $response->assertRedirect(route('admin.users.show', $learner));
         $password = session('temporary_password');
 
@@ -51,7 +51,7 @@ class TemporaryPasswordTest extends TestCase
         // … puis plus jamais.
         $this->actingAs($admin)->get(route('admin.users.show', $learner))->assertDontSee($password);
 
-        $this->actingAs(User::factory()->create())->post(route('admin.users.password', $admin))->assertForbidden();
+        $this->actingAs(User::factory()->create())->post(route('admin.users.password', $admin), ['confirmed' => 1])->assertForbidden();
     }
 
     public function test_temporary_password_forces_a_new_password_before_anything_else(): void

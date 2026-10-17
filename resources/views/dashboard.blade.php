@@ -7,6 +7,18 @@
         </div>
     </div>
 
+    {{-- Évaluation à passer (jamais passée ou réinitialisée) : en grand, avant tout le reste. --}}
+    @if ($needsAssessment)
+        <section class="card next-card next-card-assessment rise" aria-labelledby="assessment-invite">
+            <h2 id="assessment-invite">Passez votre évaluation gratuite</h2>
+            <p>
+                Parlez {{ $assessmentMinutes }} minutes au maximum avec {{ config('avatar.model.name') }}
+                pour connaître votre niveau d'anglais. C'est gratuit et sans engagement.
+            </p>
+            <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-lg btn-block"><x-icon name="mic" /> Passer mon évaluation</a>
+        </section>
+    @endif
+
     @if ($rejectedPayment)
         <div class="alert alert-error rise" role="alert">
             <x-icon name="alert" />
@@ -66,16 +78,10 @@
         </div>
     @endif
 
-    {{-- Prochaine étape : la carte mise en avant. --}}
+    {{-- Prochaine étape : la carte mise en avant (sans abonnement, l'évaluation suffit comme première étape). --}}
+    @unless ($needsAssessment && ! $subscription)
     <section class="card next-card rise" style="--i: 1">
-        @if (! $user->level && $canTakeAssessment)
-            <h2>Votre évaluation gratuite</h2>
-            <p>
-                Parlez {{ $assessmentMinutes }} minutes au maximum avec {{ config('avatar.model.name') }}
-                pour connaître votre niveau d'anglais.
-            </p>
-            <a href="{{ route('assessment.show') }}" class="btn btn-lg btn-block"><x-icon name="mic" /> Passer mon évaluation</a>
-        @elseif (! $subscription && $expiredSubscription)
+        @if (! $subscription && $expiredSubscription)
             <h2>Votre abonnement a expiré</h2>
             <p>
                 Votre formule {{ $expiredSubscription->plan_name }} a pris fin le
@@ -122,11 +128,13 @@
             @endif
         @endif
     </section>
+    @endunless
 
     <div class="stats">
         <div class="stat rise" style="--i: 2">
             <div class="label"><x-icon name="level" /> Mon niveau</div>
-            @if ($user->level)
+            {{-- Évaluation à (re)passer : aucun ancien niveau affiché comme niveau actuel. --}}
+            @if ($user->level && ! $needsAssessment)
                 <div class="value">{{ $user->level->value }}</div>
                 <div class="detail">{{ $user->level->label() }}</div>
             @else

@@ -61,8 +61,7 @@
                             @if ($learner->assessment)
                                 {{ $learner->assessment->status->label() }}
                                 ({{ Duration::format($learner->assessment->used_seconds) }})
-                                <form method="POST" action="{{ route('admin.assessments.destroy', $learner) }}" class="inline-form"
-                                      onsubmit="return confirm('Permettre à cet apprenant de repasser l\'évaluation ?')">
+                                <form method="POST" action="{{ route('admin.assessments.destroy', $learner) }}" class="inline-form" {!! \App\Support\Confirmation::attributes('assessment.reset') !!}>
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-link small">Réinitialiser</button>
