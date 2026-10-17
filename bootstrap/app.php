@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\RedirectToHttps;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
         ]);
+
+        // HTTPS obligatoire en production (avant tout le reste du groupe web).
+        $middleware->prependToGroup('web', RedirectToHttps::class);
 
         // Mot de passe provisoire : changement obligatoire avant tout le reste.
         $middleware->appendToGroup('web', EnsurePasswordIsChanged::class);

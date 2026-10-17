@@ -7,8 +7,8 @@
 |
 | Tout ce qui relève du commerce (nom, formules, prix, durées) se règle ici
 | et nulle part ailleurs : le code et les vues lisent ces valeurs via
-| config('platform.…'). Après une modification en production, lancer
-| « php artisan config:cache » pour que le changement soit pris en compte.
+| config('platform.…'). Sur Laravel Cloud, chaque déploiement reconstruit le cache de configuration
+| (« php artisan optimize ») : modifier une variable, puis redéployer.
 |
 */
 

@@ -42,7 +42,7 @@ return new class extends Migration
             // Référence normalisée, unique tant que le paiement n'est pas refusé
             // (remise à null au refus pour permettre un nouvel envoi corrigé).
             $table->string('reference_key', 100)->nullable()->unique();
-            // Capture d'écran, sur le disque privé config('payment.proofs.disk').
+            // Capture d'écran, sur le disque privé (App\Support\PrivateStorage).
             $table->string('proof_path');
 
             // pending | validated | rejected. Voir App\Enums\PaymentStatus.

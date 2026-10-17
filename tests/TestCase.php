@@ -4,6 +4,7 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -13,5 +14,8 @@ abstract class TestCase extends BaseTestCase
 
         // Aucun test n'appelle une vraie API : toute requête HTTP non simulée échoue.
         Http::preventStrayRequests();
+
+        // Aucun test n'écrit dans le vrai dossier storage/app/private (captures, attestations).
+        Storage::fake('local');
     }
 }

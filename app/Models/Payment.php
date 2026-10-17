@@ -5,13 +5,13 @@ namespace App\Models;
 use App\Enums\PaymentStatus;
 use App\Enums\SubscriptionStatus;
 use App\Support\Money;
+use App\Support\PrivateStorage;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use LogicException;
 
 /**
@@ -90,7 +90,7 @@ class Payment extends Model
      */
     public static function proofDisk(): FilesystemAdapter
     {
-        return Storage::disk(config('payment.proofs.disk') ?: config('filesystems.default'));
+        return PrivateStorage::disk();
     }
 
     public function isPending(): bool

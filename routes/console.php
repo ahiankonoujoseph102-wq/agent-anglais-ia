@@ -1,5 +1,7 @@
 <?php
 
+use App\Console\Commands\CheckDeployment;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schedule;
 
 /*
@@ -21,3 +23,10 @@ Schedule::command('subscriptions:expire')->hourly()->withoutOverlapping()->onOne
 
 // Clôture les évaluations et séances finies ou abandonnées (navigateur fermé).
 Schedule::command('live:close-stale')->everyMinute()->withoutOverlapping()->onOneServer();
+
+// Témoin du planificateur : « php artisan app:check-deployment » vérifie qu'il a tourné il y a moins de trois minutes.
+Schedule::call(fn () => Cache::put(CheckDeployment::HEARTBEAT_KEY, now()->timestamp, now()->addHour()))
+    ->name('scheduler-heartbeat')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer();

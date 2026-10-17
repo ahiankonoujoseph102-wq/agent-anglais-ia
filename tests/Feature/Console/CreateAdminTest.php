@@ -4,30 +4,74 @@ namespace Tests\Feature\Console;
 
 use App\Enums\Role;
 use App\Models\User;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class CreateAdminTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_creates_an_admin(): void
+    public function test_it_asks_for_the_phone_and_the_password_and_creates_an_admin(): void
     {
-        $this->artisan('app:create-admin', ['--name' => 'Joseph', '--phone' => '90 00 00 09', '--password' => 'secret123'])
+        $this->artisan('app:create-admin', ['--name' => 'Joseph'])
+            ->expectsQuestion('Numéro de téléphone', '90 00 00 09')
+            ->expectsQuestion('Mot de passe (10 caractères au minimum)', 'secret-12345')
+            ->expectsQuestion('Confirmer le mot de passe', 'secret-12345')
             ->assertSuccessful();
 
         $admin = User::firstWhere('phone', '+22890000009');
         $this->assertSame(Role::Admin, $admin->role);
         $this->assertSame('Joseph', $admin->name);
-        $this->assertTrue(Hash::check('secret123', $admin->password));
+        $this->assertTrue(Hash::check('secret-12345', $admin->password));
     }
 
-    public function test_it_promotes_an_existing_learner_without_changing_the_password(): void
+    public function test_the_password_and_the_phone_are_never_written_to_the_output_or_the_logs(): void
+    {
+        Log::spy();
+
+        $this->artisan('app:create-admin')
+            ->expectsQuestion('Numéro de téléphone', '90 00 00 09')
+            ->expectsQuestion('Mot de passe (10 caractères au minimum)', 'secret-12345')
+            ->expectsQuestion('Confirmer le mot de passe', 'secret-12345')
+            ->doesntExpectOutputToContain('secret-12345')
+            ->doesntExpectOutputToContain('+22890000009')
+            ->expectsOutputToContain('+228••••••09')
+            ->assertSuccessful();
+
+        Log::shouldNotHaveReceived('info');
+        Log::shouldNotHaveReceived('debug');
+    }
+
+    public function test_the_command_has_no_option_that_would_carry_a_secret(): void
+    {
+        $options = array_keys($this->app->make(Kernel::class)->all()['app:create-admin']->getDefinition()->getOptions());
+
+        $this->assertNotContains('password', $options);
+        $this->assertNotContains('phone', $options);
+    }
+
+    public function test_it_refuses_two_different_passwords(): void
+    {
+        $this->artisan('app:create-admin')
+            ->expectsQuestion('Numéro de téléphone', '90000009')
+            ->expectsQuestion('Mot de passe (10 caractères au minimum)', 'secret-12345')
+            ->expectsQuestion('Confirmer le mot de passe', 'autre-chose-123')
+            ->expectsOutputToContain('Les deux mots de passe sont différents.')
+            ->assertFailed();
+
+        $this->assertSame(0, User::count());
+    }
+
+    public function test_it_promotes_an_existing_learner_and_keeps_the_password_when_left_empty(): void
     {
         $user = User::factory()->create(['phone' => '+22890000009']);
 
-        $this->artisan('app:create-admin', ['--phone' => '+22890000009', '--password' => ''])
+        $this->artisan('app:create-admin')
+            ->expectsQuestion('Numéro de téléphone', '+22890000009')
+            ->expectsQuestion('Nouveau mot de passe (laisser vide pour conserver l\'actuel)', '')
             ->assertSuccessful();
 
         $user->refresh();
@@ -37,10 +81,39 @@ class CreateAdminTest extends TestCase
 
     public function test_it_refuses_an_invalid_phone_or_short_password(): void
     {
-        $this->artisan('app:create-admin', ['--name' => 'X', '--phone' => '12', '--password' => 'secret123'])
+        $this->artisan('app:create-admin')
+            ->expectsQuestion('Numéro de téléphone', '12')
             ->assertFailed();
 
-        $this->artisan('app:create-admin', ['--name' => 'X', '--phone' => '90000009', '--password' => 'court'])
+        $this->artisan('app:create-admin')
+            ->expectsQuestion('Numéro de téléphone', '90000009')
+            ->expectsQuestion('Mot de passe (10 caractères au minimum)', 'court')
+            ->expectsQuestion('Confirmer le mot de passe', 'court')
+            ->assertFailed();
+
+        $this->assertSame(0, User::count());
+    }
+
+    public function test_without_a_terminal_it_reads_the_temporary_variables(): void
+    {
+        config(['admin.bootstrap.phone' => '90 00 00 09', 'admin.bootstrap.password' => 'secret-12345']);
+
+        $this->artisan('app:create-admin', ['--no-interaction' => true])
+            ->expectsOutputToContain('Supprimez maintenant ADMIN_PHONE et ADMIN_PASSWORD')
+            ->doesntExpectOutputToContain('secret-12345')
+            ->assertSuccessful();
+
+        $admin = User::firstWhere('phone', '+22890000009');
+        $this->assertTrue($admin->isAdmin());
+        $this->assertTrue(Hash::check('secret-12345', $admin->password));
+    }
+
+    public function test_without_a_terminal_and_without_variables_it_fails_with_an_explanation(): void
+    {
+        config(['admin.bootstrap.phone' => null, 'admin.bootstrap.password' => null]);
+
+        $this->artisan('app:create-admin', ['--no-interaction' => true])
+            ->expectsOutputToContain('ADMIN_PHONE')
             ->assertFailed();
 
         $this->assertSame(0, User::count());
