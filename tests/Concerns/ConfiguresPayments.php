@@ -27,6 +27,15 @@ trait ConfiguresPayments
         config(['platform.contact.address' => null, 'platform.contact.phones' => [], 'platform.contact.email' => null, 'platform.contact.whatsapp' => null]);
     }
 
+    /**
+     * Le bloc de paiement VISIBLE de la page /abonnement/{formule} (les autres sont rendus
+     * avec l'attribut hidden, pour l'enchaînement sans rechargement), ou '' s'il n'y en a pas.
+     */
+    protected function visiblePayment(string $html): string
+    {
+        return preg_match('/<div class="pay-block" data-pay-block="[^"]+"\s*>(.*?)<\/ol>/s', $html, $match) ? $match[1] : '';
+    }
+
     protected function configurePayments(): void
     {
         SiteSettings::save([

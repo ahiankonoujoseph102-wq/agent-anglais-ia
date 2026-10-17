@@ -65,13 +65,13 @@ class DefaultPaymentMethodsTest extends TestCase
             SiteSettings::operatorHolderKey('TG', 'flooz') => 'Titulaire Fictif Flooz',
         ]);
 
-        $this->actingAs($user)->get('/abonnement/essentiel?pays=TG&operateur=flooz')
-            ->assertSee('+228 90 00 00 22')
-            ->assertSee('Titulaire Fictif Flooz')
-            // Le numéro par défaut peut aussi être un téléphone du pied de page : on vise le bouton « Copier ».
-            ->assertSee('data-copy="90000022"', false)
-            ->assertDontSee('data-copy="'.$default->localNumber().'"', false)
-            ->assertDontSee($default->holder);
+        $block = $this->visiblePayment($this->actingAs($user)->get('/abonnement/essentiel?pays=TG&operateur=flooz')->getContent());
+        $this->assertStringContainsString('+228 90 00 00 22', $block);
+        $this->assertStringContainsString('Titulaire Fictif Flooz', $block);
+        // Le numéro par défaut peut aussi être un téléphone du pied de page : on vise le bouton « Copier ».
+        $this->assertStringContainsString('data-copy="90000022"', $block);
+        $this->assertStringNotContainsString('data-copy="'.$default->localNumber().'"', $block);
+        $this->assertStringNotContainsString($default->holder, $block);
 
         SiteSettings::save([
             SiteSettings::operatorNumberKey('TG', 'flooz') => '',

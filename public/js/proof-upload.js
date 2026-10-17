@@ -90,6 +90,9 @@ if (typeof document !== 'undefined') {
             name.textContent = file ? file.name : 'Aucune capture choisie';
         }
 
+        // Capture choisie : le CSS montre l'aperçu et « Envoyer ma capture » (data-has-file).
+        form?.toggleAttribute('data-has-file', Boolean(file));
+
         if (!file || !file.type.startsWith('image/')) {
             preview.hidden = true;
             say('');

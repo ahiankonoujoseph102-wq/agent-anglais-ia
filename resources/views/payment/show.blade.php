@@ -75,7 +75,7 @@
             <dl class="summary">
                 <dt>Formule</dt><dd>{{ $payment->plan_name }}</dd>
                 <dt>Montant</dt><dd>{{ $payment->formattedAmount() }}</dd>
-                <dt>Opérateur</dt><dd>{{ $payment->operator_name }}</dd>
+                <dt>Moyen de paiement</dt><dd>{{ $payment->operator_name }}</dd>
                 <dt>Envoyé le</dt><dd>{{ $payment->created_at->translatedFormat('j F Y à H:i') }}</dd>
                 <dt>État</dt><dd>{{ $provisional ? 'Accès provisoire, vérification en cours' : $payment->status->label() }}</dd>
             </dl>

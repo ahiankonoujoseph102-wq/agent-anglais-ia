@@ -78,6 +78,23 @@ final readonly class PaymentCountry
         return self::available()[strtoupper((string) $code)] ?? null;
     }
 
+    /**
+     * Pays proposé dont l'indicatif est celui du téléphone de l'apprenant (« +228… » : Togo),
+     * ou null si aucun ne correspond.
+     */
+    public static function forPhone(?string $phone): ?self
+    {
+        $digits = ltrim((string) $phone, '+');
+
+        foreach (self::available() as $country) {
+            if ($country->dialCode !== '' && str_starts_with($digits, $country->dialCode)) {
+                return $country;
+            }
+        }
+
+        return null;
+    }
+
     public function operator(?string $key): ?PaymentOperator
     {
         return $this->operators[(string) $key] ?? null;

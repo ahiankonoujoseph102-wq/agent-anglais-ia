@@ -45,8 +45,8 @@ class StorePaymentRequest extends FormRequest
         return [
             'country.required' => 'Choisissez le pays depuis lequel vous payez.',
             'country.in' => 'Choisissez l\'un des pays proposés.',
-            'operator.required' => 'Choisissez l\'opérateur avec lequel vous avez payé.',
-            'operator.in' => 'Choisissez l\'un des opérateurs proposés pour ce pays.',
+            'operator.required' => 'Choisissez le moyen de paiement que vous avez utilisé.',
+            'operator.in' => 'Choisissez l\'un des moyens de paiement proposés pour ce pays.',
             'proof.required' => 'Ajoutez la capture d\'écran de votre paiement.',
             'proof.image' => 'La capture doit être une image (JPEG, PNG ou WebP).',
             'proof.mimes' => 'La capture doit être une image (JPEG, PNG ou WebP).',

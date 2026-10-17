@@ -72,16 +72,16 @@ class SubmitPaymentTest extends TestCase
             ->assertOk()
             ->assertSee('Togo')
             ->assertSee('Bénin')
-            ->assertDontSee('Burkina Faso')
-            ->assertDontSee('Copier le numéro');
+            ->assertDontSee('Burkina Faso');
+        $this->assertSame('', $this->visiblePayment($this->actingAs($user)->get('/abonnement/essentiel')->getContent()));
 
         // Togo : deux opérateurs, à choisir.
         $this->actingAs($user)
             ->get('/abonnement/essentiel?pays=TG')
             ->assertSee('Mixx by Yas')
             ->assertSee('Flooz')
-            ->assertDontSee('T-Money')
-            ->assertDontSee('Copier le numéro');
+            ->assertDontSee('T-Money');
+        $this->assertSame('', $this->visiblePayment($this->actingAs($user)->get('/abonnement/essentiel?pays=TG')->getContent()), 'deux moyens de paiement : aucun choisi d\'office');
 
         $this->actingAs($user)
             ->get('/abonnement/essentiel?pays=TG&operateur=flooz')
@@ -91,16 +91,16 @@ class SubmitPaymentTest extends TestCase
             ->assertSee('data-copy="90000022"', false)
             ->assertSee('Copier le numéro')
             ->assertSee('Envoyer ma capture')
-            ->assertDontSee('+228 90 00 00 11')
             ->assertDontSee('Référence');
+        $this->assertStringNotContainsString('+228 90 00 00 11', $this->visiblePayment($this->actingAs($user)->get('/abonnement/essentiel?pays=TG&operateur=flooz')->getContent()));
 
         // Bénin : un seul opérateur ouvert, choisi d'office.
         $this->actingAs($user)
             ->get('/abonnement/essentiel?pays=BJ')
             ->assertSee('Celtiis')
             ->assertDontSee('MTN')
-            ->assertSee('+229 01 00 00 00 33')
-            ->assertSee('data-copy="0100000033"', false);
+            ->assertSee('+229 01 00 00 00 33');
+        $this->assertStringContainsString('data-copy="0100000033"', $this->visiblePayment($this->actingAs($user)->get('/abonnement/essentiel?pays=BJ')->getContent()));
 
         $this->actingAs($user)->get('/abonnement/inconnue')->assertNotFound();
     }

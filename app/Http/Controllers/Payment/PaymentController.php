@@ -25,7 +25,7 @@ use Illuminate\View\View;
 
 /**
  * Parcours de paiement manuel en 4 étapes :
- * 1. formule, 2. pays et opérateur, 3. paiement et capture d'écran, 4. vérification.
+ * 1. formule, 2. pays et moyen de paiement (« opérateur » dans le code), 3. paiement et capture d'écran, 4. vérification.
  *
  * La capture est lue par l'IA (ProofReader) ; si toutes les règles passent
  * (PaymentChecks), un accès provisoire de 24 heures s'ouvre aussitôt, en attendant
@@ -54,7 +54,10 @@ class PaymentController extends Controller
     }
 
     /**
-     * Étapes 2 et 3 : pays et opérateur, puis numéro à payer et envoi de la capture.
+     * Étapes 2 et 3 : pays et moyen de paiement, puis numéro à payer et envoi de la capture.
+     * Pays choisi d'avance d'après l'indicatif du téléphone ; s'il n'y a qu'un moyen de paiement
+     * dans le pays, il est choisi d'office. Tous les blocs sont rendus (cachés sauf le choix en
+     * cours) : avec JavaScript, la page enchaîne sans rechargement (public/js/payment-flow.js).
      */
     public function create(Request $request, string $plan): View|RedirectResponse
     {
@@ -65,15 +68,19 @@ class PaymentController extends Controller
         }
 
         $countries = PaymentCountry::available();
-        $country = PaymentCountry::findAvailable($request->query('pays') ?? old('country'))
-            ?? (count($countries) === 1 ? array_values($countries)[0] : null);
-        $operator = $country?->operator($request->query('operateur') ?? old('operator'))
+        $chosen = PaymentCountry::findAvailable($request->query('pays') ?? old('country'));
+        $country = $chosen
+            ?? (count($countries) === 1 ? array_values($countries)[0] : null)
+            ?? PaymentCountry::forPhone($request->user()->phone);
+        $operator = $country?->operator($request->query('moyen') ?? $request->query('operateur') ?? old('operator'))
             ?? ($country !== null && count($country->operators) === 1 ? array_values($country->operators)[0] : null);
 
         return view('payment.create', [
             'plan' => $plan,
             'countries' => $countries,
             'country' => $country,
+            // Pays choisi d'après l'indicatif du téléphone (phrase d'explication sous les pays).
+            'countryFromPhone' => $chosen === null && count($countries) > 1 && $country !== null,
             'operator' => $operator,
             'maxMegabytes' => (int) (config('payment.proofs.max_kilobytes') / 1024),
             'whatsappUrl' => $this->whatsappUrl($request->user(), 'Bonjour, je voudrais payer la formule '.$plan->name.'. Comment faire ?'),
@@ -155,7 +162,7 @@ class PaymentController extends Controller
                 'Compte : '.$user->phone,
                 'Formule : '.$payment->plan_name,
                 'Montant : '.Money::format($payment->amount, $payment->currency),
-                'Opérateur : '.$payment->operator_name,
+                'Moyen de paiement : '.$payment->operator_name,
                 'Envoyé le : '.$payment->created_at->translatedFormat('j F Y à H:i'),
             ])),
         ]);
