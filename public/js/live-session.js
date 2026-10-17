@@ -11,9 +11,19 @@
  *
  * Le professeur 3D (teacher-view.js, teacher-3d.js) est facultatif : il se
  * charge en arrière-plan et reçoit la voix, le micro et les expressions.
+ *
+ * Anti-écho : DEMI-DUPLEX sur tous les appareils. Tant que la voix du
+ * professeur est jouée (et echo_guard_ms après), le son du micro n'est pas
+ * envoyé à Gemini : sa propre voix, revenue par le haut-parleur, ne peut plus
+ * l'interrompre. Les écouteurs ne sont pas détectables de façon fiable dans
+ * Chrome sur Android (pas de liste des sorties audio, noms des appareils non
+ * normalisés, Bluetooth invisible) : on ne fait donc aucune exception. Pour
+ * parler pendant sa voix, l'apprenant touche « Interrompre le professeur ».
  */
 
 const root = document.getElementById('live');
+// Porte du micro (URL versionnée par la page, comme les autres fichiers).
+const { MicGate, voiceEndsAt } = await import(root.dataset.micGate);
 const urls = JSON.parse(root.dataset.urls);
 const mode = root.dataset.mode;
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
@@ -23,7 +33,10 @@ const ui = {
     start: $('start'), stop: $('stop'), resume: $('resume'), back: $('back'),
     intro: $('intro'), status: $('status'), timer: $('timer'), error: $('error'),
     subtitles: $('subtitles'), outcome: $('outcome'), mouth: $('mouth'),
+    turn: $('turn'), turnText: $('turn-text'), controls: $('controls'),
+    interrupt: $('interrupt'), pause: $('pause'), mute: $('mute'), pauseNote: $('pause-note'),
 };
+const teacherName = root.dataset.teacherName || 'Le professeur';
 
 // Professeur 3D, chargé en arrière-plan ; le visage SVG reste affiché en attendant.
 let teacher = null;
@@ -43,6 +56,20 @@ if (root.dataset.teacher3d && root.dataset.teacherView) {
 const INPUT_RATE = 16000;
 const OUTPUT_RATE = 24000;
 const MAX_AUTO_RECONNECTS = 2;
+// Retard ajouté à la voix du professeur (lecture labiale du professeur 3D).
+const OUTPUT_DELAY = 0.08;
+// Après la fin de parole de l'apprenant : au-delà, on affiche « réfléchit… ».
+const THINKING_AFTER_MS = 1300;
+// Sans réponse du professeur pendant ce temps, on rend la parole à l'apprenant.
+const THINKING_MAX_MS = 12000;
+
+const TURN_TEXTS = {
+    speaking: `${teacherName} parle…`,
+    listening: 'À vous de parler',
+    thinking: `${teacherName} réfléchit…`,
+    paused: 'Conversation en pause',
+    muted: 'Micro coupé',
+};
 
 const MESSAGES = {
     micDenied: 'Vous avez refusé l\'accès au micro. Autorisez-le dans les réglages du navigateur (icône à gauche de l\'adresse du site), puis rechargez la page.',
@@ -50,8 +77,9 @@ const MESSAGES = {
     micInsecure: 'Votre navigateur ne permet pas d\'utiliser le micro sur cette page. Ouvrez le site avec une adresse sécurisée (https) dans Chrome, Firefox ou Safari à jour.',
     micOther: 'Le micro n\'a pas pu être activé. Fermez les autres applications qui l\'utilisent, puis réessayez.',
     network: 'Impossible de joindre le serveur. Vérifiez votre connexion internet, puis réessayez.',
-    cut: 'La connexion avec le professeur a été coupée. Vérifiez votre connexion internet, puis appuyez sur « Reprendre ».',
+    cut: 'La connexion avec le professeur a été coupée. Vérifiez votre connexion internet, puis appuyez sur « Se reconnecter ».',
     quota: 'Le professeur a atteint sa limite de conversations gratuites pour le moment. Réessayez un peu plus tard : votre temps non utilisé reste disponible.',
+    pauseTooLong: 'La pause a duré trop longtemps : la conversation est terminée. Le temps déjà utilisé est décompté.',
 };
 
 const state = {
@@ -70,6 +98,15 @@ const state = {
     teacherLine: null,
     learnerLine: null,
     wakeLock: null,
+    // Tour de parole et contrôles de l'apprenant.
+    paused: false,
+    pausedAt: 0,
+    muted: false,
+    gate: null,
+    generating: false,
+    discardTurn: false,
+    awaitingSince: 0,
+    learnerHeardAt: 0,
 };
 
 /* ---------- Échanges avec le serveur Laravel ---------- */
@@ -188,9 +225,18 @@ async function setupAudio() {
         throw Object.assign(new Error('insecure'), { name: 'InsecureContext' });
     }
 
+    // Annulation d'écho, réduction de bruit et gain automatique du navigateur :
+    // demandés ici et jamais modifiés ensuite (le worklet ne fait que convertir).
     const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
     });
+
+    const settings = stream.getAudioTracks()[0]?.getSettings?.() ?? {};
+    console.debug('Micro : réglages obtenus', settings);
+
+    if (settings.echoCancellation === false) {
+        console.warn('Micro : annulation d\'écho indisponible, le demi-duplex reste seul actif.');
+    }
 
     const context = new AudioContext();
     await context.audioWorklet.addModule(root.dataset.worklet);
@@ -206,7 +252,7 @@ async function setupAudio() {
     // (qui écoute avant ce retard) a le temps de préparer la forme de la bouche.
     const output = context.createGain();
     const delay = context.createDelay(0.5);
-    delay.delayTime.value = 0.08;
+    delay.delayTime.value = OUTPUT_DELAY;
     const analyser = context.createAnalyser();
     analyser.fftSize = 512;
     output.connect(delay).connect(analyser).connect(context.destination);
@@ -227,17 +273,60 @@ function base64FromBuffer(buffer) {
     return btoa(binary);
 }
 
+/**
+ * Instant (horloge audio) où le haut-parleur se tait vraiment : fin programmée
+ * du dernier tampon de voix, retard ajouté et latence de sortie de l'appareil.
+ */
+function voiceEnd() {
+    const { context, playHead } = state.audio;
+
+    return voiceEndsAt(playHead, OUTPUT_DELAY, context.outputLatency || context.baseLatency || 0);
+}
+
+/**
+ * Vrai tant que la voix du professeur sort du haut-parleur.
+ */
+function teacherSpeaking() {
+    return state.audio !== null && state.audio.context.currentTime < voiceEnd();
+}
+
+/**
+ * Chaque paquet du micro passe par la porte : envoyé seulement micro ouvert
+ * (ni voix du professeur, ni echo_guard_ms après, ni pause, ni micro coupé).
+ * Micro fermé plus d'une seconde (tout de suite en pause ou micro coupé) :
+ * « audioStreamEnd », comme le demande Google ; le flux reprend au paquet suivant.
+ */
 function sendAudio(buffer) {
-    if (!state.connected || state.ending || state.ws?.readyState !== WebSocket.OPEN) {
+    if (!state.connected || state.ending || !state.audio || !state.gate || state.ws?.readyState !== WebSocket.OPEN) {
         return;
     }
 
-    state.ws.send(JSON.stringify({
-        realtimeInput: { audio: { data: base64FromBuffer(buffer), mimeType: `audio/pcm;rate=${INPUT_RATE}` } },
-    }));
+    const action = state.gate.decide(state.audio.context.currentTime, voiceEnd(), state.paused || state.muted);
+
+    if (action === 'send' && buffer) {
+        state.ws.send(JSON.stringify({
+            realtimeInput: { audio: { data: base64FromBuffer(buffer), mimeType: `audio/pcm;rate=${INPUT_RATE}` } },
+        }));
+    } else if (action === 'end') {
+        state.ws.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
+    }
+}
+
+/**
+ * Pause ou micro coupé : fermeture immédiate du flux, sans attendre le prochain paquet.
+ */
+function endMicStream() {
+    sendAudio(null);
 }
 
 function playAudio(base64) {
+    // En pause, ou après « Interrompre le professeur » : la fin de sa réplique n'est pas jouée.
+    if (!state.audio || state.paused || state.discardTurn) {
+        return;
+    }
+
+    state.awaitingSince = 0;
+    state.learnerHeardAt = 0;
     const { context, output, sources } = state.audio;
     const binary = atob(base64);
     const samples = new Int16Array(binary.length >> 1);
@@ -366,9 +455,17 @@ async function connect({ planned = false } = {}) {
             showError('');
             ui.resume.hidden = true;
             ui.stop.hidden = false;
+            ui.controls.hidden = false;
+            ui.turn.hidden = false;
+            state.generating = false;
+            state.discardTurn = false;
+            // Nouvelle connexion : flux du micro remis à zéro.
+            state.gate = new MicGate({ guard: (state.config.echo_guard_ms ?? 400) / 1000 });
 
-            if (!planned) {
-                sendText(isResume ? state.config.cues.resume : state.config.cues.start);
+            // Un seul accueil : à la première connexion. En pause, la reprise
+            // de la pause suffira (inutile de faire parler le professeur).
+            if (!planned && !(isResume && state.paused)) {
+                cue(isResume ? state.config.cues.resume : state.config.cues.start);
             }
 
             if (!isResume && !planned) {
@@ -398,6 +495,15 @@ function sendText(text) {
 }
 
 /**
+ * Indication au professeur, qui va répondre : « réfléchit… » en attendant sa voix.
+ */
+function cue(text) {
+    sendText(text);
+    state.awaitingSince = Date.now();
+    renderTurn();
+}
+
+/**
  * Le jeton (et la connexion) dure quelques minutes : on en demande un nouveau
  * juste avant son expiration, en reprenant la même conversation.
  */
@@ -423,6 +529,10 @@ function handleMessage(message) {
     const content = message.serverContent;
 
     if (content) {
+        if (content.modelTurn) {
+            state.generating = true;
+        }
+
         for (const part of content.modelTurn?.parts ?? []) {
             if (part.inlineData?.data) {
                 playAudio(part.inlineData.data);
@@ -432,26 +542,40 @@ function handleMessage(message) {
         if (content.inputTranscription?.text) {
             teacher?.learnerSpoke();
             state.teacherLine = null;
+            // Sous-titre arrivé en retard, pendant la réponse du professeur : ce n'est plus son tour.
+            state.learnerHeardAt = state.generating ? 0 : Date.now();
             subtitle('learner', content.inputTranscription.text);
         }
 
-        if (content.outputTranscription?.text) {
+        // Ce qui n'est pas joué (pause, interruption) n'apparaît pas non plus en sous-titre.
+        if (content.outputTranscription?.text && !state.paused && !state.discardTurn) {
             state.learnerLine = null;
             subtitle('teacher', content.outputTranscription.text);
         }
 
         if (content.interrupted) {
             stopPlayback();
+            state.generating = false;
+            state.discardTurn = false;
         }
 
         if (content.turnComplete) {
             state.teacherLine = null;
             state.learnerLine = null;
+            state.generating = false;
+            state.discardTurn = false;
+            state.awaitingSince = 0;
         }
+
+        renderTurn();
     }
 
     if (message.toolCall?.functionCalls) {
         message.toolCall.functionCalls.forEach(handleFunctionCall);
+
+        if (message.toolCall.functionCalls.some((call) => call.name !== 'set_expression')) {
+            state.awaitingSince = Date.now();
+        }
     }
 
     if (message.usageMetadata) {
@@ -528,6 +652,7 @@ async function handleFunctionCall(call) {
 
 function onClose(event) {
     state.connected = false;
+    ui.turn.hidden = true;
 
     if (state.ending) {
         return;
@@ -605,17 +730,135 @@ async function start() {
 
 function tick() {
     renderTimer();
+    renderTurn();
 
     const seconds = remainingSeconds();
 
     if (!state.warningSent && state.connected && seconds <= state.config.warning_seconds) {
         state.warningSent = true;
-        sendText(state.config.cues.warning);
+        cue(state.config.cues.warning);
     }
 
     if (seconds <= 0) {
         finish('time');
+
+        return;
     }
+
+    // Le temps continue pendant la pause : au-delà de la limite, on termine proprement.
+    if (state.paused && Date.now() - state.pausedAt > state.config.pause_max_seconds * 1000) {
+        finish('pause', MESSAGES.pauseTooLong);
+    }
+}
+
+/* ---------- Tour de parole, interruption, pause et micro ---------- */
+
+function currentTurn() {
+    const now = Date.now();
+
+    if (state.paused) {
+        return 'paused';
+    }
+
+    if (teacherSpeaking()) {
+        return 'speaking';
+    }
+
+    // L'apprenant s'est tu : Google attend la fin de son silence, puis le professeur répond.
+    if (state.learnerHeardAt && now - state.learnerHeardAt > THINKING_AFTER_MS) {
+        state.learnerHeardAt = 0;
+        state.awaitingSince = now;
+    }
+
+    if (state.awaitingSince && now - state.awaitingSince > THINKING_MAX_MS) {
+        state.awaitingSince = 0;
+    }
+
+    if (state.awaitingSince) {
+        return 'thinking';
+    }
+
+    return state.muted ? 'muted' : 'listening';
+}
+
+function renderTurn() {
+    if (state.ending || !state.connected) {
+        return;
+    }
+
+    const turn = currentTurn();
+
+    if (ui.turn.dataset.turn !== turn || !ui.turnText.textContent) {
+        ui.turn.dataset.turn = turn;
+        ui.turnText.textContent = TURN_TEXTS[turn];
+    }
+
+    ui.interrupt.hidden = turn !== 'speaking';
+}
+
+function setPressed(button, pressed) {
+    button.setAttribute('aria-pressed', String(pressed));
+    button.querySelector('.live-control-off').hidden = pressed;
+    button.querySelector('.live-control-on').hidden = !pressed;
+}
+
+/**
+ * Arrête la voix du professeur ; la fin de sa réplique en cours ne sera pas jouée.
+ */
+function silenceTeacher() {
+    stopPlayback();
+
+    if (state.generating) {
+        state.discardTurn = true;
+    }
+
+    state.awaitingSince = 0;
+}
+
+function interruptTeacher() {
+    silenceTeacher();
+    teacher?.expression('attentive');
+    renderTurn();
+}
+
+function togglePause() {
+    if (state.ending) {
+        return;
+    }
+
+    state.paused = !state.paused;
+    setPressed(ui.pause, state.paused);
+    ui.pauseNote.hidden = !state.paused;
+
+    if (state.paused) {
+        state.pausedAt = Date.now();
+        state.learnerHeardAt = 0;
+        silenceTeacher();
+        endMicStream();
+        setStatus('En pause');
+    } else {
+        setStatus('En conversation');
+        // L'apprenant n'a rien entendu pendant la pause : le professeur reprend sa question.
+        cue(state.config.cues.pause_resume);
+    }
+
+    renderTurn();
+}
+
+function toggleMute() {
+    if (state.ending) {
+        return;
+    }
+
+    state.muted = !state.muted;
+    setPressed(ui.mute, state.muted);
+    state.audio?.stream.getAudioTracks().forEach((track) => { track.enabled = !state.muted; });
+
+    if (state.muted) {
+        endMicStream();
+    }
+
+    renderTurn();
 }
 
 function fail(message) {
@@ -648,6 +891,9 @@ async function finish(reason, message = '') {
     ui.stop.hidden = true;
     ui.resume.hidden = true;
     ui.intro.hidden = true;
+    ui.controls.hidden = true;
+    ui.turn.hidden = true;
+    ui.pauseNote.hidden = true;
     ui.back.hidden = false;
     setStatus(reason === 'time' ? 'Temps écoulé' : 'Terminé');
 
@@ -671,6 +917,9 @@ async function finish(reason, message = '') {
 }
 
 ui.start.addEventListener('click', start);
+ui.interrupt.addEventListener('click', interruptTeacher);
+ui.pause.addEventListener('click', togglePause);
+ui.mute.addEventListener('click', toggleMute);
 ui.stop.addEventListener('click', () => {
     if (confirm('Terminer maintenant ? Le temps déjà utilisé est décompté.')) {
         finish('user');

@@ -77,6 +77,11 @@ return [
         'stale_after_seconds' => 60,
         // En dessous de ce temps restant, une nouvelle séance n'est pas ouverte.
         'min_start_seconds' => 30,
+        // Demi-duplex : le micro n'est pas envoyé pendant la voix du professeur, ni
+        // pendant ce délai après (sa voix ne doit pas revenir par le haut-parleur).
+        'echo_guard_ms' => 400,
+        // Le temps continue pendant une pause ; au-delà de cette durée, la conversation se termine.
+        'pause_max_seconds' => 120,
     ],
 
     /*

@@ -168,7 +168,7 @@ Vous pouvez les voir dans **Settings, General**. Si vous créez vous-même une v
 | Nom | Rôle | Exemple (fictif) |
 |---|---|---|
 | `ADMIN_PHONE` | Numéro du compte administrateur à créer. À supprimer tout de suite après. | `+22890000000` |
-| `ADMIN_PASSWORD` | Mot de passe de l'administrateur (10 caractères minimum). À supprimer tout de suite après. | `exemple-fictif-123` |
+| `ADMIN_PASSWORD` | Mot de passe de l'administrateur (10 caractères minimum, **sans espace ni « # »**). À supprimer tout de suite après. | `exemple-fictif-123` |
 
 ---
 
@@ -207,14 +207,16 @@ Pourquoi c'est important : sans le planificateur, une séance dont le navigateur
 
 ## 10. Créer le compte administrateur
 
-La commande `php artisan app:create-admin` **demande** le numéro et le mot de passe (saisie sans affichage, deux fois). Mais l'onglet **Commands** de Laravel Cloud ne permet aucune question. On donne donc le numéro et le mot de passe **temporairement**, par deux variables, puis on les supprime.
+La commande `php artisan app:create-admin` **demande** le numéro et le mot de passe (saisie sans affichage, deux fois). Mais l'onglet **Commands** de Laravel Cloud ne permet de répondre à aucune question. On donne donc le numéro et le mot de passe **temporairement**, par deux variables, puis on les supprime.
 
-1. **Settings, General, Environment variables** : ajoutez `ADMIN_PHONE` et `ADMIN_PASSWORD` (voir le tableau 7.4). Choisissez un vrai mot de passe long, que vous n'utilisez nulle part ailleurs. **Save**, puis **Deploy** (vert).
-2. Onglet **Commands** : tapez, puis **Run** :
+1. **Settings, General, Environment variables** : ajoutez `ADMIN_PHONE` et `ADMIN_PASSWORD` (voir le tableau 7.4). Choisissez un vrai mot de passe long, que vous n'utilisez nulle part ailleurs, **sans espace ni « # »** (dans les variables d'environnement, « # » commence un commentaire et un espace coupe la valeur : le mot de passe enregistré ne serait pas celui que vous croyez). **Save**, puis **Deploy** (vert).
+2. Onglet **Commands** : tapez, puis **Run** (l'option `--no-interaction` est **obligatoire**) :
 
    ```sh
-   php artisan app:create-admin
+   php artisan app:create-admin --no-interaction
    ```
+
+   Sans `--no-interaction`, l'onglet **Commands** se présente comme un terminal : la commande pose sa question (« Numéro de téléphone »), personne ne peut y répondre et elle s'arrête sur « Aborted ». Rien n'est créé : relancez simplement avec l'option.
 
    Vous devez voir : « Administrateur créé : +228••••••00 » (le numéro est volontairement masqué, le mot de passe n'est jamais affiché) et un rappel de supprimer les variables.
 3. **Supprimez `ADMIN_PHONE` et `ADMIN_PASSWORD`** des variables, **Save**, puis **Deploy**. Cette étape est obligatoire : tant que les variables existent, le mot de passe reste lisible dans la configuration du serveur.
@@ -281,7 +283,7 @@ Pour une attestation : téléchargez-en une depuis le compte d'un apprenant qui 
 | Construction (à chaque déploiement) | Settings, Deployments, **Build commands** | `composer install --no-dev --optimize-autoloader` puis `php artisan optimize` |
 | Déploiement (à chaque déploiement) | Settings, Deployments, **Deploy commands** | `php artisan migrate --force` |
 | Générer `APP_KEY` (une seule fois) | Onglet **Commands** | `php artisan key:generate --show` |
-| Créer l'administrateur | Onglet **Commands** | `php artisan app:create-admin` |
+| Créer l'administrateur | Onglet **Commands** | `php artisan app:create-admin --no-interaction` |
 | Contrôler la mise en ligne | Onglet **Commands** | `php artisan app:check-deployment` |
 | Voir les tâches planifiées | Onglet **Commands** | `php artisan schedule:list` |
 | Clore à la main les séances abandonnées | Onglet **Commands** | `php artisan live:close-stale` |

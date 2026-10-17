@@ -11,6 +11,8 @@
         <x-input name="name" label="Nom complet" autocomplete="name" required autofocus />
         <x-input name="phone" label="Numéro de téléphone" type="tel" inputmode="tel" autocomplete="tel" required
                  hint="Exemple : 90 12 34 56 ou +228 90 12 34 56" />
+        <x-input name="email" label="Adresse e-mail" type="email" inputmode="email" autocomplete="email"
+                 :hint="\App\Support\EmailAddress::HINT" />
         <x-input name="password" label="Mot de passe" type="password" autocomplete="new-password" required
                  hint="8 caractères minimum." />
         <x-input name="password_confirmation" label="Confirmer le mot de passe" type="password" autocomplete="new-password" required />

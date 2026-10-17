@@ -4,11 +4,13 @@
          data-mode="{{ $mode }}"
          data-urls='@json($urls)'
          data-worklet="{{ \App\Support\Asset::url('js/pcm-capture-worklet.js') }}"
+         data-mic-gate="{{ \App\Support\Asset::url('js/mic-gate.js') }}"
          @if (\App\Support\Avatar::enabled())
              data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"
              data-teacher3d='@json(\App\Support\Avatar::clientConfig())'
          @endif
-         data-teacher="svg">
+         data-teacher="svg"
+         data-teacher-name="{{ config('avatar.model.name') }}">
 
         <div class="live-head">
             <h1>{{ $title }}</h1>
@@ -46,13 +48,39 @@
             <div id="status" class="live-status" role="status">Prêt</div>
         </div>
 
+        {{-- Tour de parole : « Teacher Joe parle… », « À vous de parler », « Teacher Joe réfléchit… ». --}}
+        <div id="turn" class="live-turn" data-turn="listening" role="status" aria-live="polite" hidden>
+            <span class="live-turn-dot" aria-hidden="true"></span>
+            <span id="turn-text"></span>
+        </div>
+
         <div id="error" class="alert alert-error" role="alert" hidden></div>
+
+        <div id="pause-note" class="alert alert-warning" hidden>
+            <x-icon name="clock" />
+            <div><strong>Le temps continue pendant la pause.</strong> Au-delà de {{ \App\Support\Duration::format((int) config('platform.live.pause_max_seconds')) }}, la conversation se termine.</div>
+        </div>
+
+        <div id="controls" class="live-controls" hidden>
+            <button type="button" id="interrupt" class="btn btn-accent btn-lg live-control live-control-wide" hidden>
+                <x-icon name="hand" /> Interrompre le professeur
+            </button>
+            <button type="button" id="pause" class="btn btn-lg live-control" aria-pressed="false">
+                <span class="live-control-off"><x-icon name="pause" /> Pause</span>
+                <span class="live-control-on" hidden><x-icon name="play" /> Reprendre</span>
+            </button>
+            <button type="button" id="mute" class="btn btn-outline btn-lg live-control" aria-pressed="false">
+                <span class="live-control-off"><x-icon name="mic-off" /> Couper le micro</span>
+                <span class="live-control-on" hidden><x-icon name="mic" /> Réactiver le micro</span>
+            </button>
+        </div>
 
         <div id="intro" class="card">
             <p>{{ $intro }}</p>
             <ul class="intro-tips">
                 <li><x-icon name="pin" /> Installez-vous dans un endroit calme.</li>
                 <li><x-icon name="headphones" /> Avec des écouteurs, le professeur vous entendra mieux.</li>
+                <li><x-icon name="bubble" /> Quand {{ config('avatar.model.name') }} parle, votre micro est coupé : attendez « À vous de parler » pour répondre.</li>
                 <li><x-icon name="mic" /> Votre navigateur va vous demander l'accès au micro : acceptez-le.</li>
             </ul>
             <button type="button" id="start" class="btn btn-accent btn-block btn-lg"><x-icon name="play" /> Commencer</button>
@@ -63,7 +91,7 @@
         <div id="outcome" class="card" hidden></div>
 
         <div class="live-actions">
-            <button type="button" id="resume" class="btn btn-block" hidden>Reprendre</button>
+            <button type="button" id="resume" class="btn btn-block btn-lg" hidden><x-icon name="refresh" /> Se reconnecter</button>
             <button type="button" id="stop" class="btn btn-light btn-block" hidden>Terminer</button>
             <a id="back" href="{{ $urls['done'] }}" class="btn btn-light btn-block" hidden>Retour à mon espace</a>
         </div>

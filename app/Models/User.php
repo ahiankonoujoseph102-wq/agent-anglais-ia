@@ -8,9 +8,11 @@ use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Enums\Skill;
 use App\Enums\SubscriptionStatus;
+use App\Support\EmailAddress;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -23,7 +25,7 @@ use Illuminate\Support\Carbon;
  * volontairement pas « fillable » : ils ne doivent jamais pouvoir être
  * fixés depuis un formulaire.
  */
-#[Fillable(['name', 'phone', 'password'])]
+#[Fillable(['name', 'phone', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -49,6 +51,16 @@ class User extends Authenticatable
             'role' => Role::class,
             'must_change_password' => 'boolean',
         ];
+    }
+
+    /**
+     * Adresse e-mail facultative, toujours enregistrée en minuscules (null si vide).
+     *
+     * @return Attribute<string|null, string|null>
+     */
+    protected function email(): Attribute
+    {
+        return Attribute::make(set: fn (?string $value) => EmailAddress::normalize($value));
     }
 
     public function isAdmin(): bool

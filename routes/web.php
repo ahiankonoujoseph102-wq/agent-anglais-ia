@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AssessmentController as AdminAssessmentController;
 use App\Http\Controllers\Admin\InactiveLearnerController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
@@ -55,6 +56,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/mot-de-passe/nouveau', [PasswordController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 
     Route::get('/espace', DashboardController::class)->name('dashboard');
+
+    // Compte : adresse e-mail facultative.
+    Route::get('/compte', [AccountController::class, 'edit'])->name('account.edit');
+    Route::put('/compte', [AccountController::class, 'update'])->middleware('throttle:10,1')->name('account.update');
 
     // Paiement manuel par Mobile Money : formule → pays → déclaration → validation.
     Route::get('/abonnement', [PaymentController::class, 'plans'])->name('payment.plans');

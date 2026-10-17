@@ -228,4 +228,6 @@
             @endforeach
         </section>
     @endif
+
+    <p class="center next-step"><a href="{{ route('account.edit') }}"><x-icon name="user" /> Mon compte et mon adresse e-mail</a></p>
 </x-layout>

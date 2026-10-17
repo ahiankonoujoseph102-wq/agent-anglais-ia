@@ -158,7 +158,7 @@ code { overflow-wrap: anywhere; font-size: .95em; background: var(--c-bg-warm); 
 .form-card { padding: var(--space-6) var(--space-5); }
 .field { margin-bottom: var(--space-4); }
 label { display: block; font-weight: var(--fw-bold); margin-bottom: 6px; }
-input[type=text], input[type=tel], input[type=password], input[type=search], input[type=time], input[type=date], input[type=file], select, textarea {
+input[type=text], input[type=tel], input[type=email], input[type=password], input[type=search], input[type=time], input[type=date], input[type=file], select, textarea {
     width: 100%; font: inherit; font-size: 1rem; padding: 12px 14px; min-height: 50px;
     border: 1.5px solid var(--c-field); border-radius: var(--radius); background: var(--c-surface); color: var(--c-text);
     transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
@@ -168,6 +168,11 @@ textarea { resize: vertical; margin-bottom: var(--space-2); min-height: 96px; }
 input:focus, select:focus, textarea:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 4px var(--c-ring); }
 .checkbox { display: flex; align-items: center; gap: var(--space-3); font-weight: var(--fw-normal); cursor: pointer; }
 .checkbox input { width: 22px; height: 22px; accent-color: var(--c-primary); flex: none; margin: 0; }
+/* Champ mot de passe avec le bouton « œil » (afficher / masquer). */
+.password-field { position: relative; }
+.password-field input { padding-right: 56px; }
+.password-toggle { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); width: 46px; height: 46px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius); background: none; color: var(--c-primary); cursor: pointer; touch-action: manipulation; }
+.password-toggle:hover, .password-toggle:focus-visible { background: var(--c-primary-soft); }
 .hint { color: var(--c-muted); font-size: var(--fs-sm); margin-top: 6px; }
 .error { color: var(--c-danger); font-size: var(--fs-sm); font-weight: var(--fw-bold); margin-top: 6px; }
 .is-invalid { border-color: var(--c-danger) !important; }
@@ -433,6 +438,20 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 .line-learner { color: var(--c-text); margin-left: var(--space-6) !important; }
 .line-learner::before { color: var(--c-accent-strong); }
 .live-actions { display: grid; gap: var(--space-3); }
+/* Tour de parole et boutons de la conversation (grands, faciles à toucher). */
+.live-turn { display: flex; align-items: center; justify-content: center; gap: var(--space-3); margin-bottom: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); font-size: var(--fs-lg); font-weight: var(--fw-heavy); background: var(--c-primary-soft); color: var(--c-primary-strong); border: 2px solid var(--c-primary-line); }
+.live-turn-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--c-primary); flex: none; }
+.live-turn[data-turn="listening"] { background: var(--c-accent-soft); color: var(--c-accent-ink); border-color: var(--c-accent); }
+.live-turn[data-turn="listening"] .live-turn-dot { background: var(--c-accent); animation: pulse 1.2s ease-in-out infinite; }
+.live-turn[data-turn="speaking"] .live-turn-dot { animation: pulse .7s ease-in-out infinite; }
+.live-turn[data-turn="thinking"] .live-turn-dot { background: var(--c-primary-bright); animation: pulse 1.6s ease-in-out infinite; }
+.live-turn[data-turn="paused"], .live-turn[data-turn="muted"] { background: var(--c-bg-warm); color: var(--c-muted); border-color: var(--c-border); }
+.live-turn[data-turn="paused"] .live-turn-dot, .live-turn[data-turn="muted"] .live-turn-dot { background: var(--c-muted); }
+.live-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-3); }
+.live-control { min-height: 64px; padding: 12px; font-size: var(--fs-md); }
+.live-control > span { display: inline-flex; align-items: center; gap: var(--space-2); }
+.live-control-wide { grid-column: 1 / -1; }
+.live-control[aria-pressed="true"] { background: var(--c-accent); color: var(--c-on-accent); box-shadow: none; }
 #outcome { border-top: 4px solid var(--c-accent); animation: rise var(--dur) var(--ease) both; }
 #outcome h2 { color: var(--c-primary); }
 
