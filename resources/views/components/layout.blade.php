@@ -22,11 +22,12 @@
         <meta name="description" content="{{ $description }}">
     @endif
     <link rel="manifest" href="{{ route('manifest') }}">
-    <link rel="icon" href="{{ asset('icons/icon-192.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
+    <link rel="icon" href="{{ asset('icons/favicon-96.png') }}" type="image/png" sizes="96x96">
     <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="{{ config('platform.brand.short_name') ?: config('platform.name') }}">
-    <link rel="preload" href="{{ asset('fonts/nunito-3.602-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/sora-2.000-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ Asset::url('css/tokens.css') }}">
     <link rel="stylesheet" href="{{ Asset::url('css/app.css') }}">
     <script>document.documentElement.classList.add('js');</script>
@@ -96,7 +97,8 @@
         <div class="container">
             <div class="footer-grid">
                 <div>
-                    <x-logo tagline />
+                    <x-logo variant="footer" />
+                    <p class="footer-tagline">{{ config('platform.brand.tagline') }}</p>
                     <p class="next-step">Apprenez l'anglais à l'oral avec votre professeur IA, depuis votre téléphone.</p>
                 </div>
                 <ul class="footer-list">

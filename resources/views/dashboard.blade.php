@@ -3,7 +3,7 @@
         <img src="{{ asset('icons/apple-touch-icon.png') }}" width="64" height="64" alt="">
         <div>
             <h1>Bonjour {{ $user->name }}</h1>
-            <p>Votre professeur {{ config('platform.name') }} est prêt.</p>
+            <p>Votre professeur {{ config('avatar.model.name') }} est prêt.</p>
         </div>
     </div>
 
@@ -59,7 +59,7 @@
         @if (! $user->level && $canTakeAssessment)
             <h2>Votre évaluation gratuite</h2>
             <p>
-                Parlez {{ $assessmentMinutes }} minutes au maximum avec {{ config('platform.name') }}
+                Parlez {{ $assessmentMinutes }} minutes au maximum avec {{ config('avatar.model.name') }}
                 pour connaître votre niveau d'anglais.
             </p>
             <a href="{{ route('assessment.show') }}" class="btn btn-lg btn-block"><x-icon name="mic" /> Passer mon évaluation</a>

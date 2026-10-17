@@ -15,7 +15,11 @@
         </div>
 
         <div class="teacher" aria-hidden="true">
-            <svg viewBox="0 0 200 200" class="face" role="img">
+            <svg viewBox="0 0 200 250" class="face" role="img">
+                {{-- Tenue de Teacher Joe : gilet bleu nuit, chemise blanche, cravate orange. --}}
+                <path d="M16 250 Q20 206 72 194 L128 194 Q180 206 184 250 Z" class="face-vest"/>
+                <path d="M78 194 L100 236 L122 194 Z" class="face-shirt"/>
+                <path d="M94 200 L106 200 L110 236 L100 246 L90 236 Z" class="face-tie"/>
                 <circle cx="100" cy="100" r="88" class="face-skin"/>
                 <path d="M30 78 Q40 18 100 16 Q160 18 170 78 Q150 50 100 48 Q50 50 30 78 Z" class="face-hair"/>
                 <g class="face-eyes">

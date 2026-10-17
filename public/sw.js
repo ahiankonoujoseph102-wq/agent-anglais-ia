@@ -12,11 +12,13 @@
  * « Vous êtes hors connexion » (seule page gardée, sans donnée personnelle).
  */
 
-const CACHE = 'static-v1';
+// Nouvelle version à chaque changement de fichiers « immuables » (icônes, police) :
+// l'ancien cache est supprimé à l'activation.
+const CACHE = 'static-v2';
 const OFFLINE_URL = '/hors-connexion';
 
 // Dossiers de public/ dont les fichiers peuvent être mis en cache.
-const STATIC_PATHS = ['/css/', '/js/', '/fonts/', '/icons/', '/images/', '/teacher3d/'];
+const STATIC_PATHS = ['/css/', '/js/', '/fonts/', '/icons/', '/images/', '/brand/', '/teacher3d/'];
 // Fichiers dont le nom ne change jamais de contenu : gardés même sans ?v=.
 const IMMUTABLE_PATHS = ['/fonts/', '/icons/'];
 
@@ -51,8 +53,13 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
+    // Anciennes versions du cache des fichiers statiques (static-v1…) supprimées.
     // Le modèle 3D garde son propre cache (« teacher3d », géré par teacher-3d.js).
-    event.waitUntil(self.clients.claim());
+    event.waitUntil((async () => {
+        const names = await caches.keys();
+        await Promise.all(names.filter((name) => name.startsWith('static-') && name !== CACHE).map((name) => caches.delete(name)));
+        await self.clients.claim();
+    })());
 });
 
 // Fichier statique : depuis le cache s'il y est, sinon réseau puis cache.

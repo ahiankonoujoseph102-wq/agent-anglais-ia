@@ -1,12 +1,11 @@
-{{-- Logo provisoire : icône + nom + accroche, réglés dans config/platform.php (brand). --}}
-@props(['tagline' => false])
+{{-- Logo officiel (image de public/brand/, réglée dans config/platform.php → brand.logo). --}}
+@props(['variant' => 'header'])
+
+@php
+    $file = config("platform.brand.logo.{$variant}");
+    [$width, $height] = @getimagesize(public_path($file)) ?: [640, 174];
+@endphp
 
 <a href="{{ route('home') }}" {{ $attributes->class(['logo']) }}>
-    <span class="logo-mark"><x-icon :name="config('platform.brand.icon', 'bubble')" /></span>
-    <span class="logo-text">
-        {{ config('platform.name') }}
-        @if ($tagline)
-            <small>{{ config('platform.brand.tagline') }}</small>
-        @endif
-    </span>
+    <img src="{{ \App\Support\Asset::url($file) }}" width="{{ $width }}" height="{{ $height }}" alt="{{ config('platform.name') }}">
 </a>

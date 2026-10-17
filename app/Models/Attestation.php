@@ -34,7 +34,7 @@ class Attestation extends Model
     }
 
     /**
-     * Code de vérification lisible : « TJ-B1-7KQ4-M2XD ».
+     * Code de vérification lisible : « TA-B1-7KQ4-M2XD » (préfixe tiré du nom de la plateforme).
      */
     public static function newCode(Level $level): string
     {

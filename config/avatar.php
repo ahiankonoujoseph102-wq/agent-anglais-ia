@@ -57,7 +57,7 @@ return [
         'neutral' => 'back to a calm neutral face',
     ],
 
-    // Crédits affichés sur la page /credits.
+    // Crédits affichés sur la page /credits (professeur 3D, police, bibliothèques).
     'credits' => [
         [
             'name' => 'Personnage 3D « Teacher Joe »',
@@ -67,11 +67,11 @@ return [
             'url' => null,
         ],
         [
-            'name' => 'Police Nunito (tout le texte du site, graisses 400 à 800)',
-            'author' => 'The Nunito Project Authors (Vernon Adams, Jacques Le Bailly…)',
+            'name' => 'Police Sora (tout le texte du site, graisses 400 à 700)',
+            'author' => 'The Sora Project Authors (Jonathan Barnbrook, Julián Moncada)',
             'license' => 'SIL Open Font License 1.1',
             'license_url' => 'https://openfontlicense.org',
-            'url' => 'https://github.com/googlefonts/nunito',
+            'url' => 'https://github.com/sora-xor/sora-font',
         ],
         [
             'name' => 'three.js (affichage 3D, chargement glTF, décompression meshopt)',

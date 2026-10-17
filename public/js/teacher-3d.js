@@ -297,7 +297,7 @@ class Teacher3D {
         canvas.width = 512;
         canvas.height = 256;
         const g = canvas.getContext('2d');
-        g.fillStyle = '#2f4a3f';
+        g.fillStyle = '#16305e';
         g.fillRect(0, 0, 512, 256);
         g.textAlign = 'right';
         g.fillStyle = 'rgba(255,255,255,0.85)';
@@ -319,29 +319,28 @@ class Teacher3D {
 
         // Fenêtre ensoleillée.
         box(0.56, 0.5, 0.01, '#bfe0f2', 0.66, 0.88, -0.605);
-        box(0.56, 0.12, 0.012, '#9fcf8f', 0.66, 0.69, -0.6);
         for (const [w, h, x, y] of [[0.6, 0.03, 0.66, 1.13], [0.6, 0.03, 0.66, 0.63], [0.03, 0.53, 0.37, 0.88], [0.03, 0.53, 0.95, 0.88], [0.02, 0.5, 0.66, 0.88], [0.56, 0.02, 0.66, 0.88]]) {
             box(w, h, 0.03, '#f6efe4', x, y, -0.59);
         }
 
-        // Bureau, livres et plante.
+        // Bureau, livres et pot à crayons.
         const top = this.config.model.desk_height ?? 0.175;
         box(1.5, 0.035, 0.62, '#8a5a36', 0, top - 0.018, 0.38);
         box(1.5, 0.4, 0.03, '#76482a', 0, top - 0.22, 0.68);
-        box(0.16, 0.035, 0.22, '#c2502c', 0.42, top + 0.018, 0.34);
+        box(0.16, 0.035, 0.22, '#ff7a1a', 0.42, top + 0.018, 0.34);
         box(0.15, 0.03, 0.21, '#2f6f9f', 0.42, top + 0.05, 0.34);
         box(0.14, 0.028, 0.2, '#e3b448', 0.42, top + 0.079, 0.34);
-        const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.035, 0.08, 12), mat('#b5653a'));
-        pot.position.set(-0.45, top + 0.04, 0.3);
+        const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.036, 0.1, 12), mat('#ff7a1a'));
+        pot.position.set(-0.45, top + 0.05, 0.3);
         room.add(pot);
 
-        for (let i = 0; i < 6; i++) {
-            const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), mat(i % 2 ? '#3f8a4f' : '#4f9d5c'));
-            const a = (i / 6) * Math.PI * 2;
-            leaf.scale.set(0.7, 1.4, 0.7);
-            leaf.position.set(-0.45 + Math.cos(a) * 0.035, top + 0.12 + (i % 3) * 0.02, 0.3 + Math.sin(a) * 0.035);
-            leaf.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5);
-            room.add(leaf);
+        // Crayons dans le pot.
+        for (let i = 0; i < 4; i++) {
+            const pencil = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.12, 6), mat(['#0e2a5c', '#e3b448', '#3d6bc4', '#f6efe4'][i]));
+            const a = (i / 4) * Math.PI * 2;
+            pencil.position.set(-0.45 + Math.cos(a) * 0.018, top + 0.11, 0.3 + Math.sin(a) * 0.018);
+            pencil.rotation.set(Math.sin(a) * 0.18, 0, -Math.cos(a) * 0.18);
+            room.add(pencil);
         }
 
         this.scene.add(room);
