@@ -148,7 +148,7 @@ Dans **Settings, General** (section **Environment variables**), ajoutez les vari
 | `GEMINI_LIVE_MODEL` | Modèle de la conversation vocale. | `gemini-3.8-live` |
 | `GEMINI_API_VERSION` | Version de l'API Gemini Live. | `v1alpha` |
 | `GEMINI_TEXT_MODEL` | Modèle texte léger (programme, messages). | `gemini-3.5-flash-lite` |
-| `GEMINI_VOICE` | Voix du professeur (vide = voix par défaut). | vide |
+| `GEMINI_VOICE_NAME` | Voix du professeur. Facultative : absente, c'est **Achird** (voix masculine). Si une ancienne variable `GEMINI_VOICE` existe, supprimez-la : elle n'est plus lue. | absente |
 | `GEMINI_TOKEN_MINUTES` | Durée d'un jeton éphémère, en minutes. | `5` |
 | `AVATAR_3D_ENABLED` | `false` désactive le professeur 3D partout. | `true` |
 | `APP_FORCE_HTTPS` | Redirection vers HTTPS. Active en production si la variable est **absente** : ne la laissez jamais **vide**. | absente |

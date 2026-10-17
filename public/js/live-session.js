@@ -24,6 +24,8 @@
 const root = document.getElementById('live');
 // Porte du micro (URL versionnée par la page, comme les autres fichiers).
 const { MicGate, voiceEndsAt } = await import(root.dataset.micGate);
+// Lecture propre de la voix (décodage, programmation bout à bout, rééchantillonnage continu).
+const { VOICE_RATE, decodePcm16, StreamResampler, VoiceScheduler, fadeIn } = await import(root.dataset.pcmAudio);
 const urls = JSON.parse(root.dataset.urls);
 const mode = root.dataset.mode;
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
@@ -54,7 +56,8 @@ if (root.dataset.teacher3d && root.dataset.teacherView) {
 }
 
 const INPUT_RATE = 16000;
-const OUTPUT_RATE = 24000;
+// Fondu à l'arrêt de la voix (interruption, pause), en secondes : pas de clic.
+const STOP_FADE = 0.015;
 const MAX_AUTO_RECONNECTS = 2;
 // Retard ajouté à la voix du professeur (lecture labiale du professeur 3D).
 const OUTPUT_DELAY = 0.08;
@@ -238,10 +241,10 @@ async function setupAudio() {
         console.warn('Micro : annulation d\'écho indisponible, le demi-duplex reste seul actif.');
     }
 
-    const context = new AudioContext();
+    const { context, source } = createAudioContext(stream);
     await context.audioWorklet.addModule(root.dataset.worklet);
+    console.debug('Audio : contexte à', context.sampleRate, 'Hz, latence de sortie', context.outputLatency ?? context.baseLatency, 'seconde(s)');
 
-    const source = context.createMediaStreamSource(stream);
     const capture = new AudioWorkletNode(context, 'pcm-capture', { processorOptions: { targetRate: INPUT_RATE } });
     const silent = context.createGain();
     silent.gain.value = 0;
@@ -251,15 +254,50 @@ async function setupAudio() {
     // La voix est un peu retardée : la lecture labiale du professeur 3D
     // (qui écoute avant ce retard) a le temps de préparer la forme de la bouche.
     const output = context.createGain();
+    // Fondu de la voix (arrêt sans clic), avant la sortie écoutée par le professeur 3D.
+    const voice = context.createGain();
+    voice.connect(output);
     const delay = context.createDelay(0.5);
     delay.delayTime.value = OUTPUT_DELAY;
     const analyser = context.createAnalyser();
     analyser.fftSize = 512;
     output.connect(delay).connect(analyser).connect(context.destination);
 
-    state.audio = { context, stream, source, output, analyser, playHead: 0, sources: new Set() };
+    state.audio = {
+        context, stream, source, output, voice, analyser,
+        scheduler: new VoiceScheduler({ sampleRate: context.sampleRate }),
+        // Contexte à une autre fréquence que la voix : rééchantillonnage continu par nos soins.
+        resampler: context.sampleRate === VOICE_RATE ? null : new StreamResampler(VOICE_RATE, context.sampleRate),
+        sources: new Set(),
+    };
     teacher?.attachAudio(context, output, source);
     animateMouth();
+}
+
+/**
+ * Contexte audio réglé à la fréquence de la voix de Gemini (24 kHz) : aucun
+ * rééchantillonnage morceau par morceau ; le navigateur convertit d'un seul
+ * flux continu vers le haut-parleur, et le micro de même. « playback » : tampon
+ * de sortie plus large, moins de craquements quand le téléphone est occupé (3D).
+ * Repli sur la fréquence du téléphone si le navigateur refuse.
+ */
+function createAudioContext(stream) {
+    for (const options of [{ sampleRate: VOICE_RATE, latencyHint: 'playback' }, { latencyHint: 'playback' }]) {
+        let context = null;
+
+        try {
+            context = new AudioContext(options);
+
+            return { context, source: context.createMediaStreamSource(stream) };
+        } catch (error) {
+            console.warn('Audio : réglage refusé', options, error);
+            context?.close();
+        }
+    }
+
+    const context = new AudioContext();
+
+    return { context, source: context.createMediaStreamSource(stream) };
 }
 
 function base64FromBuffer(buffer) {
@@ -278,9 +316,9 @@ function base64FromBuffer(buffer) {
  * du dernier tampon de voix, retard ajouté et latence de sortie de l'appareil.
  */
 function voiceEnd() {
-    const { context, playHead } = state.audio;
+    const { context, scheduler } = state.audio;
 
-    return voiceEndsAt(playHead, OUTPUT_DELAY, context.outputLatency || context.baseLatency || 0);
+    return voiceEndsAt(scheduler.endTime, OUTPUT_DELAY, context.outputLatency || context.baseLatency || 0);
 }
 
 /**
@@ -327,28 +365,38 @@ function playAudio(base64) {
 
     state.awaitingSince = 0;
     state.learnerHeardAt = 0;
-    const { context, output, sources } = state.audio;
-    const binary = atob(base64);
-    const samples = new Int16Array(binary.length >> 1);
+    const { context, voice, sources, scheduler, resampler } = state.audio;
+    const continuing = context.currentTime < scheduler.endTime + 0.5;
+    let samples = decodePcm16(atob(base64));
 
-    for (let i = 0; i < samples.length; i++) {
-        samples[i] = binary.charCodeAt(2 * i) | (binary.charCodeAt(2 * i + 1) << 8);
+    // Début d'une prise de parole (ou trou du réseau) : le rééchantillonnage repart du silence.
+    const gap = scheduler.isGap(context.currentTime);
+
+    if (resampler) {
+        if (gap) {
+            resampler.reset();
+        }
+
+        samples = resampler.process(samples);
     }
 
-    const buffer = context.createBuffer(1, samples.length, OUTPUT_RATE);
-    const channel = buffer.getChannelData(0);
-
-    for (let i = 0; i < samples.length; i++) {
-        channel[i] = samples[i] / 0x8000;
+    if (samples.length === 0) {
+        return;
     }
+
+    if (gap) {
+        fadeIn(samples, Math.round(context.sampleRate * 0.005));
+    }
+
+    const buffer = context.createBuffer(1, samples.length, context.sampleRate);
+    buffer.getChannelData(0).set(samples);
 
     const node = context.createBufferSource();
     node.buffer = buffer;
-    node.connect(output);
+    node.connect(voice);
 
-    const startAt = Math.max(context.currentTime + 0.02, state.audio.playHead);
-    node.start(startAt);
-    state.audio.playHead = startAt + buffer.duration;
+    const { time } = scheduler.schedule(context.currentTime, samples.length, continuing && gap);
+    node.start(time);
     sources.add(node);
     node.onended = () => sources.delete(node);
 }
@@ -358,11 +406,21 @@ function stopPlayback() {
         return;
     }
 
-    state.audio.sources.forEach((node) => {
-        try { node.stop(); } catch { /* déjà arrêté */ }
+    // Fondu de quelques millisecondes plutôt qu'une coupure nette (clic).
+    const { context, voice, sources, scheduler } = state.audio;
+    const now = context.currentTime;
+    const end = now + STOP_FADE;
+
+    voice.gain.cancelScheduledValues(now);
+    voice.gain.setValueAtTime(voice.gain.value, now);
+    voice.gain.linearRampToValueAtTime(0, end);
+    voice.gain.setValueAtTime(1, end + 0.005);
+
+    sources.forEach((node) => {
+        try { node.stop(end); } catch { /* déjà arrêté */ }
     });
-    state.audio.sources.clear();
-    state.audio.playHead = state.audio.context.currentTime;
+    sources.clear();
+    scheduler.stop(end + 0.005);
 }
 
 function animateMouth() {

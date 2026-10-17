@@ -49,8 +49,12 @@ return [
         'api_version' => env('GEMINI_API_VERSION', 'v1alpha'),
         'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com'),
         'websocket_url' => env('GEMINI_WEBSOCKET_URL', 'wss://generativelanguage.googleapis.com'),
-        // Voix du professeur (vide = voix par défaut du modèle).
-        'voice' => env('GEMINI_VOICE'),
+        // Voix du professeur, figée dans le jeton (speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName).
+        // Achird : voix masculine « Friendly », calme et chaleureuse, pour Teacher Joe.
+        // Liste des voix : ai.google.dev/gemini-api/docs/speech-generation#voices ; voix masculines
+        // (d'après docs.cloud.google.com/text-to-speech/docs/chirp3-hd) : Achird, Iapetus, Schedar,
+        // Algieba, Umbriel, Charon, Orus… (relevé du 17 octobre 2026).
+        'voice' => env('GEMINI_VOICE_NAME') ?: 'Achird',
         // Durée de vie maximale d'un jeton (et donc d'une connexion), en minutes.
         // Tout le temps de validité d'un jeton est décompté, même si le navigateur
         // disparaît : une valeur courte limite la perte en cas de coupure.

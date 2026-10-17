@@ -1,13 +1,19 @@
 /*
  * Choix entre le professeur 3D et le visage SVG sur l'écran de conversation.
  *
- * Le visage SVG s'affiche toujours d'abord. Si le téléphone en est capable,
- * le professeur 3D se charge en arrière-plan (barre de progression) puis
- * prend sa place. En cas d'échec, de lenteur ou de mode « économie de
- * données », le visage SVG reste : la séance n'est jamais bloquée.
+ * Le professeur 3D est affiché PAR DÉFAUT. Le visage SVG reste visible le
+ * temps du chargement en arrière-plan (barre de progression) : la page et le
+ * bouton « Commencer » sont utilisables tout de suite. Repli silencieux sur le
+ * visage SVG si WebGL 2 manque, si le chargement échoue ou dure plus de
+ * LOAD_TIMEOUT_MS, ou si le téléphone est trop lent : la séance n'est jamais
+ * bloquée. Le lien « Visage simple » / « Afficher le professeur en 3D »
+ * mémorise le choix de l'apprenant dans le navigateur.
  */
 
-const PREFERENCE = 'teacher3d';
+// Nouvelle clé : l'ancien réglage (« teacher3d ») n'est plus lu, la 3D redevient le choix par défaut.
+const PREFERENCE = 'teacher-view';
+const LEGACY_PREFERENCE = 'teacher3d';
+const LOAD_TIMEOUT_MS = 30000;
 
 function preference() {
     try {
@@ -20,7 +26,8 @@ function preference() {
 function setPreference(value) {
     try {
         localStorage.setItem(PREFERENCE, value);
-    } catch { /* stockage indisponible */ }
+        localStorage.removeItem(LEGACY_PREFERENCE);
+    } catch { /* stockage indisponible : le choix vaut pour cette page seulement */ }
 }
 
 // WebGL 2 disponible ? (three.js en a besoin)
@@ -37,26 +44,44 @@ function supportsWebGL2() {
 }
 
 /**
- * Raison de ne pas charger la 3D automatiquement (ou null).
+ * Raison de ne pas charger la 3D (ou null) : choix « Visage simple » de
+ * l'apprenant, moins de 1 Go de mémoire, ou pas de WebGL 2.
+ * Fonction pure, testée par tests/js/teacher-view.test.mjs.
  */
-export function reasonToSkip() {
-    if (preference() === 'off') {
+export function skipReason({ preference, deviceMemory, webgl }) {
+    if (preference === 'svg') {
         return 'preference';
     }
 
-    if (preference() !== 'on' && navigator.connection?.saveData) {
-        return 'save-data';
-    }
-
-    if (navigator.deviceMemory && navigator.deviceMemory < 1) {
+    if (deviceMemory && deviceMemory < 1) {
         return 'memory';
     }
 
-    if (!window.ResizeObserver || !supportsWebGL2()) {
+    if (!webgl) {
         return 'webgl';
     }
 
     return null;
+}
+
+export function reasonToSkip() {
+    return skipReason({
+        preference: preference(),
+        deviceMemory: navigator.deviceMemory,
+        webgl: !!window.ResizeObserver && supportsWebGL2(),
+    });
+}
+
+/**
+ * Promesse rejetée si elle n'aboutit pas dans le délai.
+ */
+export function withTimeout(promise, ms) {
+    let timer;
+
+    return Promise.race([
+        promise,
+        new Promise((resolve, reject) => { timer = setTimeout(() => reject(new Error('timeout')), ms); }),
+    ]).finally(() => clearTimeout(timer));
 }
 
 export function createTeacherView(root, config) {
@@ -113,7 +138,7 @@ export function createTeacherView(root, config) {
         stage.replaceChildren();
         loading.hidden = true;
         showToggle('Afficher le professeur en 3D', () => {
-            setPreference('on');
+            setPreference('3d');
             load();
         });
     }
@@ -133,13 +158,15 @@ export function createTeacherView(root, config) {
             navigator.serviceWorker.register(config.serviceWorker, { scope }).catch(() => {});
         }
 
-        loadingPromise = import(config.module)
+        const attempt = import(config.module)
             .then(({ createTeacher3D }) => createTeacher3D({
                 container: stage,
                 config,
                 reducedMotion,
                 onProgress: (ratio) => { bar.value = Math.round(ratio * 100); },
-            }))
+            }));
+
+        loadingPromise = withTimeout(attempt, LOAD_TIMEOUT_MS)
             .then((instance) => {
                 teacher = instance;
                 teacher.onfail = () => {
@@ -160,14 +187,21 @@ export function createTeacherView(root, config) {
                 }
 
                 showToggle('Visage simple', () => {
-                    setPreference('off');
+                    setPreference('svg');
                     teacher?.dispose();
                     loadingPromise = null;
                     fallback();
                 });
             })
             .catch((error) => {
+                // Aucune erreur affichée à l'apprenant : le visage simple reste.
                 console.warn('Professeur 3D indisponible :', error);
+
+                // Chargement trop long : le personnage qui arriverait en retard est libéré.
+                if (error?.message === 'timeout') {
+                    attempt.then((instance) => instance.dispose(), () => {});
+                }
+
                 loadingPromise = null;
                 fallback();
             });
@@ -180,9 +214,9 @@ export function createTeacherView(root, config) {
     if (skip) {
         root.dataset.teacher = 'svg';
 
-        if (skip === 'preference' || skip === 'save-data') {
+        if (skip === 'preference') {
             showToggle('Afficher le professeur en 3D', () => {
-                setPreference('on');
+                setPreference('3d');
                 load();
             });
         }
