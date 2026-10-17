@@ -26,6 +26,11 @@ const root = document.getElementById('live');
 const { MicGate, voiceEndsAt } = await import(root.dataset.micGate);
 // Lecture propre de la voix (décodage, programmation bout à bout, rééchantillonnage continu).
 const { VOICE_RATE, decodePcm16, StreamResampler, VoiceScheduler, fadeIn } = await import(root.dataset.pcmAudio);
+// Micro : liste « Micro utilisé », témoin de niveau, alerte de silence.
+const { listMicrophones, rms, meterLevel, SilenceWatch } = await import(root.dataset.micInput);
+// Réglages audio de la page (config/platform.php → live).
+const audioConfig = JSON.parse(root.dataset.audio);
+const MIC_PREFERENCE = 'mic-device';
 const urls = JSON.parse(root.dataset.urls);
 const mode = root.dataset.mode;
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
@@ -36,6 +41,7 @@ const ui = {
     intro: $('intro'), status: $('status'), timer: $('timer'), error: $('error'),
     subtitles: $('subtitles'), outcome: $('outcome'), mouth: $('mouth'),
     turn: $('turn'), turnText: $('turn-text'), controls: $('controls'),
+    micPanel: $('mic-panel'), micLevel: $('mic-level'), micChoice: $('mic-choice'), micSelect: $('mic-select'), micWarning: $('mic-warning'),
     interrupt: $('interrupt'), pause: $('pause'), mute: $('mute'), pauseNote: $('pause-note'),
 };
 const teacherName = root.dataset.teacherName || 'Le professeur';
@@ -49,7 +55,7 @@ if (root.dataset.teacher3d && root.dataset.teacherView) {
             teacher = createTeacherView(root, JSON.parse(root.dataset.teacher3d));
 
             if (state.audio) {
-                teacher.attachAudio(state.audio.context, state.audio.output, state.audio.source);
+                teacher.attachAudio(state.audio.context, state.audio.output, state.audio.micBus);
             }
         })
         .catch((error) => console.warn('Professeur 3D indisponible :', error));
@@ -228,35 +234,41 @@ async function setupAudio() {
         throw Object.assign(new Error('insecure'), { name: 'InsecureContext' });
     }
 
-    // Annulation d'écho, réduction de bruit et gain automatique du navigateur :
-    // demandés ici et jamais modifiés ensuite (le worklet ne fait que convertir).
-    const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-    });
-
-    const settings = stream.getAudioTracks()[0]?.getSettings?.() ?? {};
-    console.debug('Micro : réglages obtenus', settings);
-
-    if (settings.echoCancellation === false) {
-        console.warn('Micro : annulation d\'écho indisponible, le demi-duplex reste seul actif.');
-    }
+    const stream = await openMicrophone(savedMicrophone(), false);
 
     const { context, source } = createAudioContext(stream);
     await context.audioWorklet.addModule(root.dataset.worklet);
     console.debug('Audio : contexte à', context.sampleRate, 'Hz, latence de sortie', context.outputLatency ?? context.baseLatency, 'seconde(s)');
 
+    // Bus du micro : la capture, le témoin et le professeur 3D y restent branchés
+    // quand l'apprenant change de micro (seule la source change).
+    const micBus = context.createGain();
+    source.connect(micBus);
+    const micAnalyser = context.createAnalyser();
+    micAnalyser.fftSize = 1024;
+    micBus.connect(micAnalyser);
+
     const capture = new AudioWorkletNode(context, 'pcm-capture', { processorOptions: { targetRate: INPUT_RATE } });
     const silent = context.createGain();
     silent.gain.value = 0;
-    source.connect(capture).connect(silent).connect(context.destination);
+    micBus.connect(capture).connect(silent).connect(context.destination);
     capture.port.onmessage = (event) => sendAudio(event.data);
 
     // La voix est un peu retardée : la lecture labiale du professeur 3D
     // (qui écoute avant ce retard) a le temps de préparer la forme de la bouche.
     const output = context.createGain();
-    // Fondu de la voix (arrêt sans clic), avant la sortie écoutée par le professeur 3D.
+    // Fondu de la voix (arrêt sans clic), puis volume (GEMINI_VOICE_GAIN) et limiteur :
+    // plus fort, sans jamais saturer.
     const voice = context.createGain();
-    voice.connect(output);
+    const boost = context.createGain();
+    boost.gain.value = audioConfig.voice_gain;
+    const limiter = context.createDynamicsCompressor();
+    limiter.threshold.value = -3;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.002;
+    limiter.release.value = 0.15;
+    voice.connect(boost).connect(limiter).connect(output);
     const delay = context.createDelay(0.5);
     delay.delayTime.value = OUTPUT_DELAY;
     const analyser = context.createAnalyser();
@@ -264,14 +276,117 @@ async function setupAudio() {
     output.connect(delay).connect(analyser).connect(context.destination);
 
     state.audio = {
-        context, stream, source, output, voice, analyser,
+        context, stream, source, micBus, micAnalyser, output, voice, analyser,
+        micSamples: new Float32Array(micAnalyser.fftSize),
+        silence: new SilenceWatch({ seconds: audioConfig.silent_mic_seconds }),
         scheduler: new VoiceScheduler({ sampleRate: context.sampleRate }),
         // Contexte à une autre fréquence que la voix : rééchantillonnage continu par nos soins.
         resampler: context.sampleRate === VOICE_RATE ? null : new StreamResampler(VOICE_RATE, context.sampleRate),
         sources: new Set(),
     };
-    teacher?.attachAudio(context, output, source);
+    teacher?.attachAudio(context, output, micBus);
     animateMouth();
+    refreshMicrophones();
+    navigator.mediaDevices.addEventListener?.('devicechange', refreshMicrophones);
+}
+
+/* ---------- Choix du micro (Bluetooth, écouteurs…) ---------- */
+
+function savedMicrophone() {
+    try {
+        return localStorage.getItem(MIC_PREFERENCE);
+    } catch {
+        return null;
+    }
+}
+
+function saveMicrophone(id) {
+    try {
+        localStorage.setItem(MIC_PREFERENCE, id);
+    } catch { /* stockage indisponible : le choix vaut pour cette page */ }
+}
+
+/**
+ * Ouvre le micro. L'annulation d'écho est réglable (config platform.live.echo_cancellation) ;
+ * réduction de bruit et gain automatique toujours demandés. Le micro choisi est
+ * « préféré » au démarrage (s'il a disparu, un autre est pris) et « exigé » quand
+ * l'apprenant le choisit dans la liste.
+ */
+async function openMicrophone(deviceId, exact) {
+    const audio = {
+        channelCount: 1,
+        echoCancellation: audioConfig.echo_cancellation,
+        noiseSuppression: true,
+        autoGainControl: true,
+    };
+
+    if (deviceId) {
+        audio.deviceId = exact ? { exact: deviceId } : { ideal: deviceId };
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio });
+    const settings = stream.getAudioTracks()[0]?.getSettings?.() ?? {};
+    console.debug('Micro : réglages obtenus', settings);
+
+    if (audioConfig.echo_cancellation && settings.echoCancellation === false) {
+        console.warn('Micro : annulation d\'écho indisponible, le demi-duplex reste seul actif.');
+    }
+
+    return stream;
+}
+
+/**
+ * Liste « Micro utilisé », affichée seulement s'il y a plusieurs micros.
+ */
+async function refreshMicrophones() {
+    if (!state.audio || !navigator.mediaDevices.enumerateDevices) {
+        return;
+    }
+
+    const microphones = listMicrophones(await navigator.mediaDevices.enumerateDevices());
+    const currentId = state.audio.stream.getAudioTracks()[0]?.getSettings?.().deviceId;
+
+    ui.micSelect.replaceChildren(...microphones.map(({ id, label }) => new Option(label, id, false, id === currentId)));
+    ui.micChoice.hidden = microphones.length < 2;
+}
+
+/**
+ * Change de micro sans couper la conversation : seule la source du bus change.
+ * La porte du micro (demi-duplex) agit sur ce qui sort du bus : elle n'est pas touchée.
+ */
+async function switchMicrophone(id) {
+    if (!state.audio || state.ending) {
+        return;
+    }
+
+    let stream;
+
+    try {
+        stream = await openMicrophone(id, true);
+    } catch (error) {
+        console.warn('Micro indisponible', error);
+        showError('Ce micro ne peut pas être utilisé. Choisissez-en un autre.');
+        refreshMicrophones();
+
+        return;
+    }
+
+    const { context, micBus } = state.audio;
+    const old = state.audio.stream;
+    const source = context.createMediaStreamSource(stream);
+
+    state.audio.source.disconnect();
+    source.connect(micBus);
+    state.audio.source = source;
+    state.audio.stream = stream;
+    stream.getAudioTracks().forEach((track) => { track.enabled = !state.muted; });
+    old.getTracks().forEach((track) => track.stop());
+
+    saveMicrophone(id);
+    showError('');
+    ui.micWarning.hidden = true;
+    state.audio.silence.quietSince = null;
+    refreshMicrophones();
 }
 
 /**
@@ -446,10 +561,30 @@ function animateMouth() {
         const volume = Math.min(1, Math.sqrt(sum / samples.length) * 5);
         opening = opening * 0.6 + volume * 0.4;
         ui.mouth.setAttribute('ry', (3 + opening * 17).toFixed(1));
+        updateMicMeter();
         requestAnimationFrame(frame);
     };
 
     requestAnimationFrame(frame);
+}
+
+/**
+ * Témoin du micro et alerte « Nous ne vous entendons pas » (8 secondes sans aucun
+ * son pendant le tour de l'apprenant).
+ */
+function updateMicMeter() {
+    const { micAnalyser, micSamples, silence, context } = state.audio;
+    micAnalyser.getFloatTimeDomainData(micSamples);
+    const level = state.muted ? 0 : rms(micSamples);
+
+    ui.micLevel.style.transform = `scaleX(${meterLevel(level).toFixed(3)})`;
+
+    const listening = state.connected && !state.ending && ui.turn.dataset.turn === 'listening';
+    const warn = silence.update(context.currentTime, level, listening);
+
+    if (ui.micWarning.hidden === warn) {
+        ui.micWarning.hidden = !warn;
+    }
 }
 
 /* ---------- Connexion à Gemini Live ---------- */
@@ -515,6 +650,7 @@ async function connect({ planned = false } = {}) {
             ui.stop.hidden = false;
             ui.controls.hidden = false;
             ui.turn.hidden = false;
+            ui.micPanel.hidden = false;
             state.generating = false;
             state.discardTurn = false;
             // Nouvelle connexion : flux du micro remis à zéro.
@@ -952,6 +1088,9 @@ async function finish(reason, message = '') {
     ui.controls.hidden = true;
     ui.turn.hidden = true;
     ui.pauseNote.hidden = true;
+    ui.micPanel.hidden = true;
+    ui.micWarning.hidden = true;
+    navigator.mediaDevices?.removeEventListener?.('devicechange', refreshMicrophones);
     ui.back.hidden = false;
     setStatus(reason === 'time' ? 'Temps écoulé' : 'Terminé');
 
@@ -978,6 +1117,7 @@ ui.start.addEventListener('click', start);
 ui.interrupt.addEventListener('click', interruptTeacher);
 ui.pause.addEventListener('click', togglePause);
 ui.mute.addEventListener('click', toggleMute);
+ui.micSelect.addEventListener('change', () => switchMicrophone(ui.micSelect.value));
 ui.stop.addEventListener('click', () => {
     if (confirm('Terminer maintenant ? Le temps déjà utilisé est décompté.')) {
         finish('user');

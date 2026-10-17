@@ -243,6 +243,8 @@ class Teacher3D {
             gaze: [0, 0], gazeTarget: [0, 0], nextSaccade: 1,
             head: [0, 0, 0], lean: 0,
             nods: [], nextNod: 0,
+            // Petits changements de posture au repos (tête un peu penchée, tournée…).
+            idle: [0, 0, 0], idleTarget: [0, 0, 0], nextIdle: random(4, 8),
             expression: null, expressionAt: -10,
             gesture: null, gestureAt: -10, gestureHold: 0, gestureScale: 1, nextGesture: 0,
             visemes: Object.fromEntries(VISEMES.map((name) => [name, 0])),
@@ -543,8 +545,16 @@ class Teacher3D {
         }
 
         const s = this.state;
+
+        // Pas de saturation : la même expression redemandée trop vite est ignorée.
+        if (s.expression === name && this.time - s.expressionAt < 3 && name !== 'neutral') {
+            return;
+        }
+
         s.expression = name;
         s.expressionAt = this.time;
+        // Un changement d'expression s'accompagne souvent d'un clignement.
+        s.nextBlink = Math.min(s.nextBlink, this.time + 0.12);
 
         if (preset.gesture && this.gesturesEnabled) {
             this.startGesture(preset.gesture, preset.duration - 1.2, 1);
@@ -661,8 +671,9 @@ class Teacher3D {
         if (speakingNow) {
             if (!s.speaking && t - s.silentSince > 0.5) {
                 s.speakingSince = t;
-                // Début d'une nouvelle phrase : regard vers l'apprenant, petit geste.
+                // Début d'une nouvelle phrase : regard vers l'apprenant, clignement, petit geste.
                 s.nextGesture = Math.min(s.nextGesture, t + 0.3);
+                s.nextBlink = Math.min(s.nextBlink, t + 0.15);
             }
 
             s.speaking = true;
@@ -684,8 +695,14 @@ class Teacher3D {
 
         // Hochements de tête pendant que l'apprenant parle, et à la fin de sa phrase.
         if (s.listening && t > s.nextNod) {
-            this.nod(random(0.05, 0.09) * calm, random(0.6, 0.9));
-            s.nextNod = t + random(2.2, 4.5);
+            this.nod(random(0.04, 0.08) * calm, random(0.55, 0.85));
+
+            // Parfois un double hochement (« oui, oui »).
+            if (Math.random() < 0.25) {
+                s.nods.push({ at: t + 0.45, amplitude: 0.035 * calm, duration: 0.5 });
+            }
+
+            s.nextNod = t + random(1.6, 3.4);
         }
 
         if (wasListening && !s.listening && !s.speaking) {
@@ -720,8 +737,11 @@ class Teacher3D {
         // Écoute : sourire et sourcils un peu levés.
         const listen = s.listening ? 1 : 0;
         s.listenWeight = approach(s.listenWeight ?? 0, listen, 3, dt);
-        set('mouthSmileLeft', 0.15 * s.listenWeight);
-        set('mouthSmileRight', 0.15 * s.listenWeight);
+        // Écoute : sourire chaleureux (avec les yeux), sourcils un peu levés.
+        set('mouthSmileLeft', 0.22 * s.listenWeight);
+        set('mouthSmileRight', 0.22 * s.listenWeight);
+        set('eyeSquintLeft', 0.12 * s.listenWeight);
+        set('eyeSquintRight', 0.12 * s.listenWeight);
         set('browInnerUp', 0.15 * s.listenWeight);
 
         // Expression demandée par le professeur.
@@ -777,7 +797,8 @@ class Teacher3D {
                 s.blinkStart = -1;
                 s.blink = 0;
                 s.doubleBlink = !s.doubleBlink && Math.random() < 0.15;
-                s.nextBlink = t + (s.doubleBlink ? 0.12 : random(2, 5.5));
+                // Intervalle naturel : le plus souvent 2 à 4,5 secondes, parfois plus long.
+                s.nextBlink = t + (s.doubleBlink ? 0.12 : (Math.random() < 0.75 ? random(2, 4.5) : random(4.5, 7)));
             }
         }
 
@@ -799,7 +820,17 @@ class Teacher3D {
         const weight = preset ? envelope(t - s.expressionAt, 0.4, preset.duration, 1) : 0;
         const head = [0, 0, 0];
 
-        // Petits mouvements de repos.
+        // Petits mouvements de repos, et de temps en temps un léger changement de posture.
+        if (t > s.nextIdle) {
+            const free = !s.speaking && !s.listening;
+            s.idleTarget = free ? [random(-0.03, 0.03), random(-0.07, 0.07), random(-0.05, 0.05)] : [0, 0, 0];
+            s.nextIdle = t + random(5, 11);
+        }
+
+        s.idle = s.idle.map((v, i) => approach(v, s.idleTarget[i], 0.8, dt));
+        head[0] += s.idle[0] * calm;
+        head[1] += s.idle[1] * calm;
+        head[2] += s.idle[2] * calm;
         head[0] += 0.025 * wobble(t * 0.6, 1) * calm;
         head[1] += 0.035 * wobble(t * 0.5, 2) * calm;
         head[2] += 0.015 * wobble(t * 0.45, 3) * calm;
@@ -825,6 +856,10 @@ class Teacher3D {
         s.nods = s.nods.filter((n) => t - n.at < n.duration);
 
         for (const n of s.nods) {
+            if (t < n.at) {
+                continue;
+            }
+
             const u = (t - n.at) / n.duration;
             head[0] += n.amplitude * Math.sin(Math.PI * 2 * u) * (1 - u) * 1.3;
         }

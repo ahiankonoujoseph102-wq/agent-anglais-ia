@@ -74,4 +74,61 @@ class VoiceConversationTest extends TestCase
             ->assertSee('data-teacher-name="'.config('avatar.model.name').'"', false)
             ->assertSee('id="turn"', false);
     }
+
+    public function test_conversation_screen_has_a_mic_meter_a_mic_choice_and_the_silent_mic_warning(): void
+    {
+        config(['platform.live.voice_gain' => 2.5, 'platform.live.echo_cancellation' => false]);
+
+        $html = $this->actingAs(User::factory()->create())->get('/evaluation')->assertOk()->getContent();
+
+        $this->assertStringContainsString('id="mic-level"', $html);
+        $this->assertStringContainsString('Micro utilisé', $html);
+        $this->assertStringContainsString('id="mic-select"', $html);
+        $this->assertStringContainsString('Nous ne vous entendons pas. Vérifiez votre micro. Si des écouteurs ou une enceinte Bluetooth sont connectés, portez-les ou déconnectez-les.', $html);
+        $this->assertStringContainsString('js/mic-input.js', $html);
+        $this->assertStringContainsString("data-audio='{\"echo_cancellation\":false,\"voice_gain\":2.5,\"silent_mic_seconds\":8}'", $html);
+    }
+
+    public function test_voice_gain_and_echo_cancellation_defaults(): void
+    {
+        $this->assertSame(2.0, config('platform.live.voice_gain'));
+        $this->assertTrue(config('platform.live.echo_cancellation'));
+
+        $config = file_get_contents(config_path('platform.php'));
+        $this->assertStringContainsString("env('GEMINI_VOICE_GAIN')", $config);
+        $this->assertStringContainsString("env('LIVE_ECHO_CANCELLATION')", $config);
+    }
+
+    public function test_empty_or_explicit_environment_values_are_read_safely(): void
+    {
+        $read = function (array $values) {
+            foreach ($values as $name => $value) {
+                $value === null ? putenv($name) : putenv("{$name}={$value}");
+                $_ENV[$name] = $_SERVER[$name] = $value;
+
+                if ($value === null) {
+                    unset($_ENV[$name], $_SERVER[$name]);
+                }
+            }
+
+            return (require config_path('platform.php'))['live'];
+        };
+
+        try {
+            // Variables vides (comme dans .env.example) : valeurs par défaut, jamais une voix muette.
+            $live = $read(['GEMINI_VOICE_GAIN' => '', 'LIVE_ECHO_CANCELLATION' => '']);
+            $this->assertSame(2.0, $live['voice_gain']);
+            $this->assertTrue($live['echo_cancellation']);
+
+            $live = $read(['GEMINI_VOICE_GAIN' => '3', 'LIVE_ECHO_CANCELLATION' => 'false']);
+            $this->assertSame(3.0, $live['voice_gain']);
+            $this->assertFalse($live['echo_cancellation']);
+
+            $live = $read(['GEMINI_VOICE_GAIN' => '0', 'LIVE_ECHO_CANCELLATION' => 'true']);
+            $this->assertSame(2.0, $live['voice_gain']);
+            $this->assertTrue($live['echo_cancellation']);
+        } finally {
+            $read(['GEMINI_VOICE_GAIN' => null, 'LIVE_ECHO_CANCELLATION' => null]);
+        }
+    }
 }

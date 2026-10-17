@@ -148,7 +148,10 @@ Dans **Settings, General** (section **Environment variables**), ajoutez les vari
 | `GEMINI_LIVE_MODEL` | Modèle de la conversation vocale. | `gemini-3.8-live` |
 | `GEMINI_API_VERSION` | Version de l'API Gemini Live. | `v1alpha` |
 | `GEMINI_TEXT_MODEL` | Modèle texte léger (programme, messages). | `gemini-3.5-flash-lite` |
-| `GEMINI_VOICE_NAME` | Voix du professeur. Facultative : absente, c'est **Achird** (voix masculine). Si une ancienne variable `GEMINI_VOICE` existe, supprimez-la : elle n'est plus lue. | absente |
+| `GEMINI_VOICE_NAME` | Voix du professeur par défaut. Facultative : absente, c'est **Achird** (voix masculine). Une voix choisie dans l'administration (« Essai des voix ») la remplace. Si une ancienne variable `GEMINI_VOICE` existe, supprimez-la : elle n'est plus lue. | absente |
+| `GEMINI_VOICE_GAIN` | Volume de la voix du professeur (1 = tel quel ; un limiteur évite toute saturation). Facultative. | absente (2) |
+| `LIVE_ECHO_CANCELLATION` | Annulation d'écho du navigateur. Facultative. Mettre `false` seulement si, après essai sur téléphone, la voix est trop basse et qu'aucun écho ne revient (voir CLAUDE.md). | absente (true) |
+| `GEMINI_TTS_MODEL` | Modèle de synthèse vocale des extraits de la page « Essai des voix ». Facultative. | absente |
 | `GEMINI_TOKEN_MINUTES` | Durée d'un jeton éphémère, en minutes. | `5` |
 | `AVATAR_3D_ENABLED` | `false` désactive le professeur 3D partout. | `true` |
 | `APP_FORCE_HTTPS` | Redirection vers HTTPS. Active en production si la variable est **absente** : ne la laissez jamais **vide**. | absente |

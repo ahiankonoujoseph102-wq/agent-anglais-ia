@@ -181,12 +181,13 @@ class TeacherSetup
     {
         $level = $user->level?->value ?? 'unknown';
 
-        $text = implode("\n\n", [
+        $text = implode("\n\n", array_filter([
             trim((string) config('teacher.persona')),
-            (string) config("teacher.level_guidance.{$level}", ''),
+            // L'évaluation gratuite a ses propres règles (entièrement en anglais).
+            $kind === 'assessment' ? '' : (string) config("teacher.level_guidance.{$level}", ''),
             trim((string) config("teacher.{$kind}")),
             trim((string) config('teacher.site_help')),
-        ]);
+        ]));
 
         $text = self::fill($text, $extra + [
             'platform' => config('platform.name'),
@@ -217,7 +218,8 @@ class TeacherSetup
 
         $generationConfig = ['responseModalities' => ['AUDIO']];
 
-        if (filled($voice = config('services.gemini.voice'))) {
+        // Voix choisie par l'administrateur (page « Essai des voix »), sinon GEMINI_VOICE_NAME.
+        if (filled($voice = TeacherVoice::current())) {
             $generationConfig['speechConfig'] = [
                 'voiceConfig' => ['prebuiltVoiceConfig' => ['voiceName' => $voice]],
             ];
@@ -283,8 +285,9 @@ class TeacherSetup
 
         return [
             'name' => self::SET_EXPRESSION,
-            'description' => 'Changes the facial expression and gesture of your animated face, which the learner sees. '
-                .'Call it silently, never mention it, at key moments: '.implode('; ', $moments).'. '
+            'description' => 'Changes the facial expression and gesture of your animated face, which the learner sees: it makes you look alive and attentive. '
+                .'Call it silently, never mention it, often but not on every sentence (about once every one or two turns), '
+                .'and never twice in a row with the same expression: '.implode('; ', $moments).'. '
                 .'It returns immediately: keep talking naturally.',
             'parameters' => [
                 'type' => 'OBJECT',

@@ -447,6 +447,12 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 .live-turn[data-turn="thinking"] .live-turn-dot { background: var(--c-primary-bright); animation: pulse 1.6s ease-in-out infinite; }
 .live-turn[data-turn="paused"], .live-turn[data-turn="muted"] { background: var(--c-bg-warm); color: var(--c-muted); border-color: var(--c-border); }
 .live-turn[data-turn="paused"] .live-turn-dot, .live-turn[data-turn="muted"] .live-turn-dot { background: var(--c-muted); }
+.mic-panel { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+.mic-meter { display: flex; align-items: center; gap: var(--space-2); flex: 1 1 140px; color: var(--c-primary); }
+.mic-meter-track { flex: 1; height: 10px; border-radius: var(--radius-pill); background: var(--c-bg-warm); overflow: hidden; }
+.mic-meter-bar { display: block; height: 100%; background: var(--c-accent); transform-origin: left center; transform: scaleX(0); transition: transform 80ms linear; }
+.mic-choice { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: var(--fs-sm); flex: 1 1 220px; }
+.mic-choice select { min-height: 44px; padding: 8px 10px; }
 .live-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-3); }
 .live-control { min-height: 64px; padding: 12px; font-size: var(--fs-md); }
 .live-control > span { display: inline-flex; align-items: center; gap: var(--space-2); }
@@ -456,6 +462,10 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 #outcome h2 { color: var(--c-primary); }
 
 /* ---------- Administration : sobre ---------- */
+.voice-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-3); }
+.voice-item { display: grid; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius); }
+.voice-item.is-current { border-color: var(--c-primary); background: var(--c-primary-soft); }
+.voice-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 
 .admin main { padding-top: var(--space-4); }
 .admin .card { box-shadow: none; border-radius: var(--radius); }

@@ -55,6 +55,22 @@ return [
         // (d'après docs.cloud.google.com/text-to-speech/docs/chirp3-hd) : Achird, Iapetus, Schedar,
         // Algieba, Umbriel, Charon, Orus… (relevé du 17 octobre 2026).
         'voice' => env('GEMINI_VOICE_NAME') ?: 'Achird',
+        // Voix masculines proposées sur la page d'administration « Essai des voix » (nom => description
+        // officielle de ai.google.dev/gemini-api/docs/speech-generation ; genre d'après
+        // docs.cloud.google.com/text-to-speech/docs/chirp3-hd, relevé du 17 octobre 2026).
+        // L'administrateur en choisit une : elle remplace GEMINI_VOICE_NAME pour toutes les conversations.
+        'voice_trials' => [
+            'Charon' => 'Informative',
+            'Orus' => 'Firm',
+            'Alnilam' => 'Firm',
+            'Algenib' => 'Gravelly',
+            'Rasalgethi' => 'Informative',
+            'Achird' => 'Friendly',
+        ],
+        // Modèle de synthèse vocale pour les extraits de la page « Essai des voix » (API Interactions).
+        'tts_model' => env('GEMINI_TTS_MODEL', 'gemini-3.8-flash-tts'),
+        // Extraits nouveaux (non gardés) qu'un administrateur peut demander par heure.
+        'voice_trial_per_hour' => 12,
         // Durée de vie maximale d'un jeton (et donc d'une connexion), en minutes.
         // Tout le temps de validité d'un jeton est décompté, même si le navigateur
         // disparaît : une valeur courte limite la perte en cas de coupure.
