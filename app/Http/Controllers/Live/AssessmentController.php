@@ -67,7 +67,8 @@ class AssessmentController extends Controller
 
         $allowedSeconds = $assessment?->allowed_seconds ?? (int) config('platform.assessment.max_minutes') * 60;
         $deadline = $assessment?->deadline() ?? now()->addSeconds($allowedSeconds);
-        $setup = TeacherSetup::assessment($user, (int) ceil($allowedSeconds / 60), $request->handle());
+        // Durée de l'évaluation elle-même (le moment des questions s'ajoute après le verdict).
+        $setup = TeacherSetup::assessment($user, (int) config('platform.assessment.max_minutes'), $request->handle());
 
         try {
             $token = $live->request($setup, $deadline);
@@ -96,7 +97,8 @@ class AssessmentController extends Controller
             'start' => TeacherSetup::cue('assessment_start'),
             'resume' => TeacherSetup::cue('resume'),
             'warning' => TeacherSetup::cue('assessment_warning', ['remaining' => $warningMinutes]),
-        ], $warningMinutes * 60, $resumed));
+            'conclusion' => TeacherSetup::cue('assessment_conclusion', ['seconds' => (int) config('platform.assessment.conclusion_cue_seconds')]),
+        ], $warningMinutes * 60, $resumed) + self::ending($assessment));
     }
 
     public function signal(SignalRequest $request): JsonResponse
@@ -134,10 +136,14 @@ class AssessmentController extends Controller
             $assessment->update(['status' => AssessmentStatus::Completed]);
         }
 
+        // Moment des questions libres et conclusion (seulement si la conversation est encore ouverte).
+        $assessment->startQuestions();
+
         return response()->json([
             'level' => $assessment->level->value,
             'label' => $assessment->level->label(),
-        ]);
+            'remaining_seconds' => $assessment->remainingSeconds(),
+        ] + self::ending($assessment));
     }
 
     public function finish(SignalRequest $request): JsonResponse
@@ -158,6 +164,22 @@ class AssessmentController extends Controller
             'label' => $assessment->level?->label(),
             'feedback' => $assessment->feedback,
         ]);
+    }
+
+    /**
+     * Réglages de la fin de l'évaluation pour le navigateur : moment des questions en cours,
+     * indication unique de conclusion, phrase fixe qui termine la conversation.
+     *
+     * @return array<string, mixed>
+     */
+    private static function ending(Assessment $assessment): array
+    {
+        return [
+            'questions' => $assessment->inQuestions(),
+            'conclusion_cue_seconds' => (int) config('platform.assessment.conclusion_cue_seconds'),
+            'closing_phrase' => (string) config('platform.assessment.closing_phrase'),
+            'closing_grace_seconds' => (int) config('platform.assessment.closing_grace_seconds'),
+        ];
     }
 
     private function current(Request $request): Assessment

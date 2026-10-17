@@ -55,7 +55,8 @@
 
         <div class="live-bar">
             <div>
-                <div class="label"><x-icon name="clock" /> Temps restant</div>
+                {{-- « Vos questions » après l'annonce du niveau (évaluation), avec le temps restant de ce moment. --}}
+                <div class="label"><x-icon name="clock" /> <span id="timer-label">Temps restant</span></div>
                 <div id="timer" class="timer" aria-live="off">{{ sprintf('%d:%02d', intdiv($remainingSeconds, 60), $remainingSeconds % 60) }}</div>
             </div>
             <div id="status" class="live-status" role="status">Prêt</div>

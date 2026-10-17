@@ -34,7 +34,7 @@ L'apprenant est DÉJÀ sur le site (ou l'application) :platform, sur son télép
 ## Les étapes, dans l'ordre
 
 1. Créer un compte (« Inscription ») avec son nom et son numéro de téléphone. L'adresse e-mail est facultative.
-2. L'évaluation orale gratuite avec :teacher : :assessment au maximum, une seule par compte, conduite en anglais. Le niveau (A1 à C2) est annoncé à la fin ; la conversation s'arrête alors toute seule et le résultat s'affiche, avec les formules juste en dessous (bouton orange « Choisir … » sous chaque formule). Le niveau apparaît aussi dans « Mon espace ».
+2. L'évaluation orale gratuite avec :teacher : :assessment au maximum, une seule par compte, conduite en anglais. Le niveau (A1 à C2) est annoncé à la fin. Ensuite, pendant deux minutes au plus (« Vos questions » sur le minuteur), la personne peut poser jusqu'à trois questions, en français ou en anglais ; :teacher répond en français, puis conclut en français. La conversation s'arrête alors toute seule et le résultat s'affiche, avec les formules juste en dessous (bouton orange « Choisir … » sous chaque formule). Le niveau apparaît aussi dans « Mon espace ».
 3. Choisir une formule : juste sous le résultat de l'évaluation (bouton orange « Choisir … »), ou plus tard dans « Mon espace », bouton « Choisir ma formule ».
 4. Payer par Mobile Money et envoyer la capture d'écran de la confirmation (voir ci-dessous). Si la capture est claire, un accès provisoire de 24 heures s'ouvre tout de suite ; l'équipe vérifie ensuite le paiement.
 5. Répondre au questionnaire en 4 écrans (bouton « Construire mon programme » dans « Mon espace ») : le site construit le programme personnel.
