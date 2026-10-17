@@ -111,13 +111,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/paiements', [AdminPaymentController::class, 'pending'])->name('payments.pending');
     Route::get('/paiements/historique', [AdminPaymentController::class, 'index'])->name('payments.index');
     Route::get('/paiements/{payment}/capture', [AdminPaymentController::class, 'proof'])->name('payments.proof');
-    Route::post('/paiements/{payment}/valider', [AdminPaymentController::class, 'approve'])->name('payments.approve');
-    Route::post('/paiements/{payment}/refuser', [AdminPaymentController::class, 'reject'])->name('payments.reject');
+    Route::post('/paiements/{payment}/valider', [AdminPaymentController::class, 'approve'])->middleware('confirm:payment.approve')->name('payments.approve');
+    Route::post('/paiements/{payment}/refuser', [AdminPaymentController::class, 'reject'])->middleware('confirm:payment.reject')->name('payments.reject');
 
     Route::get('/inscrits', [UserController::class, 'index'])->name('users.index');
     Route::get('/inscrits/{user}', [UserController::class, 'show'])->name('users.show');
-    Route::post('/inscrits/{user}/mot-de-passe', [UserController::class, 'temporaryPassword'])->name('users.password');
-    Route::delete('/inscrits/{user}/evaluation', [AdminAssessmentController::class, 'destroy'])->name('assessments.destroy');
+    Route::post('/inscrits/{user}/mot-de-passe', [UserController::class, 'temporaryPassword'])->middleware('confirm:password.temporary')->name('users.password');
+    Route::delete('/inscrits/{user}/evaluation', [AdminAssessmentController::class, 'destroy'])->middleware('confirm:assessment.reset')->name('assessments.destroy');
     Route::get('/consommation', [UsageController::class, 'index'])->name('usage.index');
     Route::get('/reglages', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/reglages', [SettingsController::class, 'update'])->name('settings.update');

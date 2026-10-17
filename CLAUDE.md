@@ -72,7 +72,7 @@ app/
   Http/Controllers/Admin/VoiceController             « Essai des voix » (extraits, choix de la voix du professeur)
   Http/Controllers/Admin/SettingsController          « Réglages » : numéros Mobile Money par opérateur, titulaires, coordonnées et WhatsApp de l'équipe
   Http/Controllers/Payment/ PaymentController (parcours de paiement de l'apprenant)
-  Http/Middleware/       EnsureUserIsAdmin (alias « admin »), EnsurePasswordIsChanged, RedirectToHttps (groupe web)
+  Http/Middleware/       EnsureUserIsAdmin (alias « admin »), EnsurePasswordIsChanged, RedirectToHttps (groupe web), RequireConfirmation (alias « confirm:action », actions graves)
   Http/Requests/Auth/    RegisterRequest, LoginRequest (normalisation du téléphone + limitation des essais)
   Http/Requests/Payment/ StorePaymentRequest ; Http/Requests/Admin/ RejectPaymentRequest
   Http/Requests/Live/    ConnectRequest, SignalRequest, AssessmentResultRequest, LessonReportRequest, LevelTestResultRequest
@@ -82,7 +82,7 @@ app/
   Enums/ (phase 4)       Goal, Difficulty, Skill, ProgramStatus, ProgramLessonStatus, LevelTestStatus, ErrorStatus
   Support/               PrivateStorage (disque privé : captures, attestations), PhoneNumber (normalisation E.164), Plan (formules depuis la config), Money, Duration,
                          PaymentCountry / PaymentOperator (config/payment.php + numéros des Réglages), SiteSettings (Réglages de l'administration), PaymentChecks (six règles de l'accès provisoire), WhatsApp (liens wa.me), TemporaryPassword,
-                         Avatar (réglages du professeur 3D pour le navigateur, URL versionnées par empreinte)
+                         Avatar (réglages du professeur 3D pour le navigateur, URL versionnées par empreinte), Confirmation (textes des confirmations des actions graves)
   Support/Gemini/        LiveClient (jeton éphémère), LiveConnection, TeacherSetup (consignes + config Live), UsageCost, AssessmentEstimator (niveau sans verdict),
                          TextClient (modèle texte léger, API Interactions, renvoie null en cas d'échec), ProofReader (lecture d'une capture de paiement : image + sortie JSON structurée)
   Support/Curriculum/    Curriculum, Unit, Situation (lecture du programme officiel), ProgramBuilder, LessonContext,
@@ -103,7 +103,7 @@ public/js/               live-session.js (conversation vocale), mic-gate.js (por
                          teacher-view.js (choix 3D / SVG, progression, repli), teacher-3d.js (scène, animation, lecture labiale)
 public/teacher3d/        models/teacher-joe.glb (personnage), lib/ (three.js regroupé, HeadAudio, LICENSES.txt)
 public/sw.js             SERVICE WORKER UNIQUE du site (portée « / ») : fichiers statiques + page hors connexion (voir plus bas)
-public/js/app.js         commun à toutes les pages : enregistrement du service worker, apparition des blocs, installation
+public/js/app.js         commun à toutes les pages : enregistrement du service worker, apparition des blocs, installation, message de confirmation (bouton « Fermer »), fenêtre de confirmation intégrée (askConfirmation)
 public/fonts/            sora-2.000-latin.woff2 (seule police), OFL-Sora.txt (licence)
 public/brand/            les quatre logos (horizontal, vertical, icone, blanc) en PNG transparent, WebP et WebP 640 pixels
 docs/brand/reference/    originaux des logos (PNG fournis, fond non transparent)
@@ -124,6 +124,7 @@ resources/views/
   components/stepper.blade.php  fil d'étapes animé (paiement, questionnaire)
   errors/                       404, 403, 419 (page expirée), 500, 503
   offline.blade.php             « Vous êtes hors connexion »
+  confirm/page.blade.php        page de confirmation d'une action grave quand le JavaScript ne s'est pas chargé
 ```
 
 ### Base de données
@@ -131,7 +132,7 @@ resources/views/
 | Table | Rôle | Points clés |
 |---|---|---|
 | `users` | comptes | `phone` unique au format `+22890123456` (identifiant de connexion), `email` **facultatif** (nullable, unique quand il est rempli, enregistré en minuscules par `App\Support\EmailAddress` ; aucun envoi d'e-mail pour l'instant), `level` (CECRL, nullable), `role` (`learner`/`admin`), `must_change_password` (mot de passe provisoire). |
-| `assessments` | évaluation gratuite | `user_id` **unique** → une seule évaluation par compte, garantie par la base. `allowed_seconds`, `used_seconds`, `level`, `feedback`, `transcript` (sous-titres, pour estimer le niveau si le temps finit sans verdict) + colonnes de suivi (ci-dessous). |
+| `assessments` | évaluation gratuite | `user_id` **unique** → une seule évaluation par compte, garantie par la base. Réinitialisée par l'administrateur : supprimée, et `users.level` effacé avec elle (un niveau vient toujours d'une évaluation ; migration `clear_level_of_reset_assessments` pour les comptes réinitialisés avant) ; « Mon espace » affiche alors en premier « Passez votre évaluation gratuite » (bouton orange vers `/evaluation`, `$needsAssessment`), aussi pour un administrateur. `allowed_seconds`, `used_seconds`, `level`, `feedback`, `transcript` (sous-titres, pour estimer le niveau si le temps finit sans verdict) + colonnes de suivi (ci-dessous). |
 | `programs` | programme personnel (un par niveau) | `level`, `status` (`active`/`level_test_due`/`completed`/`archived`), réponses au questionnaire (`goal`, `occupation`, `interests`, `study_days` 1–7, `study_time`, `difficulties`), `content.intro` (présentation rédigée), `is_active` (un seul actif). |
 | `program_lessons` | leçons du programme | `position` (ordre), `unit_number` (1–12), `lesson_number` (1–3), `situation_index`, `highlighted` (liée à l'objectif/métier), `scheduled_on`, `status` (`pending`/`completed`), `attempts`. |
 | `learner_errors` | erreurs à revoir | `wrong`, `correct`, `explanation`, `status` (`open`/`resolved`), `correct_streak`, `times_seen`. Résolue après **2 corrections de suite**. |
@@ -231,6 +232,12 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
   - `tests/Feature/WebAppTest.php` vérifie qu'aucune route réservée aux comptes ne tombe dans un dossier mis en cache.
 - **Installation** : bouton « Installer l'application » (Android, événement `beforeinstallprompt`) dans le pied de page et un bandeau discret sur l'accueil et l'espace apprenant ; sur iPhone, explication « Partager », puis « Sur l'écran d'accueil ». Fermeture mémorisée dans le navigateur.
 
+### Confirmations et messages (aucune fenêtre du navigateur)
+
+- **Interdit sur tout le site** : `confirm()`, `alert()`, `prompt()` (fenêtres « … indique »). `tests/Feature/ConfirmationTest.php` cherche ces appels dans toutes les vues et tout `public/js/` (seul `deferredPrompt.prompt()`, l'installation de l'application, est autorisé).
+- **Actions courantes** (enregistrer, choisir, naviguer, envoyer une capture…) : immédiates, puis redirection vers la bonne page avec un message (`session('status')`) affiché en haut de la page par le gabarit (`.toast`, bleu nuit et orange) ; il disparaît tout seul après 4 à 10 secondes selon sa longueur (animation CSS, fonctionne sans JavaScript ; bouton « Fermer » avec JavaScript).
+- **Actions graves** (`App\Support\Confirmation::ACTIONS`, textes uniquement là) : valider un paiement (`payment.approve`), refuser un paiement, qui coupe l'accès (`payment.reject`), réinitialiser une évaluation (`assessment.reset`), générer un mot de passe provisoire (`password.temporary`), terminer une conversation avant la fin (`conversation.stop`). Le formulaire porte `{!! Confirmation::attributes('…') !!}` ; `public/js/app.js` ouvre une fenêtre intégrée (`<dialog>`, titre, conséquence, « Confirmer » / « Annuler », Annuler sélectionné par défaut, Échap ou toucher à côté = annuler) et ajoute `confirmed=1`. Les routes ont le middleware `confirm:action` (`RequireConfirmation`) : sans `confirmed=1` (JavaScript absent ou `<dialog>` non pris en charge), rien n'est fait et une page de confirmation simple (`confirm/page.blade.php`) renvoie le même formulaire, plus `_origin` pour revenir ensuite sur la page de départ. La conversation vocale utilise `window.askConfirmation` (textes dans `data-stop-confirm`).
+
 ### Routes (URL en français)
 
 | URL | Nom | Accès |
@@ -264,7 +271,7 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 | `/admin/reglages` (GET, PUT) | `admin.settings.edit`, `admin.settings.update` | administrateurs, facultatif : numéros Mobile Money, titulaires, coordonnées et WhatsApp remplaçant les valeurs par défaut |
 | `/admin/voix` (+ GET `/{voice}/extrait`, POST) | `admin.voices.index`, `admin.voices.sample`, `admin.voices.choose` | administrateurs : « Essai des voix » (écouter, choisir la voix du professeur) |
 | `/admin/inactifs` (+ `/{user}/whatsapp`) | `admin.inactive.*` | abonnés sans séance depuis 3 jours ou plus ; bouton WhatsApp avec message rédigé |
-| DELETE `/admin/inscrits/{user}/evaluation` | `admin.assessments.destroy` | administrateurs : permettre de repasser l'évaluation |
+| DELETE `/admin/inscrits/{user}/evaluation` | `admin.assessments.destroy` | administrateurs : permettre de repasser l'évaluation (efface aussi le niveau du compte) |
 
 Il n'existe **aucun moyen de devenir administrateur depuis le site** : `php artisan app:create-admin`.
 

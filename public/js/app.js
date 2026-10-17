@@ -3,7 +3,9 @@
  *   - service worker (cache des fichiers statiques, page hors connexion) ;
  *   - apparition douce des blocs .reveal quand ils arrivent à l'écran ;
  *   - bouton « Installer l'application » (Android) et explication pour iPhone ;
- *   - bouton « œil » des champs mot de passe (afficher / masquer).
+ *   - bouton « œil » des champs mot de passe (afficher / masquer) ;
+ *   - message de confirmation en haut de la page (bouton « Fermer ») ;
+ *   - fenêtre de confirmation intégrée des actions graves (jamais de fenêtre du navigateur).
  */
 
 const script = document.querySelector('script[data-sw]');
@@ -131,5 +133,120 @@ document.addEventListener('submit', (event) => {
         if (input?.type === 'text') {
             button.click();
         }
+    });
+});
+
+/* ---------- Message de confirmation en haut de la page ---------- */
+
+// Il disparaît tout seul (animation CSS) ; le bouton permet de le fermer plus tôt.
+document.querySelectorAll('[data-toast]').forEach((toast) => {
+    const close = toast.querySelector('[data-toast-close]');
+    close?.removeAttribute('hidden');
+    close?.addEventListener('click', () => toast.remove());
+    toast.addEventListener('animationend', (event) => {
+        if (event.animationName === 'toast-out') {
+            toast.remove();
+        }
+    });
+});
+
+/* ---------- Confirmation des actions graves ---------- */
+
+let dialog = null;
+
+function confirmationDialog() {
+    if (dialog) {
+        return dialog;
+    }
+
+    dialog = document.createElement('dialog');
+    dialog.className = 'confirm-dialog';
+    dialog.setAttribute('aria-labelledby', 'confirm-dialog-title');
+    dialog.setAttribute('aria-describedby', 'confirm-dialog-message');
+    dialog.innerHTML = '<form method="dialog" class="confirm-dialog-box">'
+        + '<h2 id="confirm-dialog-title"></h2>'
+        + '<p id="confirm-dialog-message"></p>'
+        + '<div class="confirm-actions">'
+        + '<button type="submit" value="confirm" class="btn btn-danger btn-block" data-confirm-ok></button>'
+        + '<button type="submit" value="cancel" class="btn btn-light btn-block" autofocus>Annuler</button>'
+        + '</div></form>';
+    // Toucher en dehors de la fenêtre : annuler.
+    dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) {
+            dialog.close('cancel');
+        }
+    });
+    document.body.append(dialog);
+
+    return dialog;
+}
+
+/**
+ * Fenêtre de confirmation intégrée à la page, aux couleurs de la marque (Échap ou
+ * « Annuler » : non). Renvoie true, false, ou null si le navigateur ne sait pas
+ * afficher la fenêtre (le serveur affiche alors sa page de confirmation).
+ * Aussi utilisée par la conversation vocale (« Terminer »).
+ *
+ * @param {{ title: string, message: string, confirm: string }} texts
+ * @return {Promise<?boolean>}
+ */
+export function askConfirmation({ title, message, confirm }) {
+    const box = confirmationDialog();
+
+    if (typeof box.showModal !== 'function') {
+        return Promise.resolve(null);
+    }
+
+    box.querySelector('#confirm-dialog-title').textContent = title;
+    box.querySelector('#confirm-dialog-message').textContent = message;
+    box.querySelector('[data-confirm-ok]').textContent = confirm || 'Confirmer';
+    box.returnValue = '';
+    box.showModal();
+
+    return new Promise((resolve) => {
+        box.addEventListener('close', () => resolve(box.returnValue === 'confirm'), { once: true });
+    });
+}
+
+window.askConfirmation = askConfirmation;
+
+// Formulaires des actions graves (data-confirm, texte écrit par App\Support\Confirmation).
+// Sans JavaScript, le même formulaire arrive sans confirmed=1 : page de confirmation du serveur.
+document.addEventListener('submit', async (event) => {
+    const form = event.target;
+
+    if (!(form instanceof HTMLFormElement) || !form.dataset.confirm || form.dataset.confirmed) {
+        return;
+    }
+
+    event.preventDefault();
+
+    const answer = await askConfirmation({
+        title: form.dataset.confirmTitle,
+        message: form.dataset.confirmMessage,
+        confirm: form.dataset.confirmButton,
+    });
+
+    if (answer === false) {
+        return;
+    }
+
+    if (answer === true) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'confirmed';
+        input.value = '1';
+        form.append(input);
+    }
+
+    form.dataset.confirmed = '1';
+    form.submit();
+});
+
+// Retour arrière vers une page gardée en mémoire : chaque action grave redemande confirmation.
+window.addEventListener('pageshow', () => {
+    document.querySelectorAll('form[data-confirm]').forEach((form) => {
+        delete form.dataset.confirmed;
+        form.querySelectorAll('input[name="confirmed"]').forEach((input) => input.remove());
     });
 });

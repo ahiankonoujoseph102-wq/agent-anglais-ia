@@ -69,7 +69,7 @@ class UsageTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->delete("/admin/inscrits/{$learner->id}/evaluation")
+            ->delete("/admin/inscrits/{$learner->id}/evaluation", ['confirmed' => 1])
             ->assertRedirect()
             ->assertSessionHas('status');
 

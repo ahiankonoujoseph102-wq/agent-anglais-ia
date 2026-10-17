@@ -111,7 +111,7 @@ class ProvisionalAccessTest extends TestCase
         $startedAt = now()->toImmutable();
 
         $this->travel(5)->hours();
-        $this->actingAs($this->admin)->post(route('admin.payments.approve', $payment))->assertRedirect();
+        $this->actingAs($this->admin)->post(route('admin.payments.approve', $payment), ['confirmed' => 1])->assertRedirect();
 
         $subscription->refresh();
         $this->assertSame(PaymentStatus::Validated, $payment->fresh()->status);
@@ -155,7 +155,7 @@ class ProvisionalAccessTest extends TestCase
         $this->travel(3)->minutes();
 
         $this->actingAs($this->admin)
-            ->post(route('admin.payments.reject', $payment), ['reason' => ''])
+            ->post(route('admin.payments.reject', $payment), ['confirmed' => 1, 'reason' => ''])
             ->assertRedirect()
             ->assertSessionHasNoErrors();
 
@@ -187,7 +187,7 @@ class ProvisionalAccessTest extends TestCase
         $payment = $this->payment($user);
 
         $this->actingAs($this->admin)
-            ->post(route('admin.payments.reject', $payment), ['reason' => 'Le montant reçu est de 4 000 FCFA au lieu de 5 000.'])
+            ->post(route('admin.payments.reject', $payment), ['confirmed' => 1, 'reason' => 'Le montant reçu est de 4 000 FCFA au lieu de 5 000.'])
             ->assertRedirect();
 
         $this->actingAs($user->fresh())->get(route('payment.show', $payment))

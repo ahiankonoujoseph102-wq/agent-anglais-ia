@@ -69,7 +69,14 @@
     <main id="contenu">
         <div class="container {{ $narrow ? 'container-narrow' : '' }}">
             @if (session('status'))
-                <div class="alert alert-success rise" role="status"><x-icon name="check-circle" /><div>{{ session('status') }}</div></div>
+                {{-- Message de confirmation en haut de la page, qui disparaît tout seul (animation CSS,
+                     même sans JavaScript) : plus long à lire, plus longtemps affiché. --}}
+                <div class="toast" role="status" data-toast
+                     style="--toast-delay: {{ min(10, 4 + intdiv(mb_strlen((string) session('status')), 25)) }}s">
+                    <x-icon name="check-circle" />
+                    <div>{{ session('status') }}</div>
+                    <button type="button" class="toast-close" data-toast-close aria-label="Fermer le message" hidden><x-icon name="close" /></button>
+                </div>
             @endif
 
             {{ $slot }}
