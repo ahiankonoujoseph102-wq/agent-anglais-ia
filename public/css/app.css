@@ -295,9 +295,10 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 /* Formule recommandée : contour orange et badge. */
 .plan.is-recommended { border: 2px solid var(--c-accent); box-shadow: var(--shadow), var(--shadow-accent-press); }
 .plan.is-recommended::before { background: var(--c-accent); }
-.plan-badge { position: absolute; top: var(--space-4); right: var(--space-4); display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: var(--radius-pill); background: var(--c-accent); color: var(--c-on-accent); font-size: var(--fs-xs); font-weight: var(--fw-heavy); }
+.plan-badge { position: absolute; top: var(--space-4); right: var(--space-4); display: inline-flex; align-items: center; gap: 4px; max-width: 55%; padding: 4px 10px; border-radius: var(--radius-pill); background: var(--c-primary-soft); color: var(--c-primary); box-shadow: inset 0 0 0 1px var(--c-primary-line); font-size: var(--fs-xs); font-weight: var(--fw-bold); line-height: 1.3; text-align: center; }
+.plan-badge-strong { background: var(--c-accent); color: var(--c-on-accent); box-shadow: var(--shadow-accent-press); font-weight: var(--fw-heavy); }
 .plan-badge .icon { width: 14px; height: 14px; stroke-width: 2.5; }
-.plan.is-recommended h2, .plan.is-recommended h3 { padding-right: 120px; }
+.plan.has-badge h2, .plan.has-badge h3 { padding-right: 45%; }
 
 .cta-band { background: var(--c-primary); color: var(--c-on-dark); border-radius: var(--radius-lg); padding: var(--space-8) var(--space-5); text-align: center; box-shadow: var(--shadow-lg); position: relative; overflow: hidden; }
 .cta-band::after { content: ""; position: absolute; width: 180px; height: 180px; right: -60px; top: -60px; border-radius: 50%; background: var(--c-on-dark-glow); }

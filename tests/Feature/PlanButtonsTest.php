@@ -37,19 +37,30 @@ class PlanButtonsTest extends TestCase
             foreach (['Essentiel', 'Intensif', 'Semaine'] as $name) {
                 $this->assertMatchesRegularExpression('/class="btn btn-accent btn-block btn-plan" href="[^"]+">Choisir '.$name.' <svg/', $html, "{$page} : Choisir {$name}");
             }
-            $this->assertSame(1, substr_count($html, 'class="plan-badge"'), "{$page} : un seul badge");
-            $this->assertStringContainsString('Recommandée', $html);
+            // Un badge par formule ; seul celui de la formule recommandée est orange.
+            $this->assertSame(3, substr_count($html, 'class="plan-badge'), "{$page} : trois badges");
+            $this->assertSame(1, substr_count($html, 'class="plan-badge plan-badge-strong"'), "{$page} : un seul badge orange");
+            $this->assertMatchesRegularExpression('/plan-badge plan-badge-strong">.*?Recommandée<\/span>\s*<h[23]>Essentiel/s', $html);
+            $this->assertMatchesRegularExpression('/class="plan-badge">Progrès plus rapides<\/span>\s*<h[23]>Intensif/', $html);
+            $this->assertMatchesRegularExpression('/class="plan-badge">Pour essayer<\/span>\s*<h[23]>Semaine/', $html);
             $this->assertStringNotContainsString('btn btn-light btn-block" href', $html);
             $this->assertDoesNotMatchRegularExpression('/la plus choisie|plus populaire|\d+ ?%/iu', strip_tags($html));
         }
     }
 
-    public function test_the_recommended_plan_comes_from_configuration(): void
+    public function test_badges_and_the_recommended_plan_come_from_configuration(): void
     {
-        config(['platform.plans.essentiel.recommended' => false, 'platform.plans.intensif.recommended' => true]);
+        config([
+            'platform.plans.essentiel.recommended' => false,
+            'platform.plans.intensif.recommended' => true,
+            'platform.plans.semaine.badge' => 'Découverte',
+            'platform.plans.essentiel.badge' => null,
+        ]);
 
         $html = $this->get('/')->getContent();
-        $this->assertSame(1, substr_count($html, 'class="plan-badge"'));
-        $this->assertMatchesRegularExpression('/plan-badge.*?<h3>Intensif<\/h3>/s', $html);
+        $this->assertSame(2, substr_count($html, 'class="plan-badge'));
+        $this->assertMatchesRegularExpression('/plan-badge plan-badge-strong">.*?Progrès plus rapides<\/span>\s*<h3>Intensif<\/h3>/s', $html);
+        $this->assertStringContainsString('class="plan-badge">Découverte</span>', $html);
+        $this->assertStringNotContainsString('Recommandée', $html);
     }
 }

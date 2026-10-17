@@ -1,13 +1,14 @@
 {{--
     Carte d'une formule, la même partout (accueil, résultat, sous le verdict, choix du paiement).
-    Bouton orange plein « Choisir … » (texte bleu nuit) ; formule « recommended » de config/platform.php
-    mise en avant : badge « Recommandée » et contour orange (jamais de statistique).
+    Bouton orange plein « Choisir … » (texte bleu nuit) ; badge de chaque formule (« badge » dans
+    config/platform.php) ; formule « recommended » mise en avant : badge orange et contour orange.
+    Jamais de statistique.
 --}}
 @props(['plan', 'href', 'heading' => 'h3', 'current' => false])
 
-<article {{ $attributes->class(['card', 'plan', 'is-recommended' => $plan->recommended, 'is-current' => $current]) }}>
-    @if ($plan->recommended)
-        <span class="plan-badge"><x-icon name="sparkle" /> Recommandée</span>
+<article {{ $attributes->class(['card', 'plan', 'has-badge' => $plan->badge, 'is-recommended' => $plan->recommended, 'is-current' => $current]) }}>
+    @if ($plan->badge)
+        <span @class(['plan-badge', 'plan-badge-strong' => $plan->recommended])>@if ($plan->recommended)<x-icon name="sparkle" /> @endif{{ $plan->badge }}</span>
     @endif
     <{{ $heading }}>{{ $plan->name }}</{{ $heading }}>
     <p class="price">{{ $plan->formattedPrice() }}</p>

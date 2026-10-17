@@ -135,7 +135,9 @@ return [
             'price' => 5000,
             'period' => 'month',
             'duration_days' => 30,
-            // Mise en avant sur toutes les listes de formules (badge « Recommandée », jamais de statistique).
+            // Badge affiché sur la carte de la formule, partout (jamais de statistique).
+            'badge' => 'Recommandée',
+            // Formule mise en avant : badge orange et contour orange de la carte.
             'recommended' => true,
         ],
         'intensif' => [
@@ -144,6 +146,7 @@ return [
             'price' => 9000,
             'period' => 'month',
             'duration_days' => 30,
+            'badge' => 'Progrès plus rapides',
         ],
         'semaine' => [
             'name' => 'Semaine',
@@ -151,6 +154,7 @@ return [
             'price' => 1500,
             'period' => 'week',
             'duration_days' => 7,
+            'badge' => 'Pour essayer',
         ],
     ],
 
