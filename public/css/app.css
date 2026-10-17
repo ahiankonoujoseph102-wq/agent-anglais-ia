@@ -182,7 +182,7 @@ code { overflow-wrap: anywhere; font-size: .95em; background: var(--c-bg-warm); 
 .form-card { padding: var(--space-6) var(--space-5); }
 .field { margin-bottom: var(--space-4); }
 label { display: block; font-weight: var(--fw-bold); margin-bottom: 6px; }
-input[type=text], input[type=tel], input[type=email], input[type=password], input[type=search], input[type=time], input[type=date], input[type=file], select, textarea {
+input[type=text], input[type=tel], input[type=email], input[type=password], input[type=search], input[type=time], input[type=date], input[type=number], input[type=file], select, textarea {
     width: 100%; font: inherit; font-size: 1rem; padding: 12px 14px; min-height: 50px;
     border: 1.5px solid var(--c-field); border-radius: var(--radius); background: var(--c-surface); color: var(--c-text);
     transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
@@ -221,6 +221,7 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 .alert-warning { background: var(--c-warning-soft); color: var(--c-warning); border-color: var(--c-warning-line); }
 .alert a { color: inherit; font-weight: var(--fw-bold); }
 .alert .btn { color: var(--c-on-dark); }
+.alert .btn-accent { color: var(--c-on-accent); }
 
 /* ---------- Badges ---------- */
 
@@ -871,3 +872,13 @@ main { overflow-x: clip; }
 .help-steps .icon-bubble { flex: none; width: 44px; height: 44px; }
 .help-only { display: flex; gap: var(--space-2); align-items: center; margin: 0 0 var(--space-3); font-weight: var(--fw-heavy); color: var(--c-accent-strong); }
 .help-only .icon { flex: none; }
+
+/* Accès offert (administration) */
+.badge-grant { background: var(--c-accent-soft); color: var(--c-accent-ink); }
+.grant-current { display: flex; gap: var(--space-2); align-items: flex-start; margin: 0 0 var(--space-3); }
+.grant-current .icon { flex: none; margin-top: 3px; color: var(--c-accent-strong); }
+.grant-durations { border: 0; padding: 0; margin: 0 0 var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.grant-durations legend { font-weight: var(--fw-bold); margin-bottom: var(--space-2); padding: 0; }
+.grant-durations label { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-4); border: 1px solid var(--c-border); border-radius: var(--radius-pill); background: var(--c-surface); font-weight: var(--fw-bold); cursor: pointer; margin: 0; }
+.grant-durations label:has(input:checked) { border-color: var(--c-primary); box-shadow: 0 0 0 3px var(--c-ring); }
+.grant-history { margin: 0 0 var(--space-3); }

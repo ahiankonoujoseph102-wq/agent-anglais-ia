@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\LessonStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\SubscriptionStatus;
+use App\Support\AccessGrant;
 use App\Support\Money;
 use App\Support\PrivateStorage;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -156,6 +157,7 @@ class Payment extends Model
     private function createSubscription(self $payment, SubscriptionStatus $status, ?Carbon $provisionalUntil = null): Subscription
     {
         $startsAt = $payment->user->subscriptions()
+            ->paid()
             ->where('status', SubscriptionStatus::Active)
             ->where('ends_at', '>', now())
             ->max('ends_at');
@@ -205,6 +207,9 @@ class Payment extends Model
             } else {
                 $subscription = $this->createSubscription($payment, SubscriptionStatus::Active);
             }
+
+            // Le paiement validé met fin à l'accès offert en cours (la formule payée prend le relais).
+            AccessGrant::endForPayment($payment->user);
 
             $payment->subscription_id = $subscription->id;
             $payment->status = PaymentStatus::Validated;

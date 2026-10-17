@@ -37,6 +37,16 @@ final class Confirmation
             'message' => 'L\'ancien mot de passe ne fonctionnera plus et l\'apprenant sera déconnecté de tous ses appareils.',
             'confirm' => 'Confirmer',
         ],
+        'access.grant' => [
+            'title' => 'Offrir cet accès ?',
+            'message' => 'L\'apprenant aura la formule {plan} gratuitement, jusqu\'au {end}. Ce n\'est pas un paiement : il n\'apparaît dans aucun revenu. Vous pourrez le retirer à tout moment.',
+            'confirm' => 'Offrir l\'accès',
+        ],
+        'access.revoke' => [
+            'title' => 'Retirer l\'accès offert ?',
+            'message' => 'L\'accès de l\'apprenant s\'arrête tout de suite, séance en cours comprise. Il sera invité à choisir une formule.',
+            'confirm' => 'Retirer l\'accès',
+        ],
         'course.delete' => [
             'title' => 'Supprimer cette leçon ?',
             'message' => 'La leçon et ses photos ou son PDF sont effacés pour toujours, fichiers compris. Les leçons du jour déjà faites avec Teacher Joe restent comptées.',
@@ -55,6 +65,28 @@ final class Confirmation
     public static function for(string $action): array
     {
         return self::ACTIONS[$action];
+    }
+
+    /**
+     * Textes d'une confirmation dont le message dépend de ce que l'administrateur a choisi dans
+     * le formulaire : les marqueurs {plan} et {end} sont remplis par le serveur (repli sans
+     * JavaScript) ou par public/js/app.js (fenêtre intégrée, d'après les champs du formulaire).
+     *
+     * @param  array<string, string>  $values
+     * @return array{title: string, message: string, confirm: string}
+     */
+    public static function filled(string $action, array $values): array
+    {
+        $texts = self::for($action);
+        $pairs = [];
+
+        foreach ($values as $key => $value) {
+            $pairs['{'.$key.'}'] = $value;
+        }
+
+        $texts['message'] = strtr($texts['message'], $pairs);
+
+        return $texts;
     }
 
     /**

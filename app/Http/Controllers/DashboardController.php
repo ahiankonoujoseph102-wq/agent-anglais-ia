@@ -22,8 +22,14 @@ class DashboardController extends Controller
         $latestSubscription = $user->latestSubscription;
         $latestPayment = $user->latestPayment;
 
-        // Rappel de renouvellement : fin proche et aucun abonnement suivant déjà payé.
+        // Accès offert par l'administrateur : « Accès offert jusqu'au … », et un message discret le jour de la fin et la veille.
+        $granted = $subscription?->isGranted() ? $subscription : null;
+        $grantEnding = $granted !== null
+            && $granted->ends_at->copy()->startOfDay()->lte(now()->addDays((int) config('platform.granted_access.reminder_days'))->startOfDay());
+
+        // Rappel de renouvellement (abonnement payé) : fin proche et aucun abonnement suivant déjà payé.
         $renewalDue = $subscription !== null
+            && $granted === null
             && $latestSubscription?->is($subscription)
             && $subscription->ends_at->lte(now()->addDays((int) config('payment.renewal_reminder_days')));
 
@@ -57,6 +63,8 @@ class DashboardController extends Controller
             'nextSubscription' => $subscription !== null && ! $latestSubscription?->is($subscription) ? $latestSubscription : null,
             'expiredSubscription' => $subscription === null ? $latestSubscription : null,
             'renewalDue' => $renewalDue,
+            'granted' => $granted,
+            'grantEnding' => $grantEnding,
             'pendingPayment' => $latestPayment?->status === PaymentStatus::Pending ? $latestPayment : null,
             'rejectedPayment' => $latestPayment?->status === PaymentStatus::Rejected ? $latestPayment : null,
             'remainingSeconds' => $user->remainingSecondsToday(),

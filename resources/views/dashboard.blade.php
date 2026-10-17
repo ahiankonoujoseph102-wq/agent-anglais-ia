@@ -29,7 +29,15 @@
             </p>
             <a href="{{ route('payment.show', $pendingPayment) }}" class="btn btn-lg btn-block">Suivre mon paiement <x-icon name="arrow-right" /></a>
         @elseif (! $subscription)
-            @if ($expiredSubscription)
+            @if ($expiredSubscription?->isGranted())
+                <h2 id="next-step-title">Votre accès offert est terminé</h2>
+                <p>
+                    Votre accès offert à la formule {{ $expiredSubscription->plan_name }} a pris fin le
+                    {{ $expiredSubscription->ends_at->translatedFormat('j F Y') }}. Choisissez une formule pour continuer :
+                    votre niveau et votre programme vous attendent.
+                </p>
+                <a href="{{ route('payment.plans') }}" class="btn btn-accent btn-lg btn-block">Choisir ma formule <x-icon name="arrow-right" /></a>
+            @elseif ($expiredSubscription)
                 <h2 id="next-step-title">Votre abonnement a expiré</h2>
                 <p>
                     Votre formule {{ $expiredSubscription->plan_name }} a pris fin le
@@ -78,6 +86,14 @@
             @endif
         @endif
 
+        {{-- Accès offert : jusqu'à quand, avec quelle formule. --}}
+        @if ($granted)
+            <p class="next-card-note">
+                <x-icon name="gift" />
+                <span><strong>Accès offert jusqu'au {{ $granted->ends_at->translatedFormat('j F Y') }}</strong> avec la formule {{ $granted->plan_name }}.</span>
+            </p>
+        @endif
+
         {{-- Accès provisoire : séances ouvertes pendant la vérification du paiement, avec le temps restant. --}}
         @if ($subscription?->isProvisional() && $pendingPayment)
             <p class="next-card-note">
@@ -109,6 +125,17 @@
                     Motif : {{ $rejectedPayment->rejection_reason }}<br>
                 @endif
                 <a href="{{ route('payment.show', $rejectedPayment) }}">Voir mon paiement et nous écrire</a>
+            </div>
+        </div>
+    @endif
+
+    @if ($grantEnding && ! $pendingPayment)
+        <div class="alert alert-warning rise" role="status">
+            <x-icon name="calendar" />
+            <div>
+                <strong>Votre accès offert se termine {{ $granted->ends_at->isToday() ? 'aujourd\'hui' : 'demain' }}, le {{ $granted->ends_at->translatedFormat('j F à H:i') }}.</strong>
+                Choisissez une formule pour continuer vos séances sans interruption.
+                <a class="btn btn-accent btn-block next-step" href="{{ route('payment.plans') }}">Choisir ma formule</a>
             </div>
         </div>
     @endif

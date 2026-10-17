@@ -34,6 +34,26 @@
         @endforeach
     </div>
 
+    {{-- Démonstrations : conversations démarrées pendant un accès offert (jamais un revenu). --}}
+    <h2 class="next-step">Pendant un accès offert (démonstrations)</h2>
+    <div class="stats">
+        @foreach ($granted as $label => $total)
+            @php
+                $cost = UsageCost::usd($total['input'], $total['output']);
+            @endphp
+            <div class="stat">
+                <div class="label">{{ $label }}</div>
+                <div class="value">{{ $total['count'] }}</div>
+                <div class="detail">
+                    {{ Duration::format($total['seconds']) }} ·
+                    {{ number_format($total['input'], 0, ',', ' ') }} / {{ number_format($total['output'], 0, ',', ' ') }} jetons ·
+                    {{ UsageCost::format($cost) }}
+                </div>
+            </div>
+        @endforeach
+    </div>
+    <p class="muted small">Ces conversations sont aussi comptées dans les totaux ci-dessus ; elles sont reconnaissables à « Accès offert » dans les listes.</p>
+
     <h2 class="next-step">Par apprenant</h2>
     @if ($learners->isEmpty())
         <div class="card">Aucune conversation pour le moment.</div>
@@ -109,7 +129,7 @@
                     @foreach ($conversations as $conversation)
                         <tr>
                             <td data-label="Début">{{ $conversation->started_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                            <td data-label="Apprenant">{{ $conversation->user->name }}@if ($conversation instanceof \App\Models\CourseSession)<br><span class="muted small">{{ $conversation->lesson?->title ?? 'Leçon supprimée' }}</span>@endif</td>
+                            <td data-label="Apprenant">{{ $conversation->user->name }}@if ($conversation->during_grant ?? false) <span class="badge badge-grant">Accès offert</span>@endif @if ($conversation instanceof \App\Models\CourseSession)<br><span class="muted small">{{ $conversation->lesson?->title ?? 'Leçon supprimée' }}</span>@endif</td>
                             <td data-label="Statut">
                                 {{ $conversation->status->label() }}
                                 @if ($conversation instanceof \App\Models\Assessment && $conversation->level)

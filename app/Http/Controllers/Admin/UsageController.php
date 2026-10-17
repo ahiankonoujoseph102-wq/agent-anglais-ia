@@ -7,6 +7,7 @@ use App\Models\Assessment;
 use App\Models\CourseSession;
 use App\Models\Lesson;
 use App\Models\LevelTest;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
@@ -16,6 +17,9 @@ use Illuminate\View\View;
  */
 class UsageController extends Controller
 {
+    /** Vrai quand la conversation a démarré pendant un accès offert du même apprenant. */
+    private const DURING_GRANT_SQL = '(exists (select 1 from subscriptions where subscriptions.user_id = lessons.user_id and subscriptions.granted_days is not null and lessons.started_at >= subscriptions.starts_at and lessons.started_at <= subscriptions.ends_at))';
+
     public function index(): View
     {
         $totals = [
@@ -24,6 +28,12 @@ class UsageController extends Controller
             'Bilans de niveau' => $this->totals(LevelTest::query()),
             // Séances « Mes cours » : consommation à part, jamais mélangée aux séances orales.
             'Séances « Mes cours »' => $this->totals(CourseSession::query()->whereNotNull('started_at')),
+        ];
+
+        // Pendant un accès offert (démonstrations) : à part, pour mesurer ce que coûtent les démonstrations.
+        $granted = [
+            'Séances' => $this->totals(Lesson::query()->whereNotNull('started_at')->tap(fn (Builder $query) => Subscription::whereDuringGrant($query, 'lessons'))),
+            'Séances « Mes cours »' => $this->totals(CourseSession::query()->whereNotNull('started_at')->tap(fn (Builder $query) => Subscription::whereDuringGrant($query, 'course_sessions'))),
         ];
 
         $learners = User::query()
@@ -45,6 +55,7 @@ class UsageController extends Controller
 
         $recentLessons = Lesson::query()
             ->whereNotNull('started_at')
+            ->selectRaw('lessons.*, '.self::DURING_GRANT_SQL.' as during_grant')
             ->with('user')
             ->latest('started_at')
             ->limit(30)
@@ -52,6 +63,7 @@ class UsageController extends Controller
 
         $recentCourseSessions = CourseSession::query()
             ->whereNotNull('started_at')
+            ->selectRaw('course_sessions.*, '.str_replace('lessons', 'course_sessions', self::DURING_GRANT_SQL).' as during_grant')
             ->with(['user', 'lesson'])
             ->latest('started_at')
             ->limit(30)
@@ -65,6 +77,7 @@ class UsageController extends Controller
 
         return view('admin.usage.index', [
             'totals' => $totals,
+            'granted' => $granted,
             'learners' => $learners,
             'recentLessons' => $recentLessons,
             'recentCourseSessions' => $recentCourseSessions,

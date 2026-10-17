@@ -29,6 +29,9 @@
             <dd>
                 @if ($user->activeSubscription)
                     {{ $user->activeSubscription->plan_name }}, jusqu'au {{ $user->activeSubscription->ends_at->format('d/m/Y') }}
+                    @if ($user->activeSubscription->isGranted())
+                        <span class="badge badge-grant">Accès offert</span>
+                    @endif
                 @else
                     Aucune
                 @endif
@@ -42,6 +45,87 @@
             @csrf
             <button type="submit" class="btn btn-light">Générer un mot de passe provisoire</button>
         </form>
+    </section>
+
+    {{-- Accès offert (démonstrations) : offrir, retirer, historique. Jamais un paiement ni un revenu. --}}
+    <section class="card" id="acces-offert" aria-labelledby="grant-title">
+        <h2 id="grant-title">Accès offert</h2>
+        <p class="muted small">Pour les démonstrations dans les écoles et auprès des parents. Mêmes droits que la formule choisie. Ce n'est pas un paiement : il n'apparaît dans aucun revenu.</p>
+
+        @if ($currentGrant)
+            <p class="grant-current">
+                <x-icon name="gift" />
+                <span><strong>Accès offert jusqu'au {{ $currentGrant->ends_at->translatedFormat('j F Y \à H:i') }}</strong> : formule {{ $currentGrant->plan_name }}.</span>
+            </p>
+            <form method="POST" action="{{ route('admin.users.revoke', $user) }}" {!! \App\Support\Confirmation::attributes('access.revoke') !!}>
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-light"><x-icon name="close-circle" /> Retirer l'accès offert</button>
+            </form>
+        @elseif ($grantBlocked)
+            <p class="alert alert-warning" role="status"><x-icon name="info" /><span>{{ $grantBlocked }}</span></p>
+        @else
+            @error('plan')
+                <p class="alert alert-error" role="alert"><x-icon name="alert" /><span>{{ $message }}</span></p>
+            @enderror
+            <form method="POST" action="{{ route('admin.users.grant', $user) }}" class="grant-form" novalidate
+                  {!! \App\Support\Confirmation::attributes('access.grant') !!} data-confirm-timezone="{{ config('app.timezone') }}" data-confirm-max-days="{{ config('platform.granted_access.max_days') }}">
+                @csrf
+                <div class="field">
+                    <label for="grant-plan">Formule</label>
+                    <select id="grant-plan" name="plan" required>
+                        @foreach ($plans as $plan)
+                            <option value="{{ $plan->key }}" @selected(old('plan', 'essentiel') === $plan->key)>{{ $plan->name }} ({{ $plan->dailyMinutes }} minutes par jour)</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <fieldset class="field grant-durations">
+                    <legend>Durée</legend>
+                    @foreach (config('platform.granted_access.presets') as $days)
+                        <label><input type="radio" name="duration" value="{{ $days }}" @checked(old('duration', (string) config('platform.granted_access.presets')[0]) === (string) $days)> {{ $days }} {{ $days > 1 ? 'jours' : 'jour' }}</label>
+                    @endforeach
+                    <label><input type="radio" name="duration" value="custom" @checked(old('duration') === 'custom')> Autre durée</label>
+                    @error('duration')<div class="error">{{ $message }}</div>@enderror
+                </fieldset>
+
+                <div class="field">
+                    <label for="grant-days">Nombre de jours (si « Autre durée », {{ config('platform.granted_access.max_days') }} au plus)</label>
+                    <input id="grant-days" name="custom_days" type="number" inputmode="numeric" min="1" max="{{ config('platform.granted_access.max_days') }}" value="{{ old('custom_days') }}" @error('custom_days') aria-invalid="true" @enderror>
+                    @error('custom_days')<div class="error">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="field">
+                    <label for="grant-note">Note facultative</label>
+                    <input id="grant-note" name="note" type="text" maxlength="200" value="{{ old('note') }}" placeholder="Visite au Collège X" @error('note') aria-invalid="true" @enderror>
+                    @error('note')<div class="error">{{ $message }}</div>@enderror
+                </div>
+
+                <button type="submit" class="btn btn-accent"><x-icon name="gift" /> Offrir un accès</button>
+            </form>
+        @endif
+
+        <h3 class="next-step">Historique des accès offerts</h3>
+        @forelse ($grants as $grant)
+            <p class="grant-history">
+                <strong>{{ $grant->created_at->format('d/m/Y') }}</strong> · formule {{ $grant->plan_name }} · {{ $grant->granted_days }} {{ $grant->granted_days > 1 ? 'jours' : 'jour' }}
+                @if ($grant->revoked_at)
+                    · retiré le {{ $grant->revoked_at->format('d/m/Y') }}
+                @elseif ($grant->ends_at->isFuture() && $grant->status === \App\Enums\SubscriptionStatus::Active)
+                    · en cours, jusqu'au {{ $grant->ends_at->format('d/m/Y') }}
+                @else
+                    · terminé le {{ $grant->ends_at->format('d/m/Y') }}
+                @endif
+                @if ($grant->grant_note)
+                    <br><span class="muted">{{ $grant->grant_note }}</span>
+                @endif
+                @if ($grant->grantedBy)
+                    <br><span class="muted small">Offert par {{ $grant->grantedBy->name }}</span>
+                @endif
+            </p>
+        @empty
+            <p class="muted">Aucun accès offert.</p>
+        @endforelse
     </section>
 
     <section class="card">
@@ -71,7 +155,7 @@
         <h2>Abonnements</h2>
         @forelse ($subscriptions as $subscription)
             <p>
-                {{ $subscription->plan_name }} — {{ $subscription->status->label() }},
+                {{ $subscription->plan_name }}@if ($subscription->isGranted()) <span class="badge badge-grant">Accès offert</span>@endif — {{ $subscription->status->label() }},
                 du {{ $subscription->starts_at?->format('d/m/Y') ?? '—' }} au {{ $subscription->ends_at?->format('d/m/Y') ?? '—' }}
             </p>
         @empty

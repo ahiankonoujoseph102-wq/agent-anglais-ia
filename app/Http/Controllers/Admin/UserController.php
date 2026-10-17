@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\SubscriptionStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\OfferAccessRequest;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Support\PhoneNumber;
+use App\Support\Plan;
 use App\Support\TemporaryPassword;
 use App\Support\WhatsApp;
 use Illuminate\Database\Eloquent\Builder;
@@ -61,8 +65,15 @@ class UserController extends Controller
             ]));
         }
 
+        $grants = $user->subscriptions()->granted()->with('grantedBy')->latest('id')->get();
+
         return view('admin.users.show', [
             'user' => $user,
+            'plans' => Plan::all(),
+            'grants' => $grants,
+            // L'accès offert en cours, s'il y en a un ; sinon la raison qui empêche d'en offrir un.
+            'currentGrant' => $grants->first(fn (Subscription $grant) => $grant->status === SubscriptionStatus::Active && $grant->ends_at->isFuture()),
+            'grantBlocked' => OfferAccessRequest::blockingMessage($user),
             'subscriptions' => $user->subscriptions()->latest('ends_at')->get(),
             'payments' => $user->payments()->with(['user', 'subscription'])->latest('id')->get(),
             'courseLessons' => $user->courseLessons()->with('pages')->latest('id')->get(),

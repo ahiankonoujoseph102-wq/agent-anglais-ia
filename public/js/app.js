@@ -210,6 +210,41 @@ export function askConfirmation({ title, message, confirm }) {
 
 window.askConfirmation = askConfirmation;
 
+/**
+ * Message de confirmation : {plan} et {end} (offre d'un accès, voir App\Support\Confirmation) sont
+ * remplis d'après les champs du formulaire ; la date de fin suit le fuseau du site.
+ */
+function filledMessage(form) {
+    let message = form.dataset.confirmMessage || '';
+
+    if (!message.includes('{plan}') && !message.includes('{end}')) {
+        return message;
+    }
+
+    const select = form.querySelector('select[name="plan"]');
+    const plan = select ? select.options[select.selectedIndex].text.split(' (')[0] : '';
+    const duration = form.querySelector('input[name="duration"]:checked');
+    const custom = Number(form.querySelector('input[name="custom_days"]')?.value || 0);
+    const days = Math.max(1, Math.min(Number(form.dataset.confirmMaxDays) || 30, duration && duration.value !== 'custom' ? Number(duration.value) : custom || 1));
+    const end = new Date(Date.now() + days * 86400000);
+    let formatted = '';
+
+    try {
+        formatted = end.toLocaleString('fr-FR', {
+            timeZone: form.dataset.confirmTimezone || undefined,
+            day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+        });
+
+        if (!formatted.includes(' à ')) {
+            formatted = formatted.replace(/\s(\d{2}:\d{2})$/, ' à $1');
+        }
+    } catch {
+        formatted = end.toLocaleDateString('fr-FR');
+    }
+
+    return message.replace('{plan}', plan).replace('{end}', formatted);
+}
+
 // Formulaires des actions graves (data-confirm, texte écrit par App\Support\Confirmation).
 // Sans JavaScript, le même formulaire arrive sans confirmed=1 : page de confirmation du serveur.
 document.addEventListener('submit', async (event) => {
@@ -223,7 +258,7 @@ document.addEventListener('submit', async (event) => {
 
     const answer = await askConfirmation({
         title: form.dataset.confirmTitle,
-        message: form.dataset.confirmMessage,
+        message: filledMessage(form),
         confirm: form.dataset.confirmButton,
     });
 
