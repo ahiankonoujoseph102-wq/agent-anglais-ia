@@ -62,7 +62,7 @@ Formules de départ (dans `config/platform.php`) :
 app/
   Console/Commands/      app:create-admin (demande numéro et mot de passe), app:check-deployment (contrôle de la mise en ligne), subscriptions:expire, live:close-stale (évaluations, séances, bilans de niveau)
   Enums/                 Level (A1…C2), Role, *Status — valeurs stockées en anglais, libellés FR via label()
-  Http/Controllers/      HomeController, ContactController, CreditsController, DashboardController, Auth/* (dont PasswordController),
+  Http/Controllers/      HomeController, ContactController, CreditsController, DashboardController, AccountController (e-mail facultatif), Auth/* (dont PasswordController),
                          Admin/* (PaymentController, UserController, UsageController, AssessmentController)
   Http/Controllers/Live/ AssessmentController (évaluation), LessonController (séance du jour), LevelTestController (bilan de niveau)
   Http/Controllers/Program/ ProgramController (questionnaire, programme, unités), LessonHistoryController, AttestationController
@@ -88,7 +88,7 @@ config/program.php       mots-clés métier → thèmes, durée du bilan de nive
 config/platform.php      TOUS les réglages commerciaux (+ durée de l'évaluation, préavis de fin, signaux, coordonnées du centre)
 config/payment.php       pays, opérateurs, numéros et titulaires Mobile Money ; WhatsApp ; captures ; délai du rappel
 config/filesystems.php   `private_disk` (PRIVATE_FILES_DISK) : disque des fichiers privés ; le disque `local` n'est servi par aucune route
-config/admin.php         ADMIN_PHONE / ADMIN_PASSWORD : variables TEMPORAIRES pour `app:create-admin` sans terminal (Laravel Cloud)
+config/admin.php         ADMIN_PHONE / ADMIN_PASSWORD : variables TEMPORAIRES pour `app:create-admin --no-interaction` sans terminal (Laravel Cloud)
 config/trustedproxy.php  TRUSTED_PROXIES (absente : « * » en production, aucun proxy ailleurs)
 docs/deploiement-laravel-cloud.md   guide de mise en ligne pour téléphone Android
 config/teacher.php       consignes du professeur (modifiables sans toucher au code ; marqueurs :platform et :teacher)
@@ -113,7 +113,7 @@ resources/views/
   components/layout.blade.php   gabarit commun (<x-layout>) : en-tête, barre du bas (téléphone), pied de page, manifeste ;
                                 props : title, description, narrow, install (bandeau d'installation), focus (écran de séance)
   components/simple-layout.blade.php  gabarit sans session ni compte (page hors connexion, erreurs 500 et 503)
-  components/input.blade.php    champ de formulaire avec erreurs (<x-input>)
+  components/input.blade.php    champ de formulaire avec erreurs (<x-input>) ; type="password" : bouton « œil » afficher / masquer (app.js)
   components/icon.blade.php     icônes SVG intégrées (<x-icon name="mic" />), dessinées pour le site
   components/logo.blade.php     logo (<x-logo variant="header|footer" />) : image de config('platform.brand.logo'), nom de la plateforme en texte de remplacement
   components/stepper.blade.php  fil d'étapes animé (paiement, questionnaire)
@@ -125,7 +125,7 @@ resources/views/
 
 | Table | Rôle | Points clés |
 |---|---|---|
-| `users` | comptes | `phone` unique au format `+22890123456`, `level` (CECRL, nullable), `role` (`learner`/`admin`), `must_change_password` (mot de passe provisoire). Pas d'e-mail. |
+| `users` | comptes | `phone` unique au format `+22890123456` (identifiant de connexion), `email` **facultatif** (nullable, unique quand il est rempli, enregistré en minuscules par `App\Support\EmailAddress` ; aucun envoi d'e-mail pour l'instant), `level` (CECRL, nullable), `role` (`learner`/`admin`), `must_change_password` (mot de passe provisoire). |
 | `assessments` | évaluation gratuite | `user_id` **unique** → une seule évaluation par compte, garantie par la base. `allowed_seconds`, `used_seconds`, `level`, `feedback` + colonnes de suivi (ci-dessous). |
 | `programs` | programme personnel (un par niveau) | `level`, `status` (`active`/`level_test_due`/`completed`/`archived`), réponses au questionnaire (`goal`, `occupation`, `interests`, `study_days` 1–7, `study_time`, `difficulties`), `content.intro` (présentation rédigée), `is_active` (un seul actif). |
 | `program_lessons` | leçons du programme | `position` (ordre), `unit_number` (1–12), `lesson_number` (1–3), `situation_index`, `highlighted` (liée à l'objectif/métier), `scheduled_on`, `status` (`pending`/`completed`), `attempts`. |
@@ -172,7 +172,11 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 - Audio : micro → PCM 16 bits mono 16 kHz (`audio/pcm;rate=16000`) ; voix reçue en PCM 16 bits 24 kHz. Sous-titres via `inputAudioTranscription` / `outputAudioTranscription`.
 - **Temps imposé par le serveur** : une conversation se déroule d'un seul tenant ; le temps consommé = temps écoulé depuis le début, plafonné à `allowed_seconds`. Chaque jeton expire au plus tard à la fin autorisée (et au plus après `GEMINI_TOKEN_MINUTES`) : Google coupe alors la connexion. Le navigateur renouvelle le jeton avant expiration (et sur `goAway`) en reprenant la conversation (`sessionResumption`). Signal toutes les 15 s (`/signal`) ; sans signal, la conversation est close par `live:close-stale` (cron chaque minute), **décomptée jusqu'à l'expiration du dernier jeton**. Une seule séance ouverte à la fois ; refus de toute connexion quand le temps du jour est épuisé.
 - Le professeur appelle des fonctions : `record_assessment_result(level, feedback)` (évaluation → `assessments` + `users.level`, une seule fois) et `end_lesson(summary, homework)`. Le navigateur les relaie à Laravel puis répond à Gemini. `set_expression(expression)` ne sort pas du navigateur (expression du professeur 3D).
-- Les indications « début », « reprise » et « il reste N minutes » sont envoyées par le navigateur au bon moment (textes dans `config/teacher.php`, clé `cues`).
+- Les indications « début », « reprise », « retour de pause » et « il reste N minutes » sont envoyées par le navigateur au bon moment (textes dans `config/teacher.php`, clé `cues`). Un seul accueil par conversation : rien n'est envoyé lors d'un renouvellement prévu du jeton, et la reprise demande de continuer sans nouvel accueil.
+- **Anti-écho, demi-duplex sur tous les appareils** : micro demandé avec `echoCancellation`, `noiseSuppression`, `autoGainControl` (réglages obtenus écrits en console de débogage) ; tant que la voix du professeur est jouée, et `platform.live.echo_guard_ms` (400) après, le son du micro n'est PAS envoyé à Gemini. Aucune exception pour les écouteurs : Chrome sur Android ne permet pas de les détecter de façon fiable. Bouton « Interrompre le professeur » (visible pendant sa voix) : arrête la voix, jette la fin de sa réplique et rouvre le micro.
+- **Détection de parole** figée dans le jeton (`realtimeInputConfig.automaticActivityDetection`, réglages `services.gemini.activity_detection`) : sensibilités de début et de fin `LOW`, `prefixPaddingMs` 300, `silenceDurationMs` 1200 (apprenants qui hésitent), `activityHandling: START_OF_ACTIVITY_INTERRUPTS`.
+- **Indicateur de tour** : « Teacher Joe parle… », « À vous de parler », « Teacher Joe réfléchit… » (nom tiré de `config('avatar.model.name')`), « Conversation en pause », « Micro coupé ».
+- **Pause / Reprendre** : coupe le micro (`audioStreamEnd`), arrête la voix et ignore la fin de la réplique en cours ; au retour, l'indication `pause_resume` fait reposer la dernière question. Le temps serveur CONTINUE pendant la pause (« Le temps continue pendant la pause ») ; au-delà de `platform.live.pause_max_seconds` (120), la conversation se termine. **Couper le micro** est un bouton séparé (le professeur continue de parler).
 
 ### Professeur 3D (phase 5)
 
@@ -217,6 +221,7 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 | `/connexion` | `login` | invités (5 essais puis blocage temporaire) |
 | `/deconnexion` (POST) | `logout` | connectés |
 | `/espace` | `dashboard` | connectés |
+| `/compte` (GET, PUT) | `account.edit`, `account.update` | connectés : adresse e-mail facultative |
 | `/abonnement`, `/abonnement/{plan}` (GET, POST) | `payment.plans`, `payment.create`, `payment.store` | connectés |
 | `/paiements/{payment}` | `payment.show` | le propriétaire du paiement |
 | `/evaluation` (+ POST `/connexion`, `/signal`, `/resultat`, `/fin`) | `assessment.*` | connectés (une seule évaluation) |
@@ -279,7 +284,7 @@ Guide complet, pas à pas, pour quelqu'un qui n'a qu'un téléphone : `docs/depl
 3. **Commandes de construction** : `composer install --no-dev --optimize-autoloader` puis `php artisan optimize` (aucune compilation front). **Commandes de déploiement** : `php artisan migrate --force` seulement (jamais `db:seed`, `optimize:clear`, `storage:link`). Laravel Cloud ne permet aucune question dans ses commandes.
 4. Variables d'environnement (liste complète dans le guide) : `APP_KEY` (obtenue avec `php artisan key:generate --show` dans l'onglet Commands), `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://…`, `APP_TIMEZONE=Africa/Lome`, `DB_CONNECTION=mysql`, `SESSION_DRIVER=database`, `CACHE_STORE=database`, `QUEUE_CONNECTION=sync`, `LOG_STACK=laravel-cloud-socket`, `GEMINI_API_KEY` (collée seulement dans Laravel Cloud), `PLATFORM_NAME=Talkami` ou absente. Ne jamais committer ces valeurs. Toute modification de variable demande un redéploiement.
 5. Activer **Scheduler** sur le cluster App (lance `schedule:run` chaque minute) : trois tâches, toutes `withoutOverlapping()->onOneServer()` : `subscriptions:expire` (chaque heure), `live:close-stale` (chaque minute), témoin `scheduler-heartbeat` (chaque minute, lu par `app:check-deployment`). La tâche chaque minute empêche la mise en veille : compter l'environnement toujours allumé dans le budget.
-6. Administrateur : `php artisan app:create-admin` demande le numéro et le mot de passe en terminal. Dans l'onglet Commands (non interactif), définir TEMPORAIREMENT `ADMIN_PHONE` et `ADMIN_PASSWORD`, lancer la commande, **supprimer les deux variables** puis redéployer. La commande n'a aucune option pour le numéro ni le mot de passe, n'affiche que le numéro masqué et exige 10 caractères au moins.
+6. Administrateur : `php artisan app:create-admin` demande le numéro et le mot de passe en terminal. Dans l'onglet Commands, définir TEMPORAIREMENT `ADMIN_PHONE` et `ADMIN_PASSWORD` (mot de passe **sans espace ni « # »**), lancer **`php artisan app:create-admin --no-interaction`** (sans l'option, l'onglet se présente comme un terminal : la question est posée et la commande s'arrête sur « Aborted »), **supprimer les deux variables** puis redéployer. La commande n'a aucune option pour le numéro ni le mot de passe, n'affiche que le numéro masqué et exige 10 caractères au moins.
 7. Contrôle : `php artisan app:check-deployment` (réglages de sécurité, base MySQL, écriture dans le bucket, nombre de captures et d'attestations enregistrées, dernier passage du planificateur).
 8. Le site est servi en **HTTPS** (obligatoire pour le micro) ; domaine personnalisé et certificat gérés par Laravel Cloud (Settings, Network).
 9. Offre **Starter** (5 $ par mois, 5 $ de crédit d'utilisation, premier mois offert) : estimation toujours allumé en Europe, environ 15,50 $ par mois (détail dans le guide). Fixer une limite de dépense (Organization, Settings, Billing).

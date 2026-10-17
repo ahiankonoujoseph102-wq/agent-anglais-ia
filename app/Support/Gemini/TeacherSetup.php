@@ -220,6 +220,7 @@ class TeacherSetup
             'generationConfig' => $generationConfig,
             'systemInstruction' => ['parts' => [['text' => $instructions]]],
             'tools' => [['functionDeclarations' => $functions]],
+            'realtimeInputConfig' => self::realtimeInputConfig(),
             // Sous-titres : transcription de ce que dit l'apprenant et le professeur.
             'inputAudioTranscription' => (object) [],
             'outputAudioTranscription' => (object) [],
@@ -227,6 +228,29 @@ class TeacherSetup
             'contextWindowCompression' => ['slidingWindow' => (object) []],
             // Permet de reprendre la conversation sur une nouvelle connexion.
             'sessionResumption' => filled($resumeHandle) ? ['handle' => $resumeHandle] : (object) [],
+        ];
+    }
+
+    /**
+     * Détection de la parole de l'apprenant par Google (config services.gemini.activity_detection).
+     * Le professeur peut toujours être interrompu par une vraie prise de parole
+     * (bouton « Interrompre le professeur ») : le navigateur coupe le micro pendant sa voix.
+     *
+     * @return array<string, mixed>
+     */
+    private static function realtimeInputConfig(): array
+    {
+        $detection = config('services.gemini.activity_detection');
+
+        return [
+            'automaticActivityDetection' => [
+                'disabled' => false,
+                'startOfSpeechSensitivity' => $detection['start_sensitivity'],
+                'endOfSpeechSensitivity' => $detection['end_sensitivity'],
+                'prefixPaddingMs' => (int) $detection['prefix_padding_ms'],
+                'silenceDurationMs' => (int) $detection['silence_duration_ms'],
+            ],
+            'activityHandling' => 'START_OF_ACTIVITY_INTERRUPTS',
         ];
     }
 

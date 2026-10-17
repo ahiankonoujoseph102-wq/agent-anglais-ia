@@ -2,7 +2,8 @@
  * Petits comportements communs à toutes les pages (module ES, sans bibliothèque) :
  *   - service worker (cache des fichiers statiques, page hors connexion) ;
  *   - apparition douce des blocs .reveal quand ils arrivent à l'écran ;
- *   - bouton « Installer l'application » (Android) et explication pour iPhone.
+ *   - bouton « Installer l'application » (Android) et explication pour iPhone ;
+ *   - bouton « œil » des champs mot de passe (afficher / masquer).
  */
 
 const script = document.querySelector('script[data-sw]');
@@ -98,3 +99,37 @@ if (banner && ios && !standalone && !dismissed()) {
 }
 
 banner?.querySelector('[data-install-close]')?.addEventListener('click', dismiss);
+
+/* ---------- Afficher / masquer le mot de passe ---------- */
+
+document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+    const input = document.getElementById(button.dataset.passwordToggle);
+
+    if (!input) {
+        return;
+    }
+
+    button.hidden = false;
+    button.addEventListener('click', () => {
+        const visible = input.type === 'password';
+        const label = visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe';
+
+        input.type = visible ? 'text' : 'password';
+        button.setAttribute('aria-label', label);
+        button.title = label;
+        button.querySelector('[data-password-show]').toggleAttribute('hidden', visible);
+        button.querySelector('[data-password-hide]').toggleAttribute('hidden', !visible);
+        input.focus();
+    });
+});
+
+// Champ remasqué à l'envoi : le navigateur ne garde pas le mot de passe dans l'historique des saisies.
+document.addEventListener('submit', (event) => {
+    event.target.querySelectorAll?.('[data-password-toggle]').forEach((button) => {
+        const input = document.getElementById(button.dataset.passwordToggle);
+
+        if (input?.type === 'text') {
+            button.click();
+        }
+    });
+});

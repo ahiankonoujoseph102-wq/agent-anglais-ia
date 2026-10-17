@@ -19,6 +19,9 @@
     <section class="card">
         <dl class="summary">
             <dt>Téléphone</dt><dd><a href="tel:{{ $user->phone }}">{{ $user->phone }}</a></dd>
+            @if ($user->email)
+                <dt>Adresse e-mail</dt><dd><a href="mailto:{{ $user->email }}">{{ $user->email }}</a></dd>
+            @endif
             <dt>Rôle</dt><dd>{{ $user->role->label() }}</dd>
             <dt>Inscription</dt><dd>{{ $user->created_at->format('d/m/Y H:i') }}</dd>
             <dt>Niveau</dt><dd>{{ $user->level ? $user->level->value.' — '.$user->level->label() : 'Pas encore évalué' }}</dd>

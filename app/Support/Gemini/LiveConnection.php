@@ -59,7 +59,11 @@ class LiveConnection
             'token_expires_in' => max(0, (int) now()->diffInSeconds($token['expires_at'], false)),
             'warning_seconds' => $warningSeconds,
             'heartbeat_seconds' => (int) config('platform.live.heartbeat_seconds'),
-            'cues' => $cues,
+            'cues' => $cues + ['pause_resume' => TeacherSetup::cue('pause_resume')],
+            // Micro coupé pendant la voix du professeur, et encore ce délai après (anti-écho).
+            'echo_guard_ms' => (int) config('platform.live.echo_guard_ms'),
+            // Au-delà de cette durée de pause, la conversation se termine (le temps continue en pause).
+            'pause_max_seconds' => (int) config('platform.live.pause_max_seconds'),
             'resumed' => $resumed,
         ];
     }

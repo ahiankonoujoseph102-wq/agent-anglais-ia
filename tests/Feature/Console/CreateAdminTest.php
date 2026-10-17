@@ -118,4 +118,13 @@ class CreateAdminTest extends TestCase
 
         $this->assertSame(0, User::count());
     }
+
+    public function test_the_deployment_guide_uses_the_non_interactive_option(): void
+    {
+        $guide = file_get_contents(base_path('docs/deploiement-laravel-cloud.md'));
+
+        $this->assertStringContainsString('php artisan app:create-admin --no-interaction', $guide);
+        $this->assertStringNotContainsString("php artisan app:create-admin\n", $guide);
+        $this->assertStringContainsString('sans espace ni « # »', $guide);
+    }
 }

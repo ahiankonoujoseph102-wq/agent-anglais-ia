@@ -61,6 +61,18 @@ return [
         'connect_window_seconds' => 60,
         // Nombre maximal de connexions (jetons) par séance ou par évaluation.
         'max_connections' => (int) env('GEMINI_MAX_CONNECTIONS', 8),
+        // Détection de parole par Google (realtimeInputConfig.automaticActivityDetection,
+        // figée dans le jeton). Sensibilités basses : le bruit ne coupe pas le professeur
+        // et une courte hésitation ne termine pas la phrase de l'apprenant.
+        // Source : ai.google.dev/api/live (relevé du 17 octobre 2026).
+        'activity_detection' => [
+            'start_sensitivity' => 'START_SENSITIVITY_LOW',
+            'end_sensitivity' => 'END_SENSITIVITY_LOW',
+            // Son gardé avant le début détecté de la parole, en millisecondes.
+            'prefix_padding_ms' => (int) env('GEMINI_PREFIX_PADDING_MS', 300),
+            // Silence nécessaire pour considérer que l'apprenant a fini de parler.
+            'silence_duration_ms' => (int) env('GEMINI_SILENCE_DURATION_MS', 1200),
+        ],
         // Tâches en texte (rédaction de messages, présentation du programme) :
         // modèle léger et économique, appelé depuis le serveur (API Interactions).
         // Source : ai.google.dev/gemini-api/docs/models (relevé d'octobre 2026).

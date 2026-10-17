@@ -14,8 +14,10 @@ use Illuminate\Console\Command;
  * Le numéro et le mot de passe ne sont JAMAIS des options de la commande (ils resteraient dans
  * l'historique du terminal ou de Laravel Cloud) et ne sont jamais affichés ni journalisés :
  *  - en terminal, la commande les demande (le mot de passe est saisi sans affichage, deux fois) ;
- *  - sans terminal (onglet « Commands » de Laravel Cloud), elle les lit dans les variables
- *    temporaires ADMIN_PHONE et ADMIN_PASSWORD (config/admin.php), à supprimer ensuite.
+ *  - sans terminal (onglet « Commands » de Laravel Cloud, OBLIGATOIREMENT avec --no-interaction :
+ *    sinon la question est posée sans réponse possible et la commande s'arrête sur « Aborted »),
+ *    elle les lit dans les variables temporaires ADMIN_PHONE et ADMIN_PASSWORD (config/admin.php),
+ *    à supprimer ensuite.
  */
 class CreateAdmin extends Command
 {

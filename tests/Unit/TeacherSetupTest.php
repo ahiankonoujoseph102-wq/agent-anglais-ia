@@ -92,4 +92,46 @@ class TeacherSetupTest extends TestCase
         $this->assertEqualsWithDelta(0.009, UsageCost::usd(1_000, 500), 1e-9);
         $this->assertSame("0,0090\u{00A0}$", UsageCost::format(0.009));
     }
+
+    public function test_speech_detection_settings_come_from_the_configuration(): void
+    {
+        config([
+            'services.gemini.activity_detection.prefix_padding_ms' => 250,
+            'services.gemini.activity_detection.silence_duration_ms' => 1500,
+        ]);
+
+        foreach ([
+            TeacherSetup::assessment(new User(['name' => 'Afi']), 5),
+            TeacherSetup::lesson(new User(['name' => 'Afi']), 15),
+            TeacherSetup::levelTest(new User(['name' => 'Afi']), Level::A1, 10),
+        ] as $setup) {
+            $detection = $setup['realtimeInputConfig']['automaticActivityDetection'];
+
+            $this->assertFalse($detection['disabled']);
+            $this->assertSame('START_SENSITIVITY_LOW', $detection['startOfSpeechSensitivity']);
+            $this->assertSame('END_SENSITIVITY_LOW', $detection['endOfSpeechSensitivity']);
+            $this->assertSame(250, $detection['prefixPaddingMs']);
+            $this->assertSame(1500, $detection['silenceDurationMs']);
+        }
+    }
+
+    public function test_teacher_greets_once_asks_one_question_and_waits(): void
+    {
+        $text = TeacherSetup::instructions('assessment', new User(['name' => 'Afi']), 5);
+
+        $this->assertStringContainsString('Greet the learner only ONCE', $text);
+        $this->assertStringContainsString('Never repeat your introduction', $text);
+        $this->assertStringContainsString('Ask ONE simple question at a time, then wait.', $text);
+        $this->assertStringContainsString('rephrase the question ONCE, more simply', $text);
+        $this->assertStringContainsString('move on to another, easier question', $text);
+        $this->assertStringContainsString('Never speak over the learner', $text);
+        $this->assertStringContainsString('accept that the learner answers in French', $text);
+        $this->assertStringContainsString('ask your first, very easy question (for example their name) and WAIT', $text);
+    }
+
+    public function test_resumption_cues_never_ask_for_a_new_welcome(): void
+    {
+        $this->assertStringContainsString('Do not greet the learner again', TeacherSetup::cue('resume'));
+        $this->assertStringContainsString('ask your last question again', TeacherSetup::cue('pause_resume'));
+    }
 }
