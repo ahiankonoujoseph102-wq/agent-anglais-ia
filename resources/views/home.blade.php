@@ -71,10 +71,13 @@
     </section>
 
     <section class="section" aria-labelledby="difference">
-        <div class="section-head reveal">
-            <span class="eyebrow">Pourquoi {{ $platform }}</span>
-            <h2 id="difference">Ce qui rend {{ $platform }} différent</h2>
-            <p class="muted">On apprend à parler en parlant. Chaque séance est une vraie conversation, guidée par un professeur patient.</p>
+        <div class="section-split">
+            <div class="section-head reveal">
+                <span class="eyebrow">Pourquoi {{ $platform }}</span>
+                <h2 id="difference">Ce qui rend {{ $platform }} différent</h2>
+                <p class="muted">On apprend à parler en parlant. Chaque séance est une vraie conversation, guidée par un professeur patient.</p>
+            </div>
+            <figure class="photo-frame reveal"><x-photo name="etudiante-parle" /></figure>
         </div>
         <div class="features">
             <article class="card feature reveal" style="--i: 0">
@@ -142,6 +145,7 @@
 
     <section class="section" aria-labelledby="eleves">
         <div class="students reveal">
+            <figure class="photo-frame"><x-photo name="eleve-ecouteurs" /></figure>
             <div>
                 <span class="eyebrow">Vous êtes élève ?</span>
                 <h2 id="eleves">Prenez confiance à l'oral, avant la classe et les examens</h2>
@@ -151,6 +155,18 @@
                     <li><x-icon name="check-circle" /> Vous apprenez à répondre sans traduire dans votre tête</li>
                     <li><x-icon name="check-circle" /> Vous voyez vos progrès séance après séance</li>
                 </ul>
+                <a class="btn btn-accent btn-lg" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" aria-labelledby="pros">
+        <div class="students students-reverse reveal">
+            <figure class="photo-frame"><x-photo name="equipe-reunion" /></figure>
+            <div>
+                <span class="eyebrow">Vous travaillez ?</span>
+                <h2 id="pros">Réunions, clients, visiteurs : parlez anglais dans votre métier</h2>
+                <p>Quand vous construisez votre programme, vous indiquez votre métier et votre objectif. Les situations qui vous concernent passent en premier : accueillir un partenaire venu du Ghana, présenter votre activité, négocier, voyager.</p>
                 <a class="btn btn-accent btn-lg" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
             </div>
         </div>

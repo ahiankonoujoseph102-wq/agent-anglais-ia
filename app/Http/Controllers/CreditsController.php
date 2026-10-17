@@ -11,6 +11,7 @@ class CreditsController extends Controller
         return view('credits', [
             'credits' => config('avatar.credits', []),
             'modelName' => config('avatar.model.name'),
+            'photos' => config('photos', []),
         ]);
     }
 }
