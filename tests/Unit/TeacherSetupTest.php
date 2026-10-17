@@ -218,4 +218,16 @@ class TeacherSetupTest extends TestCase
         $this->assertSame([TeacherSetup::RECORD_ASSESSMENT_RESULT], array_column(TeacherSetup::assessment(new User(['name' => 'Afi']), 5)['tools'][0]['functionDeclarations'], 'name'));
         $this->assertSame([TeacherSetup::RECORD_LEVEL_TEST_RESULT], array_column(TeacherSetup::levelTest(new User(['name' => 'Afi']), Level::A1, 10)['tools'][0]['functionDeclarations'], 'name'));
     }
+
+    public function test_the_daily_lesson_may_point_to_my_courses_without_leaving_the_lesson(): void
+    {
+        $text = TeacherSetup::instructions('lesson', new User(['name' => 'Yao']), 15);
+
+        $this->assertStringContainsString('talks about lessons or homework from their own school or class', $text);
+        $this->assertStringContainsString('page « Mes cours »', $text);
+        $this->assertStringContainsString('ONE sentence', $text);
+        $this->assertStringContainsString('do not leave it', $text);
+        // Seule la séance du jour le propose : pas l'évaluation gratuite.
+        $this->assertStringNotContainsString('page « Mes cours » (in the', TeacherSetup::instructions('assessment', new User(['name' => 'Yao']), 5));
+    }
 }
