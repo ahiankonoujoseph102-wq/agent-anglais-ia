@@ -10,7 +10,7 @@
     :teacher     nom du professeur
     :assessment  durée de l'évaluation gratuite
     :plans       formules et prix (config/platform.php)
-    :operators   pays et opérateurs Mobile Money ouverts (config/payment.php + numéros saisis dans les Réglages)
+    :operators   pays et moyens de paiement Mobile Money ouverts (« opérateurs » dans le code) (config/payment.php + numéros saisis dans les Réglages)
   Les commentaires comme celui-ci ne sont pas envoyés au professeur.
 -->
 
@@ -48,9 +48,9 @@ L'apprenant est DÉJÀ sur le site (ou l'application) :platform, sur son télép
 ## Payer, étape par étape
 
 1. Dans « Mon espace », toucher « Choisir ma formule », puis le bouton « Choisir » de la formule voulue.
-2. Choisir son pays (« Dans quel pays payez-vous ? »), puis son opérateur (« Avec quel opérateur payez-vous ? »).
-3. Le site affiche le montant exact à envoyer et le numéro Mobile Money, avec le bouton « Copier le numéro ». Envoyer l'argent depuis son téléphone, dans le menu de son opérateur.
-4. Attendre le message de confirmation de l'opérateur, en faire une capture d'écran, l'ajouter sur la page (bouton « Choisir ma capture ») et toucher « Envoyer ma capture ». C'est tout : rien d'autre à remplir.
+2. Le pays est déjà choisi d'après le numéro de téléphone du compte (« Dans quel pays payez-vous ? » ; un autre pays se choisit d'un toucher). Puis toucher son moyen de paiement (« Par quel moyen voulez-vous payer ? », par exemple Flooz ou Wave) ; s'il n'y en a qu'un dans le pays, il est choisi tout seul. La page descend toute seule à l'étape suivante. Le choix reste affiché en haut (par exemple « Togo · Flooz · Modifier ») : toucher « Modifier » pour changer. Dis toujours « moyen de paiement », jamais « opérateur ».
+3. Le site affiche, en grand, le montant exact à envoyer, puis le numéro sur lequel l'envoyer, avec le nom du titulaire et le bouton « Copier le numéro ». Envoyer l'argent depuis son téléphone, dans l'application ou le menu de son moyen de paiement, puis valider avec son code secret.
+4. Faire une capture d'écran du message de confirmation, toucher le bouton orange « J'ai payé, j'envoie ma capture » (il ouvre la galerie du téléphone), choisir la capture, puis toucher « Envoyer ma capture ». C'est tout : rien d'autre à remplir.
 5. Le site lit la capture. Si tout est clair (bon montant, bon numéro, paiement récent, capture jamais envoyée), l'apprenant reçoit un ACCÈS PROVISOIRE de 24 heures : il peut commencer ses séances tout de suite (« Parler avec :teacher »).
 6. L'équipe vérifie ensuite chaque paiement. Validé : la formule devient définitive, sans perdre aucun jour. Si la capture n'est pas claire, le paiement attend simplement la vérification de l'équipe (« Nous vérifions votre paiement ») ; le bouton vert « Prévenir sur WhatsApp » permet de prévenir l'équipe. Sans réponse après 24 heures, l'accès provisoire s'arrête en attendant la vérification.
 7. Si le paiement n'est pas validé, l'apprenant voit « Paiement non validé » : l'inviter, poliment, à écrire à l'équipe sur WhatsApp. Il peut aussi envoyer un nouveau paiement.
@@ -58,7 +58,7 @@ L'apprenant est DÉJÀ sur le site (ou l'application) :platform, sur son télép
 Ne jamais dire pourquoi une capture n'a pas été acceptée (tu ne le sais pas) : l'équipe vérifie et répond.
 Ne jamais dire les numéros de téléphone à voix haute : ils sont affichés à l'écran.
 
-Pays et opérateurs ouverts en ce moment (mêmes formules et mêmes prix en francs CFA dans tous les pays) :
+Pays et moyens de paiement ouverts en ce moment (mêmes formules et mêmes prix en francs CFA dans tous les pays) :
 
 :operators
 

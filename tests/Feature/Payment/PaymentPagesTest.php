@@ -25,11 +25,11 @@ class PaymentPagesTest extends TestCase
     public function test_capture_field_is_a_french_button_with_help_for_a_first_payment(): void
     {
         $this->actingAs(User::factory()->create())->get('/abonnement/essentiel?pays=TG&operateur=flooz')->assertOk()
-            ->assertSee('Choisir ma capture')
+            ->assertSee('J\'ai payé, j\'envoie ma capture', false)
             ->assertSee('Aucune capture choisie')
             ->assertSee('class="file-pick-input"', false)
             ->assertSee('C\'est votre premier paiement par téléphone ?', false)
-            ->assertSee('Vérifiez le nom du titulaire affiché par Flooz')
+            ->assertSee('vérifiez que le nom affiché est bien celui indiqué ci-dessus')
             ->assertSee('class="btn btn-whatsapp btn-block"', false);
     }
 }
