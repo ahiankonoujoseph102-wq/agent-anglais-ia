@@ -189,6 +189,7 @@ class TeacherSetup
 
         return self::fill($text, $extra + [
             'platform' => config('platform.name'),
+            'teacher' => config('avatar.model.name'),
             'name' => $user->name,
             'level' => $level,
             'minutes' => $minutes,

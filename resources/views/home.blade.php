@@ -6,11 +6,11 @@
     $start = auth()->check() ? route('dashboard') : route('register');
 @endphp
 
-<x-layout install :description="'Apprenez l\'anglais à l\'oral avec '.config('platform.name').', votre professeur IA. Évaluation gratuite, séances quotidiennes, paiement par Mobile Money.'">
+<x-layout install :description="'Apprenez l\'anglais à l\'oral sur '.config('platform.name').' avec '.config('avatar.model.name').', votre professeur IA. Évaluation gratuite, séances quotidiennes, paiement par Mobile Money.'">
     <section class="hero">
         <div class="rise">
-            <span class="eyebrow"><x-icon name="sparkle" /> Professeur d'anglais pour les francophones</span>
-            <h1>Parlez anglais avec <span class="accent">{{ config('platform.name') }}</span>, votre professeur IA</h1>
+            <span class="eyebrow"><x-icon name="sparkle" /> {{ config('platform.name') }} · l'anglais à l'oral pour les francophones</span>
+            <h1>Parlez anglais avec <span class="accent">{{ config('avatar.model.name') }}</span>, votre professeur IA</h1>
             <p class="lead">
                 Un professeur qui vous fait parler, à votre niveau, un peu chaque jour, depuis votre téléphone.
                 Commencez par une évaluation orale gratuite de {{ $minutes }} minutes.

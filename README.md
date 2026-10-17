@@ -1,4 +1,4 @@
-# agent-anglais-ia — Teacher Joe
+# agent-anglais-ia — Talkami (professeur : Teacher Joe)
 
 Plateforme web d'apprentissage de l'anglais avec un professeur IA animé : évaluation gratuite, programme personnel, séances quotidiennes limitées dans le temps, abonnement payé par Mobile Money et validé par l’administrateur. Laravel, pensée pour le téléphone et pour l'Afrique francophone.
 

@@ -31,7 +31,7 @@ class AttestationPdf
         $contact = config('platform.contact');
 
         // Cadre.
-        $this->commands[] = '0.05 0.42 0.31 RG 3 w 30 30 535 782 re S 0.7 w 38 38 519 766 re S';
+        $this->commands[] = '0.055 0.165 0.361 RG 3 w 30 30 535 782 re S 0.7 w 38 38 519 766 re S';
 
         $y = 740;
         $y = $this->centered(mb_strtoupper(config('platform.name')), 14, $y, bold: true);
@@ -82,7 +82,7 @@ class AttestationPdf
         $encoded = mb_convert_encoding($text, 'Windows-1252', 'UTF-8');
         $escaped = str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $encoded);
 
-        $this->commands[] = sprintf('BT 0.11 0.15 0.13 rg /%s %d Tf %d %d Td (%s) Tj ET', $bold ? 'F2' : 'F1', $size, $x, $y, $escaped);
+        $this->commands[] = sprintf('BT 0.078 0.129 0.239 rg /%s %d Tf %d %d Td (%s) Tj ET', $bold ? 'F2' : 'F1', $size, $x, $y, $escaped);
     }
 
     private function document(string $content): string

@@ -15,22 +15,26 @@
 return [
 
     // Nom commercial affiché sur tout le site.
-    'name' => env('PLATFORM_NAME', 'Teacher Joe'),
+    'name' => env('PLATFORM_NAME', 'Talkami'),
 
     /*
-    | Logo provisoire : icône + nom (ci-dessus) + accroche. Le nom n'étant pas
-    | définitif, tout se règle ici ; les pages utilisent <x-logo>.
-    | - icon       : une icône de resources/views/components/icon.blade.php
-    | - short_name : nom court de l'application installée (vide = le nom)
+    | Marque : logos, accroche, nom court et couleurs de l'application installée.
+    | Le nom est ci-dessus ; les pages l'affichent via config('platform.name')
+    | et le logo via <x-logo>. Logos officiels dans public/brand/ (préparés par
+    | tools/brand/prepare-logos.py à partir de docs/brand/reference/).
+    | Le professeur garde son propre nom : config('avatar.model.name').
     */
     'brand' => [
-        'icon' => 'bubble',
+        'short_name' => env('PLATFORM_SHORT_NAME', 'Talkami'),
         'tagline' => 'Votre professeur d\'anglais à l\'oral',
-        'short_name' => env('PLATFORM_SHORT_NAME'),
+        'logo' => [
+            'header' => 'brand/logo-horizontal-640.webp',  // fond clair
+            'footer' => 'brand/logo-blanc-640.webp',       // fond bleu nuit
+        ],
         // Couleurs de l'application installée (barre d'état, écran de démarrage).
         // Les garder identiques à --c-primary et --c-bg de public/css/tokens.css.
-        'theme_color' => '#1f5c49',
-        'background_color' => '#fbf7f0',
+        'theme_color' => '#0E2A5C',
+        'background_color' => '#F4F6FB',
     ],
 
     // Devise utilisée pour les prix.

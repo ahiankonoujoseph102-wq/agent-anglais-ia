@@ -89,10 +89,10 @@ const C = {
     pupil: color('#0b0807'),
     catchlight: color('#ffffff'),
     shirt: color('#e9eff7'),
-    vest: color('#1f5c49'),
-    vestDark: color('#174636'),
-    tie: color('#c2502c'),
-    tieDark: color('#9c3d20'),
+    vest: color('#0E2A5C'),     // bleu nuit Talkami
+    vestDark: color('#0A1F45'),
+    tie: color('#FF7A1A'),      // orange vif Talkami
+    tieDark: color('#D9620F'),
 };
 
 /* ---------- Squelette (noms Mixamo) ---------- */

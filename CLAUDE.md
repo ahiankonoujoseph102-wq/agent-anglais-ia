@@ -1,8 +1,10 @@
-# CLAUDE.md — Teacher Joe (nom provisoire)
+# CLAUDE.md — Talkami (professeur : Teacher Joe)
 
 Ce fichier est le point de départ de chaque session de développement. Le lire en entier avant de toucher au code, et le mettre à jour quand une décision change.
 
 ## Le projet
+
+La plateforme s'appelle **Talkami** (`config('platform.name')`) ; son professeur IA s'appelle **Teacher Joe** (`config('avatar.model.name')`). Ne pas confondre les deux, et n'écrire aucun des deux noms en dur. Identité visuelle complète : `docs/charte-graphique.md`.
 
 Plateforme web qui enseigne l'anglais aux francophones d'Afrique grâce à un professeur IA.
 
@@ -25,7 +27,7 @@ Le professeur est un **personnage animé en 3D** dans le navigateur, dont la bou
   - Tâches planifiées par le **planificateur Laravel Cloud** (option « Scheduler » du cluster App) → `schedule:run` chaque minute ; chaque tâche avec `onOneServer()`.
   - **Système de fichiers éphémère** sur Laravel Cloud : tout fichier à conserver (captures de paiement) va sur un **bucket privé** (Laravel Cloud Object Storage, compatible S3), jamais sur le disque du serveur.
 - **Paiement manuel uniquement** : aucune API ni aucun prestataire de paiement en ligne. Coordonnées de paiement **uniquement** dans `config/payment.php`. Au Togo : « Mixx by Yas » et « Flooz », jamais « T-Money ».
-- **Interface entièrement en français, sans abréviations** (« 15 minutes », pas « 15 min »), **pensée d'abord pour le téléphone**, **légère en données** : une seule police hébergée sur le serveur (woff2, 30 Ko), pas de framework CSS ni de bibliothèque JavaScript, pas d'image inutile. Cible : moins de 150 Ko transférés pour la page d'accueil, hors image de Teacher Joe et police.
+- **Interface entièrement en français, sans abréviations** (« 15 minutes », pas « 15 min »), **pensée d'abord pour le téléphone**, **légère en données** : une seule police hébergée sur le serveur (Sora, woff2, 21 Ko), pas de framework CSS ni de bibliothèque JavaScript, pas d'image inutile. Cible : moins de 150 Ko transférés pour la page d'accueil, hors image de Teacher Joe et police.
 - **Aucun chiffre inventé** sur le site : ni témoignage, ni nombre d'apprenants, ni note, ni partenaire.
 - **Aucune clé secrète dans le code** : tout passe par `.env` (lu via `config/*.php`, jamais `env()` ailleurs que dans `config/`).
 - **Public d'abord togolais** : les situations du programme se passent au Togo (Grand Marché et port autonome de Lomé, zémidjans et taxis, universités de Lomé et de Kara, administration, accueil de visiteurs anglophones…). Le **Ghana** est le seul autre pays cité, comme voisin anglophone (frontière d'Aflao, achats et affaires à Accra). Les variétés de langue (anglais britannique, américain, du Ghana) peuvent être nommées pour la prononciation ; aucun autre pays. `tests/Unit/CurriculumTest.php` le vérifie.
@@ -47,7 +49,8 @@ Formules de départ (dans `config/platform.php`) :
 - **Phase 3 — Paiement manuel et comptes (faite)** : paiement Mobile Money déclaré par l'apprenant (capture privée), validation/refus par l'administrateur, activation et renouvellement de l'abonnement, rappel 3 jours avant la fin, mot de passe oublié via WhatsApp + mot de passe provisoire, coordonnées du centre (pied de page, page Contact).
 - **Phase 4 — Programme (faite)** : programme officiel original A1 → C2 (12 unités par niveau), questionnaire et programme personnel (calendrier, progression), séance branchée sur la leçon du jour, bilan structuré (notes, erreurs, devoir), erreurs à revoir, bilan de fin de niveau, attestation PDF, suivi (série, compétences), apprenants inactifs dans l'admin, Gemini texte pour les rédactions.
 - **Phase 5 — Professeur 3D (faite)** : personnage 3D « Teacher Joe » (CC0, créé par script), bouche synchronisée sur la voix (HeadAudio), comportement (repos, écoute, parole, expressions déclenchées par Gemini), décor de classe, chargement en arrière-plan avec cache, retour automatique au visage SVG.
-- **Phase 6 — Design et application installable (faite)** : identité visuelle (vert du gilet, orange de la cravate, police Nunito), toutes les pages apprenant refaites, administration sobre, pages d'erreur, animations discrètes, manifeste web, service worker étendu, page hors connexion, bouton « Installer l'application ».
+- **Phase 6 — Design et application installable (faite)** : identité visuelle provisoire, toutes les pages apprenant refaites, administration sobre, pages d'erreur, animations discrètes, manifeste web, service worker étendu, page hors connexion, bouton « Installer l'application ».
+- **Phase 6 bis — Marque Talkami (faite)** : nom définitif, bleu nuit `#0E2A5C` et orange `#FF7A1A`, police Sora, les quatre logos fournis (fond rendu transparent) dans `public/brand/`, favicon et icônes de l'application tirés de l'icône, Teacher Joe en gilet bleu nuit et cravate orange, charte graphique `docs/charte-graphique.md`.
 
 (L'ordre 2/3/4/5 est indicatif ; voir le compte rendu de chaque phase.)
 
@@ -82,7 +85,7 @@ resources/curriculum/    a1.php … c2.php : LE PROGRAMME OFFICIEL (données, pa
 config/program.php       mots-clés métier → thèmes, durée du bilan de niveau, erreurs par séance, seuil d'inactivité
 config/platform.php      TOUS les réglages commerciaux (+ durée de l'évaluation, préavis de fin, signaux, coordonnées du centre)
 config/payment.php       pays, opérateurs, numéros et titulaires Mobile Money ; WhatsApp ; captures ; délai du rappel
-config/teacher.php       consignes du professeur (modifiables sans toucher au code)
+config/teacher.php       consignes du professeur (modifiables sans toucher au code ; marqueurs :platform et :teacher)
 config/avatar.php        professeur 3D : fichier du modèle, cadrage, expressions proposées à Gemini, crédits
 config/services.php      gemini : clé, modèle Live, version d'API, voix, durée des jetons, tarifs pour l'estimation
 public/js/               live-session.js (conversation vocale), pcm-capture-worklet.js (micro → PCM 16 kHz), copy.js (bouton « Copier »),
@@ -90,8 +93,11 @@ public/js/               live-session.js (conversation vocale), pcm-capture-work
 public/teacher3d/        models/teacher-joe.glb (personnage), lib/ (three.js regroupé, HeadAudio, LICENSES.txt)
 public/sw.js             SERVICE WORKER UNIQUE du site (portée « / ») : fichiers statiques + page hors connexion (voir plus bas)
 public/js/app.js         commun à toutes les pages : enregistrement du service worker, apparition des blocs, installation
-public/fonts/            nunito-3.602-latin.woff2 (seule police), OFL-Nunito.txt (licence)
-public/icons/            icônes de l'application (192, 512, adaptative 512, iPhone 180)
+public/fonts/            sora-2.000-latin.woff2 (seule police), OFL-Sora.txt (licence)
+public/brand/            les quatre logos (horizontal, vertical, icone, blanc) en PNG transparent, WebP et WebP 640 pixels
+docs/brand/reference/    originaux des logos (PNG fournis, fond non transparent)
+tools/brand/             prepare-logos.py (EN LOCAL, Python + Pillow) : détourage, marges, WebP, favicon et icônes
+public/icons/            icônes de l'application (192, 512, adaptative 512, iPhone 180, favicon 96) ; public/favicon.ico (16, 32, 48)
 public/images/           teacher-joe.webp (Teacher Joe, page d'accueil)
 tools/teacher3d/         outils LOCAUX (Node) : génération du modèle, regroupement de three.js (voir son README)
 lang/fr/, lang/fr.json   traductions (validation, erreurs HTTP, pagination)
@@ -103,7 +109,7 @@ resources/views/
   components/simple-layout.blade.php  gabarit sans session ni compte (page hors connexion, erreurs 500 et 503)
   components/input.blade.php    champ de formulaire avec erreurs (<x-input>)
   components/icon.blade.php     icônes SVG intégrées (<x-icon name="mic" />), dessinées pour le site
-  components/logo.blade.php     logo provisoire (<x-logo />) : icône + nom + accroche de config/platform.php
+  components/logo.blade.php     logo (<x-logo variant="header|footer" />) : image de config('platform.brand.logo'), nom de la plateforme en texte de remplacement
   components/stepper.blade.php  fil d'étapes animé (paiement, questionnaire)
   errors/                       404, 403, 419 (page expirée), 500, 503
   offline.blade.php             « Vous êtes hors connexion »
@@ -164,7 +170,7 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 
 ### Professeur 3D (phase 5)
 
-- **Modèle** : « Teacher Joe », homme africain jeune adulte, lunettes, chemise, cravate et gilet vert, assis à son bureau. Personnage **original** créé par `tools/teacher3d/build-teacher-joe.mjs` (aucune ressource tierce), licence **CC0 1.0** (domaine public), auteur : la plateforme. Poids : environ **300 Ko** (meshopt). Recherche faite : aucun modèle libre joignable ne réunissait homme africain + licence commerciale + visèmes + squelette + moins de 5 Mo.
+- **Modèle** : « Teacher Joe », homme africain jeune adulte, lunettes, chemise blanche, cravate orange `#FF7A1A` et gilet bleu nuit `#0E2A5C`, assis à son bureau. Personnage **original** créé par `tools/teacher3d/build-teacher-joe.mjs` (aucune ressource tierce), licence **CC0 1.0** (domaine public), auteur : la plateforme. Poids : environ **300 Ko** (meshopt). Recherche faite : aucun modèle libre joignable ne réunissait homme africain + licence commerciale + visèmes + squelette + moins de 5 Mo.
 - **Conventions** (pour pouvoir le remplacer) : os Mixamo, 15 visèmes Oculus, expressions ARKit. Changer de personnage = nouveau GLB dans `public/teacher3d/models/` + `config/avatar.php` (profil `generic` si le squelette n'est pas celui de Teacher Joe : pas de gestes des bras).
 - **Bibliothèques** (statiques, regroupées en local et committées) : three.js 0.185.1 (MIT) et HeadAudio 0.1.0 (MIT, Mika Suominen). Crédits sur la page `/credits` (`config('avatar.credits')`).
 - **Bouche** : HeadAudio (AudioWorklet, MFCC + modèle de visèmes) écoute la voix du professeur avant un retard de 80 ms ajouté au haut-parleur ; repli sur le volume et le timbre si HeadAudio échoue.
@@ -173,17 +179,18 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 - **Cache** : le modèle est gardé dans le Cache Storage du navigateur (cache `teacher3d`) ; le service worker du site (`public/sw.js`) garde les bibliothèques. Les URL portent une empreinte du contenu (`Avatar::asset()`), pas la date du fichier : rien n'est retéléchargé après un déploiement si le fichier n'a pas changé.
 - Désactiver la 3D partout : `AVATAR_3D_ENABLED=false`.
 
-### Identité visuelle et application installable (phase 6)
+### Identité visuelle (phase 6 bis : marque Talkami) et application installable (phase 6)
 
-- **Couleurs** (tirées de Teacher Joe) : vert du gilet `#1f5c49` (principal), orange de la cravate `#c2502c` (accent, boutons d'action), fonds crème `#fbf7f0`. Toutes dans `public/css/tokens.css` (variables `--c-…`), avec les contrastes AA vérifiés en commentaire ; `app.css` n'a aucune couleur en dur (sauf l'illustration SVG de secours du professeur). Changer une couleur = modifier `tokens.css` ; pour l'application installée, reporter le vert et le crème dans `config/platform.php` (`brand.theme_color`, `brand.background_color`).
-- **Police** : Nunito (SIL Open Font License 1.1, The Nunito Project Authors), une seule famille, fichier woff2 variable réduit aux graisses 400 à 800 et aux caractères latins et à la ponctuation française (30 Ko), hébergé dans `public/fonts/`. Licence dans `public/fonts/OFL-Nunito.txt` et sur la page Crédits.
-- **Logo provisoire** : icône + nom, `<x-logo>` ; nom = `platform.name`, icône, accroche et nom court = `platform.brand`. Ne jamais écrire le nom en dur.
+- **Charte** : `docs/charte-graphique.md` (couleurs, contrastes, police, logos, interdits). La lire avant tout changement visuel.
+- **Couleurs** : bleu nuit `#0E2A5C` (principal : en-tête, titres, pied de page, liens), orange vif `#FF7A1A` (accent, boutons d'action), fond `#F4F6FB`. Nuances dérivées de ces deux couleurs uniquement. Toutes dans `public/css/tokens.css` (variables `--c-…`), contrastes AA en commentaire ; `app.css` n'a aucune couleur en dur (sauf la peau et les cheveux du visage SVG de secours). Règles : **texte bleu nuit sur les boutons orange, jamais blanc** (`--c-on-accent`) ; texte orange sur fond clair = `--c-accent-strong` `#B25512` (4,6:1). **Seul le bouton WhatsApp est vert** ; aucun autre vert (site, scène 3D, icônes). Pour l'application installée, reporter le bleu nuit et le fond dans `config/platform.php` (`brand.theme_color`, `brand.background_color`).
+- **Police** : Sora (SIL Open Font License 1.1, The Sora Project Authors), une seule famille, woff2 variable réduit aux graisses 400 à 700 et aux caractères français (21 Ko), dans `public/fonts/`. Licence dans `public/fonts/OFL-Sora.txt` et sur la page Crédits.
+- **Logos** : les quatre images fournies (jamais redessinées, ni en SVG ni en PDF), originaux dans `docs/brand/reference/`, fichiers du site dans `public/brand/` produits par `tools/brand/prepare-logos.py`. En-tête : logo horizontal ; pied de page : logo blanc (`config('platform.brand.logo')`). Favicon et icônes de l'application tirés de `icone`. Nom, nom court et accroche : `config/platform.php`. Ne jamais écrire le nom en dur. `tests/Feature/WebAppTest.php` vérifie que le nom vient de la configuration et que les fichiers des quatre logos existent.
 - **Icônes** : `<x-icon>` (SVG intégrés, trait de 2 px, `currentColor`).
 - **Animations** : courtes (`--dur…`), apparition des blocs `.reveal` (seulement si JavaScript est actif), `.rise`, boutons qui réagissent au toucher, glissement des étapes (`.step-panel`), barres de progression animées, transitions entre pages (`@view-transition`). Toutes coupées par « réduire les animations » (`prefers-reduced-motion`).
 - **Fichiers versionnés** : `App\Support\Asset::url('css/app.css')` ajoute l'empreinte du contenu (`?v=…`). L'utiliser pour tout CSS, JS ou image référencé par une page.
 - **Manifeste** : `/manifest.webmanifest` (`WebAppController`, sans session) : nom et nom court de la configuration, `display: standalone` (plein écran de l'application, sans barre d'adresse), `start_url: /espace`, icônes 192, 512 et adaptative 512, couleurs de l'écran de démarrage.
 - **Service worker** (`public/sw.js`, ancien `teacher3d-sw.js` renommé et étendu, un seul pour tout le site) :
-  - met en cache UNIQUEMENT les fichiers des dossiers `STATIC_PATHS` (`/css/`, `/js/`, `/fonts/`, `/icons/`, `/images/`, `/teacher3d/`), versionnés (`?v=`) ou immuables (police, icônes) ; une seule version par fichier ; le modèle 3D reste dans son propre cache `teacher3d` (géré par `teacher-3d.js`) ;
+  - met en cache UNIQUEMENT les fichiers des dossiers `STATIC_PATHS` (`/css/`, `/js/`, `/fonts/`, `/icons/`, `/images/`, `/brand/`, `/teacher3d/`), versionnés (`?v=`) ou immuables (police, icônes) ; une seule version par fichier ; cache `static-v2` (changer le numéro supprime l'ancien cache à l'activation) ; le modèle 3D reste dans son propre cache `teacher3d` (géré par `teacher-3d.js`) ;
   - les pages (`mode: navigate`) passent TOUJOURS par le réseau, sans copie ; sans réseau, il affiche `/hors-connexion` (seule page gardée, sans session ni donnée personnelle) ;
   - n'intercepte jamais les envois (POST : paiements, signaux et bilans des séances) ni les réponses JSON (jetons des séances) ;
   - `tests/Feature/WebAppTest.php` vérifie qu'aucune route réservée aux comptes ne tombe dans un dossier mis en cache.

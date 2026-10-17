@@ -10,7 +10,8 @@ class HomePageTest extends TestCase
     {
         $this->get('/')
             ->assertOk()
-            ->assertSee('Teacher Joe')
+            ->assertSee(config('platform.name'))
+            ->assertSee(config('avatar.model.name'))
             ->assertSee('Essentiel')
             ->assertSee("5\u{202F}000\u{00A0}FCFA", false)
             ->assertSee('Intensif')
@@ -24,6 +25,7 @@ class HomePageTest extends TestCase
     {
         config([
             'platform.name' => 'Professeur Ama',
+            'platform.brand.short_name' => 'Ama',
             'platform.plans' => [
                 'decouverte' => [
                     'name' => 'Découverte',
@@ -38,7 +40,7 @@ class HomePageTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('Professeur Ama')
-            ->assertDontSee('Teacher Joe')
+            ->assertDontSee('Talkami')
             ->assertSee('Découverte')
             ->assertSee('10 minutes de séance par jour')
             ->assertDontSee('Essentiel');

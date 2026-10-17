@@ -66,14 +66,39 @@ class WebAppTest extends TestCase
 
     public function test_logo_comes_from_the_platform_configuration(): void
     {
-        config(['platform.name' => 'Professeur Ama', 'platform.brand.tagline' => 'Parlez dès aujourd\'hui', 'platform.brand.icon' => 'mic']);
+        config(['platform.name' => 'Professeur Ama', 'platform.brand.short_name' => 'Ama', 'platform.brand.tagline' => 'Parlez dès aujourd\'hui']);
 
-        $this->get('/contact')
-            ->assertOk()
-            ->assertSee('<span class="logo-mark">', false)
-            ->assertSee('Professeur Ama')
+        $response = $this->get('/contact')->assertOk();
+
+        // Logo horizontal dans l'en-tête, logo blanc dans le pied de page, nom de la plateforme en texte de remplacement.
+        $response->assertSee('alt="Professeur Ama"', false)
+            ->assertSee(config('platform.brand.logo.header'), false)
+            ->assertSee(config('platform.brand.logo.footer'), false)
             ->assertSeeText('Parlez dès aujourd\'hui')
-            ->assertSee('<rect x="9" y="3" width="6" height="11" rx="3"/>', false);
+            ->assertDontSee('Talkami');
+    }
+
+    public function test_brand_name_comes_from_configuration_and_the_four_logos_exist(): void
+    {
+        $this->assertSame('Talkami', config('platform.name'));
+        $this->assertSame('Talkami', config('platform.brand.short_name'));
+
+        $this->get('/')->assertOk()->assertSee('<title>'.config('platform.name'), false);
+
+        foreach (['logo-horizontal', 'logo-vertical', 'icone', 'logo-blanc'] as $logo) {
+            foreach (["{$logo}.png", "{$logo}.webp", "{$logo}-640.webp"] as $file) {
+                $this->assertFileExists(public_path("brand/{$file}"));
+            }
+
+            $this->assertFileExists(base_path("docs/brand/reference/{$logo}.png"));
+
+            // PNG à fond transparent (canal alpha).
+            $png = file_get_contents(public_path("brand/{$logo}.png"));
+            $this->assertSame(6, ord($png[25]), "{$logo}.png doit avoir un fond transparent.");
+        }
+
+        $this->assertFileExists(public_path('favicon.ico'));
+        $this->assertFileExists(public_path('icons/apple-touch-icon.png'));
     }
 
     public function test_offline_page_contains_no_personal_data(): void
@@ -98,7 +123,7 @@ class WebAppTest extends TestCase
         preg_match('/const STATIC_PATHS = \\[([^\\]]*)\\];/', $worker, $match);
         preg_match_all("/'([^']+)'/", $match[1], $paths);
         $staticPaths = $paths[1];
-        $this->assertSame(['/css/', '/js/', '/fonts/', '/icons/', '/images/', '/teacher3d/'], $staticPaths);
+        $this->assertSame(['/css/', '/js/', '/fonts/', '/icons/', '/images/', '/brand/', '/teacher3d/'], $staticPaths);
 
         foreach ($staticPaths as $path) {
             $this->assertDirectoryExists(public_path(trim($path, '/')), "{$path} doit être un dossier de fichiers statiques.");

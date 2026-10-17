@@ -1,72 +1,80 @@
 /*
- * Identité visuelle : SEUL fichier où se règlent les couleurs, la police,
+ * Identité visuelle Talkami : SEUL fichier où se règlent les couleurs, la police,
  * les espacements, les rayons, les ombres et les durées d'animation.
- * Changer une couleur ici la change sur tout le site.
+ * Changer une couleur ici la change sur tout le site (voir docs/charte-graphique.md).
  *
- * Couleurs tirées de Teacher Joe : vert de son gilet (principal), orange de
- * sa cravate (accent), fonds crème. Contrastes vérifiés au niveau AA (WCAG 2.2) :
- *   texte #1b2420 sur crème 14,9:1 · texte secondaire #59645e sur crème 5,8:1
- *   blanc sur vert #1f5c49 7,8:1 · blanc sur orange #c2502c 4,7:1
- *   orange #a8401c (texte) sur crème 5,8:1 · bordure de champ #8c958f sur blanc 3,1:1
+ * Couleurs : bleu nuit #0E2A5C (principal : en-tête, titres, pied de page, liens),
+ * orange vif #FF7A1A (accent), fond clair #F4F6FB. Contrastes vérifiés au niveau AA :
+ *   blanc sur bleu nuit 14,0:1 · bleu nuit sur fond clair 12,9:1
+ *   bleu nuit sur orange vif 5,35:1 (texte des boutons orange ; JAMAIS de blanc : 2,6:1)
+ *   orange texte #B25512 sur fond clair 4,6:1 (sur blanc 5,0:1)
+ *   texte #14213D sur fond clair 14,8:1 · texte secondaire #4E5A70 sur fond clair 6,4:1
+ *   bordure de champ #7C879B sur blanc 3,6:1
+ * Seul autre vert autorisé : le bouton WhatsApp.
  */
 
-/* Police unique : Nunito (SIL Open Font License 1.1), graisses 400 à 800,
-   caractères latins et ponctuation française seulement (30 Ko). */
+/* Police unique : Sora (SIL Open Font License 1.1), graisses 400 à 700,
+   caractères latins et ponctuation française seulement (21 Ko). */
 @font-face {
-    font-family: "Nunito";
-    src: url("../fonts/nunito-3.602-latin.woff2") format("woff2");
-    font-weight: 400 800;
+    font-family: "Sora";
+    src: url("../fonts/sora-2.000-latin.woff2") format("woff2");
+    font-weight: 400 700;
     font-style: normal;
     font-display: swap;
 }
 
 :root {
-    /* Couleurs principales */
-    --c-primary: #1f5c49;          /* vert du gilet */
-    --c-primary-strong: #174636;   /* survol, texte sur fond vert pâle */
-    --c-primary-deep: #133c30;     /* pied de page, bandeaux */
-    --c-primary-soft: #e6f1ec;     /* fonds vert pâle */
-    --c-primary-line: #b9d6c9;     /* bordures sur fond vert pâle */
-    --c-accent: #c2502c;           /* orange de la cravate (fonds, boutons) */
-    --c-accent-strong: #a8401c;    /* orange pour du texte sur fond clair */
-    --c-accent-ink: #8a3415;       /* texte sur fond orange pâle */
-    --c-accent-soft: #fdebe3;      /* fonds orange pâle */
+    /* Couleur principale : bleu nuit */
+    --c-primary: #0E2A5C;          /* en-tête, titres, pied de page, liens, boutons principaux */
+    --c-primary-strong: #0A1F45;   /* survol des boutons bleu nuit */
+    --c-primary-deep: #0E2A5C;     /* pied de page, bandeaux */
+    --c-primary-soft: #E7ECF6;     /* fonds bleu pâle (cartes, badges) */
+    --c-primary-line: #C3CEE5;     /* bordures sur fond bleu pâle */
+    --c-primary-bright: #3D6BC4;   /* fin du dégradé des barres de progression */
+    --c-heading: #0E2A5C;          /* titres */
+
+    /* Couleur d'accent : orange vif */
+    --c-accent: #FF7A1A;           /* boutons d'action (texte bleu nuit), sourire du logo */
+    --c-accent-hover: #FF8F3F;     /* survol des boutons orange (texte bleu nuit 6,2:1) */
+    --c-on-accent: #0E2A5C;        /* texte sur orange vif : toujours bleu nuit */
+    --c-accent-strong: #B25512;    /* orange pour du texte sur fond clair (4,6:1) */
+    --c-accent-ink: #8A3A00;       /* texte sur fond orange pâle (6,9:1) */
+    --c-accent-soft: #FFEDE0;      /* fonds orange pâle */
 
     /* Fonds et texte */
-    --c-bg: #fbf7f0;               /* crème */
-    --c-bg-warm: #f5ecdd;          /* crème plus soutenu (sections) */
-    --c-surface: #ffffff;
-    --c-text: #1b2420;
-    --c-muted: #59645e;
-    --c-on-dark: #ffffff;
-    --c-on-dark-muted: #cfe6db;
-    --c-border: #e4ddd0;           /* séparateurs (décoratifs) */
-    --c-field: #8c958f;            /* contour des champs (3:1) */
+    --c-bg: #F4F6FB;               /* fond clair */
+    --c-bg-warm: #E9EDF6;          /* fond des sections, pistes des barres */
+    --c-surface: #FFFFFF;
+    --c-text: #14213D;
+    --c-muted: #4E5A70;
+    --c-on-dark: #FFFFFF;
+    --c-on-dark-muted: #C9D5EC;    /* texte secondaire sur bleu nuit (9,5:1) */
+    --c-border: #DDE3EE;           /* séparateurs (décoratifs) */
+    --c-field: #7C879B;            /* contour des champs (3,6:1) */
 
     /* États */
-    --c-success: #1f5c49;
-    --c-success-soft: #e6f1ec;
-    --c-danger: #b42318;
-    --c-danger-strong: #8f1c13;
-    --c-danger-soft: #fdecea;
-    --c-info: #1f3f73;
-    --c-info-soft: #e8f0fb;
-    --c-warning: #6b4a06;
-    --c-warning-soft: #fdf3dc;
-    --c-whatsapp: #0f7a40;
-    --c-whatsapp-strong: #0b5f32;
-    --c-focus: #c2502c;
-    --c-primary-bright: #2f8a6c;   /* fin du dégradé des barres de progression */
-    --c-danger-line: #f6c9c4;
-    --c-info-line: #c9daf3;
-    --c-warning-line: #f2dda6;
-    --c-header: rgba(251, 247, 240, .94);  /* crème légèrement transparent */
-    --c-ring: rgba(31, 92, 73, .18);       /* halo des champs actifs */
-    --c-on-dark-line: rgba(255, 255, 255, .14);
+    --c-success: #0E2A5C;
+    --c-success-soft: #E7ECF6;
+    --c-danger: #B42318;
+    --c-danger-strong: #8F1C13;
+    --c-danger-soft: #FDECEA;
+    --c-info: #1F3F73;
+    --c-info-soft: #E8F0FB;
+    --c-warning: #6B4A06;
+    --c-warning-soft: #FDF3DC;
+    --c-whatsapp: #0F7A40;         /* seul vert du site : bouton WhatsApp (blanc dessus 5,4:1) */
+    --c-whatsapp-strong: #0B5F32;
+    --c-focus: #B25512;            /* contour du focus (4,6:1 sur le fond) */
+    --c-danger-line: #F6C9C4;
+    --c-info-line: #C9DAF3;
+    --c-warning-line: #F2DDA6;
+    --c-header: rgba(244, 246, 251, .94);  /* fond clair légèrement transparent */
+    --c-ring: rgba(14, 42, 92, .18);       /* halo des champs actifs */
+    --c-on-dark-line: rgba(255, 255, 255, .16);
     --c-on-dark-glow: rgba(255, 255, 255, .07);
 
     /* Typographie */
-    --font: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --font: "Sora", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
     --fs-xs: .8125rem;
     --fs-sm: .9rem;
     --fs-md: 1rem;
@@ -75,8 +83,8 @@
     --fs-2xl: 1.75rem;
     --fs-3xl: 2.1rem;
     --fw-normal: 400;
-    --fw-bold: 700;
-    --fw-heavy: 800;
+    --fw-bold: 600;
+    --fw-heavy: 700;   /* Sora est chargée de 400 à 700 */
 
     /* Espacements (multiples de 4 px) */
     --space-1: 4px;
@@ -98,12 +106,12 @@
     --radius-lg: 22px;
     --radius-pill: 999px;
 
-    /* Ombres (teintées de vert, légères) */
-    --shadow-sm: 0 1px 2px rgba(19, 60, 48, .08);
-    --shadow: 0 2px 4px rgba(19, 60, 48, .06), 0 6px 18px rgba(19, 60, 48, .08);
-    --shadow-lg: 0 10px 30px rgba(19, 60, 48, .16);
-    --shadow-accent: 0 6px 18px rgba(194, 80, 44, .32);
-    --shadow-up: 0 -4px 16px rgba(19, 60, 48, .06);
+    /* Ombres (teintées de bleu nuit, légères) */
+    --shadow-sm: 0 1px 2px rgba(14, 42, 92, .08);
+    --shadow: 0 2px 4px rgba(14, 42, 92, .06), 0 6px 18px rgba(14, 42, 92, .08);
+    --shadow-lg: 0 10px 30px rgba(14, 42, 92, .18);
+    --shadow-accent: 0 6px 18px rgba(255, 122, 26, .35);
+    --shadow-up: 0 -4px 16px rgba(14, 42, 92, .06);
 
     /* Animations (désactivées si « réduire les animations ») */
     --ease: cubic-bezier(.2, .8, .2, 1);
