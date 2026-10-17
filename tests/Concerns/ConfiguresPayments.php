@@ -7,13 +7,25 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Réglages de paiement FICTIFS (aucun vrai numéro dans le dépôt) et lecture de
- * capture simulée (aucun appel réel à Gemini).
+ * Réglages de paiement FICTIFS et lecture de capture simulée (aucun appel réel à Gemini).
+ * withoutDefaults() retire les valeurs par défaut de la configuration (numéros,
+ * titulaires, coordonnées) pour tester un site où rien n'est configuré.
  */
 trait ConfiguresPayments
 {
     /** Lecture simulée en cours (false : simulation pas encore enregistrée). */
     protected array|false|null $proofReadingFake = false;
+
+    protected function withoutDefaults(): void
+    {
+        foreach (config('payment.countries') as $code => $country) {
+            foreach (array_keys($country['operators']) as $key) {
+                config(["payment.countries.{$code}.operators.{$key}.number" => null, "payment.countries.{$code}.operators.{$key}.holder" => null]);
+            }
+        }
+
+        config(['platform.contact.address' => null, 'platform.contact.phones' => [], 'platform.contact.email' => null, 'platform.contact.whatsapp' => null]);
+    }
 
     protected function configurePayments(): void
     {

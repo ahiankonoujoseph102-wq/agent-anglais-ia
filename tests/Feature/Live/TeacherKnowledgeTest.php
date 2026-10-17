@@ -76,8 +76,19 @@ class TeacherKnowledgeTest extends TestCase
         }
 
         $this->assertStringContainsString(Plan::find('essentiel')->formattedPrice(), $guide);
-        // Aucun numéro saisi : le paiement n'est pas encore ouvert.
-        $this->assertStringContainsString('le paiement n\'est pas encore ouvert', $guide);
+        // Valeurs par défaut : les sept opérateurs, sans aucun numéro dans la fiche.
+        $this->assertStringContainsString('- Togo : Mixx by Yas, Flooz.', $guide);
+        $this->assertStringContainsString('- Burkina Faso : Orange Money, Wave.', $guide);
+        $this->assertStringContainsString('- Bénin : MTN, Moov, Celtiis.', $guide);
+        $this->assertStringNotContainsString((string) config('payment.countries.TG.operators.flooz.number'), $guide);
+
+        // Rien de configuré : le paiement n'est pas encore ouvert.
+        foreach (config('payment.countries') as $code => $country) {
+            foreach (array_keys($country['operators']) as $key) {
+                config(["payment.countries.{$code}.operators.{$key}.number" => null]);
+            }
+        }
+        $this->assertStringContainsString('le paiement n\'est pas encore ouvert', SiteGuide::text());
 
         // Seuls les opérateurs dont le numéro est saisi dans les Réglages (numéros fictifs).
         SiteSettings::save([

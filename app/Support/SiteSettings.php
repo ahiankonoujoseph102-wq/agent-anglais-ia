@@ -6,9 +6,11 @@ use App\Models\Setting;
 use Throwable;
 
 /**
- * Réglages saisis par l'administrateur (page « Réglages », table settings) :
- * numéros de réception et titulaires Mobile Money, coordonnées du centre.
- * Rien de tout cela n'est dans le dépôt (public).
+ * Réglages de l'administration (page « Réglages », table settings) : numéros de
+ * réception et titulaires Mobile Money, coordonnées du centre.
+ *
+ * Chaque valeur a une valeur PAR DÉFAUT dans la configuration (config/payment.php,
+ * config/platform.php) : une valeur saisie la remplace, un champ vide y revient.
  *
  * Lus une seule fois par requête ; si la base est indisponible (page d'erreur),
  * tout est simplement vide.
@@ -20,9 +22,38 @@ class SiteSettings
 
     public const CONTACT_KEYS = ['contact.address', 'contact.phones', 'contact.email', 'contact.whatsapp'];
 
+    /**
+     * Valeur utilisée : celle des Réglages, sinon la valeur par défaut.
+     */
     public static function get(string $key): ?string
     {
+        return self::saved($key) ?? self::default($key);
+    }
+
+    /**
+     * Valeur saisie dans les Réglages (null : champ vide).
+     */
+    public static function saved(string $key): ?string
+    {
         $value = trim((string) (self::all()[$key] ?? ''));
+
+        return $value === '' ? null : $value;
+    }
+
+    /**
+     * Valeur par défaut de la configuration (null : aucune).
+     */
+    public static function default(string $key): ?string
+    {
+        if (preg_match('/^payment\.([A-Z]{2})\.(\w+)\.(number|holder)$/', $key, $match)) {
+            $value = config("payment.countries.{$match[1]}.operators.{$match[2]}.{$match[3]}");
+        } elseif (str_starts_with($key, 'contact.')) {
+            $value = config('platform.'.$key);
+        } else {
+            $value = null;
+        }
+
+        $value = trim(is_array($value) ? implode("\n", $value) : (string) $value);
 
         return $value === '' ? null : $value;
     }

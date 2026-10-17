@@ -55,10 +55,13 @@ class CheckDeployment extends Command
         $this->section('Planificateur');
         $this->checkScheduler();
 
-        $this->section('Réglages de l\'administration (page « Réglages »)');
+        // Valeurs par défaut de la configuration, remplacées par celles saisies dans les Réglages (facultatifs).
+        $this->section('Moyens de paiement et coordonnées (configuration et Réglages)');
         $operators = array_sum(array_map(fn (PaymentCountry $country) => count($country->operators), PaymentCountry::available()));
-        $this->check("Numéros Mobile Money saisis : {$operators} opérateur(s) ouvert(s)", $operators > 0, 'Aucun numéro de réception : saisissez-les dans Administration, « Réglages » (les apprenants ne peuvent pas payer).');
-        $this->check('Numéro WhatsApp de l\'équipe saisi', SiteSettings::whatsapp() !== null, 'Saisissez-le dans Administration, « Réglages » (boutons « Prévenir sur WhatsApp », mot de passe oublié).');
+        $this->check("Opérateurs Mobile Money proposés : {$operators}", $operators > 0, 'Aucun numéro de réception : ni valeur par défaut dans config/payment.php, ni numéro saisi dans Administration, « Réglages ». Les apprenants ne peuvent pas payer.');
+        $this->check('Numéro WhatsApp de l\'équipe', SiteSettings::whatsapp() !== null, 'Aucun numéro WhatsApp : ajoutez-le dans Administration, « Réglages » (boutons « Prévenir sur WhatsApp », mot de passe oublié).');
+        $custom = count(array_filter(array_keys(self::settingKeys()), fn (string $key) => SiteSettings::saved($key) !== null));
+        $this->line("    Valeurs saisies dans les Réglages : {$custom} (les autres : valeurs par défaut)");
 
         $this->section('Professeur IA');
         $this->check('Clé Gemini présente', filled(config('services.gemini.key')), 'GEMINI_API_KEY est vide : les séances vocales ne fonctionneront pas.');
@@ -74,6 +77,25 @@ class CheckDeployment extends Command
         $this->info('Tout est en ordre.');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Clés des Réglages (numéros, titulaires, coordonnées).
+     *
+     * @return array<string, true>
+     */
+    private static function settingKeys(): array
+    {
+        $keys = array_fill_keys(SiteSettings::CONTACT_KEYS, true);
+
+        foreach (PaymentCountry::all() as $country) {
+            foreach ($country->operators as $operator) {
+                $keys[SiteSettings::operatorNumberKey($country->code, $operator->key)] = true;
+                $keys[SiteSettings::operatorHolderKey($country->code, $operator->key)] = true;
+            }
+        }
+
+        return $keys;
     }
 
     private function checkDatabase(): void

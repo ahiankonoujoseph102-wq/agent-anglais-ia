@@ -62,9 +62,11 @@ class SubmitPaymentTest extends TestCase
 
     public function test_only_operators_with_a_number_are_offered(): void
     {
+        // Seulement les numéros fictifs des Réglages, sans valeurs par défaut.
+        $this->withoutDefaults();
         $user = User::factory()->create();
 
-        // Pays : Burkina Faso n'a aucun numéro saisi, il n'est pas proposé.
+        // Pays : Burkina Faso n'a aucun numéro, il n'est pas proposé.
         $this->actingAs($user)
             ->get('/abonnement/essentiel')
             ->assertOk()
@@ -105,6 +107,8 @@ class SubmitPaymentTest extends TestCase
 
     public function test_without_any_number_the_page_invites_to_contact_the_team(): void
     {
+        $this->withoutDefaults();
+
         foreach (['TG.mixx', 'TG.flooz', 'BJ.celtiis'] as $operator) {
             [$country, $key] = explode('.', $operator);
             SiteSettings::save([SiteSettings::operatorNumberKey($country, $key) => '']);

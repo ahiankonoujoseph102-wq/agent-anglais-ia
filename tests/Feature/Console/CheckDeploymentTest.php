@@ -9,14 +9,17 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Tests\Concerns\ConfiguresPayments;
 use Tests\TestCase;
 
 class CheckDeploymentTest extends TestCase
 {
+    use ConfiguresPayments;
     use RefreshDatabase;
 
     public function test_a_healthy_production_setup_passes(): void
     {
+        $this->freezeSecond();
         $this->app['env'] = 'production';
         config([
             'app.debug' => false,
@@ -34,11 +37,8 @@ class CheckDeploymentTest extends TestCase
         Storage::disk('bucket')->put('attestations/TA-A1-AAAA-BBBB.pdf', 'x');
 
         Cache::put(CheckDeployment::HEARTBEAT_KEY, now()->timestamp - 30);
-        // Réglages fictifs : un numéro de réception et le WhatsApp de l'équipe.
-        SiteSettings::save([
-            SiteSettings::operatorNumberKey('TG', 'mixx') => '+228 90 00 00 11',
-            'contact.whatsapp' => '+228 90 00 00 99',
-        ]);
+        // Un numéro saisi dans les Réglages (fictif) ; les autres : valeurs par défaut.
+        SiteSettings::save([SiteSettings::operatorNumberKey('TG', 'mixx') => '+228 90 00 00 11']);
 
         // La base de test est SQLite en local et MySQL dans l'intégration continue : le contrôle exige MySQL.
         $onMysql = DB::connection()->getDriverName() === 'mysql';
@@ -48,9 +48,11 @@ class CheckDeploymentTest extends TestCase
             ->expectsOutputToContain('Captures de paiement enregistrées : 1')
             ->expectsOutputToContain('Attestations enregistrées : 1')
             ->expectsOutputToContain('Dernier passage du planificateur il y a 30 secondes')
-            ->expectsOutputToContain('1 opérateur(s) ouvert(s)')
+            ->expectsOutputToContain('Opérateurs Mobile Money proposés : 7')
+            ->expectsOutputToContain('Valeurs saisies dans les Réglages : 1')
             ->doesntExpectOutputToContain('cle-fictive')
-            ->doesntExpectOutputToContain('90 00 00 11');
+            ->doesntExpectOutputToContain('90 00 00 11')
+            ->doesntExpectOutputToContain(config('payment.countries.TG.operators.flooz.number'));
 
         $onMysql
             ? $command->expectsOutputToContain('Tout est en ordre.')->assertSuccessful()
@@ -74,6 +76,7 @@ class CheckDeploymentTest extends TestCase
             'services.gemini.key' => null,
         ]);
         Cache::forget(CheckDeployment::HEARTBEAT_KEY);
+        $this->withoutDefaults();
 
         $this->artisan('app:check-deployment')
             ->expectsOutputToContain('APP_DEBUG doit valoir false.')
@@ -100,6 +103,7 @@ class CheckDeploymentTest extends TestCase
     public function test_the_scheduled_heartbeat_writes_the_timestamp(): void
     {
         Cache::forget(CheckDeployment::HEARTBEAT_KEY);
+        $this->withoutDefaults();
 
         $event = collect($this->app->make(Schedule::class)->events())->first(fn ($e) => $e->description === 'scheduler-heartbeat');
         $event->run($this->app);
