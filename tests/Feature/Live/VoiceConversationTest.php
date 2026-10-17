@@ -74,4 +74,28 @@ class VoiceConversationTest extends TestCase
             ->assertSee('data-teacher-name="'.config('avatar.model.name').'"', false)
             ->assertSee('id="turn"', false);
     }
+
+    public function test_conversation_screen_has_a_mic_meter_a_mic_choice_and_the_silent_mic_warning(): void
+    {
+        config(['platform.live.voice_gain' => 2.5, 'platform.live.echo_cancellation' => false]);
+
+        $html = $this->actingAs(User::factory()->create())->get('/evaluation')->assertOk()->getContent();
+
+        $this->assertStringContainsString('id="mic-level"', $html);
+        $this->assertStringContainsString('Micro utilisé', $html);
+        $this->assertStringContainsString('id="mic-select"', $html);
+        $this->assertStringContainsString('Nous ne vous entendons pas. Vérifiez votre micro. Si des écouteurs ou une enceinte Bluetooth sont connectés, portez-les ou déconnectez-les.', $html);
+        $this->assertStringContainsString('js/mic-input.js', $html);
+        $this->assertStringContainsString("data-audio='{\"echo_cancellation\":false,\"voice_gain\":2.5,\"silent_mic_seconds\":8}'", $html);
+    }
+
+    public function test_voice_gain_and_echo_cancellation_defaults(): void
+    {
+        $this->assertSame(2.0, config('platform.live.voice_gain'));
+        $this->assertTrue(config('platform.live.echo_cancellation'));
+
+        $config = file_get_contents(config_path('platform.php'));
+        $this->assertStringContainsString("env('GEMINI_VOICE_GAIN', 2.0)", $config);
+        $this->assertStringContainsString("env('LIVE_ECHO_CANCELLATION', true)", $config);
+    }
 }

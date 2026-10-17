@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\InactiveLearnerController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\UsageController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VoiceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -117,6 +118,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/inscrits/{user}/mot-de-passe', [UserController::class, 'temporaryPassword'])->name('users.password');
     Route::delete('/inscrits/{user}/evaluation', [AdminAssessmentController::class, 'destroy'])->name('assessments.destroy');
     Route::get('/consommation', [UsageController::class, 'index'])->name('usage.index');
+    Route::get('/voix', [VoiceController::class, 'index'])->name('voices.index');
+    Route::get('/voix/{voice}/extrait', [VoiceController::class, 'sample'])->where('voice', '[A-Za-z]+')->middleware('throttle:30,1')->name('voices.sample');
+    Route::post('/voix', [VoiceController::class, 'choose'])->name('voices.choose');
     Route::get('/inactifs', [InactiveLearnerController::class, 'index'])->name('inactive.index');
     Route::get('/inactifs/{user}/whatsapp', [InactiveLearnerController::class, 'whatsapp'])->name('inactive.whatsapp');
 });

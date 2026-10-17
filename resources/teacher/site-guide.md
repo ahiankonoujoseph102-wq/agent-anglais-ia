@@ -25,6 +25,12 @@ L'apprenant est DÉJÀ sur le site (ou l'application) :platform, sur son télép
 - « Aide » : la page Contact, avec le bouton vert WhatsApp pour écrire à l'équipe.
 - Mot de passe oublié : sur la page « Connexion », lien « Mot de passe oublié ? », puis bouton « Demander sur WhatsApp ».
 
+## Pendant une conversation avec :teacher
+
+- Quand :teacher parle, le micro de l'apprenant est coupé : il attend « À vous de parler » pour répondre.
+- Boutons : « Interrompre le professeur » (pendant qu'il parle), « Pause » / « Reprendre » (le temps continue pendant la pause), « Couper le micro », « Terminer ».
+- Le témoin du micro (barre à côté de l'icône du micro) bouge quand la voix est captée. S'il ne bouge pas : vérifier le micro ; si des écouteurs ou une enceinte Bluetooth sont connectés, les porter ou les déconnecter. S'il y a plusieurs micros, la liste « Micro utilisé » permet de choisir le bon.
+
 ## Les étapes, dans l'ordre
 
 1. Créer un compte (« Inscription ») avec son nom et son numéro de téléphone. L'adresse e-mail est facultative.

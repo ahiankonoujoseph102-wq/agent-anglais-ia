@@ -48,13 +48,13 @@ return [
 
     // Expressions que le professeur peut demander (fonction set_expression de Gemini).
     'expressions' => [
-        'welcome' => 'warm welcome at the beginning (smile and wave)',
-        'happy' => 'the learner succeeded: big smile, congratulations',
-        'encouraging' => 'the learner is struggling or shy: kind encouragement',
-        'attentive' => 'just before you correct a mistake: attentive and kind',
-        'thinking' => 'you are thinking about a question',
-        'goodbye' => 'saying goodbye at the end (smile and wave)',
-        'neutral' => 'back to a calm neutral face',
+        'welcome' => 'once, at the very beginning, with your greeting (smile and wave)',
+        'happy' => 'each time the learner answers well or makes progress: big smile',
+        'encouraging' => 'when the learner hesitates, struggles, doubts or is shy: kind encouraging smile',
+        'attentive' => 'just before you correct a mistake, or when the learner tells you something personal: attentive and kind',
+        'thinking' => 'when you take a moment before a harder question or think about the learner\'s answer',
+        'goodbye' => 'once, at the very end, with your goodbye (smile and wave)',
+        'neutral' => 'back to a calm face after a long explanation',
     ],
 
     // Crédits affichés sur la page /credits (professeur 3D, police, bibliothèques).

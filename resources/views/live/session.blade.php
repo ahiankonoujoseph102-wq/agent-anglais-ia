@@ -1,4 +1,12 @@
 {{-- Écran de conversation vocale, commun à l'évaluation et à la séance du jour. --}}
+@php
+    // Réglages audio lus par public/js/live-session.js (config/platform.php → live).
+    $audio = [
+        'echo_cancellation' => (bool) config('platform.live.echo_cancellation'),
+        'voice_gain' => (float) config('platform.live.voice_gain'),
+        'silent_mic_seconds' => (int) config('platform.live.silent_mic_seconds'),
+    ];
+@endphp
 <x-layout :title="$title" focus>
     <div id="live" class="live"
          data-mode="{{ $mode }}"
@@ -6,6 +14,8 @@
          data-worklet="{{ \App\Support\Asset::url('js/pcm-capture-worklet.js') }}"
          data-mic-gate="{{ \App\Support\Asset::url('js/mic-gate.js') }}"
          data-pcm-audio="{{ \App\Support\Asset::url('js/pcm-audio.js') }}"
+         data-mic-input="{{ \App\Support\Asset::url('js/mic-input.js') }}"
+         data-audio='@json($audio)'
          @if (\App\Support\Avatar::enabled())
              data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"
              data-teacher3d='@json(\App\Support\Avatar::clientConfig())'
@@ -53,6 +63,23 @@
         <div id="turn" class="live-turn" data-turn="listening" role="status" aria-live="polite" hidden>
             <span class="live-turn-dot" aria-hidden="true"></span>
             <span id="turn-text"></span>
+        </div>
+
+        {{-- Micro : témoin de niveau et choix du micro (plusieurs micros : téléphone, Bluetooth, écouteurs). --}}
+        <div id="mic-panel" class="mic-panel" hidden>
+            <div class="mic-meter" title="Niveau de votre micro" aria-hidden="true">
+                <x-icon name="mic" />
+                <span class="mic-meter-track"><span id="mic-level" class="mic-meter-bar"></span></span>
+            </div>
+            <label id="mic-choice" class="mic-choice" hidden>
+                <span>Micro utilisé</span>
+                <select id="mic-select"></select>
+            </label>
+        </div>
+
+        <div id="mic-warning" class="alert alert-warning" role="alert" hidden>
+            <x-icon name="mic-off" />
+            <div>Nous ne vous entendons pas. Vérifiez votre micro. Si des écouteurs ou une enceinte Bluetooth sont connectés, portez-les ou déconnectez-les.</div>
         </div>
 
         <div id="error" class="alert alert-error" role="alert" hidden></div>

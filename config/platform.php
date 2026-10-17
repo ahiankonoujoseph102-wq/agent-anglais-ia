@@ -82,6 +82,14 @@ return [
         'echo_guard_ms' => 400,
         // Le temps continue pendant une pause ; au-delà de cette durée, la conversation se termine.
         'pause_max_seconds' => 120,
+        // Volume de la voix du professeur (1 = tel quel). Un limiteur empêche toute saturation.
+        'voice_gain' => (float) env('GEMINI_VOICE_GAIN', 2.0),
+        // Annulation d'écho du navigateur. Sur Android, Chrome passe alors le téléphone en mode
+        // « communication » : la voix suit le volume d'appel, souvent plus bas. Le demi-duplex
+        // empêche déjà l'écho ; à couper (false) seulement après un essai sans écho sur téléphone.
+        'echo_cancellation' => (bool) env('LIVE_ECHO_CANCELLATION', true),
+        // Sans aucun son capté pendant ce temps alors que c'est à l'apprenant de parler : message.
+        'silent_mic_seconds' => 8,
     ],
 
     /*

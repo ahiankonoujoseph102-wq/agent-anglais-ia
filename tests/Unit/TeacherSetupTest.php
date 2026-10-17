@@ -6,10 +6,13 @@ use App\Enums\Level;
 use App\Models\User;
 use App\Support\Gemini\TeacherSetup;
 use App\Support\Gemini\UsageCost;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class TeacherSetupTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_instructions_come_from_the_configuration_file(): void
     {
         config([
@@ -36,12 +39,66 @@ class TeacherSetupTest extends TestCase
         $this->assertStringStartsWith('Hello :minutes, 10 min.', TeacherSetup::instructions('lesson', $user, 10));
     }
 
-    public function test_unknown_level_uses_the_beginner_friendly_guidance(): void
+    public function test_assessment_is_entirely_in_english_with_french_as_a_last_resort(): void
     {
-        $text = TeacherSetup::instructions('assessment', new User(['name' => 'Afi']), 5);
+        $user = new User(['name' => 'Afi']);
+        // Même pour un apprenant au niveau déjà connu (évaluation réinitialisée), aucune règle « français ».
+        $user->level = Level::A1;
+        $text = TeacherSetup::instructions('assessment', $user, 5);
 
-        $this->assertStringContainsString(config('teacher.level_guidance.unknown'), $text);
         $this->assertStringContainsString('lasts 5 minutes at most', $text);
+        $this->assertStringContainsString('the whole assessment is in ENGLISH, from the first word to the last, including the greeting and the conclusion', $text);
+        $this->assertStringContainsString('1) repeat the question more slowly; 2) if still not understood, rephrase it with simpler, shorter words; 3) then move on to an easier question', $text);
+        $this->assertStringContainsString('if the learner has said TWICE, in French, that they understand nothing, say ONE short, reassuring sentence in French', $text);
+        $this->assertStringContainsString('This difficulty must be reflected in the level you record', $text);
+        $this->assertStringContainsString('practical questions about the website (sign-up, payment, plans…) get a short answer in French', $text);
+        $this->assertStringContainsString('Greeting, in English, short and simple', $text);
+        $this->assertStringContainsString('Then, in simple English, announce the level', $text);
+        $this->assertStringNotContainsString(config('teacher.level_guidance.A1'), $text);
+        $this->assertStringNotContainsString('Greet the learner in French', $text);
+    }
+
+    public function test_lessons_from_a2_do_not_switch_to_french_too_easily(): void
+    {
+        foreach (['A2', 'B1'] as $value) {
+            $user = new User(['name' => 'Afi']);
+            $user->level = Level::from($value);
+            $text = TeacherSetup::instructions('lesson', $user, 15);
+
+            $this->assertStringContainsString(config("teacher.level_guidance.{$value}"), $text);
+            $this->assertStringContainsString('repeat', config("teacher.level_guidance.{$value}"));
+            $this->assertStringContainsString('rephrase in simpler English', config("teacher.level_guidance.{$value}"));
+        }
+
+        $this->assertStringContainsString('English by default', config('teacher.level_guidance.A2'));
+        $this->assertStringContainsString('Never switch to French just because the learner said "I don\'t understand"', config('teacher.level_guidance.A2'));
+        $this->assertStringContainsString('English only', config('teacher.level_guidance.B1'));
+    }
+
+    public function test_teacher_matches_the_learner_tone_and_shows_active_listening(): void
+    {
+        $text = TeacherSetup::instructions('lesson', new User(['name' => 'Afi']), 15);
+
+        $this->assertStringContainsString('Match the learner\'s energy and tone', $text);
+        $this->assertStringContainsString('Enthusiastic and joyful learner: be enthusiastic and joyful too', $text);
+        $this->assertStringContainsString('Shy or hesitant learner: be calm and soft', $text);
+        $this->assertStringContainsString('Learner who doubts themselves: be encouraging', $text);
+        $this->assertStringContainsString('Never mocking', $text);
+        $this->assertStringContainsString('pick up one element of the learner\'s answer', $text);
+        $this->assertStringContainsString('Never chain questions mechanically', $text);
+    }
+
+    public function test_expressions_are_used_often_but_never_twice_in_a_row(): void
+    {
+        config(['avatar.enabled' => true]);
+
+        $functions = TeacherSetup::lesson(new User(['name' => 'Afi']), 15)['tools'][0]['functionDeclarations'];
+        $description = $functions[1]['description'];
+
+        $this->assertStringContainsString('about once every one or two turns', $description);
+        $this->assertStringContainsString('never twice in a row with the same expression', $description);
+        $this->assertStringContainsString('"happy": each time the learner answers well', $description);
+        $this->assertStringContainsString('"encouraging": when the learner hesitates', $description);
     }
 
     public function test_setup_locks_audio_transcription_and_resumption(): void
@@ -125,8 +182,7 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('rephrase the question ONCE, more simply', $text);
         $this->assertStringContainsString('move on to another, easier question', $text);
         $this->assertStringContainsString('Never speak over the learner', $text);
-        $this->assertStringContainsString('accept that the learner answers in French', $text);
-        $this->assertStringContainsString('ask your first, very easy question (for example their name) and WAIT', $text);
+        $this->assertStringContainsString('ask your first, very easy question (for example: "What is your name?") and WAIT', $text);
     }
 
     public function test_resumption_cues_never_ask_for_a_new_welcome(): void
