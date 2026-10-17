@@ -865,13 +865,9 @@ main { overflow-x: clip; }
 }
 .course-extract { max-height: 260px; overflow: auto; padding: var(--space-3); border-radius: var(--radius-sm); background: var(--c-bg); white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: var(--fs-sm); }
 
-/* Accueil : aide aux cours d'anglais des élèves et bloc « Parents » */
+/* Accueil : aide aux cours d'anglais des élèves (étapes avec icônes) */
 .help-steps { list-style: none; padding: 0; margin: var(--space-4) 0; display: grid; gap: var(--space-3); }
 .help-steps li { display: flex; gap: var(--space-3); align-items: center; font-weight: var(--fw-bold); }
 .help-steps .icon-bubble { flex: none; width: 44px; height: 44px; }
 .help-only { display: flex; gap: var(--space-2); align-items: center; margin: 0 0 var(--space-3); font-weight: var(--fw-heavy); color: var(--c-accent-strong); }
 .help-only .icon { flex: none; }
-.parents { display: flex; gap: var(--space-4); align-items: flex-start; margin-top: var(--space-5); }
-.parents .icon-bubble { flex: none; }
-.parents h3 { margin: 0 0 var(--space-1); }
-.parents p { margin: 0; }

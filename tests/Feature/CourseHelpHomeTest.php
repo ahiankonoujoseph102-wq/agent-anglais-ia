@@ -29,11 +29,14 @@ class CourseHelpHomeTest extends TestCase
             "Vos cours d'anglais enfin compris",
             "Photographiez votre leçon ou votre exercice d'anglais",
             'en français quand il le faut',
-            'Posez-lui toutes vos questions',
+            'Posez-lui vos questions sur la leçon',
             'Il vous guide pour faire votre exercice vous-même, puis corrige',
             "Uniquement pour les cours d'anglais.",
-            'Parents',
+            'Vous êtes parent ?',
+            "Un professeur d'anglais patient pour votre enfant",
             'ne fait pas les devoirs à la place de votre enfant',
+            "Il l'entraîne aussi à parler anglais à voix haute.",
+            'Inscrire mon enfant',
             "vous aide aussi à comprendre vos cours d'anglais de l'école",
         ] as $text) {
             $this->assertStringContainsString($text, $html);
@@ -41,6 +44,45 @@ class CourseHelpHomeTest extends TestCase
 
         // L'oral reste le message principal : le titre du haut de page n'a pas changé.
         $this->assertStringContainsString('Parlez anglais avec un professeur', $html);
+    }
+
+    public function test_the_three_cards_share_one_format_and_come_in_the_right_order(): void
+    {
+        $html = $this->get('/')->assertOk()->getContent();
+
+        $eleves = strpos($html, 'id="eleves"');
+        $parents = strpos($html, 'id="parents"');
+        $pros = strpos($html, 'id="pros"');
+
+        // Élèves, puis Parents, puis « Vous travaillez ? ».
+        $this->assertTrue($eleves < $parents && $parents < $pros);
+
+        // Même composant : trois cartes « students », une photo arrondie, une étiquette, un titre, un bouton orange.
+        $document = new \DOMDocument;
+        @$document->loadHTML('<?xml encoding="utf-8"?>'.$html);
+        $xpath = new \DOMXPath($document);
+
+        foreach (['eleves', 'parents', 'pros'] as $id) {
+            $card = '//section[@aria-labelledby="'.$id.'"]/div[contains(@class,"students")]';
+            $this->assertSame(1, $xpath->query($card.'/figure[contains(@class,"photo-frame")]//img[@loading="lazy"][@width][@height]')->length, $id);
+            $this->assertSame(1, $xpath->query($card.'//span[@class="eyebrow"]')->length, $id);
+            $this->assertSame(1, $xpath->query($card.'//h2[@id="'.$id.'"]')->length, $id);
+            $this->assertGreaterThanOrEqual(1, $xpath->query($card.'//a[contains(@class,"btn-accent")]')->length, $id);
+        }
+
+        // Le bouton « parents » mène à l'inscription ; l'ancien bloc n'existe plus.
+        $this->assertStringContainsString('href="'.route('register').'"', $html);
+        $this->assertStringNotContainsString('class="parents', $html);
+    }
+
+    public function test_the_parent_photo_exists_in_both_sizes_and_is_credited(): void
+    {
+        foreach ([480, 960] as $size) {
+            $this->assertFileExists(public_path("images/photos/parent-enfant-lecture-{$size}.webp"));
+        }
+
+        $this->assertSame('Chidy Young', config('photos.parent-enfant-lecture.author'));
+        $this->assertStringContainsString('Nu5819t1K6c', file_get_contents(base_path('LICENCES-TIERS.md')));
     }
 
     public function test_the_course_help_button_follows_the_visitor(): void
