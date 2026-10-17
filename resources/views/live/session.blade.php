@@ -139,7 +139,7 @@
             <div class="live-actions">
                 <button type="button" id="resume" class="btn btn-block btn-lg" hidden><x-icon name="refresh" /> Se reconnecter</button>
                 <button type="button" id="stop" class="btn btn-light btn-block" hidden>Terminer</button>
-                <a id="back" href="{{ $urls['done'] }}" @class(['btn btn-block', 'btn-light' => $mode !== 'assessment']) hidden>{{ $mode === 'assessment' ? 'Voir mon résultat complet' : 'Retour à mon espace' }}</a>
+                <a id="back" href="{{ $urls['done'] }}" @class(['btn btn-block', 'btn-light' => $mode !== 'assessment']) hidden>{{ match ($mode) { 'assessment' => 'Voir mon résultat complet', 'course' => 'Retour à ma leçon', default => 'Retour à mon espace' } }}</a>
             </div>
         </div>
     </div>

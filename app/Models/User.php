@@ -109,6 +109,35 @@ class User extends Authenticatable
     }
 
     /**
+     * Leçons apportées par l'apprenant (« Mes cours »).
+     *
+     * @return HasMany<CourseLesson, $this>
+     */
+    public function courseLessons(): HasMany
+    {
+        return $this->hasMany(CourseLesson::class);
+    }
+
+    /**
+     * Séances « Mes cours » (consommation séparée des séances orales).
+     *
+     * @return HasMany<CourseSession, $this>
+     */
+    public function courseSessions(): HasMany
+    {
+        return $this->hasMany(CourseSession::class);
+    }
+
+    /**
+     * Séances « Mes cours » commencées aujourd'hui (compteur « Leçons aujourd'hui »). Une leçon
+     * supprimée ou une séance interrompue compte toujours : le plafond ne se contourne pas.
+     */
+    public function courseSessionsToday(): int
+    {
+        return $this->courseSessions()->whereDate('date', today())->count();
+    }
+
+    /**
      * Le programme en cours (un seul actif à la fois).
      *
      * @return HasOne<Program, $this>

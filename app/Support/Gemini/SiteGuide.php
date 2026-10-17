@@ -26,6 +26,11 @@ class SiteGuide
             ':platform' => (string) config('platform.name'),
             ':teacher' => (string) config('avatar.model.name'),
             ':assessment' => Duration::format((int) config('platform.assessment.max_minutes') * 60),
+            // « Mes cours » : limites lues dans config/platform.php (courses).
+            ':course_sessions' => (string) (int) config('platform.courses.sessions_per_day'),
+            ':course_minutes' => Duration::format((int) config('platform.courses.session_minutes') * 60),
+            ':course_photos' => (string) (int) config('platform.courses.max_photos'),
+            ':course_pdf' => (int) (config('platform.courses.pdf_max_kilobytes') / 1024).' mégaoctets et '.(int) config('platform.courses.pdf_max_pages').' pages au plus',
             ':plans' => self::plans(),
             ':operators' => self::operators(),
         ]);

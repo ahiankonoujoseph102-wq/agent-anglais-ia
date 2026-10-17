@@ -240,6 +240,12 @@ class Payment extends Model
                     ->where('status', LessonStatus::InProgress)
                     ->get()
                     ->each(fn (Lesson $lesson) => $lesson->finish(now(), interrupted: true));
+
+                // Accès coupé : une séance « Mes cours » en cours s'arrête aussi.
+                $this->user->courseSessions()
+                    ->where('status', LessonStatus::InProgress)
+                    ->get()
+                    ->each(fn (CourseSession $session) => $session->finish(now(), interrupted: true));
             }
 
             $payment->status = PaymentStatus::Rejected;

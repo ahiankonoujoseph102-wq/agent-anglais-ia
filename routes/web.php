@@ -13,9 +13,11 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Live\AssessmentController;
+use App\Http\Controllers\Live\CourseSessionController;
 use App\Http\Controllers\Live\LessonController;
 use App\Http\Controllers\Live\LevelTestController;
 use App\Http\Controllers\Payment\PaymentController;
@@ -96,6 +98,21 @@ Route::middleware('auth')->group(function () {
         Route::post('/signal', 'signal')->middleware('throttle:30,1')->name('signal');
         Route::post('/resultat', 'result')->middleware('throttle:10,1')->name('result');
         Route::post('/fin', 'finish')->middleware('throttle:10,1')->name('finish');
+    });
+
+    // « Mes cours » : complément facultatif. L'apprenant apporte une leçon d'anglais (photos ou PDF),
+    // Teacher Joe la lit puis l'aide à la comprendre et à s'exercer (séance vocale à part).
+    Route::prefix('mes-cours')->name('courses.')->group(function () {
+        Route::get('/', [CourseController::class, 'index'])->name('index');
+        Route::get('/nouvelle', [CourseController::class, 'create'])->name('create');
+        Route::post('/', [CourseController::class, 'store'])->middleware('throttle:10,1')->name('store');
+        Route::post('/seance/signal', [CourseSessionController::class, 'signal'])->middleware('throttle:30,1')->name('signal');
+        Route::post('/seance/fin', [CourseSessionController::class, 'finish'])->middleware('throttle:10,1')->name('finish');
+        Route::get('/{course}', [CourseController::class, 'show'])->whereNumber('course')->name('show');
+        Route::get('/{course}/pages/{page}', [CourseController::class, 'page'])->whereNumber(['course', 'page'])->name('page');
+        Route::delete('/{course}', [CourseController::class, 'destroy'])->whereNumber('course')->middleware('confirm:course.delete')->name('destroy');
+        Route::get('/{course}/seance', [CourseSessionController::class, 'show'])->whereNumber('course')->name('session');
+        Route::post('/{course}/seance/connexion', [CourseSessionController::class, 'connect'])->whereNumber('course')->middleware('throttle:10,1')->name('connect');
     });
 
     // Séance du jour des abonnés.

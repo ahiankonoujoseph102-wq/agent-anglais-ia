@@ -48,6 +48,7 @@
                         ['route' => 'dashboard', 'active' => 'dashboard', 'icon' => 'home', 'label' => 'Mon espace'],
                         ['route' => 'program.show', 'active' => 'program.*', 'icon' => 'calendar', 'label' => 'Mon programme'],
                         ['route' => 'lessons.history', 'active' => 'lessons.history', 'icon' => 'list', 'label' => 'Mes séances'],
+                        ['route' => 'courses.index', 'active' => 'courses.*', 'icon' => 'book', 'label' => 'Mes cours'],
                         ['route' => 'account.edit', 'active' => 'account.*', 'icon' => 'user', 'label' => 'Mon compte'],
                         ['route' => 'contact', 'active' => 'contact', 'icon' => 'bubble', 'label' => 'Aide'],
                     ]));

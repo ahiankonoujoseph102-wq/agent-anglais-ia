@@ -6,6 +6,7 @@ use App\Enums\AssessmentStatus;
 use App\Enums\LessonStatus;
 use App\Enums\LevelTestStatus;
 use App\Models\Assessment;
+use App\Models\CourseSession;
 use App\Models\Lesson;
 use App\Models\LevelTest;
 use Illuminate\Console\Command;
@@ -14,7 +15,7 @@ class CloseStaleConversations extends Command
 {
     protected $signature = 'live:close-stale';
 
-    protected $description = 'Clôture les évaluations, séances et bilans de niveau dont le temps est écoulé ou dont le navigateur a disparu';
+    protected $description = 'Clôture les évaluations, séances (orales et « Mes cours ») et bilans de niveau dont le temps est écoulé ou dont le navigateur a disparu';
 
     public function handle(): int
     {
@@ -24,10 +25,11 @@ class CloseStaleConversations extends Command
             Assessment::query()->where('status', AssessmentStatus::InProgress),
             Lesson::query()->where('status', LessonStatus::InProgress),
             LevelTest::query()->where('status', LevelTestStatus::InProgress),
+            CourseSession::query()->where('status', LessonStatus::InProgress),
         ];
 
         foreach ($models as $query) {
-            $query->lazyById()->each(function (Assessment|Lesson|LevelTest $conversation) use (&$closed) {
+            $query->lazyById()->each(function (Assessment|CourseSession|Lesson|LevelTest $conversation) use (&$closed) {
                 if (! $conversation->closeIfOver()) {
                     $closed++;
                 }

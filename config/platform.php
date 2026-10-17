@@ -82,6 +82,41 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | « Mes cours » : l'apprenant apporte une leçon d'anglais, Teacher Joe la réexplique
+    |--------------------------------------------------------------------------
+    |
+    | Séances à part : elles ne consomment PAS les minutes de la séance orale quotidienne.
+    | Fichiers sur le disque privé (App\Support\PrivateStorage). Tout se règle ici.
+    |
+    */
+    'courses' => [
+        // Séances « Mes cours » par jour et par apprenant (nouvelle leçon ou révision d'une ancienne).
+        // Une conversation qui n'a pas pu démarrer (panne) ne compte pas.
+        'sessions_per_day' => 5,
+        // Durée d'une séance, en minutes (le serveur coupe à la limite).
+        'session_minutes' => 10,
+        // Teacher Joe est prévenu ce nombre de secondes avant la fin : il conclut poliment.
+        'warning_seconds' => 90,
+        // Photos : nombre de pages, poids d'une photo et de l'ensemble (kilooctets). Le navigateur les
+        // réduit avant l'envoi (côté le plus long, qualité JPEG) ; ces plafonds valent sans réduction.
+        'max_photos' => 4,
+        'photo_max_kilobytes' => 6144,
+        'photos_total_max_kilobytes' => 16384,
+        'photo_max_side' => 1600,
+        'photo_quality' => 0.82,
+        // PDF : poids (kilooctets) et nombre de pages.
+        'pdf_max_kilobytes' => 10240,
+        'pdf_max_pages' => 10,
+        // Lectures de leçons (réussies ou non) par heure et par apprenant : protège le coût de la lecture.
+        'reads_per_hour' => 10,
+        // Dossier des fichiers sur le disque privé.
+        'directory' => 'courses',
+        // Texte de la leçon transmis à Teacher Joe, en caractères au plus.
+        'text_limit' => 12000,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Suivi des conversations vocales (évaluation et séances)
     |--------------------------------------------------------------------------
     |

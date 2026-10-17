@@ -47,6 +47,8 @@
                     <th>Durée des séances</th>
                     <th>Jetons (entrée / sortie)</th>
                     <th>Coût estimé</th>
+                    <th>« Mes cours » (séances, durée)</th>
+                    <th>« Mes cours » : coût estimé</th>
                 </tr>
             </thead>
             <tbody>
@@ -54,6 +56,8 @@
                     @php
                         $input = (int) $learner->lessons_sum_input_tokens + (int) $learner->assessment?->input_tokens;
                         $output = (int) $learner->lessons_sum_output_tokens + (int) $learner->assessment?->output_tokens;
+                        $courseInput = (int) $learner->course_sessions_sum_input_tokens;
+                        $courseOutput = (int) $learner->course_sessions_sum_output_tokens;
                     @endphp
                     <tr>
                         <td data-label="Apprenant">{{ $learner->name }}<br><span class="muted small">{{ $learner->phone }}</span></td>
@@ -74,6 +78,8 @@
                         <td data-label="Durée des séances">{{ Duration::format((int) $learner->lessons_sum_used_seconds) }}</td>
                         <td data-label="Jetons">{{ number_format($input, 0, ',', ' ') }} / {{ number_format($output, 0, ',', ' ') }}</td>
                         <td data-label="Coût estimé">{{ UsageCost::format(UsageCost::usd($input, $output)) }}</td>
+                        <td data-label="Mes cours">{{ $learner->course_sessions_count }} · {{ Duration::format((int) $learner->course_sessions_sum_used_seconds) }}</td>
+                        <td data-label="Mes cours : coût estimé">{{ UsageCost::format(UsageCost::usd($courseInput, $courseOutput)) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -82,7 +88,7 @@
         {{ $learners->links() }}
     @endif
 
-    @foreach (['Dernières séances' => $recentLessons, 'Dernières évaluations' => $recentAssessments] as $heading => $conversations)
+    @foreach (['Dernières séances' => $recentLessons, 'Dernières séances « Mes cours »' => $recentCourseSessions, 'Dernières évaluations' => $recentAssessments] as $heading => $conversations)
         <h2 class="next-step">{{ $heading }}</h2>
         @if ($conversations->isEmpty())
             <div class="card">Aucune pour le moment.</div>
@@ -103,7 +109,7 @@
                     @foreach ($conversations as $conversation)
                         <tr>
                             <td data-label="Début">{{ $conversation->started_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                            <td data-label="Apprenant">{{ $conversation->user->name }}</td>
+                            <td data-label="Apprenant">{{ $conversation->user->name }}@if ($conversation instanceof \App\Models\CourseSession)<br><span class="muted small">{{ $conversation->lesson?->title ?? 'Leçon supprimée' }}</span>@endif</td>
                             <td data-label="Statut">
                                 {{ $conversation->status->label() }}
                                 @if ($conversation instanceof \App\Models\Assessment && $conversation->level)

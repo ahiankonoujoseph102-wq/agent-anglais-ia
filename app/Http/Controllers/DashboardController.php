@@ -63,6 +63,8 @@ class DashboardController extends Controller
             'minStartSeconds' => (int) config('platform.live.min_start_seconds'),
             'lastLesson' => $user->lessons()->whereNotNull('summary')->latest('id')->first(),
             'journeyStep' => $journeyStep,
+            // « Mes cours » : carte secondaire, seulement avec un accès actif.
+            'courseCounter' => $subscription !== null ? ['used' => $user->courseSessionsToday(), 'limit' => (int) config('platform.courses.sessions_per_day')] : null,
             'assessmentMinutes' => (int) config('platform.assessment.max_minutes'),
         ]);
     }

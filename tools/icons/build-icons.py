@@ -88,6 +88,12 @@ ICONS = {
     'user-off': 'user-x',
     'palette': 'palette',
     'history': 'history',
+    # Mes cours (photo, galerie, PDF, suppression, ajout).
+    'camera': 'camera',
+    'image': 'image',
+    'file-text': 'file-text',
+    'trash': 'trash-2',
+    'plus': 'plus',
 }
 
 # Lucide ne dessine aucune marque : le logo WhatsApp (bulle et combiné) reste dessiné pour le site,

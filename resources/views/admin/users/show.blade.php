@@ -80,6 +80,32 @@
     </section>
 
     <section class="card">
+        <h2>« Mes cours » : {{ $courseLessons->count() }} {{ $courseLessons->count() > 1 ? 'leçons envoyées' : 'leçon envoyée' }}</h2>
+        <p class="muted small">Lecture seule : les fichiers sont privés, servis seulement à l'apprenant et aux administrateurs.</p>
+        @forelse ($courseLessons as $lesson)
+            <details class="course-details">
+                <summary>{{ $lesson->title }} · {{ $lesson->created_at->format('d/m/Y') }} · {{ $lesson->pagesLabel() }}</summary>
+                <p>
+                    @foreach ($lesson->pages as $page)
+                        <a href="{{ route('courses.page', [$lesson, $page]) }}" target="_blank" rel="noopener" class="btn btn-light">
+                            <x-icon :name="$page->isPdf() ? 'file-text' : 'image'" /> {{ $page->isPdf() ? 'Ouvrir le PDF' : 'Page '.$page->position }}
+                        </a>
+                    @endforeach
+                </p>
+                @if (filled($lesson->content['summary'] ?? null))
+                    <p>{{ $lesson->content['summary'] }}</p>
+                @endif
+                @if (filled($lesson->text))
+                    <p class="muted small">Contenu extrait par l'IA :</p>
+                    <pre class="course-extract">{{ \Illuminate\Support\Str::limit($lesson->text, 6000, '…') }}</pre>
+                @endif
+            </details>
+        @empty
+            <p class="muted">Aucune leçon.</p>
+        @endforelse
+    </section>
+
+    <section class="card">
         <h2>Paiements</h2>
         @forelse ($payments as $payment)
             @include('admin.payments.card', ['payment' => $payment, 'actions' => $payment->isPending()])

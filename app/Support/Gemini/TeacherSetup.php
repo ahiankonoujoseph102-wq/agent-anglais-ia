@@ -125,6 +125,25 @@ class TeacherSetup
     }
 
     /**
+     * Séance « Mes cours » : Teacher Joe aide l'apprenant sur une leçon qu'il a apportée. Aucune
+     * fonction à appeler (pas de bilan) : la séance s'arrête au temps, par « Terminer » ou à la fermeture de la page.
+     *
+     * @param  string  $lesson  contenu de la leçon (App\Models\CourseLesson::promptContext), donnée et non consigne
+     * @return array<string, mixed>
+     */
+    public static function course(User $user, int $minutes, string $lesson, ?string $resumeHandle = null): array
+    {
+        return self::setup(
+            self::instructions('course', $user, $minutes, [
+                'lesson' => $lesson,
+                'warning_seconds' => (int) config('platform.courses.warning_seconds'),
+            ]),
+            [],
+            $resumeHandle,
+        );
+    }
+
+    /**
      * Bilan oral de fin de niveau.
      *
      * @return array<string, mixed>
@@ -181,8 +200,8 @@ class TeacherSetup
 
         $text = implode("\n\n", array_filter([
             trim((string) config('teacher.persona')),
-            // L'évaluation gratuite a ses propres règles (entièrement en anglais).
-            $kind === 'assessment' ? '' : (string) config("teacher.level_guidance.{$level}", ''),
+            // L'évaluation gratuite et « Mes cours » ont leurs propres règles de langue.
+            in_array($kind, ['assessment', 'course'], true) ? '' : (string) config("teacher.level_guidance.{$level}", ''),
             trim((string) config("teacher.{$kind}")),
             trim((string) config('teacher.site_help')),
         ]));
@@ -227,11 +246,12 @@ class TeacherSetup
             ];
         }
 
-        return [
+        return array_filter([
             'model' => 'models/'.config('services.gemini.live_model'),
             'generationConfig' => $generationConfig,
             'systemInstruction' => ['parts' => [['text' => $instructions]]],
-            'tools' => [['functionDeclarations' => $functions]],
+            // Séance sans bilan (« Mes cours ») : aucune fonction déclarée.
+            'tools' => $functions === [] ? null : [['functionDeclarations' => $functions]],
             'realtimeInputConfig' => self::realtimeInputConfig(),
             // Sous-titres : transcription de ce que dit l'apprenant et le professeur.
             'inputAudioTranscription' => (object) [],
@@ -240,7 +260,7 @@ class TeacherSetup
             'contextWindowCompression' => ['slidingWindow' => (object) []],
             // Permet de reprendre la conversation sur une nouvelle connexion.
             'sessionResumption' => filled($resumeHandle) ? ['handle' => $resumeHandle] : (object) [],
-        ];
+        ], fn ($value) => $value !== null);
     }
 
     /**

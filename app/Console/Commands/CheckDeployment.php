@@ -128,6 +128,12 @@ class CheckDeployment extends Command
 
             $this->line('    Captures de paiement enregistrées : '.count($disk->files(config('payment.proofs.directory'), true)));
             $this->line('    Attestations enregistrées : '.count($disk->files('attestations')));
+            $this->line('    Fichiers de « Mes cours » : '.count($disk->allFiles(trim((string) config('platform.courses.directory'), '/'))));
+
+            // Nom du bucket (pas un secret) : à comparer à celui prévu, « talkami-fichiers ».
+            if (filled($bucket = config("filesystems.disks.{$name}.bucket"))) {
+                $this->line('    Bucket utilisé : '.$bucket);
+            }
         } catch (Throwable $e) {
             $this->check('Disque privé', false, 'Erreur : '.class_basename($e).'. Le bucket est-il attaché comme disque par défaut ?');
         }

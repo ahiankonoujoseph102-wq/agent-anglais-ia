@@ -131,6 +131,22 @@
         </p>
     @endif
 
+    {{-- « Mes cours » : complément facultatif, après la prochaine étape et la séance orale du jour. --}}
+    @if ($courseCounter)
+        <section class="card rise" aria-labelledby="courses-card-title" style="--i: 2">
+            <div class="card-title">
+                <span class="icon-bubble"><x-icon name="book" /></span>
+                <h2 id="courses-card-title">Mes cours</h2>
+            </div>
+            <p>
+                Un complément facultatif : apportez une leçon d'anglais de votre école, et {{ config('avatar.model.name') }}
+                vous aide à la comprendre et à vous exercer.
+            </p>
+            <p class="course-counter"><x-icon name="clock" /> <span>Leçons aujourd'hui : <strong>{{ $courseCounter['used'] }} sur {{ $courseCounter['limit'] }}</strong></span></p>
+            <a href="{{ route('courses.index') }}" class="btn btn-light btn-block"><x-icon name="arrow-right" /> Ouvrir Mes cours</a>
+        </section>
+    @endif
+
     <div class="stats stats-main">
         <div class="stat rise" style="--i: 2">
             <div class="label"><x-icon name="level" /> Mon niveau</div>
