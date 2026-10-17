@@ -80,7 +80,7 @@ class CourseAdminTest extends TestCase
         $this->assertStringNotContainsString('Leçons aujourd\'hui', $without);
     }
 
-    public function test_my_courses_is_in_the_menu_but_neither_in_the_bottom_bar_nor_on_the_home_page(): void
+    public function test_my_courses_is_in_the_menu_but_not_in_the_bottom_bar_and_not_linked_for_visitors(): void
     {
         $html = $this->actingAs($this->learner())->get('/espace')->getContent();
         $dom = new \DOMDocument;
@@ -91,7 +91,8 @@ class CourseAdminTest extends TestCase
         $this->assertSame(0, $xpath->query('//nav[@class="tabbar"]//a[contains(@href,"/mes-cours")]')->length);
 
         auth()->logout();
-        $this->get('/')->assertOk()->assertDontSee('Mes cours')->assertDontSee('/mes-cours', false);
+        // L'accueil présente « Mes cours » (section élèves), mais un visiteur n'a aucun lien vers la page : son bouton mène à l'inscription.
+        $this->get('/')->assertOk()->assertDontSee('/mes-cours', false);
     }
 
     public function test_check_deployment_counts_the_course_files(): void

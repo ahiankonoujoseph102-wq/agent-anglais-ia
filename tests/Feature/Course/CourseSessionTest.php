@@ -81,8 +81,8 @@ class CourseSessionTest extends TestCase
                 // Ordre de la séance : ce que veut l'élève, puis résumé, réexplication, vérification, pratique.
                 && str_contains($text, 'ask what they want')
                 && str_contains($text, 'summarize it in French')
-                && str_contains($text, 're-explain each point')
-                && str_contains($text, 'examples in French and in English')
+                && str_contains($text, 're-explain EVERY point')
+                && str_contains($text, 'each with its French translation')
                 && str_contains($text, 'check they understood')
                 && str_contains($text, 'small situations from Togo')
                 // Exercices : jamais la réponse tout de suite ; après deux essais, la réponse expliquée.

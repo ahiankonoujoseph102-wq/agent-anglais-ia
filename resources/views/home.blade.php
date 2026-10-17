@@ -8,6 +8,11 @@
     // Bouton principal : inscription pour un visiteur, évaluation (ou espace) pour un compte connecté.
     $start = auth()->check() ? (auth()->user()->assessment()->exists() ? route('dashboard') : route('assessment.show')) : route('register');
     $startLabel = auth()->check() && auth()->user()->assessment()->exists() ? 'Aller à mon espace' : 'Passer mon évaluation gratuite';
+    // Section « élèves » : avec une formule active, le bouton ouvre directement « Mes cours ».
+    $hasAccess = auth()->check() && auth()->user()->activeSubscription()->exists();
+    $coursesUrl = $hasAccess ? route('courses.index') : $start;
+    $coursesLabel = $hasAccess ? 'Ouvrir Mes cours' : $startLabel;
+    $coursesIcon = $hasAccess ? 'book' : 'mic';
 @endphp
 
 <x-layout install :description="'Apprenez à parler anglais avec '.$teacher.', le professeur de '.$platform.', disponible chaque jour depuis votre téléphone. Évaluation orale gratuite, séances quotidiennes, paiement par Mobile Money.'">
@@ -25,6 +30,7 @@
                 {{ $teacher }} vous fait parler, vous corrige et vous fait progresser à votre rythme, depuis votre téléphone.
                 Commencez par une évaluation orale gratuite de {{ $minutes }} minutes.
             </p>
+            <p class="hero-also">Vous êtes élève ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école.</p>
             <div class="actions actions-row">
                 <a class="btn btn-accent btn-lg btn-block" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
                 @guest
@@ -142,14 +148,24 @@
             <figure class="photo-frame"><x-photo name="eleve-ecouteurs" /></figure>
             <div>
                 <span class="eyebrow">Vous êtes élève ?</span>
-                <h2 id="eleves">Prenez confiance à l'oral, avant la classe et les examens</h2>
-                <p>Parler anglais devant les autres fait peur. Avec {{ $teacher }}, vous vous entraînez à voix haute, sans être jugé, aussi souvent que votre formule le permet.</p>
-                <ul class="check-list">
-                    <li><x-icon name="check-circle" /> Vous pratiquez la prononciation et les phrases utiles</li>
-                    <li><x-icon name="check-circle" /> Vous apprenez à répondre sans traduire dans votre tête</li>
-                    <li><x-icon name="check-circle" /> Vous voyez vos progrès séance après séance</li>
-                </ul>
-                <a class="btn btn-accent btn-lg" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
+                <h2 id="eleves">Vos cours d'anglais enfin compris</h2>
+                <p>En plus de l'oral, {{ $teacher }} vous aide dans vos leçons d'anglais de l'école, avec « Mes cours ».</p>
+                <ol class="help-steps">
+                    <li><span class="icon-bubble"><x-icon name="camera" /></span><span>Photographiez votre leçon ou votre exercice d'anglais</span></li>
+                    <li><span class="icon-bubble"><x-icon name="book" /></span><span>{{ $teacher }} la lit et vous l'explique en détail, en français quand il le faut</span></li>
+                    <li><span class="icon-bubble"><x-icon name="bubble" /></span><span>Posez-lui toutes vos questions</span></li>
+                    <li><span class="icon-bubble"><x-icon name="edit" /></span><span>Il vous guide pour faire votre exercice vous-même, puis corrige</span></li>
+                </ol>
+                <p class="help-only"><x-icon name="info" /> Uniquement pour les cours d'anglais.</p>
+                <p class="muted small">Et toujours : vous vous entraînez à parler anglais à voix haute, sans être jugé, avec votre programme personnel.</p>
+                <a class="btn btn-accent btn-lg" href="{{ $coursesUrl }}"><x-icon :name="$coursesIcon" /> {{ $coursesLabel }}</a>
+            </div>
+        </div>
+        <div class="parents card reveal">
+            <span class="icon-bubble"><x-icon name="shield" /></span>
+            <div>
+                <h3>Parents</h3>
+                <p>{{ $teacher }} ne fait pas les devoirs à la place de votre enfant. Il l'aide à comprendre sa leçon d'anglais et à faire lui-même son exercice, avec patience, une étape après l'autre.</p>
             </div>
         </div>
     </section>
@@ -196,6 +212,10 @@
             <details>
                 <summary><x-icon name="award" /><span>Qu'est-ce que l'attestation de niveau ?</span></summary>
                 <p>À la fin de chaque niveau (douze unités), vous passez un bilan oral avec {{ $teacher }}. S'il est réussi, vous recevez une attestation de niveau en PDF, que chacun peut vérifier en ligne grâce à son code.</p>
+            </details>
+            <details>
+                <summary><x-icon name="book" /><span>{{ $teacher }} peut-il m'aider dans mes cours d'anglais ?</span></summary>
+                <p>Oui, avec « Mes cours », pour les élèves qui ont une formule active. Vous photographiez votre leçon ou votre exercice d'anglais, {{ $teacher }} la lit et vous l'explique, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et c'est une aide en plus de votre programme pour parler anglais.</p>
             </details>
             <details>
                 <summary><x-icon name="gift" /><span>L'évaluation est-elle vraiment gratuite ?</span></summary>
