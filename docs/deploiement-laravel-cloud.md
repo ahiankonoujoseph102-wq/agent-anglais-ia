@@ -229,7 +229,7 @@ Pour créer un autre administrateur plus tard, ou promouvoir un compte existant,
 
 ### 10 bis. Les Réglages (facultatif)
 
-**Rien à saisir pour ouvrir le site** : les numéros Mobile Money, les noms des titulaires et les coordonnées de l'équipe (téléphones, e-mail, adresse, WhatsApp) ont des valeurs par défaut dans le code (`config/payment.php` et `config/platform.php`). Dès le déploiement, les sept opérateurs (Togo : Mixx by Yas, Flooz ; Burkina Faso : Orange Money, Wave ; Bénin : MTN, Moov, Celtiis) sont proposés aux apprenants, et les coordonnées s'affichent dans le pied de page et sur la page Contact.
+**Rien à saisir pour ouvrir le site** : les numéros Mobile Money, les noms des titulaires et les coordonnées de l'équipe (téléphones, e-mail, adresse, WhatsApp) ont des valeurs par défaut dans le code (`config/payment.php` et `config/platform.php`). Dès le déploiement, les dix opérateurs (Togo : Mixx by Yas, Flooz ; Burkina Faso : Orange Money, Wave ; Bénin : MTN, Moov, Celtiis ; Côte d'Ivoire : Orange Money, MTN Mobile Money, Wave) sont proposés aux apprenants, et les coordonnées s'affichent dans le pied de page et sur la page Contact.
 
 Pour changer un numéro sans toucher au code :
 

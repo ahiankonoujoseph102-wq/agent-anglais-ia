@@ -70,7 +70,7 @@ class RenewalTest extends TestCase
         $this->actingAs($user)->get('/espace')
             ->assertSee('Votre abonnement a expiré')
             ->assertSee('Renouveler')
-            ->assertDontSee('Commencer ma séance')
+            ->assertDontSee('Parler avec Teacher Joe')
             // L'évaluation et ses résultats restent visibles.
             ->assertSee('B1')
             ->assertSee('Très bonne compréhension orale.');

@@ -48,7 +48,7 @@ class CheckDeploymentTest extends TestCase
             ->expectsOutputToContain('Captures de paiement enregistrées : 1')
             ->expectsOutputToContain('Attestations enregistrées : 1')
             ->expectsOutputToContain('Dernier passage du planificateur il y a 30 secondes')
-            ->expectsOutputToContain('Opérateurs Mobile Money proposés : 7')
+            ->expectsOutputToContain('Opérateurs Mobile Money proposés : 10')
             ->expectsOutputToContain('Valeurs saisies dans les Réglages : 1')
             ->doesntExpectOutputToContain('cle-fictive')
             ->doesntExpectOutputToContain('90 00 00 11')

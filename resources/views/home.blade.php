@@ -180,7 +180,12 @@
         <div class="faq reveal">
             <details>
                 <summary>Comment payer mon abonnement ?</summary>
-                <p>Par Mobile Money, depuis votre téléphone : {{ implode(', ', $operators) }}. Vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Aucune carte bancaire n'est nécessaire.</p>
+                <p>Par Mobile Money, depuis votre téléphone. Vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Aucune carte bancaire n'est nécessaire. Mêmes formules et mêmes prix dans tous les pays :</p>
+                <ul class="faq-list">
+                    @foreach ($paymentCountries as $paymentCountry)
+                        <li><strong>{{ $paymentCountry['name'] }}</strong> : {{ implode(', ', $paymentCountry['operators']) }}</li>
+                    @endforeach
+                </ul>
             </details>
             <details>
                 <summary>Qu'est-ce que l'accès provisoire ?</summary>

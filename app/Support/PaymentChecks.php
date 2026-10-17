@@ -177,7 +177,23 @@ final class PaymentChecks
     }
 
     /**
-     * Le numéro lu doit être celui des Réglages (8 derniers chiffres, sans indicatif).
+     * Retire l'indicatif du pays (« 225 », « 00225 ») d'un numéro lu sur une capture.
+     */
+    private static function withoutDialCode(string $digits, string $dialCode): string
+    {
+        foreach (['00'.$dialCode, $dialCode] as $prefix) {
+            if ($dialCode !== '' && str_starts_with($digits, $prefix) && strlen($digits) - strlen($prefix) >= 8) {
+                return substr($digits, strlen($prefix));
+            }
+        }
+
+        return $digits;
+    }
+
+    /**
+     * Le numéro lu doit être celui des Réglages, avec ou sans indicatif ni espaces : tous les
+     * chiffres du numéro local (10 en Côte d'Ivoire et au Bénin, 8 au Togo et au Burkina Faso) ;
+     * un ancien numéro à 8 chiffres affiché seul est comparé aux 8 derniers.
      * Un numéro masqué (« 90****56 ») ne suffit pas.
      *
      * @param  array<string, mixed>  $analysis
@@ -194,10 +210,12 @@ final class PaymentChecks
             return self::check('recipient', false, 'Numéro du destinataire masqué sur la capture ('.$read.') : à vérifier.');
         }
 
-        $digits = (string) preg_replace('/\D+/', '', $read);
+        $digits = self::withoutDialCode((string) preg_replace('/\D+/', '', $read), $operator->dialCode);
         $expected = $operator->localNumber();
+        // Tous les chiffres du numéro local quand la capture les montre, sinon les 8 derniers.
+        $length = strlen($digits) >= strlen($expected) ? strlen($expected) : 8;
 
-        if (strlen($digits) >= 8 && strlen($expected) >= 8 && substr($digits, -8) === substr($expected, -8)) {
+        if (strlen($digits) >= 8 && strlen($expected) >= 8 && substr($digits, -$length) === substr($expected, -$length)) {
             return self::check('recipient', true, 'Numéro du destinataire : '.$read.'.');
         }
 
