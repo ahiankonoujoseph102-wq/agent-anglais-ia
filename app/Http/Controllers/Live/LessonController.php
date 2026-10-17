@@ -35,19 +35,16 @@ class LessonController extends Controller
     public function show(Request $request): View|RedirectResponse
     {
         $user = $request->user();
+        // Une séance commencée va jusqu'à sa fin, même si l'accès (provisoire) s'arrête entre-temps.
+        $lesson = $this->openLesson($user);
 
-        if ($user->activeSubscription === null) {
-            // Abonnement expiré ou jamais pris : on guide vers le (re)nouvellement.
-            return to_route('payment.plans')->with('status', $user->latestSubscription !== null
-                ? 'Votre abonnement a expiré : renouvelez-le pour reprendre vos séances.'
-                : self::NO_SUBSCRIPTION);
+        if ($user->activeSubscription === null && $lesson === null) {
+            return $this->toPayment($user);
         }
 
         if ($gate = $this->programGate($user)) {
             return redirect($gate['url'])->with('status', $gate['message']);
         }
-
-        $lesson = $this->openLesson($user);
         $remaining = $lesson?->remainingSeconds() ?? $user->remainingSecondsToday();
 
         if ($remaining < (int) config('platform.live.min_start_seconds')) {
@@ -73,16 +70,17 @@ class LessonController extends Controller
     {
         $user = $request->user();
         $subscription = $user->activeSubscription;
+        // Renouvellement du jeton d'une séance commencée : jamais refusé pour l'abonnement,
+        // la séance n'est pas coupée brutalement. Aucune NOUVELLE séance sans accès.
+        $lesson = $this->openLesson($user);
 
-        if ($subscription === null) {
+        if ($subscription === null && $lesson === null) {
             return $this->refuse(self::NO_SUBSCRIPTION, 403);
         }
 
         if ($gate = $this->programGate($user)) {
             return $this->refuse($gate['message'], 409);
         }
-
-        $lesson = $this->openLesson($user);
 
         if ($lesson !== null && ! $lesson->canConnectAgain()) {
             return $this->refuse('Trop de reconnexions pour cette séance. Rechargez la page pour en commencer une nouvelle.', 429);
@@ -217,6 +215,23 @@ class LessonController extends Controller
         $errors = $user->openErrors()->limit((int) config('program.errors_per_lesson'))->get();
 
         return LessonContext::describe($user, $programLesson->program, $programLesson, $previous, $errors);
+    }
+
+    /**
+     * Pas d'accès : vers les formules, avec le message qui correspond à la situation.
+     */
+    private function toPayment(User $user): RedirectResponse
+    {
+        $payment = $user->pendingPayment()->first();
+
+        if ($payment !== null) {
+            // Accès provisoire terminé (ou jamais accordé) : la vérification est en cours.
+            return to_route('payment.show', $payment);
+        }
+
+        return to_route('payment.plans')->with('status', $user->latestSubscription !== null
+            ? 'Votre abonnement a expiré : renouvelez-le pour reprendre vos séances.'
+            : self::NO_SUBSCRIPTION);
     }
 
     /**

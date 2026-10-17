@@ -101,20 +101,29 @@
                     <p class="footer-tagline">{{ config('platform.brand.tagline') }}</p>
                     <p class="next-step">Apprenez l'anglais à l'oral avec votre professeur IA, depuis votre téléphone.</p>
                 </div>
+                @php($contact = \App\Support\SiteSettings::contact())
                 <ul class="footer-list">
-                    <li><x-icon name="pin" /> <span>{{ config('platform.contact.address') }}</span></li>
-                    <li><x-icon name="clock" /> <span>{{ config('platform.contact.hours') }}</span></li>
-                    <li><x-icon name="phone" />
-                        <span>
-                            @foreach (config('platform.contact.phones') as $phone)
-                                <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}">{{ $phone }}</a>@if (! $loop->last) · @endif
-                            @endforeach
-                        </span>
-                    </li>
-                    <li><x-icon name="mail" /> <a href="mailto:{{ config('platform.contact.email') }}">{{ config('platform.contact.email') }}</a></li>
+                    @if ($contact['address'])
+                        <li><x-icon name="pin" /> <span>{{ $contact['address'] }}</span></li>
+                    @endif
+                    <li><x-icon name="clock" /> <span>{{ $contact['hours'] }}</span></li>
+                    @if ($contact['phones'])
+                        <li><x-icon name="phone" />
+                            <span>
+                                @foreach ($contact['phones'] as $phone)
+                                    <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}">{{ $phone }}</a>@if (! $loop->last) · @endif
+                                @endforeach
+                            </span>
+                        </li>
+                    @endif
+                    @if ($contact['email'])
+                        <li><x-icon name="mail" /> <a href="mailto:{{ $contact['email'] }}">{{ $contact['email'] }}</a></li>
+                    @endif
                 </ul>
                 <ul class="footer-links">
-                    <li><a href="{{ \App\Support\WhatsApp::url(config('platform.contact.whatsapp')) }}" target="_blank" rel="noopener">WhatsApp</a></li>
+                    @if ($contact['whatsapp'])
+                        <li><a href="{{ \App\Support\WhatsApp::url($contact['whatsapp']) }}" target="_blank" rel="noopener">WhatsApp</a></li>
+                    @endif
                     <li><a href="{{ route('contact') }}">Contact</a></li>
                     <li><a href="{{ route('credits') }}">Crédits</a></li>
                     <li><button type="button" class="btn btn-link footer-install" data-install-button hidden>Installer l'application</button></li>

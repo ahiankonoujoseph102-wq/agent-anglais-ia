@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Support\SiteSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -13,14 +14,15 @@ class TemporaryPasswordTest extends TestCase
 
     public function test_forgot_password_page_prepares_a_whatsapp_message_with_the_account_number(): void
     {
+        SiteSettings::save(['contact.whatsapp' => '+228 90 00 00 99']);
         $this->get('/connexion')->assertSee(route('password.forgot'))->assertSee('Mot de passe oublié ?');
 
-        $this->get('/mot-de-passe-oublie')->assertOk()->assertDontSee('https://wa.me/22872240231?text=', false);
+        $this->get('/mot-de-passe-oublie')->assertOk()->assertDontSee('https://wa.me/22890000099?text=', false);
 
         $this->get('/mot-de-passe-oublie?telephone='.urlencode('90 11 22 33'))
             ->assertOk()
             ->assertSee('Demander sur WhatsApp')
-            ->assertSee('https://wa.me/22872240231?text=', false)
+            ->assertSee('https://wa.me/22890000099?text=', false)
             ->assertSee(rawurlencode('Numéro de mon compte : +22890112233'), false);
 
         $this->get('/mot-de-passe-oublie?telephone=abc')->assertSee('Ce numéro de téléphone n\'est pas valide', false);

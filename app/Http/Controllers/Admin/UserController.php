@@ -64,7 +64,7 @@ class UserController extends Controller
         return view('admin.users.show', [
             'user' => $user,
             'subscriptions' => $user->subscriptions()->latest('ends_at')->get(),
-            'payments' => $user->payments()->latest('id')->get(),
+            'payments' => $user->payments()->with(['user', 'subscription'])->latest('id')->get(),
             'temporaryPassword' => $temporaryPassword,
             'whatsappUrl' => $whatsappUrl,
         ]);

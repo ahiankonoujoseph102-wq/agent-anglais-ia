@@ -142,12 +142,10 @@ return [
     | Affichées dans le pied de page et sur la page Contact.
     |
     */
+    // Les coordonnées du centre (adresse, téléphones, e-mail, WhatsApp) se saisissent dans
+    // l'administration, page « Réglages » (App\Support\SiteSettings) : aucune ici, le dépôt est public.
     'contact' => [
-        'address' => 'Adidogomé, Lycée moderne 2, Lomé, Togo',
         'hours' => 'Du lundi au samedi, de 8 h à 20 h',
-        'phones' => ['+228 72 24 02 31', '+228 79 74 21 27', '+228 79 16 23 90'],
-        'email' => 'ahiankonoujoseph102@gmail.com',
-        'whatsapp' => '+228 72 24 02 31',
     ],
 
     /*

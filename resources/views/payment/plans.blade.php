@@ -4,18 +4,26 @@
     <div class="step-panel">
         <div class="page-head">
             <h1>Choisissez votre formule</h1>
-            <p class="muted">Vous payez par Mobile Money, puis nous validons votre paiement : votre formule s'active dès cette validation.</p>
+            <p class="muted">
+                Vous payez par Mobile Money depuis votre téléphone, puis vous envoyez la capture d'écran de la confirmation.
+                Si tout est clair, vous pouvez commencer vos séances tout de suite, le temps que notre équipe vérifie votre paiement.
+            </p>
         </div>
 
         @if ($rejected)
             <div class="alert alert-error" role="alert">
                 <x-icon name="alert" />
                 <div>
-                    <strong>Votre dernier paiement a été refusé.</strong><br>
-                    Motif : {{ $rejected->rejection_reason }}<br>
-                    Vous pouvez envoyer un paiement corrigé.
+                    <strong>Nous n'avons pas pu valider votre dernier paiement.</strong><br>
+                    @if ($rejected->rejection_reason)
+                        Motif : {{ $rejected->rejection_reason }}<br>
+                    @endif
+                    Écrivez-nous sur WhatsApp : nous regarderons ensemble. Vous pouvez aussi envoyer un nouveau paiement.
                 </div>
             </div>
+            @if ($whatsappUrl)
+                <a class="btn btn-whatsapp btn-block" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Écrire sur WhatsApp</a>
+            @endif
         @endif
 
         @if ($subscription)

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Console;
 
 use App\Console\Commands\CheckDeployment;
+use App\Support\SiteSettings;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -33,6 +34,11 @@ class CheckDeploymentTest extends TestCase
         Storage::disk('bucket')->put('attestations/TA-A1-AAAA-BBBB.pdf', 'x');
 
         Cache::put(CheckDeployment::HEARTBEAT_KEY, now()->timestamp - 30);
+        // Réglages fictifs : un numéro de réception et le WhatsApp de l'équipe.
+        SiteSettings::save([
+            SiteSettings::operatorNumberKey('TG', 'mixx') => '+228 90 00 00 11',
+            'contact.whatsapp' => '+228 90 00 00 99',
+        ]);
 
         // La base de test est SQLite en local et MySQL dans l'intégration continue : le contrôle exige MySQL.
         $onMysql = DB::connection()->getDriverName() === 'mysql';
@@ -42,7 +48,9 @@ class CheckDeploymentTest extends TestCase
             ->expectsOutputToContain('Captures de paiement enregistrées : 1')
             ->expectsOutputToContain('Attestations enregistrées : 1')
             ->expectsOutputToContain('Dernier passage du planificateur il y a 30 secondes')
-            ->doesntExpectOutputToContain('cle-fictive');
+            ->expectsOutputToContain('1 opérateur(s) ouvert(s)')
+            ->doesntExpectOutputToContain('cle-fictive')
+            ->doesntExpectOutputToContain('90 00 00 11');
 
         $onMysql
             ? $command->expectsOutputToContain('Tout est en ordre.')->assertSuccessful()
@@ -76,6 +84,7 @@ class CheckDeploymentTest extends TestCase
             ->expectsOutputToContain('le disque du serveur est effacé à chaque déploiement')
             ->expectsOutputToContain('Le planificateur n\'a pas encore tourné')
             ->expectsOutputToContain('GEMINI_API_KEY est vide')
+            ->expectsOutputToContain('Aucun numéro de réception')
             ->assertFailed();
     }
 

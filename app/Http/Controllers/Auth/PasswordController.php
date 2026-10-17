@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Support\PhoneNumber;
+use App\Support\SiteSettings;
 use App\Support\WhatsApp;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ class PasswordController extends Controller
         $whatsappUrl = null;
 
         if ($phone !== null) {
-            $whatsappUrl = WhatsApp::url(config('platform.contact.whatsapp'), implode("\n", [
+            $whatsappUrl = WhatsApp::url(SiteSettings::whatsapp(), implode("\n", [
                 'Bonjour, j\'ai oublié mon mot de passe '.config('platform.name').'.',
                 'Numéro de mon compte : '.$phone,
                 'Pouvez-vous me donner un mot de passe provisoire ?',

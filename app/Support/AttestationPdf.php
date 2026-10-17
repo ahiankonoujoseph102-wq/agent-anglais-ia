@@ -28,7 +28,7 @@ class AttestationPdf
     {
         $user = $attestation->user;
         $level = $attestation->level;
-        $contact = config('platform.contact');
+        $contact = SiteSettings::contact();
 
         // Cadre.
         $this->commands[] = '0.055 0.165 0.361 RG 3 w 30 30 535 782 re S 0.7 w 38 38 519 766 re S';
@@ -60,8 +60,8 @@ class AttestationPdf
 
         $this->text('Code de vérification : '.$attestation->code, 10, 70, 150, bold: true);
         $this->text('Vérifier cette attestation : '.route('attestation.verify', $attestation->code), 9, 70, 134);
-        $this->text($contact['address'].' — '.implode(' / ', $contact['phones']), 8, 70, 104);
-        $this->text($contact['email'], 8, 70, 92);
+        $this->text(implode(' — ', array_filter([$contact['address'], implode(' / ', $contact['phones'])])), 8, 70, 104);
+        $this->text((string) $contact['email'], 8, 70, 92);
 
         return $this->document(implode("\n", $this->commands));
     }

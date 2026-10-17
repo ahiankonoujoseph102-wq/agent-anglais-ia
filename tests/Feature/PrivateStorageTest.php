@@ -7,6 +7,7 @@ use App\Models\Attestation;
 use App\Models\Payment;
 use App\Models\User;
 use App\Support\PrivateStorage;
+use App\Support\SiteSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
@@ -69,12 +70,13 @@ class PrivateStorageTest extends TestCase
     {
         config(['filesystems.private_disk' => 'bucket', 'filesystems.default' => 'local']);
         Storage::fake('bucket');
+        // Numéro fictif ; lecture de la capture impossible (aucune clé) : le paiement attend la vérification.
+        SiteSettings::save([SiteSettings::operatorNumberKey('TG', 'flooz') => '+228 90 00 00 22']);
+        config(['services.gemini.key' => null]);
 
         $this->actingAs(User::factory()->create())->post('/abonnement/essentiel', [
             'country' => 'TG',
             'operator' => 'flooz',
-            'payer_phone' => '+228 90 12 34 56',
-            'reference' => 'TX-2026-00123',
             'proof' => UploadedFile::fake()->image('capture.png', 600, 1200),
         ])->assertRedirect();
 

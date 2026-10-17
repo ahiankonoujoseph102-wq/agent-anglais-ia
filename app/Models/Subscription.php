@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['plan', 'plan_name', 'daily_minutes', 'price', 'currency', 'starts_at', 'ends_at', 'status'])]
+#[Fillable(['plan', 'plan_name', 'daily_minutes', 'price', 'currency', 'starts_at', 'ends_at', 'provisional_until', 'status'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */
@@ -26,6 +26,7 @@ class Subscription extends Model
             'price' => 'integer',
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
+            'provisional_until' => 'datetime',
             'status' => SubscriptionStatus::class,
         ];
     }
@@ -44,6 +45,20 @@ class Subscription extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * @return HasMany<Lesson, $this>
+     */
+    public function lessons(): HasMany
+    {
+        return $this->hasMany(Lesson::class);
+    }
+
+    /** Accès provisoire (capture lue, paiement pas encore validé par l'administrateur). */
+    public function isProvisional(): bool
+    {
+        return $this->status === SubscriptionStatus::Provisional;
     }
 
     public function dailySeconds(): int

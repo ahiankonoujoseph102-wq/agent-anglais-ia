@@ -18,7 +18,7 @@ use LogicException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Validation des paiements Mobile Money déclarés par les apprenants.
+ * Validation des paiements Mobile Money envoyés par les apprenants (capture lue par l'IA).
  */
 class PaymentController extends Controller
 {
@@ -27,7 +27,7 @@ class PaymentController extends Controller
         return view('admin.payments.pending', [
             'payments' => Payment::query()
                 ->where('status', PaymentStatus::Pending)
-                ->with('user')
+                ->with(['user', 'subscription'])
                 ->oldest()
                 ->get(),
             'countries' => PaymentCountry::all(),
@@ -107,7 +107,7 @@ class PaymentController extends Controller
     public function reject(RejectPaymentRequest $request, Payment $payment): RedirectResponse
     {
         try {
-            $payment->reject($request->user(), trim($request->validated('reason')));
+            $payment->reject($request->user(), trim((string) $request->validated('reason')));
         } catch (LogicException $e) {
             return back()->with('status', $e->getMessage());
         }

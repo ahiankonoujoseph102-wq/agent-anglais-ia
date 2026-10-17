@@ -329,7 +329,8 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 .choices { display: grid; gap: var(--space-2); }
 .operators { list-style: none; padding: 0; margin: 0 0 var(--space-3); display: grid; gap: var(--space-3); }
 .operators li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--c-border); border-radius: var(--radius); background: var(--c-bg); flex-wrap: wrap; }
-.operators .number { font-size: var(--fs-xl); font-weight: var(--fw-heavy); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.pay-number { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-2); padding: var(--space-4); border: 1px solid var(--c-border); border-radius: var(--radius); background: var(--c-bg); }
+.pay-number .number, .operators .number { font-size: var(--fs-xl); font-weight: var(--fw-heavy); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
 .amount { display: inline-block; background: var(--c-accent-soft); color: var(--c-accent-ink); border-radius: var(--radius-sm); padding: 0 8px; }
 .summary { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-2) var(--space-4); margin: 0 0 var(--space-3); }
 .summary dt { color: var(--c-muted); }
@@ -549,3 +550,13 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
     .face-eyes { animation: none; }
     @view-transition { navigation: none; }
 }
+
+/* Capture d'écran d'un paiement : aperçu (apprenant) et vignette agrandissable (administration). */
+.proof-preview { display: block; max-width: 100%; max-height: 320px; margin-top: var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); }
+.proof-thumb { display: inline-block; }
+.proof-thumb img { display: block; width: 120px; max-height: 220px; object-fit: cover; object-position: top; border: 1px solid var(--c-border); border-radius: var(--radius-sm); }
+.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-2); }
+.checks li { display: flex; gap: var(--space-2); align-items: flex-start; }
+.checks .icon { flex: none; margin-top: 2px; }
+.checks .ok { color: var(--c-primary); }
+.checks .ko { color: var(--c-danger); }
