@@ -48,6 +48,6 @@ class HomePageTest extends TestCase
     {
         $this->get('/')
             ->assertSee(route('register'))
-            ->assertSee('Créer mon compte gratuitement');
+            ->assertSeeText('Commencer l\'évaluation gratuite');
     }
 }

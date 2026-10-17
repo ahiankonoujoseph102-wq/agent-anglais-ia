@@ -17,10 +17,15 @@ class FormattingTest extends TestCase
 
     public function test_durations_are_formatted(): void
     {
-        $this->assertSame('0 min', Duration::format(0));
-        $this->assertSame('0 min', Duration::format(-30));
-        $this->assertSame('14 min', Duration::format(899));
-        $this->assertSame('1 h 05 min', Duration::format(3900));
+        $this->assertSame('0 minute', Duration::format(0));
+        $this->assertSame('0 minute', Duration::format(-30));
+        $this->assertSame('1 minute', Duration::format(60));
+        $this->assertSame('14 minutes', Duration::format(899));
+        $this->assertSame('1 heure 5 minutes', Duration::format(3900));
+        $this->assertSame('2 heures', Duration::format(7200));
+        $this->assertSame('45 secondes', Duration::formatPrecise(45));
+        $this->assertSame('4 minutes 12 secondes', Duration::formatPrecise(252));
+        $this->assertSame('3 minutes', Duration::formatPrecise(180));
     }
 
     public function test_default_plans_match_the_business_requirements(): void

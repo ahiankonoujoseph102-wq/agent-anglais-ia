@@ -1,16 +1,18 @@
 {{-- Écran de conversation vocale, commun à l'évaluation et à la séance du jour. --}}
-<x-layout :title="$title">
+<x-layout :title="$title" focus>
     <div id="live" class="live"
          data-mode="{{ $mode }}"
          data-urls='@json($urls)'
-         data-worklet="{{ asset('js/pcm-capture-worklet.js') }}?v={{ @filemtime(public_path('js/pcm-capture-worklet.js')) }}"
+         data-worklet="{{ \App\Support\Asset::url('js/pcm-capture-worklet.js') }}"
          @if (\App\Support\Avatar::enabled())
              data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"
              data-teacher3d='@json(\App\Support\Avatar::clientConfig())'
          @endif
          data-teacher="svg">
 
-        <h1>{{ $title }}</h1>
+        <div class="live-head">
+            <h1>{{ $title }}</h1>
+        </div>
 
         <div class="teacher" aria-hidden="true">
             <svg viewBox="0 0 200 200" class="face" role="img">
@@ -34,7 +36,7 @@
 
         <div class="live-bar">
             <div>
-                <div class="label">Temps restant</div>
+                <div class="label"><x-icon name="clock" /> Temps restant</div>
                 <div id="timer" class="timer" aria-live="off">{{ sprintf('%d:%02d', intdiv($remainingSeconds, 60), $remainingSeconds % 60) }}</div>
             </div>
             <div id="status" class="live-status" role="status">Prêt</div>
@@ -44,8 +46,12 @@
 
         <div id="intro" class="card">
             <p>{{ $intro }}</p>
-            <p class="muted small">Installez-vous dans un endroit calme. Avec des écouteurs, le professeur vous entendra mieux. Votre navigateur va vous demander l'accès au micro : acceptez-le.</p>
-            <button type="button" id="start" class="btn btn-block">Commencer</button>
+            <ul class="intro-tips">
+                <li><x-icon name="pin" /> Installez-vous dans un endroit calme.</li>
+                <li><x-icon name="headphones" /> Avec des écouteurs, le professeur vous entendra mieux.</li>
+                <li><x-icon name="mic" /> Votre navigateur va vous demander l'accès au micro : acceptez-le.</li>
+            </ul>
+            <button type="button" id="start" class="btn btn-accent btn-block btn-lg"><x-icon name="play" /> Commencer</button>
         </div>
 
         <div id="subtitles" class="subtitles" aria-live="polite" hidden></div>
@@ -59,5 +65,5 @@
         </div>
     </div>
 
-    <script type="module" src="{{ asset('js/live-session.js') }}?v={{ @filemtime(public_path('js/live-session.js')) }}"></script>
+    <script type="module" src="{{ \App\Support\Asset::url('js/live-session.js') }}"></script>
 </x-layout>

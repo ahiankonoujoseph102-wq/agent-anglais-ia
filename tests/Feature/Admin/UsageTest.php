@@ -45,8 +45,8 @@ class UsageTest extends TestCase
             ->get('/admin/consommation')
             ->assertOk()
             ->assertSee('Edem Mensah')
-            ->assertSee('14 min 12 s')
-            ->assertSee('4 min 50 s')
+            ->assertSee('14 minutes 12 secondes')
+            ->assertSee('4 minutes 50 secondes')
             ->assertSee('100 000 / 50 000')
             ->assertSee('0,9000', false)
             ->assertSee('Réinitialiser');

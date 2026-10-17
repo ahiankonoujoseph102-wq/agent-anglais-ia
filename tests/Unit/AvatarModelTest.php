@@ -56,7 +56,7 @@ class AvatarModelTest extends TestCase
             $this->assertFileExists(public_path("teacher3d/lib/{$file}"));
         }
 
-        $this->assertFileExists(public_path('teacher3d-sw.js'));
+        $this->assertFileExists(public_path('sw.js'));
         $this->assertFileExists(public_path('js/teacher-3d.js'));
         $this->assertFileExists(public_path('js/teacher-view.js'));
     }

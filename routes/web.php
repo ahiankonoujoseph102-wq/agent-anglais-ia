@@ -19,11 +19,22 @@ use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\Program\AttestationController;
 use App\Http\Controllers\Program\LessonHistoryController;
 use App\Http\Controllers\Program\ProgramController;
+use App\Http\Controllers\WebAppController;
+use App\Http\Middleware\EnsurePasswordIsChanged;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/contact', ContactController::class)->name('contact');
 Route::get('/credits', CreditsController::class)->name('credits');
+
+// Application installable : sans session, ces réponses ne contiennent aucune donnée personnelle.
+Route::withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, EnsurePasswordIsChanged::class])->group(function () {
+    Route::get('/manifest.webmanifest', [WebAppController::class, 'manifest'])->name('manifest');
+    Route::get('/hors-connexion', [WebAppController::class, 'offline'])->name('offline');
+});
 Route::get('/attestation/verifier/{code}', [AttestationController::class, 'verify'])->name('attestation.verify');
 
 Route::middleware('guest')->group(function () {

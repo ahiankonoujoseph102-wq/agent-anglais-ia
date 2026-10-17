@@ -1,10 +1,11 @@
-<x-layout title="Crédits" :description="'Licences et auteurs des éléments utilisés par '.config('platform.name').'.'">
-    <h1>Crédits</h1>
-
-    <p>Le professeur animé ({{ $modelName }}) et l'affichage en 3D reposent sur les éléments suivants. Merci à leurs auteurs.</p>
+<x-layout title="Crédits" narrow :description="'Licences et auteurs des éléments utilisés par '.config('platform.name').'.'">
+    <div class="page-head rise">
+        <h1>Crédits</h1>
+        <p class="muted">Le professeur animé ({{ $modelName }}), l'affichage en 3D et la police du site reposent sur les éléments suivants. Merci à leurs auteurs.</p>
+    </div>
 
     @foreach ($credits as $credit)
-        <section class="card">
+        <section class="card credit reveal">
             <h2>{{ $credit['name'] }}</h2>
             <dl class="summary">
                 <dt>Auteur</dt>

@@ -1,19 +1,16 @@
 <x-layout title="Mon programme personnel" narrow>
-    <ol class="pay-steps" aria-label="Étapes du questionnaire">
-        @foreach (['Objectif', 'Métier', 'Jours', 'Difficultés'] as $i => $label)
-            <li @class(['done' => $i + 1 < $step, 'current' => $i + 1 === $step]) @if ($i + 1 === $step) aria-current="step" @endif>
-                <span>{{ $i + 1 }}</span> {{ $label }}
-            </li>
-        @endforeach
-    </ol>
+    <x-stepper :labels="['Objectif', 'Métier', 'Jours', 'Difficultés']" :current="$step" label="Étapes du questionnaire" />
 
-    <h1>Construisons votre programme</h1>
-    <p class="muted">
-        Niveau {{ $level->value }} ({{ $level->label() }}) — question {{ $step }} sur {{ $steps }}.
-        Vos réponses servent à choisir les situations et le rythme de vos séances.
-    </p>
+    <div class="step-panel">
+    <div class="page-head">
+        <h1>Construisons votre programme</h1>
+        <p class="muted">
+            Niveau {{ $level->value }} ({{ $level->label() }}) — question {{ $step }} sur {{ $steps }}.
+            Vos réponses servent à choisir les situations et le rythme de vos séances.
+        </p>
+    </div>
 
-    <form method="POST" action="{{ route('program.questionnaire.store', $step) }}" class="card" novalidate>
+    <form method="POST" action="{{ route('program.questionnaire.store', $step) }}" class="card form-card" novalidate>
         @csrf
 
         @if ($step === 1)
@@ -61,10 +58,11 @@
             </fieldset>
         @endif
 
-        <button type="submit" class="btn btn-block">{{ $step < $steps ? 'Continuer' : 'Construire mon programme' }}</button>
+        <button type="submit" class="btn btn-block btn-lg">{{ $step < $steps ? 'Continuer' : 'Construire mon programme' }} <x-icon name="arrow-right" /></button>
     </form>
 
     @if ($step > 1)
-        <p><a href="{{ route('program.questionnaire', $step - 1) }}">← Question précédente</a></p>
+        <p><a class="back-link" href="{{ route('program.questionnaire', $step - 1) }}"><x-icon name="arrow-left" /> Question précédente</a></p>
     @endif
+    </div>
 </x-layout>

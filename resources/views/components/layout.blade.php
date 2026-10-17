@@ -1,71 +1,136 @@
-@props(['title' => null, 'description' => null, 'narrow' => false])
+@props(['title' => null, 'description' => null, 'narrow' => false, 'install' => false, 'focus' => false])
+
+@php
+    use App\Support\Asset;
+
+    $user = auth()->user();
+    $isAdminPage = request()->is('admin', 'admin/*');
+    // Barre du bas (téléphone) : apprenant connecté, hors écran de conversation (focus).
+    $tabbar = $user && ! $isAdminPage && ! $focus && ! $user->must_change_password;
+    $tab = fn (string ...$patterns) => request()->routeIs(...$patterns) ? 'is-active' : null;
+@endphp
 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#0d6b4f">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="{{ config('platform.brand.theme_color') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ? $title.' · ' : '' }}{{ config('platform.name') }}</title>
     @if ($description)
         <meta name="description" content="{{ $description }}">
     @endif
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ @filemtime(public_path('css/app.css')) }}">
+    <link rel="manifest" href="{{ route('manifest') }}">
+    <link rel="icon" href="{{ asset('icons/icon-192.png') }}" type="image/png">
+    <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="{{ config('platform.brand.short_name') ?: config('platform.name') }}">
+    <link rel="preload" href="{{ asset('fonts/nunito-3.602-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{{ Asset::url('css/tokens.css') }}">
+    <link rel="stylesheet" href="{{ Asset::url('css/app.css') }}">
+    <script>document.documentElement.classList.add('js');</script>
+    <script type="module" src="{{ Asset::url('js/app.js') }}" data-sw="{{ asset('sw.js') }}"></script>
 </head>
-<body>
+<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage])>
+    <a class="skip-link" href="#contenu">Aller au contenu</a>
+
     <header class="site-header">
         <div class="container">
-            <a class="brand" href="{{ route('home') }}">{{ config('platform.name') }}</a>
+            <x-logo />
             <nav class="nav" aria-label="Navigation principale">
-                @auth
-                    @if (auth()->user()->isAdmin())
-                        <a href="{{ route('admin.payments.pending') }}">
-                            Administration
+                @if ($user)
+                    @if ($user->isAdmin())
+                        <a href="{{ route('admin.payments.pending') }}" @class([$tab('admin.*')]) aria-label="Administration" title="Administration">
+                            <x-icon name="shield" /> <span class="nav-label">Administration</span>
                             @if ($pendingPaymentsCount > 0)
                                 <span class="badge badge-alert" title="Paiements en attente">{{ $pendingPaymentsCount }}</span>
                             @endif
                         </a>
                     @endif
-                    <a href="{{ route('dashboard') }}">Mon espace</a>
+                    <a href="{{ route('dashboard') }}" @class(['nav-wide' => $tabbar, $tab('dashboard')]) aria-label="Mon espace" title="Mon espace"><x-icon name="home" /> <span class="nav-label">Mon espace</span></a>
+                    @if ($tabbar)
+                        <a href="{{ route('program.show') }}" @class(['nav-wide', $tab('program.*')])><x-icon name="calendar" /> Mon programme</a>
+                        <a href="{{ route('lessons.history') }}" @class(['nav-wide', $tab('lessons.history')])><x-icon name="list" /> Mes séances</a>
+                    @endif
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="btn btn-link">Déconnexion</button>
+                        <button type="submit" class="btn btn-link" aria-label="Déconnexion" title="Déconnexion"><x-icon name="logout" /> <span class="nav-label">Déconnexion</span></button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}">Connexion</a>
-                    <a class="btn btn-light" href="{{ route('register') }}">Inscription</a>
-                @endauth
+                    <a href="{{ route('login') }}" @class([$tab('login')]) aria-label="Connexion" title="Connexion"><x-icon name="login" /> <span class="nav-label">Connexion</span></a>
+                    <a class="nav-cta" href="{{ route('register') }}">Inscription</a>
+                @endif
             </nav>
         </div>
     </header>
 
-    <main>
+    <main id="contenu">
         <div class="container {{ $narrow ? 'container-narrow' : '' }}">
             @if (session('status'))
-                <div class="alert alert-success" role="status">{{ session('status') }}</div>
+                <div class="alert alert-success rise" role="status"><x-icon name="check-circle" /><div>{{ session('status') }}</div></div>
             @endif
 
             {{ $slot }}
+
+            @if ($install)
+                {{-- Installation de l'application : affiché par public/js/app.js quand c'est possible. --}}
+                <div class="install" id="install" hidden>
+                    <span class="icon-bubble"><x-icon name="download" /></span>
+                    <p data-install-android>
+                        <strong>Installer l'application</strong>
+                        Ouvrez {{ config('platform.name') }} directement depuis l'écran d'accueil de votre téléphone.
+                    </p>
+                    <p data-install-ios hidden>
+                        <strong>Ajouter à l'écran d'accueil</strong>
+                        Sur iPhone : touchez « Partager » <x-icon name="share" label="Partager" />, puis « Sur l'écran d'accueil ».
+                    </p>
+                    <button type="button" class="btn" data-install-button>Installer</button>
+                    <button type="button" class="install-close" data-install-close title="Fermer"><x-icon name="close" label="Fermer" /></button>
+                </div>
+            @endif
         </div>
     </main>
 
     <footer class="site-footer">
         <div class="container">
-            <p>
-                <strong>{{ config('platform.name') }}</strong> — {{ config('platform.contact.address') }}<br>
-                {{ config('platform.contact.hours') }}<br>
-                @foreach (config('platform.contact.phones') as $phone)
-                    <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}">{{ $phone }}</a>@if (! $loop->last) · @endif
-                @endforeach
-                <br>
-                <a href="mailto:{{ config('platform.contact.email') }}">{{ config('platform.contact.email') }}</a>
-                · <a href="{{ \App\Support\WhatsApp::url(config('platform.contact.whatsapp')) }}" target="_blank" rel="noopener">WhatsApp</a>
-                · <a href="{{ route('contact') }}">Contact</a>
-                · <a href="{{ route('credits') }}">Crédits</a>
-            </p>
-            <p>&copy; {{ date('Y') }} {{ config('platform.name') }} — Apprenez l'anglais avec votre professeur IA.</p>
+            <div class="footer-grid">
+                <div>
+                    <x-logo tagline />
+                    <p class="next-step">Apprenez l'anglais à l'oral avec votre professeur IA, depuis votre téléphone.</p>
+                </div>
+                <ul class="footer-list">
+                    <li><x-icon name="pin" /> <span>{{ config('platform.contact.address') }}</span></li>
+                    <li><x-icon name="clock" /> <span>{{ config('platform.contact.hours') }}</span></li>
+                    <li><x-icon name="phone" />
+                        <span>
+                            @foreach (config('platform.contact.phones') as $phone)
+                                <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}">{{ $phone }}</a>@if (! $loop->last) · @endif
+                            @endforeach
+                        </span>
+                    </li>
+                    <li><x-icon name="mail" /> <a href="mailto:{{ config('platform.contact.email') }}">{{ config('platform.contact.email') }}</a></li>
+                </ul>
+                <ul class="footer-links">
+                    <li><a href="{{ \App\Support\WhatsApp::url(config('platform.contact.whatsapp')) }}" target="_blank" rel="noopener">WhatsApp</a></li>
+                    <li><a href="{{ route('contact') }}">Contact</a></li>
+                    <li><a href="{{ route('credits') }}">Crédits</a></li>
+                    <li><button type="button" class="btn btn-link footer-install" data-install-button hidden>Installer l'application</button></li>
+                </ul>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; {{ date('Y') }} {{ config('platform.name') }} — Apprenez l'anglais avec votre professeur IA.</p>
+            </div>
         </div>
     </footer>
+
+    @if ($tabbar)
+        <nav class="tabbar" aria-label="Navigation de l'espace apprenant">
+            <a href="{{ route('dashboard') }}" @class([$tab('dashboard')]) @if (request()->routeIs('dashboard')) aria-current="page" @endif><x-icon name="home" /> Mon espace</a>
+            <a href="{{ route('program.show') }}" @class([$tab('program.*')]) @if (request()->routeIs('program.*')) aria-current="page" @endif><x-icon name="calendar" /> Programme</a>
+            <a href="{{ route('lessons.history') }}" @class([$tab('lessons.history')]) @if (request()->routeIs('lessons.history')) aria-current="page" @endif><x-icon name="list" /> Séances</a>
+            <a href="{{ route('contact') }}" @class([$tab('contact')]) @if (request()->routeIs('contact')) aria-current="page" @endif><x-icon name="whatsapp" /> Aide</a>
+        </nav>
+    @endif
 </body>
 </html>

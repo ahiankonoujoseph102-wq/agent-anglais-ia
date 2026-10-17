@@ -4,10 +4,16 @@
 @endphp
 
 <x-layout title="Mes séances">
-    <h1>Mes séances</h1>
+    <div class="page-head rise">
+        <h1>Mes séances</h1>
+        <p class="muted">Vos bilans de séance : résumés, devoirs, notes et erreurs à revoir.</p>
+    </div>
 
-    <section class="card">
-        <h2>Mes erreurs à revoir ({{ $openErrors->count() }})</h2>
+    <section class="card card-accent rise" style="--i: 1">
+        <div class="card-title">
+            <span class="icon-bubble icon-bubble-accent"><x-icon name="edit" /></span>
+            <h2>Mes erreurs à revoir ({{ $openErrors->count() }})</h2>
+        </div>
         <p class="muted small">
             Le professeur vous les fait répéter à chaque séance. Une erreur disparaît quand vous dites la bonne forme
             deux séances de suite. Déjà corrigées : {{ $resolvedCount }}.
@@ -26,10 +32,10 @@
 
     <h2 class="next-step">Historique</h2>
     @forelse ($lessons as $lesson)
-        <article class="card">
+        <article class="card lesson-card reveal">
             <h3>
                 {{ $lesson->date->translatedFormat('l j F Y') }}
-                <span class="muted small">· {{ Duration::formatPrecise($lesson->used_seconds) }}</span>
+                <span class="badge badge-muted"><x-icon name="clock" /> {{ Duration::formatPrecise($lesson->used_seconds) }}</span>
             </h3>
             @if ($lesson->programLesson)
                 <p class="muted small">Unité {{ $lesson->programLesson->unit_number }}, leçon {{ $lesson->programLesson->lesson_number }}
@@ -45,15 +51,18 @@
                 <p><strong>Devoir :</strong> {{ $lesson->homework }}</p>
             @endif
             @if ($lesson->reported_at)
-                <p class="small muted">
+                <ul class="scores">
                     @foreach (Skill::cases() as $skill)
-                        {{ $skill->label() }} {{ $lesson->{$skill->column()} }}/5 @if (! $loop->last) · @endif
+                        <li>{{ $skill->label() }} {{ $lesson->{$skill->column()} }}/5</li>
                     @endforeach
-                </p>
+                </ul>
             @endif
         </article>
     @empty
-        <div class="card">Aucune séance pour le moment.</div>
+        <div class="card empty-state">
+            <span class="icon-bubble"><x-icon name="mic" /></span>
+            <p>Aucune séance pour le moment.</p>
+        </div>
     @endforelse
 
     {{ $lessons->links() }}

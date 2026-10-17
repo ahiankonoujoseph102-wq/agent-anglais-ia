@@ -25,7 +25,8 @@ Le professeur est un **personnage animé en 3D** dans le navigateur, dont la bou
   - Tâches planifiées par le **planificateur Laravel Cloud** (option « Scheduler » du cluster App) → `schedule:run` chaque minute ; chaque tâche avec `onOneServer()`.
   - **Système de fichiers éphémère** sur Laravel Cloud : tout fichier à conserver (captures de paiement) va sur un **bucket privé** (Laravel Cloud Object Storage, compatible S3), jamais sur le disque du serveur.
 - **Paiement manuel uniquement** : aucune API ni aucun prestataire de paiement en ligne. Coordonnées de paiement **uniquement** dans `config/payment.php`. Au Togo : « Mixx by Yas » et « Flooz », jamais « T-Money ».
-- **Interface entièrement en français**, **pensée d'abord pour le téléphone**, **légère en données** (pas de police web, pas de framework CSS, pas d'image inutile).
+- **Interface entièrement en français, sans abréviations** (« 15 minutes », pas « 15 min »), **pensée d'abord pour le téléphone**, **légère en données** : une seule police hébergée sur le serveur (woff2, 30 Ko), pas de framework CSS ni de bibliothèque JavaScript, pas d'image inutile. Cible : moins de 150 Ko transférés pour la page d'accueil, hors image de Teacher Joe et police.
+- **Aucun chiffre inventé** sur le site : ni témoignage, ni nombre d'apprenants, ni note, ni partenaire.
 - **Aucune clé secrète dans le code** : tout passe par `.env` (lu via `config/*.php`, jamais `env()` ailleurs que dans `config/`).
 - **Public d'abord togolais** : les situations du programme se passent au Togo (Grand Marché et port autonome de Lomé, zémidjans et taxis, universités de Lomé et de Kara, administration, accueil de visiteurs anglophones…). Le **Ghana** est le seul autre pays cité, comme voisin anglophone (frontière d'Aflao, achats et affaires à Accra). Les variétés de langue (anglais britannique, américain, du Ghana) peuvent être nommées pour la prononciation ; aucun autre pays. `tests/Unit/CurriculumTest.php` le vérifie.
 - **Vocabulaire imposé** : le document délivré après un bilan de niveau réussi est une **attestation** de niveau — jamais « certificat » ni « diplôme ».
@@ -46,6 +47,7 @@ Formules de départ (dans `config/platform.php`) :
 - **Phase 3 — Paiement manuel et comptes (faite)** : paiement Mobile Money déclaré par l'apprenant (capture privée), validation/refus par l'administrateur, activation et renouvellement de l'abonnement, rappel 3 jours avant la fin, mot de passe oublié via WhatsApp + mot de passe provisoire, coordonnées du centre (pied de page, page Contact).
 - **Phase 4 — Programme (faite)** : programme officiel original A1 → C2 (12 unités par niveau), questionnaire et programme personnel (calendrier, progression), séance branchée sur la leçon du jour, bilan structuré (notes, erreurs, devoir), erreurs à revoir, bilan de fin de niveau, attestation PDF, suivi (série, compétences), apprenants inactifs dans l'admin, Gemini texte pour les rédactions.
 - **Phase 5 — Professeur 3D (faite)** : personnage 3D « Teacher Joe » (CC0, créé par script), bouche synchronisée sur la voix (HeadAudio), comportement (repos, écoute, parole, expressions déclenchées par Gemini), décor de classe, chargement en arrière-plan avec cache, retour automatique au visage SVG.
+- **Phase 6 — Design et application installable (faite)** : identité visuelle (vert du gilet, orange de la cravate, police Nunito), toutes les pages apprenant refaites, administration sobre, pages d'erreur, animations discrètes, manifeste web, service worker étendu, page hors connexion, bouton « Installer l'application ».
 
 (L'ordre 2/3/4/5 est indicatif ; voir le compte rendu de chaque phase.)
 
@@ -86,13 +88,25 @@ config/services.php      gemini : clé, modèle Live, version d'API, voix, duré
 public/js/               live-session.js (conversation vocale), pcm-capture-worklet.js (micro → PCM 16 kHz), copy.js (bouton « Copier »),
                          teacher-view.js (choix 3D / SVG, progression, repli), teacher-3d.js (scène, animation, lecture labiale)
 public/teacher3d/        models/teacher-joe.glb (personnage), lib/ (three.js regroupé, HeadAudio, LICENSES.txt)
-public/teacher3d-sw.js   service worker : garde en cache les fichiers de /teacher3d/
+public/sw.js             SERVICE WORKER UNIQUE du site (portée « / ») : fichiers statiques + page hors connexion (voir plus bas)
+public/js/app.js         commun à toutes les pages : enregistrement du service worker, apparition des blocs, installation
+public/fonts/            nunito-3.602-latin.woff2 (seule police), OFL-Nunito.txt (licence)
+public/icons/            icônes de l'application (192, 512, adaptative 512, iPhone 180)
+public/images/           teacher-joe.webp (Teacher Joe, page d'accueil)
 tools/teacher3d/         outils LOCAUX (Node) : génération du modèle, regroupement de three.js (voir son README)
 lang/fr/, lang/fr.json   traductions (validation, erreurs HTTP, pagination)
-public/css/app.css       feuille de style unique, écrite à la main, sans compilation
+public/css/tokens.css    IDENTITÉ VISUELLE : seul fichier des couleurs, police, espacements, rayons, ombres, durées
+public/css/app.css       styles des pages (n'utilise que les variables de tokens.css), écrit à la main, sans compilation
 resources/views/
-  components/layout.blade.php   gabarit commun (<x-layout>)
+  components/layout.blade.php   gabarit commun (<x-layout>) : en-tête, barre du bas (téléphone), pied de page, manifeste ;
+                                props : title, description, narrow, install (bandeau d'installation), focus (écran de séance)
+  components/simple-layout.blade.php  gabarit sans session ni compte (page hors connexion, erreurs 500 et 503)
   components/input.blade.php    champ de formulaire avec erreurs (<x-input>)
+  components/icon.blade.php     icônes SVG intégrées (<x-icon name="mic" />), dessinées pour le site
+  components/logo.blade.php     logo provisoire (<x-logo />) : icône + nom + accroche de config/platform.php
+  components/stepper.blade.php  fil d'étapes animé (paiement, questionnaire)
+  errors/                       404, 403, 419 (page expirée), 500, 503
+  offline.blade.php             « Vous êtes hors connexion »
 ```
 
 ### Base de données
@@ -156,8 +170,24 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 - **Bouche** : HeadAudio (AudioWorklet, MFCC + modèle de visèmes) écoute la voix du professeur avant un retard de 80 ms ajouté au haut-parleur ; repli sur le volume et le timbre si HeadAudio échoue.
 - **Comportement** (`teacher-3d.js`) : respiration, clignements, petits mouvements de tête au repos ; écoute (micro + sous-titres) : buste vers l'avant, tête penchée, hochements ; parole : gestes des mains et accents de la tête ; expressions `welcome`, `happy`, `encouraging`, `attentive`, `thinking`, `goodbye`, `neutral` demandées par Gemini via la fonction **`set_expression`** (déclarée après la fonction principale de chaque conversation quand `avatar.enabled`). Accueil automatique au début, au revoir à la fin.
 - **Téléphone** : chargement en arrière-plan avec barre de progression ; le visage SVG reste affiché tant que la 3D n'est pas prête. Pas de 3D (visage SVG + lien « Afficher le professeur en 3D ») si : mode économie de données, préférence « Visage simple », moins de 1 Go de mémoire, pas de WebGL 2. Pendant l'affichage : 30 images/s au plus ; sous 20 images/s la définition baisse, sous 12 images/s retour automatique au SVG ; idem si le contexte WebGL est perdu. La séance n'est jamais bloquée.
-- **Cache** : le modèle est gardé dans le Cache Storage du navigateur ; le service worker garde les bibliothèques. Les URL portent une empreinte du contenu (`Avatar::asset()`), pas la date du fichier : rien n'est retéléchargé après un déploiement si le fichier n'a pas changé.
+- **Cache** : le modèle est gardé dans le Cache Storage du navigateur (cache `teacher3d`) ; le service worker du site (`public/sw.js`) garde les bibliothèques. Les URL portent une empreinte du contenu (`Avatar::asset()`), pas la date du fichier : rien n'est retéléchargé après un déploiement si le fichier n'a pas changé.
 - Désactiver la 3D partout : `AVATAR_3D_ENABLED=false`.
+
+### Identité visuelle et application installable (phase 6)
+
+- **Couleurs** (tirées de Teacher Joe) : vert du gilet `#1f5c49` (principal), orange de la cravate `#c2502c` (accent, boutons d'action), fonds crème `#fbf7f0`. Toutes dans `public/css/tokens.css` (variables `--c-…`), avec les contrastes AA vérifiés en commentaire ; `app.css` n'a aucune couleur en dur (sauf l'illustration SVG de secours du professeur). Changer une couleur = modifier `tokens.css` ; pour l'application installée, reporter le vert et le crème dans `config/platform.php` (`brand.theme_color`, `brand.background_color`).
+- **Police** : Nunito (SIL Open Font License 1.1, The Nunito Project Authors), une seule famille, fichier woff2 variable réduit aux graisses 400 à 800 et aux caractères latins et à la ponctuation française (30 Ko), hébergé dans `public/fonts/`. Licence dans `public/fonts/OFL-Nunito.txt` et sur la page Crédits.
+- **Logo provisoire** : icône + nom, `<x-logo>` ; nom = `platform.name`, icône, accroche et nom court = `platform.brand`. Ne jamais écrire le nom en dur.
+- **Icônes** : `<x-icon>` (SVG intégrés, trait de 2 px, `currentColor`).
+- **Animations** : courtes (`--dur…`), apparition des blocs `.reveal` (seulement si JavaScript est actif), `.rise`, boutons qui réagissent au toucher, glissement des étapes (`.step-panel`), barres de progression animées, transitions entre pages (`@view-transition`). Toutes coupées par « réduire les animations » (`prefers-reduced-motion`).
+- **Fichiers versionnés** : `App\Support\Asset::url('css/app.css')` ajoute l'empreinte du contenu (`?v=…`). L'utiliser pour tout CSS, JS ou image référencé par une page.
+- **Manifeste** : `/manifest.webmanifest` (`WebAppController`, sans session) : nom et nom court de la configuration, `display: standalone` (plein écran de l'application, sans barre d'adresse), `start_url: /espace`, icônes 192, 512 et adaptative 512, couleurs de l'écran de démarrage.
+- **Service worker** (`public/sw.js`, ancien `teacher3d-sw.js` renommé et étendu, un seul pour tout le site) :
+  - met en cache UNIQUEMENT les fichiers des dossiers `STATIC_PATHS` (`/css/`, `/js/`, `/fonts/`, `/icons/`, `/images/`, `/teacher3d/`), versionnés (`?v=`) ou immuables (police, icônes) ; une seule version par fichier ; le modèle 3D reste dans son propre cache `teacher3d` (géré par `teacher-3d.js`) ;
+  - les pages (`mode: navigate`) passent TOUJOURS par le réseau, sans copie ; sans réseau, il affiche `/hors-connexion` (seule page gardée, sans session ni donnée personnelle) ;
+  - n'intercepte jamais les envois (POST : paiements, signaux et bilans des séances) ni les réponses JSON (jetons des séances) ;
+  - `tests/Feature/WebAppTest.php` vérifie qu'aucune route réservée aux comptes ne tombe dans un dossier mis en cache.
+- **Installation** : bouton « Installer l'application » (Android, événement `beforeinstallprompt`) dans le pied de page et un bandeau discret sur l'accueil et l'espace apprenant ; sur iPhone, explication « Partager », puis « Sur l'écran d'accueil ». Fermeture mémorisée dans le navigateur.
 
 ### Routes (URL en français)
 
@@ -165,7 +195,9 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 |---|---|---|
 | `/` | `home` | public |
 | `/contact` | `contact` | public : coordonnées du centre |
-| `/credits` | `credits` | public : licences et auteurs (professeur 3D, three.js, HeadAudio) |
+| `/credits` | `credits` | public : licences et auteurs (professeur 3D, police, three.js, HeadAudio) |
+| `/manifest.webmanifest` | `manifest` | public, sans session : manifeste de l'application installable |
+| `/hors-connexion` | `offline` | public, sans session : page affichée par le service worker sans réseau |
 | `/mot-de-passe-oublie` | `password.forgot` | invités |
 | `/mot-de-passe/nouveau` (GET, PUT) | `password.change`, `password.update` | connectés (après mot de passe provisoire) |
 | `/inscription` | `register` | invités |
@@ -203,7 +235,7 @@ Il n'existe **aucun moyen de devenir administrateur depuis le site** : `php arti
 - Mode strict Eloquent activé hors production (`Model::shouldBeStrict`) : charger les relations avec `with()`.
 - Pas de dépendance front à compiler : `public/js/*.js` sont des modules ES écrits à la main (pas de SDK Google côté navigateur, le protocole WebSocket est utilisé directement). Si un jour une bibliothèque est nécessaire (personnage 3D), servir des modules ES depuis `public/` ou compiler **en local** et committer le résultat ; jamais de build sur le serveur.
 - Appels à Gemini : uniquement via `Http` (facade) pour pouvoir les simuler dans les tests (`Http::fake`). Aucun test n'appelle la vraie API : `Http::preventStrayRequests()` est actif dans `tests/TestCase.php`. Pour un apprenant avec programme, utiliser le trait `Tests\Concerns\BuildsPrograms`.
-- Vues : composants Blade anonymes (`<x-layout>`, `<x-input>`), CSS dans `public/css/app.css`, mobile d'abord (les règles `@media (min-width: 640px)` élargissent).
+- Vues : composants Blade anonymes (`<x-layout>`, `<x-input>`, `<x-icon>`, `<x-logo>`, `<x-stepper>`), CSS dans `public/css/app.css` avec les seules variables de `public/css/tokens.css`, mobile d'abord (les règles `@media (min-width: 640px)` puis `900px` élargissent). Durées affichées en toutes lettres (`App\Support\Duration`).
 - Toute nouvelle fonctionnalité arrive avec ses tests (PHPUnit, `tests/Feature` et `tests/Unit`).
 
 ## Commandes utiles

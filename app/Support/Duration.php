@@ -5,34 +5,45 @@ namespace App\Support;
 class Duration
 {
     /**
-     * Formate une durée en secondes pour l'affichage : « 12 min », « 1 h 05 min ».
+     * Formate une durée en secondes pour l'affichage, en toutes lettres :
+     * « 12 minutes », « 1 heure 5 minutes ».
      */
     public static function format(int $seconds): string
     {
         $minutes = intdiv(max(0, $seconds), 60);
 
         if ($minutes < 60) {
-            return $minutes.' min';
+            return self::unit($minutes, 'minute');
         }
 
-        return sprintf('%d h %02d min', intdiv($minutes, 60), $minutes % 60);
+        $hours = self::unit(intdiv($minutes, 60), 'heure');
+
+        return $minutes % 60 === 0 ? $hours : $hours.' '.self::unit($minutes % 60, 'minute');
     }
 
     /**
-     * Durée à la seconde près : « 45 s », « 4 min 12 s », « 1 h 05 min ».
+     * Durée à la seconde près : « 45 secondes », « 4 minutes 12 secondes », « 1 heure 5 minutes ».
      */
     public static function formatPrecise(int $seconds): string
     {
         $seconds = max(0, $seconds);
 
         if ($seconds < 60) {
-            return $seconds.' s';
+            return self::unit($seconds, 'seconde');
         }
 
         if ($seconds < 3600) {
-            return sprintf('%d min %02d s', intdiv($seconds, 60), $seconds % 60);
+            $rest = $seconds % 60;
+
+            return self::unit(intdiv($seconds, 60), 'minute').($rest ? ' '.self::unit($rest, 'seconde') : '');
         }
 
         return self::format($seconds);
+    }
+
+    // Accord en français : « 0 minute », « 1 minute », « 2 minutes ».
+    private static function unit(int $count, string $word): string
+    {
+        return $count.' '.$word.($count >= 2 ? 's' : '');
     }
 }

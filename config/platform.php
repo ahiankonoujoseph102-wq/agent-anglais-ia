@@ -17,6 +17,22 @@ return [
     // Nom commercial affiché sur tout le site.
     'name' => env('PLATFORM_NAME', 'Teacher Joe'),
 
+    /*
+    | Logo provisoire : icône + nom (ci-dessus) + accroche. Le nom n'étant pas
+    | définitif, tout se règle ici ; les pages utilisent <x-logo>.
+    | - icon       : une icône de resources/views/components/icon.blade.php
+    | - short_name : nom court de l'application installée (vide = le nom)
+    */
+    'brand' => [
+        'icon' => 'bubble',
+        'tagline' => 'Votre professeur d\'anglais à l\'oral',
+        'short_name' => env('PLATFORM_SHORT_NAME'),
+        // Couleurs de l'application installée (barre d'état, écran de démarrage).
+        // Les garder identiques à --c-primary et --c-bg de public/css/tokens.css.
+        'theme_color' => '#1f5c49',
+        'background_color' => '#fbf7f0',
+    ],
+
     // Devise utilisée pour les prix.
     'currency' => 'FCFA',
 
