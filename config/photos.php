@@ -37,10 +37,10 @@ return [
     ],
 
     'equipe-reunion' => [
-        'alt' => 'Trois jeunes professionnels discutent en réunion autour de leurs ordinateurs',
-        'author' => 'UK Black Tech',
-        'author_url' => 'https://unsplash.com/@ukblacktech',
-        'source_url' => 'https://unsplash.com/photos/a-group-of-people-sitting-around-a-table-with-laptops-YDEiseFR_Q8',
+        'alt' => 'Une équipe de professionnels en réunion autour d\'une table',
+        'author' => 'Ninthgrid',
+        'author_url' => 'https://unsplash.com/@ninthgrid_',
+        'source_url' => 'https://unsplash.com/photos/a-group-of-people-sitting-around-a-white-table-YsJUxCIW14U',
     ],
 
 ];
