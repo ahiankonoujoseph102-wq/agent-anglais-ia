@@ -185,15 +185,23 @@ class TeacherSetup
             trim((string) config('teacher.persona')),
             (string) config("teacher.level_guidance.{$level}", ''),
             trim((string) config("teacher.{$kind}")),
+            trim((string) config('teacher.site_help')),
         ]);
 
-        return self::fill($text, $extra + [
+        $text = self::fill($text, $extra + [
             'platform' => config('platform.name'),
             'teacher' => config('avatar.model.name'),
             'name' => $user->name,
             'level' => $level,
             'minutes' => $minutes,
             'warning' => (int) config('platform.lessons.warning_minutes_before_end'),
+        ]);
+
+        // Ajoutés APRÈS le remplacement des marqueurs : le nom de l'apprenant n'est jamais relu comme un marqueur.
+        return implode("\n\n", [
+            $text,
+            "SITE GUIDE (in French)\n".SiteGuide::text(),
+            "LEARNER STATUS (in French)\n".LearnerSituation::describe($user, $kind),
         ]);
     }
 

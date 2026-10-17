@@ -21,8 +21,8 @@ class TeacherSetupTest extends TestCase
         $user = new User(['name' => 'Yao']);
         $user->level = Level::B2;
 
-        $this->assertSame(
-            "Teacher of Prof Test for Yao.\n\n".config('teacher.level_guidance.B2')."\n\nLesson of 15 minutes, warning 2 minutes before.",
+        $this->assertStringStartsWith(
+            "Teacher of Prof Test for Yao.\n\n".config('teacher.level_guidance.B2')."\n\nLesson of 15 minutes, warning 2 minutes before.\n\nQUESTIONS ABOUT THE WEBSITE",
             TeacherSetup::instructions('lesson', $user, 15),
         );
     }
@@ -46,12 +46,12 @@ class TeacherSetupTest extends TestCase
 
     public function test_setup_locks_audio_transcription_and_resumption(): void
     {
-        config(['services.gemini.voice' => 'Kore']);
+        config(['services.gemini.voice' => 'Iapetus']);
 
         $setup = TeacherSetup::lesson(new User(['name' => 'Afi']), 15, 'poignee');
 
         $this->assertSame(['AUDIO'], $setup['generationConfig']['responseModalities']);
-        $this->assertSame('Kore', $setup['generationConfig']['speechConfig']['voiceConfig']['prebuiltVoiceConfig']['voiceName']);
+        $this->assertSame('Iapetus', $setup['generationConfig']['speechConfig']['voiceConfig']['prebuiltVoiceConfig']['voiceName']);
         $this->assertSame(['handle' => 'poignee'], $setup['sessionResumption']);
         $this->assertSame('{}', json_encode($setup['inputAudioTranscription']));
         $this->assertSame('{}', json_encode($setup['outputAudioTranscription']));
