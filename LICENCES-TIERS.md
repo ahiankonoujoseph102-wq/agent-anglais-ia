@@ -21,4 +21,5 @@ Licence vérifiée sur la page de chaque photo le 17 octobre 2026. Liste et text
 |---|---|---|
 | `public/images/photos/eleve-ecouteurs-*.webp` | <https://unsplash.com/photos/a-person-wearing-headphones-and-holding-a-phone-nBiJoRbVHmA> | Akinyemi Gbadamosi (<https://unsplash.com/@mhyk3y>) |
 | `public/images/photos/etudiante-parle-*.webp` | <https://unsplash.com/photos/a-woman-wearing-headphones-and-holding-a-cell-phone-agINaOByj4k> | Ato Aikins (<https://unsplash.com/@ato_aikins>) |
+| `public/images/photos/parent-enfant-lecture-*.webp` | <https://unsplash.com/photos/a-woman-reading-a-book-to-a-child-Nu5819t1K6c> (« Reading with Mum », licence gratuite vérifiée sur la page le 17 octobre 2026) | Chidy Young (<https://unsplash.com/@ychidy>) |
 | `public/images/photos/equipe-reunion-*.webp` | <https://unsplash.com/photos/a-group-of-people-sitting-around-a-white-table-YsJUxCIW14U> | Ninthgrid (<https://unsplash.com/@ninthgrid_>) |

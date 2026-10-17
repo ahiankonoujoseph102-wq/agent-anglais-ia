@@ -37,6 +37,13 @@ return [
         'source_url' => 'https://unsplash.com/photos/a-woman-wearing-headphones-and-holding-a-cell-phone-agINaOByj4k',
     ],
 
+    'parent-enfant-lecture' => [
+        'alt' => 'Une maman lit un livre avec son fils, installés ensemble sur l\'herbe',
+        'author' => 'Chidy Young',
+        'author_url' => 'https://unsplash.com/@ychidy',
+        'source_url' => 'https://unsplash.com/photos/a-woman-reading-a-book-to-a-child-Nu5819t1K6c',
+    ],
+
     'equipe-reunion' => [
         'alt' => 'Une équipe de professionnels en réunion autour d\'une table',
         'author' => 'Ninthgrid',

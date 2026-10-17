@@ -143,29 +143,34 @@
         </p>
     </section>
 
+    {{-- Trois cartes de même format (.students) : élèves, parents, professionnels. --}}
     <section class="section" aria-labelledby="eleves">
-        <div class="students reveal">
+        <div class="students students-reverse reveal">
             <figure class="photo-frame"><x-photo name="eleve-ecouteurs" /></figure>
             <div>
                 <span class="eyebrow">Vous êtes élève ?</span>
                 <h2 id="eleves">Vos cours d'anglais enfin compris</h2>
-                <p>En plus de l'oral, {{ $teacher }} vous aide dans vos leçons d'anglais de l'école, avec « Mes cours ».</p>
+                <p>En plus de l'oral, {{ $teacher }} vous aide dans vos leçons d'anglais de l'école avec « Mes cours ».</p>
                 <ol class="help-steps">
                     <li><span class="icon-bubble"><x-icon name="camera" /></span><span>Photographiez votre leçon ou votre exercice d'anglais</span></li>
                     <li><span class="icon-bubble"><x-icon name="book" /></span><span>{{ $teacher }} la lit et vous l'explique en détail, en français quand il le faut</span></li>
-                    <li><span class="icon-bubble"><x-icon name="bubble" /></span><span>Posez-lui toutes vos questions</span></li>
+                    <li><span class="icon-bubble"><x-icon name="bubble" /></span><span>Posez-lui vos questions sur la leçon</span></li>
                     <li><span class="icon-bubble"><x-icon name="edit" /></span><span>Il vous guide pour faire votre exercice vous-même, puis corrige</span></li>
                 </ol>
                 <p class="help-only"><x-icon name="info" /> Uniquement pour les cours d'anglais.</p>
-                <p class="muted small">Et toujours : vous vous entraînez à parler anglais à voix haute, sans être jugé, avec votre programme personnel.</p>
                 <a class="btn btn-accent btn-lg" href="{{ $coursesUrl }}"><x-icon :name="$coursesIcon" /> {{ $coursesLabel }}</a>
             </div>
         </div>
-        <div class="parents card reveal">
-            <span class="icon-bubble"><x-icon name="shield" /></span>
+    </section>
+
+    <section class="section" aria-labelledby="parents">
+        <div class="students reveal">
+            <figure class="photo-frame"><x-photo name="parent-enfant-lecture" /></figure>
             <div>
-                <h3>Parents</h3>
-                <p>{{ $teacher }} ne fait pas les devoirs à la place de votre enfant. Il l'aide à comprendre sa leçon d'anglais et à faire lui-même son exercice, avec patience, une étape après l'autre.</p>
+                <span class="eyebrow">Vous êtes parent ?</span>
+                <h2 id="parents">Un professeur d'anglais patient pour votre enfant</h2>
+                <p>{{ $teacher }} ne fait pas les devoirs à la place de votre enfant. Il l'aide à comprendre sa leçon d'anglais et à faire lui-même son exercice, avec patience, une étape après l'autre. Il l'entraîne aussi à parler anglais à voix haute.</p>
+                <a class="btn btn-accent btn-lg" href="{{ route('register') }}"><x-icon name="user-plus" /> Inscrire mon enfant</a>
             </div>
         </div>
     </section>
