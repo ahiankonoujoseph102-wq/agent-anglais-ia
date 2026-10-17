@@ -14,6 +14,10 @@ final readonly class Plan
         public int $price,
         public string $period,
         public int $durationDays,
+        // Formule mise en avant (badge orange, contour orange de la carte).
+        public bool $recommended = false,
+        // Badge de la carte (« Pour essayer », « Recommandée »…), ou null.
+        public ?string $badge = null,
     ) {}
 
     /**
@@ -31,6 +35,8 @@ final readonly class Plan
                 price: (int) $plan['price'],
                 period: $plan['period'],
                 durationDays: (int) $plan['duration_days'],
+                recommended: (bool) ($plan['recommended'] ?? false),
+                badge: filled($plan['badge'] ?? null) ? (string) $plan['badge'] : null,
             );
         }
 

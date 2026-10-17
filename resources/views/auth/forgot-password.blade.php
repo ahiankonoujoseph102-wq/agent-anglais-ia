@@ -1,6 +1,6 @@
 <x-layout title="Mot de passe oublié" narrow>
     <div class="auth-head rise">
-        <span class="icon-bubble"><x-icon name="lock" /></span>
+        <span class="icon-bubble icon-bubble-primary"><x-icon name="lock" /></span>
         <h1>Mot de passe oublié ?</h1>
         <p>Pas de panique. Voici comment retrouver l'accès à votre compte.</p>
     </div>

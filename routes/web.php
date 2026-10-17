@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AssessmentController as AdminAssessmentController;
+use App\Http\Controllers\Admin\IconPreviewController;
 use App\Http\Controllers\Admin\InactiveLearnerController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -12,7 +13,6 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ContactController;
-use App\Http\Controllers\CreditsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Live\AssessmentController;
@@ -31,7 +31,8 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/contact', ContactController::class)->name('contact');
-Route::get('/credits', CreditsController::class)->name('credits');
+// Ancienne page « Crédits » : supprimée, l'adresse renvoie vers l'accueil (licences : LICENCES-TIERS.md).
+Route::permanentRedirect('/credits', '/');
 
 // Application installable : sans session, ces réponses ne contiennent aucune donnée personnelle.
 Route::withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, EnsurePasswordIsChanged::class])->group(function () {
@@ -126,6 +127,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/voix', [VoiceController::class, 'index'])->name('voices.index');
     Route::get('/voix/{voice}/extrait', [VoiceController::class, 'sample'])->where('voice', '[A-Za-z]+')->middleware('throttle:30,1')->name('voices.sample');
     Route::post('/voix', [VoiceController::class, 'choose'])->name('voices.choose');
+    Route::get('/icones', IconPreviewController::class)->name('icons.index');
     Route::get('/inactifs', [InactiveLearnerController::class, 'index'])->name('inactive.index');
     Route::get('/inactifs/{user}/whatsapp', [InactiveLearnerController::class, 'whatsapp'])->name('inactive.whatsapp');
 });

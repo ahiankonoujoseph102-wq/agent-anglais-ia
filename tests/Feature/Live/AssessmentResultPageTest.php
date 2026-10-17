@@ -16,7 +16,7 @@ use Tests\TestCase;
 
 /**
  * Page de résultat de l'évaluation : niveau, message vocal de Teacher Joe (à la demande),
- * formules « Je commence maintenant », choix d'un autre niveau. Aucun appel réel à Gemini.
+ * formules (boutons orange « Choisir … »), choix d'un autre niveau. Aucun appel réel à Gemini.
  */
 class AssessmentResultPageTest extends TestCase
 {
@@ -66,7 +66,7 @@ class AssessmentResultPageTest extends TestCase
             ->assertSee('Élémentaire')
             ->assertSee('Bonne base, quelques hésitations.')
             ->assertSee('Écouter Teacher Joe')
-            ->assertSee('Je commence maintenant')
+            ->assertSee('Choisir Essentiel')
             ->assertSee(route('payment.create', 'essentiel'))
             ->assertSee('Choisir un autre niveau')
             ->assertSee('Recommandé')

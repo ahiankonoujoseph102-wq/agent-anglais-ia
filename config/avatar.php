@@ -57,36 +57,4 @@ return [
         'neutral' => 'back to a calm face after a long explanation',
     ],
 
-    // Crédits affichés sur la page /credits (professeur 3D, police, bibliothèques).
-    'credits' => [
-        [
-            'name' => 'Personnage 3D « Teacher Joe »',
-            'author' => 'Créé pour la plateforme (modèle généré par tools/teacher3d/build-teacher-joe.mjs)',
-            'license' => 'CC0 1.0 (domaine public)',
-            'license_url' => 'https://creativecommons.org/publicdomain/zero/1.0/deed.fr',
-            'url' => null,
-        ],
-        [
-            'name' => 'Police Sora (tout le texte du site, graisses 400 à 700)',
-            'author' => 'The Sora Project Authors (Jonathan Barnbrook, Julián Moncada)',
-            'license' => 'SIL Open Font License 1.1',
-            'license_url' => 'https://openfontlicense.org',
-            'url' => 'https://github.com/sora-xor/sora-font',
-        ],
-        [
-            'name' => 'three.js (affichage 3D, chargement glTF, décompression meshopt)',
-            'author' => 'three.js authors',
-            'license' => 'MIT',
-            'license_url' => 'https://github.com/mrdoob/three.js/blob/dev/LICENSE',
-            'url' => 'https://threejs.org',
-        ],
-        [
-            'name' => 'HeadAudio (lecture labiale à partir du son)',
-            'author' => 'Mika Suominen',
-            'license' => 'MIT',
-            'license_url' => 'https://github.com/met4citizen/HeadAudio/blob/main/LICENSE',
-            'url' => 'https://github.com/met4citizen/HeadAudio',
-        ],
-    ],
-
 ];

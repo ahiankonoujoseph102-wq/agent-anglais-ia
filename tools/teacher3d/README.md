@@ -24,7 +24,7 @@ Pour modifier l'apparence (teinte de peau, tenue, lunettes…), changer les cons
 
 1. Déposer le nouveau fichier GLB dans `public/teacher3d/models/` (5 Mo au plus, compression meshopt ou sans compression ; Draco n'est pas pris en charge).
 2. Dans `config/avatar.php`, changer `model.file`, `model.name`, le cadrage (`camera`) et la hauteur du bureau ; mettre `model.profile` à `generic` si le squelette n'est pas celui de Teacher Joe (les gestes des bras sont alors désactivés, la tête, le regard et le visage restent animés).
-3. Mettre à jour les crédits (`avatar.credits`) et CLAUDE.md.
+3. Mettre à jour LICENCES-TIERS.md (à la racine du dépôt) et CLAUDE.md.
 
 Les avatars au format Ready Player Me, Avaturn ou MPFB + TalkingHead suivent ces conventions (vérifier leur licence : beaucoup interdisent l'usage commercial).
 

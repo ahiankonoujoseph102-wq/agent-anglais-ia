@@ -1,6 +1,6 @@
 <x-layout title="Nouveau mot de passe" narrow>
     <div class="auth-head rise">
-        <span class="icon-bubble icon-bubble-accent"><x-icon name="lock" /></span>
+        <span class="icon-bubble icon-bubble-primary"><x-icon name="lock" /></span>
         <h1>Choisissez un nouveau mot de passe</h1>
         <p>Vous vous êtes connecté avec un mot de passe provisoire. Choisissez-en un nouveau pour continuer.</p>
     </div>

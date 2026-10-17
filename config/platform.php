@@ -35,6 +35,12 @@ return [
         // Les garder identiques à --c-primary et --c-bg de public/css/tokens.css.
         'theme_color' => '#0E2A5C',
         'background_color' => '#F4F6FB',
+        // Style des pastilles d'icône, sur tout le site (comparer sur /admin/icones) :
+        // « night » (bleu nuit en relief, icône orange), « gradient » (dégradé orange, icône blanche)
+        // ou « duotone » (fond blanc, icône bleu nuit remplie d'orange clair). App\Support\IconStyle.
+        'icon_style' => 'night',
+        // Signature en bas du pied de page : « Développé par … ».
+        'developer' => 'Joseph Ahiankonou',
     ],
 
     // Devise utilisée pour les prix.
@@ -129,6 +135,10 @@ return [
             'price' => 5000,
             'period' => 'month',
             'duration_days' => 30,
+            // Badge affiché sur la carte de la formule, partout (jamais de statistique).
+            'badge' => 'Recommandée',
+            // Formule mise en avant : badge orange et contour orange de la carte.
+            'recommended' => true,
         ],
         'intensif' => [
             'name' => 'Intensif',
@@ -136,6 +146,7 @@ return [
             'price' => 9000,
             'period' => 'month',
             'duration_days' => 30,
+            'badge' => 'Progrès plus rapides',
         ],
         'semaine' => [
             'name' => 'Semaine',
@@ -143,6 +154,7 @@ return [
             'price' => 1500,
             'period' => 'week',
             'duration_days' => 7,
+            'badge' => 'Pour essayer',
         ],
     ],
 

@@ -1,6 +1,6 @@
 <x-layout title="Inscription" narrow>
     <div class="auth-head rise">
-        <span class="icon-bubble icon-bubble-accent"><x-icon name="user" /></span>
+        <span class="icon-bubble icon-bubble-primary"><x-icon name="user-plus" /></span>
         <h1>Créer mon compte</h1>
         <p>Gratuit. Votre évaluation orale vous attend juste après.</p>
     </div>

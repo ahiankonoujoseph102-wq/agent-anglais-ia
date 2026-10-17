@@ -66,7 +66,7 @@ Règles :
 ## Police
 
 - **Sora** (SIL Open Font License 1.1, The Sora Project Authors), une seule famille pour tout le site.
-- Fichier `public/fonts/sora-2.000-latin.woff2` : police variable réduite aux graisses **400 à 700** et aux caractères latins avec les lettres et la ponctuation françaises (guillemets, œ, espace insécable ; l'espace fine insécable des prix, absente de Sora, utilise l'espace insécable de la police). Poids : **21 Ko**. Licence : `public/fonts/OFL-Sora.txt`, et page Crédits.
+- Fichier `public/fonts/sora-2.000-latin.woff2` : police variable réduite aux graisses **400 à 700** et aux caractères latins avec les lettres et la ponctuation françaises (guillemets, œ, espace insécable ; l'espace fine insécable des prix, absente de Sora, utilise l'espace insécable de la police). Poids : **21 Ko**. Licence : `public/fonts/OFL-Sora.txt`, et LICENCES-TIERS.md.
 - Graisses : 400 (texte), 600 (`--fw-bold`), 700 (`--fw-heavy`, titres et boutons).
 
 ## Logos

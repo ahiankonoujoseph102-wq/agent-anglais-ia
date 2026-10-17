@@ -138,8 +138,8 @@ class AssessmentEndingTest extends TestCase
         $html = $this->actingAs(User::factory()->create())->get('/evaluation')->assertOk()->getContent();
 
         $this->assertStringContainsString('id="plans-offer"', $html);
-        $this->assertStringContainsString('class="btn btn-accent btn-block" href="'.route('payment.create', 'essentiel').'"', $html);
-        $this->assertStringContainsString('Je commence maintenant', $html);
+        $this->assertStringContainsString('class="btn btn-accent btn-block btn-plan" href="'.route('payment.create', 'essentiel').'"', $html);
+        $this->assertStringContainsString('Choisir Essentiel', $html);
         $this->assertStringContainsString('js/conversation-end.js', $html);
         $this->assertStringContainsString('js/teacher-cues.js', $html);
     }

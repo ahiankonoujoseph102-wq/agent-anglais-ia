@@ -52,18 +52,22 @@
         </div>
         <ol class="how">
             <li class="card reveal" style="--i: 0">
+                <div class="how-head"><span class="how-num">1</span><span class="icon-bubble"><x-icon name="user-plus" /></span></div>
                 <h3>Créez votre compte</h3>
                 <p>Avec votre nom et votre numéro de téléphone. Aucune carte bancaire.</p>
             </li>
             <li class="card reveal" style="--i: 1">
+                <div class="how-head"><span class="how-num">2</span><span class="icon-bubble"><x-icon name="mic" /></span></div>
                 <h3>Passez l'évaluation gratuite</h3>
                 <p>{{ $minutes }} minutes à l'oral avec {{ $teacher }}, qui vous annonce votre niveau et répond à vos questions.</p>
             </li>
             <li class="card reveal" style="--i: 2">
+                <div class="how-head"><span class="how-num">3</span><span class="icon-bubble"><x-icon name="mobile" /></span></div>
                 <h3>Choisissez votre formule</h3>
                 <p>Payez par Mobile Money depuis votre téléphone, puis envoyez la capture de la confirmation.</p>
             </li>
             <li class="card reveal" style="--i: 3">
+                <div class="how-head"><span class="how-num">4</span><span class="icon-bubble"><x-icon name="calendar-check" /></span></div>
                 <h3>Parlez chaque jour</h3>
                 <p>Une séance orale à durée fixe, construite à partir de votre programme personnel.</p>
             </li>
@@ -81,14 +85,14 @@
         </div>
         <div class="features">
             <article class="card feature reveal" style="--i: 0">
-                <span class="icon-bubble"><x-icon name="mic" /></span>
+                <span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span>
                 <div>
                     <h3>Vous parlez vraiment</h3>
                     <p>La séance est orale du début à la fin. {{ $teacher }} pose des questions, écoute et vous fait parler le plus possible.</p>
                 </div>
             </article>
             <article class="card feature reveal" style="--i: 1">
-                <span class="icon-bubble icon-bubble-accent"><x-icon name="check-circle" /></span>
+                <span class="icon-bubble"><x-icon name="check-circle" /></span>
                 <div>
                     <h3>Des corrections immédiates</h3>
                     <p>Une erreur ? Il vous donne la bonne façon de dire, <span lang="en">« You said… We say… »</span>, puis vous répétez. Vos erreurs reviennent aux séances suivantes jusqu'à ce qu'elles soient corrigées.</p>
@@ -102,7 +106,7 @@
                 </div>
             </article>
             <article class="card feature reveal" style="--i: 3">
-                <span class="icon-bubble icon-bubble-accent"><x-icon name="calendar" /></span>
+                <span class="icon-bubble"><x-icon name="calendar" /></span>
                 <div>
                     <h3>À votre rythme</h3>
                     <p>Vous choisissez vos jours. Chaque séance a une durée fixe et suit votre programme : votre niveau, votre objectif, votre métier.</p>
@@ -125,17 +129,7 @@
         </div>
         <div class="plans">
             @foreach ($plans as $plan)
-                <article class="card plan reveal" style="--i: {{ $loop->index }}">
-                    <h3>{{ $plan->name }}</h3>
-                    <p class="price">{{ $plan->formattedPrice() }}</p>
-                    <span class="period">{{ $plan->periodLabel() }}</span>
-                    <ul>
-                        <li><x-icon name="clock" /> {{ $plan->dailyMinutes }} minutes de séance par jour</li>
-                        <li><x-icon name="calendar" /> Valable {{ $plan->durationDays }} jours</li>
-                        <li><x-icon name="check" /> Programme personnel et suivi de vos erreurs</li>
-                    </ul>
-                    <a class="btn btn-light btn-block" href="{{ auth()->check() ? route('payment.create', $plan->key) : route('register') }}">Choisir {{ $plan->name }}</a>
-                </article>
+                <x-plan-card :plan="$plan" :href="auth()->check() ? route('payment.create', $plan->key) : route('register')" class="reveal" style="--i: {{ $loop->index }}" />
             @endforeach
         </div>
         <p class="muted small reveal next-step">
@@ -179,7 +173,7 @@
         </div>
         <div class="faq reveal">
             <details>
-                <summary>Comment payer mon abonnement ?</summary>
+                <summary><x-icon name="wallet" /><span>Comment payer mon abonnement ?</span></summary>
                 <p>Par Mobile Money, depuis votre téléphone. Vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Aucune carte bancaire n'est nécessaire. Mêmes formules et mêmes prix dans tous les pays :</p>
                 <ul class="faq-list">
                     @foreach ($paymentCountries as $paymentCountry)
@@ -188,23 +182,23 @@
                 </ul>
             </details>
             <details>
-                <summary>Qu'est-ce que l'accès provisoire ?</summary>
+                <summary><x-icon name="hourglass" /><span>Qu'est-ce que l'accès provisoire ?</span></summary>
                 <p>Si votre capture est claire (bon montant, bon numéro, paiement récent), vous pouvez commencer vos séances tout de suite, pendant 24 heures, le temps que notre équipe vérifie votre paiement. Une fois vérifiée, votre formule devient définitive, sans perdre aucun jour.</p>
             </details>
             <details>
-                <summary>De quel matériel ai-je besoin ?</summary>
+                <summary><x-icon name="headphones" /><span>De quel matériel ai-je besoin ?</span></summary>
                 <p>Un téléphone ou un ordinateur avec un micro, un navigateur récent comme Chrome, et une connexion internet. Des écouteurs sont pratiques mais pas obligatoires. Aucune application à installer : vous pouvez simplement ajouter {{ $platform }} à l'écran d'accueil de votre téléphone.</p>
             </details>
             <details>
-                <summary>Combien de données internet faut-il ?</summary>
+                <summary><x-icon name="wifi" /><span>Combien de données internet faut-il ?</span></summary>
                 <p>Les pages du site sont légères. Pendant une séance, la voix passe en continu : comptez environ 3 à 4 mégaoctets par minute selon le temps de parole, soit environ 50 mégaoctets pour une séance de 15 minutes. Le professeur en 3D (environ 1 mégaoctet) n'est téléchargé qu'une seule fois. Si vous le pouvez, utilisez le wifi.</p>
             </details>
             <details>
-                <summary>Qu'est-ce que l'attestation de niveau ?</summary>
+                <summary><x-icon name="award" /><span>Qu'est-ce que l'attestation de niveau ?</span></summary>
                 <p>À la fin de chaque niveau (douze unités), vous passez un bilan oral avec {{ $teacher }}. S'il est réussi, vous recevez une attestation de niveau en PDF, que chacun peut vérifier en ligne grâce à son code.</p>
             </details>
             <details>
-                <summary>L'évaluation est-elle vraiment gratuite ?</summary>
+                <summary><x-icon name="gift" /><span>L'évaluation est-elle vraiment gratuite ?</span></summary>
                 <p>Oui. Une évaluation orale de {{ $minutes }} minutes au maximum par compte, sans paiement ni engagement. Vous découvrez votre niveau, puis vous décidez.</p>
             </details>
         </div>

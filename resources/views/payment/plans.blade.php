@@ -38,15 +38,7 @@
 
         <div class="plans">
             @foreach ($plans as $plan)
-                <article @class(['card', 'plan', 'is-current' => $subscription?->plan === $plan->key])>
-                    <h2>{{ $plan->name }}</h2>
-                    <p class="price">{{ $plan->formattedPrice() }}</p>
-                    <span class="period">{{ $plan->periodLabel() }}</span>
-                    <ul>
-                        <li><x-icon name="clock" /> {{ $plan->dailyMinutes }} minutes de séance par jour pendant {{ $plan->durationDays }} jours</li>
-                    </ul>
-                    <a class="btn btn-block" href="{{ route('payment.create', $plan->key) }}">Choisir {{ $plan->name }} <x-icon name="arrow-right" /></a>
-                </article>
+                <x-plan-card :plan="$plan" :href="route('payment.create', $plan->key)" heading="h2" :current="$subscription?->plan === $plan->key" />
             @endforeach
         </div>
 
