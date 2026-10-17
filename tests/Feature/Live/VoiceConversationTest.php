@@ -95,7 +95,40 @@ class VoiceConversationTest extends TestCase
         $this->assertTrue(config('platform.live.echo_cancellation'));
 
         $config = file_get_contents(config_path('platform.php'));
-        $this->assertStringContainsString("env('GEMINI_VOICE_GAIN', 2.0)", $config);
-        $this->assertStringContainsString("env('LIVE_ECHO_CANCELLATION', true)", $config);
+        $this->assertStringContainsString("env('GEMINI_VOICE_GAIN')", $config);
+        $this->assertStringContainsString("env('LIVE_ECHO_CANCELLATION')", $config);
+    }
+
+    public function test_empty_or_explicit_environment_values_are_read_safely(): void
+    {
+        $read = function (array $values) {
+            foreach ($values as $name => $value) {
+                $value === null ? putenv($name) : putenv("{$name}={$value}");
+                $_ENV[$name] = $_SERVER[$name] = $value;
+
+                if ($value === null) {
+                    unset($_ENV[$name], $_SERVER[$name]);
+                }
+            }
+
+            return (require config_path('platform.php'))['live'];
+        };
+
+        try {
+            // Variables vides (comme dans .env.example) : valeurs par défaut, jamais une voix muette.
+            $live = $read(['GEMINI_VOICE_GAIN' => '', 'LIVE_ECHO_CANCELLATION' => '']);
+            $this->assertSame(2.0, $live['voice_gain']);
+            $this->assertTrue($live['echo_cancellation']);
+
+            $live = $read(['GEMINI_VOICE_GAIN' => '3', 'LIVE_ECHO_CANCELLATION' => 'false']);
+            $this->assertSame(3.0, $live['voice_gain']);
+            $this->assertFalse($live['echo_cancellation']);
+
+            $live = $read(['GEMINI_VOICE_GAIN' => '0', 'LIVE_ECHO_CANCELLATION' => 'true']);
+            $this->assertSame(2.0, $live['voice_gain']);
+            $this->assertTrue($live['echo_cancellation']);
+        } finally {
+            $read(['GEMINI_VOICE_GAIN' => null, 'LIVE_ECHO_CANCELLATION' => null]);
+        }
     }
 }
