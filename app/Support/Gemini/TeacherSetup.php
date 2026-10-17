@@ -20,8 +20,6 @@ class TeacherSetup
 
     public const RECORD_LEVEL_TEST_RESULT = 'record_level_test_result';
 
-    public const SET_EXPRESSION = 'set_expression';
-
     /**
      * @return array<string, mixed>
      */
@@ -212,9 +210,9 @@ class TeacherSetup
      */
     private static function setup(string $instructions, array $functions, ?string $resumeHandle): array
     {
-        if ($expression = self::expressionFunction()) {
-            $functions[] = $expression;
-        }
+        // Pas de fonction d'expression (set_expression) : les appels de fonction de l'API Live sont
+        // synchrones, le modèle s'arrête puis reprend la parole et répète sa dernière phrase. Les
+        // expressions du professeur 3D sont déduites de ses paroles dans le navigateur (teacher-cues.js).
 
         $generationConfig = ['responseModalities' => ['AUDIO']];
 
@@ -261,45 +259,6 @@ class TeacherSetup
                 'silenceDurationMs' => (int) $detection['silence_duration_ms'],
             ],
             'activityHandling' => 'START_OF_ACTIVITY_INTERRUPTS',
-        ];
-    }
-
-    /**
-     * Expressions du professeur animé en 3D (config/avatar.php), déclenchées par Gemini.
-     *
-     * @return array<string, mixed>|null
-     */
-    private static function expressionFunction(): ?array
-    {
-        $expressions = config('avatar.enabled') ? config('avatar.expressions', []) : [];
-
-        if ($expressions === []) {
-            return null;
-        }
-
-        $moments = [];
-
-        foreach ($expressions as $name => $moment) {
-            $moments[] = "\"{$name}\": {$moment}";
-        }
-
-        return [
-            'name' => self::SET_EXPRESSION,
-            'description' => 'Changes the facial expression and gesture of your animated face, which the learner sees: it makes you look alive and attentive. '
-                .'Call it silently, never mention it, often but not on every sentence (about once every one or two turns), '
-                .'and never twice in a row with the same expression: '.implode('; ', $moments).'. '
-                .'It returns immediately: keep talking naturally.',
-            'parameters' => [
-                'type' => 'OBJECT',
-                'properties' => [
-                    'expression' => [
-                        'type' => 'STRING',
-                        'enum' => array_keys($expressions),
-                        'description' => 'Expression to show.',
-                    ],
-                ],
-                'required' => ['expression'],
-            ],
         ];
     }
 

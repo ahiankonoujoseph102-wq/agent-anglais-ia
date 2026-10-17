@@ -244,6 +244,10 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 .levels span { font-size: var(--fs-xs); color: var(--c-muted); hyphens: auto; overflow-wrap: break-word; }
 
 .plans { display: grid; gap: var(--space-4); }
+.plans-offer { margin-bottom: var(--space-4); animation: rise var(--dur) var(--ease) both; }
+.plans-offer h2 { font-size: var(--fs-lg); }
+/* Écran de conversation étroit : formules l'une sous l'autre. */
+.live .plans { grid-template-columns: 1fr; }
 .plan { display: flex; flex-direction: column; text-align: left; position: relative; overflow: hidden; }
 .plan::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--c-primary); }
 .plan h2, .plan h3 { margin-bottom: var(--space-1); }

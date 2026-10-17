@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\AssessmentStatus;
 use App\Enums\Level;
 use App\Models\Concerns\IsLiveConversation;
+use App\Support\Gemini\AssessmentEstimator;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -51,15 +52,59 @@ class Assessment extends Model
         return $this->status === AssessmentStatus::InProgress;
     }
 
+    /** Longueur maximale gardée de la transcription (une évaluation dure quelques minutes). */
+    public const TRANSCRIPT_MAX = 20000;
+
     /**
-     * Sans niveau enregistré, l'évaluation est considérée comme interrompue.
+     * Fin de l'évaluation. Sans verdict du professeur (temps écoulé, page fermée), le niveau
+     * est estimé à partir de ce que l'apprenant a dit ; sans aucune parole de l'apprenant,
+     * l'évaluation reste interrompue (rien à juger).
      */
     public function finish(Carbon $at, bool $interrupted = false): void
     {
         $this->ended_at = $at;
         $this->used_seconds = $this->elapsedUntil($at);
+        $this->save();
+
+        if ($this->level === null && $this->learnerSpoke()) {
+            $this->recordEstimatedLevel();
+        }
+
         $this->status = $this->level !== null ? AssessmentStatus::Completed : AssessmentStatus::Abandoned;
         $this->save();
+    }
+
+    /**
+     * Ajoute des sous-titres envoyés par le navigateur (« Learner: … », « Teacher: … »).
+     */
+    public function appendTranscript(?string $text): void
+    {
+        $text = trim((string) $text);
+
+        if ($text === '' || mb_strlen((string) $this->transcript) >= self::TRANSCRIPT_MAX) {
+            return;
+        }
+
+        $this->transcript = mb_substr(ltrim($this->transcript."\n".$text), 0, self::TRANSCRIPT_MAX);
+    }
+
+    public function learnerSpoke(): bool
+    {
+        return (bool) preg_match('/^Learner:\s*\S/m', (string) $this->transcript);
+    }
+
+    /**
+     * Niveau estimé par le modèle texte ; s'il ne répond pas, A1 provisoire
+     * (le programme commence au plus simple, l'administrateur peut réinitialiser l'évaluation).
+     */
+    private function recordEstimatedLevel(): void
+    {
+        $estimate = app(AssessmentEstimator::class)->estimate((string) $this->transcript);
+
+        $this->recordResult(
+            $estimate['level'] ?? Level::A1,
+            $estimate['feedback'] ?? 'Votre évaluation s\'est terminée avant l\'annonce du niveau : niveau A1 provisoire. Votre professeur l\'ajustera pendant les séances.',
+        );
     }
 
     /**
@@ -71,6 +116,7 @@ class Assessment extends Model
         $this->feedback = $feedback;
         $this->save();
 
+        $this->loadMissing('user');
         $this->user->level = $level;
         $this->user->save();
     }

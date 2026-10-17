@@ -30,6 +30,11 @@ const { VOICE_RATE, decodePcm16, StreamResampler, VoiceScheduler, fadeIn } = awa
 const { listMicrophones, rms, meterLevel, SilenceWatch } = await import(root.dataset.micInput);
 // Réglages audio de la page (config/platform.php → live).
 const audioConfig = JSON.parse(root.dataset.audio);
+// Fin automatique après le verdict ; expressions du professeur 3D d'après ses paroles.
+const { ConversationEnd } = await import(root.dataset.conversationEnd);
+const { CueTracker } = await import(root.dataset.teacherCues);
+// Secondes, pour la fin automatique.
+const clock = () => performance.now() / 1000;
 const MIC_PREFERENCE = 'mic-device';
 const urls = JSON.parse(root.dataset.urls);
 const mode = root.dataset.mode;
@@ -40,7 +45,7 @@ const ui = {
     start: $('start'), stop: $('stop'), resume: $('resume'), back: $('back'),
     intro: $('intro'), status: $('status'), timer: $('timer'), error: $('error'),
     subtitles: $('subtitles'), outcome: $('outcome'), mouth: $('mouth'),
-    turn: $('turn'), turnText: $('turn-text'), controls: $('controls'),
+    turn: $('turn'), turnText: $('turn-text'), controls: $('controls'), plans: $('plans-offer'),
     micPanel: $('mic-panel'), micLevel: $('mic-level'), micChoice: $('mic-choice'), micSelect: $('mic-select'), micWarning: $('mic-warning'),
     interrupt: $('interrupt'), pause: $('pause'), mute: $('mute'), pauseNote: $('pause-note'),
 };
@@ -78,6 +83,7 @@ const TURN_TEXTS = {
     thinking: `${teacherName} réfléchit…`,
     paused: 'Conversation en pause',
     muted: 'Micro coupé',
+    ending: 'Fin de la conversation…',
 };
 
 const MESSAGES = {
@@ -116,6 +122,11 @@ const state = {
     discardTurn: false,
     awaitingSince: 0,
     learnerHeardAt: 0,
+    end: new ConversationEnd(),
+    cues: new CueTracker(),
+    // Sous-titres de l'évaluation pas encore envoyés au serveur (repli si le temps finit sans verdict).
+    transcript: '',
+    transcriptSpeaker: null,
 };
 
 /* ---------- Échanges avec le serveur Laravel ---------- */
@@ -143,18 +154,47 @@ function takeTokens() {
     return tokens;
 }
 
+/**
+ * Sous-titres de l'évaluation depuis le dernier envoi (« Learner: … », « Teacher: … »).
+ */
+function takeTranscript() {
+    if (mode !== 'assessment' || state.transcript === '') {
+        return {};
+    }
+
+    const transcript = state.transcript.slice(0, 7900);
+    state.transcript = state.transcript.slice(transcript.length);
+
+    return { transcript };
+}
+
+function recordTranscript(speaker, text) {
+    if (mode !== 'assessment') {
+        return;
+    }
+
+    if (state.transcriptSpeaker !== speaker) {
+        state.transcript += `\n${speaker === 'teacher' ? 'Teacher' : 'Learner'}: `;
+        state.transcriptSpeaker = speaker;
+    }
+
+    state.transcript += text;
+}
+
 async function heartbeat() {
     if (state.ending) {
         return;
     }
 
     const tokens = takeTokens();
-    const result = await post(urls.signal, tokens);
+    const transcript = takeTranscript();
+    const result = await post(urls.signal, { ...tokens, ...transcript });
 
     if (!result.ok) {
-        // Le signal sera renvoyé avec les jetons au prochain passage.
+        // Le signal sera renvoyé avec les jetons (et les sous-titres) au prochain passage.
         state.tokens.input += tokens.input_tokens;
         state.tokens.output += tokens.output_tokens;
+        state.transcript = (transcript.transcript ?? '') + state.transcript;
 
         return;
     }
@@ -208,6 +248,16 @@ function subtitle(speaker, text) {
 
     state[key].textContent += text;
     ui.subtitles.scrollTop = ui.subtitles.scrollHeight;
+    recordTranscript(speaker, text);
+
+    // Expression du professeur 3D au moment où il dit « Great answer! », « You said… », « Goodbye! »…
+    if (speaker === 'teacher') {
+        const expression = state.cues.feed(text);
+
+        if (expression) {
+            teacher?.expression(expression);
+        }
+    }
 
     // On garde les 30 dernières répliques : la page reste légère.
     while (ui.subtitles.children.length > 30) {
@@ -454,7 +504,8 @@ function sendAudio(buffer) {
         return;
     }
 
-    const action = state.gate.decide(state.audio.context.currentTime, voiceEnd(), state.paused || state.muted);
+    // Après le verdict, le micro reste fermé : plus de question ni de réponse.
+    const action = state.gate.decide(state.audio.context.currentTime, voiceEnd(), state.paused || state.muted || !state.end.micOpen);
 
     if (action === 'send' && buffer) {
         state.ws.send(JSON.stringify({
@@ -692,6 +743,11 @@ function sendText(text) {
  * Indication au professeur, qui va répondre : « réfléchit… » en attendant sa voix.
  */
 function cue(text) {
+    // Après le verdict, aucune indication : elle relançait l'annonce du niveau et une question.
+    if (!state.end.acceptsCues) {
+        return;
+    }
+
     sendText(text);
     state.awaitingSince = Date.now();
     renderTurn();
@@ -736,6 +792,7 @@ function handleMessage(message) {
         if (content.inputTranscription?.text) {
             teacher?.learnerSpoke();
             state.teacherLine = null;
+            state.cues.reset();
             // Sous-titre arrivé en retard, pendant la réponse du professeur : ce n'est plus son tour.
             state.learnerHeardAt = state.generating ? 0 : Date.now();
             subtitle('learner', content.inputTranscription.text);
@@ -754,6 +811,8 @@ function handleMessage(message) {
         }
 
         if (content.turnComplete) {
+            state.end.turnComplete(clock());
+            state.cues.reset();
             state.teacherLine = null;
             state.learnerLine = null;
             state.generating = false;
@@ -766,10 +825,7 @@ function handleMessage(message) {
 
     if (message.toolCall?.functionCalls) {
         message.toolCall.functionCalls.forEach(handleFunctionCall);
-
-        if (message.toolCall.functionCalls.some((call) => call.name !== 'set_expression')) {
-            state.awaitingSince = Date.now();
-        }
+        state.awaitingSince = Date.now();
     }
 
     if (message.usageMetadata) {
@@ -787,20 +843,34 @@ function handleMessage(message) {
     }
 }
 
+// Ce que le professeur doit faire après l'enregistrement du résultat : une seule annonce, puis fin.
+const AFTER_VERDICT = {
+    record_assessment_result: 'Saved. Now, if you have not announced it yet, announce the level ONCE in simple English, add the one French sentence about the plans shown just below and the orange button, then say "Goodbye!". If you have already announced it, only say "Goodbye!". Never ask another question: the conversation ends after this turn.',
+    end_lesson: 'Saved. Now say goodbye warmly in one or two short sentences. Do not start anything new: the lesson ends after this turn.',
+    record_level_test_result: 'Saved. Now, if you have not announced it yet, announce the result once, kindly, then say goodbye. Do not ask another question: the test ends after this turn.',
+};
+
+function showAssessmentResult(level, label, feedback) {
+    showOutcome(`<h2>Votre niveau : ${escapeHtml(level)}</h2>`
+        + `<p><strong>${escapeHtml(label)}</strong></p>`
+        + `<p>${escapeHtml(feedback)}</p>`);
+    // Les formules s'affichent juste en dessous du résultat (bouton orange).
+    ui.plans?.removeAttribute('hidden');
+}
+
 async function handleFunctionCall(call) {
     const args = call.args ?? {};
     let response = { result: 'ok' };
+    const isVerdict = call.name in AFTER_VERDICT;
 
-    if (call.name === 'set_expression') {
-        // Expression du professeur animé (sans effet sur le visage simple).
-        teacher?.expression(args.expression);
+    if (isVerdict && state.end.hasVerdict) {
+        // Deuxième appel du modèle : rien de nouveau à enregistrer, ni à annoncer.
+        response = { result: 'already_saved', next_step: 'Say only "Goodbye!" if you have not said it yet. Nothing else.' };
     } else if (call.name === 'record_assessment_result' && mode === 'assessment') {
         const result = await post(urls.result, { level: args.level, feedback: args.feedback });
 
         if (result.ok) {
-            showOutcome(`<h2>Votre niveau : ${escapeHtml(result.data.level)}</h2>`
-                + `<p><strong>${escapeHtml(result.data.label)}</strong></p>`
-                + `<p>${escapeHtml(args.feedback)}</p>`);
+            showAssessmentResult(result.data.level, result.data.label, args.feedback);
         } else {
             response = { result: 'error', message: result.data.message ?? 'not saved' };
         }
@@ -837,10 +907,23 @@ async function handleFunctionCall(call) {
         response = { result: 'error', message: 'unknown function' };
     }
 
+    const saved = isVerdict && response.result === 'ok';
+
+    if (saved) {
+        response = { result: 'saved', next_step: AFTER_VERDICT[call.name] };
+    }
+
     if (state.ws?.readyState === WebSocket.OPEN) {
         state.ws.send(JSON.stringify({
             toolResponse: { functionResponses: [{ id: call.id, name: call.name, response }] },
         }));
+    }
+
+    if (saved) {
+        // Le professeur termine sa phrase, puis la conversation se coupe toute seule.
+        state.end.recordVerdict(clock());
+        state.learnerHeardAt = 0;
+        renderTurn();
     }
 }
 
@@ -939,6 +1022,13 @@ function tick() {
         return;
     }
 
+    // Verdict donné et annonce terminée : fin de la conversation, sans attendre le minuteur.
+    if (state.end.shouldFinish(clock(), teacherSpeaking())) {
+        finish('done');
+
+        return;
+    }
+
     // Le temps continue pendant la pause : au-delà de la limite, on termine proprement.
     if (state.paused && Date.now() - state.pausedAt > state.config.pause_max_seconds * 1000) {
         finish('pause', MESSAGES.pauseTooLong);
@@ -956,6 +1046,11 @@ function currentTurn() {
 
     if (teacherSpeaking()) {
         return 'speaking';
+    }
+
+    // Verdict donné : le micro est fermé, la conversation va se terminer.
+    if (state.end.hasVerdict) {
+        return 'ending';
     }
 
     // L'apprenant s'est tu : Google attend la fin de son silence, puis le professeur répond.
@@ -1098,8 +1193,15 @@ async function finish(reason, message = '') {
         showError(message);
     }
 
+    let closing = null;
+
     if (state.config) {
-        await post(urls.finish, takeTokens());
+        closing = await post(urls.finish, { ...takeTokens(), ...takeTranscript() });
+    }
+
+    // Temps écoulé avant le verdict : le serveur a estimé le niveau à partir de la conversation.
+    if (mode === 'assessment' && ui.outcome.hidden && closing?.data?.level) {
+        showAssessmentResult(closing.data.level, closing.data.label, closing.data.feedback ?? '');
     }
 
     if (ui.outcome.hidden && state.config) {
@@ -1137,6 +1239,13 @@ window.addEventListener('pagehide', () => {
         const tokens = takeTokens();
         form.append('input_tokens', tokens.input_tokens);
         form.append('output_tokens', tokens.output_tokens);
+
+        const { transcript } = takeTranscript();
+
+        if (transcript) {
+            form.append('transcript', transcript);
+        }
+
         navigator.sendBeacon(urls.finish, form);
     }
 });
