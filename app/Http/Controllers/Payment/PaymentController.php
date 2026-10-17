@@ -46,6 +46,7 @@ class PaymentController extends Controller
 
         return view('payment.plans', [
             'plans' => Plan::all(),
+            'countries' => array_map(fn (PaymentCountry $country) => $country->name, array_values(PaymentCountry::available())),
             'subscription' => $request->user()->activeSubscription,
             'rejected' => $this->lastRejected($request),
             'whatsappUrl' => $this->whatsappUrl($request->user()),

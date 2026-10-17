@@ -28,6 +28,11 @@ class HomeController extends Controller
             'plans' => Plan::all(),
             'operators' => array_values(array_unique($operators)),
             'countries' => array_map(fn (PaymentCountry $country) => $country->name, array_values($countries)),
+            // Opérateurs pays par pays (question fréquente sur le paiement).
+            'paymentCountries' => array_map(fn (PaymentCountry $country) => [
+                'name' => $country->name,
+                'operators' => array_map(fn ($operator) => $operator->name, array_values($country->operators)),
+            ], array_values($countries)),
             'whatsappUrl' => $whatsapp ? WhatsApp::url($whatsapp, 'Bonjour '.config('platform.name').', j\'ai une question : ') : null,
         ]);
     }

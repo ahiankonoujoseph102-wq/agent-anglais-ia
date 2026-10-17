@@ -162,7 +162,7 @@ class SubmitPaymentTest extends TestCase
             ->assertOk()
             ->assertSee('Vous pouvez commencer')
             ->assertSee('pour 24 heures')
-            ->assertSee('Commencer ma séance');
+            ->assertSee('Parler avec Teacher Joe');
 
         $this->actingAs($user)->get('/espace')->assertSee('Accès provisoire : encore');
 

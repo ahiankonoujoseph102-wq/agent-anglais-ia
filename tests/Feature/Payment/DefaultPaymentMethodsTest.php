@@ -31,6 +31,7 @@ class DefaultPaymentMethodsTest extends TestCase
             ->assertSee('Togo')
             ->assertSee('Burkina Faso')
             ->assertSee('Bénin')
+            ->assertSee('Côte d&#039;Ivoire', false)
             ->assertDontSee('pas encore ouvert');
 
         foreach (config('payment.countries') as $code => $country) {
@@ -50,8 +51,8 @@ class DefaultPaymentMethodsTest extends TestCase
             }
         }
 
-        $this->assertSame(['Mixx by Yas', 'Flooz', 'Orange Money', 'Wave', 'MTN', 'Moov', 'Celtiis'], $offered);
-        $this->assertCount(3, PaymentCountry::available());
+        $this->assertSame(['Mixx by Yas', 'Flooz', 'Orange Money', 'Wave', 'MTN', 'Moov', 'Celtiis', 'Orange Money', 'MTN Mobile Money', 'Wave'], $offered);
+        $this->assertCount(4, PaymentCountry::available());
     }
 
     public function test_a_setting_replaces_the_default_and_an_empty_field_restores_it(): void

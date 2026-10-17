@@ -52,6 +52,16 @@ return [
                 'celtiis' => ['name' => 'Celtiis', 'aliases' => ['celtiis', 'celtis'], 'number' => '+229 01 40 28 57 61', 'holder' => 'KOUAGOU Noutcha Adam Fernando'],
             ],
         ],
+        // Numéros ivoiriens à 10 chiffres (07… Orange, 05… MTN, 01… Moov).
+        'CI' => [
+            'name' => 'Côte d\'Ivoire',
+            'dial_code' => '225',
+            'operators' => [
+                'orange_money' => ['name' => 'Orange Money', 'aliases' => ['orange'], 'number' => '+225 07 09 51 82 85', 'holder' => 'OULOUSSEGUEA CHARLES DANHAN'],
+                'mtn' => ['name' => 'MTN Mobile Money', 'aliases' => ['mtn', 'momo'], 'number' => '+225 05 45 53 11 70', 'holder' => 'OULOUSSEGUEA CHARLES DANHAN'],
+                'wave' => ['name' => 'Wave', 'aliases' => ['wave'], 'number' => '+225 07 09 51 82 85', 'holder' => 'OULOUSSEGUEA CHARLES DANHAN'],
+            ],
+        ],
     ],
 
     /*
