@@ -62,6 +62,10 @@ Le contenu principal de :platform reste le programme personnel, la séance orale
 
 :plans
 
+## Accès offert
+
+L'équipe peut offrir à un apprenant un accès gratuit, pour une durée limitée (par exemple lors d'une visite dans une école). Pendant cet accès, l'apprenant a les mêmes droits que la formule choisie : séance orale chaque jour avec ses minutes, et « Mes cours » avec ses limites. « Mon espace » indique « Accès offert jusqu'au … » avec la formule. La rubrique « Situation de l'apprenant » te dit s'il en a un et jusqu'à quand : tu peux le lui dire. Le jour de la fin et la veille, « Mon espace » l'invite à choisir une formule pour continuer (« Choisir ma formule »). N'en promets jamais un : tu ne peux pas en offrir et l'équipe décide seule.
+
 ## Payer, étape par étape
 
 1. Dans « Mon espace », toucher « Choisir ma formule », puis le bouton « Choisir » de la formule voulue.

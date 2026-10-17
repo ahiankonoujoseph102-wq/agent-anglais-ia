@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AssessmentController as AdminAssessmentController;
+use App\Http\Controllers\Admin\GrantedAccessController;
 use App\Http\Controllers\Admin\IconPreviewController;
 use App\Http\Controllers\Admin\InactiveLearnerController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
@@ -137,6 +138,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/inscrits', [UserController::class, 'index'])->name('users.index');
     Route::get('/inscrits/{user}', [UserController::class, 'show'])->name('users.show');
     Route::post('/inscrits/{user}/mot-de-passe', [UserController::class, 'temporaryPassword'])->middleware('confirm:password.temporary')->name('users.password');
+    Route::post('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'store'])->middleware('confirm:access.grant')->name('users.grant');
+    Route::delete('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'destroy'])->middleware('confirm:access.revoke')->name('users.revoke');
     Route::delete('/inscrits/{user}/evaluation', [AdminAssessmentController::class, 'destroy'])->middleware('confirm:assessment.reset')->name('assessments.destroy');
     Route::get('/consommation', [UsageController::class, 'index'])->name('usage.index');
     Route::get('/reglages', [SettingsController::class, 'edit'])->name('settings.edit');

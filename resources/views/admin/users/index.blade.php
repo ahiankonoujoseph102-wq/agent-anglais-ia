@@ -35,7 +35,12 @@
                                 <span class="badge badge-muted">—</span>
                             @endif
                         </td>
-                        <td data-label="Formule">{{ $user->activeSubscription?->plan_name ?? '—' }}</td>
+                        <td data-label="Formule">
+                            {{ $user->activeSubscription?->plan_name ?? '—' }}
+                            @if ($user->activeSubscription?->isGranted())
+                                <br><span class="badge badge-grant">Accès offert jusqu'au {{ $user->activeSubscription->ends_at->format('d/m/Y') }}</span>
+                            @endif
+                        </td>
                         <td data-label="Rôle">{{ $user->role->label() }}</td>
                         <td data-label="Inscription">{{ $user->created_at->format('d/m/Y H:i') }}</td>
                     </tr>

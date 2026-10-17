@@ -117,6 +117,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Accès offert par l'administrateur (démonstrations dans les écoles, auprès des parents)
+    |--------------------------------------------------------------------------
+    |
+    | Mêmes droits que la formule choisie (séance orale et « Mes cours » avec leurs limites).
+    | Jamais un paiement ni un revenu. Se règle ici.
+    |
+    */
+    'granted_access' => [
+        // Durées proposées en un geste (jours) ; une durée au choix est aussi possible.
+        'presets' => [1, 3, 7],
+        // Durée la plus longue qu'on puisse offrir, en jours.
+        'max_days' => 30,
+        // L'apprenant est invité à choisir une formule ce nombre de jours avant la fin (1 : le jour de la fin et la veille).
+        'reminder_days' => 1,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Suivi des conversations vocales (évaluation et séances)
     |--------------------------------------------------------------------------
     |

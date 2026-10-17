@@ -34,7 +34,9 @@ class LearnerSituation
         }
 
         if ($user->exists && $subscription = $user->activeSubscription()->first()) {
-            $lines[] = 'Formule active : '.$subscription->plan_name.', jusqu\'au '.$subscription->ends_at->format('d/m/Y').'.';
+            $lines[] = $subscription->isGranted()
+                ? 'Accès offert par l\'équipe : formule '.$subscription->plan_name.', jusqu\'au '.$subscription->ends_at->format('d/m/Y').' (ce n\'est pas un abonnement payé).'
+                : 'Formule active : '.$subscription->plan_name.', jusqu\'au '.$subscription->ends_at->format('d/m/Y').'.';
         }
 
         return implode("\n", $lines);

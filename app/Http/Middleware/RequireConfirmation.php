@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\AccessGrant;
 use App\Support\Confirmation;
 use Closure;
 use Illuminate\Http\Request;
@@ -40,11 +41,25 @@ class RequireConfirmation
 
         $previous = url()->previous();
 
-        return response()->view('confirm.page', Confirmation::for($action) + [
+        return response()->view('confirm.page', $this->texts($action, $request) + [
             'action' => $request->url(),
             'method' => $request->method(),
             'fields' => $fields,
             'back' => $previous !== $request->url() ? $previous : url('/'),
         ]);
+    }
+
+    /**
+     * Textes de la confirmation ; « access.grant » rappelle la formule et la date de fin choisies.
+     *
+     * @return array{title: string, message: string, confirm: string}
+     */
+    private function texts(string $action, Request $request): array
+    {
+        if ($action !== 'access.grant') {
+            return Confirmation::for($action);
+        }
+
+        return Confirmation::filled($action, AccessGrant::summary($request->input('plan'), $request->input('duration'), $request->input('custom_days')));
     }
 }
