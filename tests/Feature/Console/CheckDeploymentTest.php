@@ -6,6 +6,7 @@ use App\Console\Commands\CheckDeployment;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -31,18 +32,21 @@ class CheckDeploymentTest extends TestCase
         Storage::disk('bucket')->put('payment-proofs/2026/10/a.png', 'x');
         Storage::disk('bucket')->put('attestations/TA-A1-AAAA-BBBB.pdf', 'x');
 
-        // La base de test est SQLite : le contrôle exige MySQL en production, on le simule sans le toucher.
         Cache::put(CheckDeployment::HEARTBEAT_KEY, now()->timestamp - 30);
 
-        $this->artisan('app:check-deployment')
+        // La base de test est SQLite en local et MySQL dans l'intégration continue : le contrôle exige MySQL.
+        $onMysql = DB::connection()->getDriverName() === 'mysql';
+
+        $command = $this->artisan('app:check-deployment')
             ->expectsOutputToContain('Mode débogage coupé')
             ->expectsOutputToContain('Captures de paiement enregistrées : 1')
             ->expectsOutputToContain('Attestations enregistrées : 1')
             ->expectsOutputToContain('Dernier passage du planificateur il y a 30 secondes')
-            ->doesntExpectOutputToContain('cle-fictive')
-            // SQLite n'est pas MySQL : c'est le seul point signalé.
-            ->expectsOutputToContain('1 point(s) à corriger.')
-            ->assertFailed();
+            ->doesntExpectOutputToContain('cle-fictive');
+
+        $onMysql
+            ? $command->expectsOutputToContain('Tout est en ordre.')->assertSuccessful()
+            : $command->expectsOutputToContain('1 point(s) à corriger.')->assertFailed();
 
         $this->assertSame([], Storage::disk('bucket')->allFiles('controle'));
     }
