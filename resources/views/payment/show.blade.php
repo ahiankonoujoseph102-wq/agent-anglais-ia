@@ -6,17 +6,36 @@
     @include('payment.steps', ['current' => 4])
 
     <div class="step-panel">
-        @if ($payment->status === PaymentStatus::Pending)
+        @if ($provisional)
+            <div class="status-head">
+                <span class="icon-bubble"><x-icon name="check" /></span>
+                <h1>Vous pouvez commencer</h1>
+            </div>
+            <div class="alert alert-success">
+                <x-icon name="check-circle" />
+                <div>
+                    Votre capture a bien été lue. Votre formule {{ $payment->plan_name }} est ouverte
+                    <strong>pour {{ $provisionalLeft }}</strong>, le temps que notre équipe vérifie votre paiement.
+                    Une fois vérifié, il reste valable jusqu'au {{ $provisional->ends_at->translatedFormat('j F Y') }}.
+                </div>
+            </div>
+            <a class="btn btn-accent btn-block btn-lg" href="{{ route('lesson.show') }}"><x-icon name="play" /> Commencer ma séance</a>
+            <a class="btn btn-light btn-block next-step" href="{{ route('dashboard') }}">Aller à mon espace</a>
+        @elseif ($payment->status === PaymentStatus::Pending)
             <div class="status-head">
                 <span class="icon-bubble icon-bubble-accent"><x-icon name="clock" /></span>
-                <h1>Paiement en attente de validation</h1>
+                <h1>Nous vérifions votre paiement</h1>
             </div>
             <div class="card">
                 <p>
-                    Merci ! Nous vérifions votre paiement. Votre formule sera activée dès sa validation,
-                    en général dans la journée ({{ \Illuminate\Support\Str::lcfirst(config('platform.contact.hours')) }}).
+                    Merci ! Votre capture est bien arrivée. Notre équipe vérifie votre paiement
+                    ({{ \Illuminate\Support\Str::lcfirst($hours) }}) et vous serez informé ici, ainsi que dans votre espace,
+                    dès que votre formule est activée.
                 </p>
-                <a class="btn btn-block btn-whatsapp btn-lg" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Prévenir sur WhatsApp</a>
+                @if ($whatsappUrl)
+                    <p>Pour aller plus vite, vous pouvez aussi nous prévenir sur WhatsApp.</p>
+                    <a class="btn btn-block btn-whatsapp btn-lg" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Prévenir sur WhatsApp</a>
+                @endif
             </div>
         @elseif ($payment->status === PaymentStatus::Validated)
             <div class="status-head">
@@ -37,13 +56,18 @@
         @else
             <div class="status-head">
                 <span class="icon-bubble icon-bubble-danger"><x-icon name="alert" /></span>
-                <h1>Paiement refusé</h1>
+                <h1>Paiement non validé</h1>
             </div>
-            <div class="alert alert-error" role="alert">
-                <x-icon name="alert" />
-                <div><strong>Motif :</strong> {{ $payment->rejection_reason }}</div>
+            <div class="card">
+                <p>Nous n'avons pas pu valider ce paiement. Écrivez-nous sur WhatsApp : nous regarderons ensemble ce qui s'est passé.</p>
+                @if ($payment->rejection_reason)
+                    <p><strong>Motif :</strong> {{ $payment->rejection_reason }}</p>
+                @endif
+                @if ($whatsappUrl)
+                    <a class="btn btn-block btn-whatsapp btn-lg" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Écrire sur WhatsApp</a>
+                @endif
             </div>
-            <a class="btn btn-block btn-lg" href="{{ route('payment.create', $payment->plan) }}">Renvoyer un paiement corrigé</a>
+            <a class="btn btn-light btn-block next-step" href="{{ route('payment.create', $payment->plan) }}">Envoyer un nouveau paiement</a>
         @endif
 
         <section class="card next-step">
@@ -52,9 +76,8 @@
                 <dt>Formule</dt><dd>{{ $payment->plan_name }}</dd>
                 <dt>Montant</dt><dd>{{ $payment->formattedAmount() }}</dd>
                 <dt>Opérateur</dt><dd>{{ $payment->operator_name }}</dd>
-                <dt>Numéro qui a payé</dt><dd>{{ $payment->payer_phone }}</dd>
-                <dt>Référence</dt><dd>{{ $payment->reference }}</dd>
                 <dt>Envoyé le</dt><dd>{{ $payment->created_at->translatedFormat('j F Y à H:i') }}</dd>
+                <dt>État</dt><dd>{{ $provisional ? 'Accès provisoire, vérification en cours' : $payment->status->label() }}</dd>
             </dl>
         </section>
     </div>

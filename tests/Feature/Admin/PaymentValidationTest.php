@@ -46,10 +46,7 @@ class PaymentValidationTest extends TestCase
             'country' => 'TG',
             'operator' => 'mixx',
             'operator_name' => 'Mixx by Yas',
-            'recipient_number' => '+228 72 24 02 31',
-            'payer_phone' => '+228 90 00 00 01',
-            'reference' => 'REF-'.$user->id,
-            'reference_key' => 'REF'.$user->id,
+            'recipient_number' => '+228 90 00 00 11',
             'proof_path' => 'payment-proofs/test.png',
         ], $attributes));
     }
@@ -64,7 +61,8 @@ class PaymentValidationTest extends TestCase
             ->assertOk()
             ->assertSee('Paiements en attente (1)')
             ->assertSee('Ablavi Kodjo')
-            ->assertSee('REF-'.$learner->id)
+            ->assertSee('En attente de vérification')
+            ->assertSee('Aucune lecture')
             ->assertSee(route('admin.payments.proof', $payment))
             ->assertSee('Valider')
             ->assertSee('Refuser')
@@ -130,37 +128,34 @@ class PaymentValidationTest extends TestCase
         $this->assertTrue($learner->fresh()->activeSubscription->is($renewal));
     }
 
-    public function test_rejection_requires_a_reason_shown_to_the_learner_who_can_resend(): void
+    public function test_rejection_reason_is_optional_and_the_learner_can_send_a_new_payment(): void
     {
         $learner = User::factory()->create();
-        $payment = $this->pendingPayment($learner, 'essentiel', ['reference' => 'ABC-123', 'reference_key' => 'ABC123']);
+        $payment = $this->pendingPayment($learner);
 
         $this->actingAs($this->admin)
             ->from('/admin/paiements')
-            ->post(route('admin.payments.reject', $payment), ['reason' => ''])
+            ->post(route('admin.payments.reject', $payment), ['reason' => str_repeat('x', 501)])
             ->assertRedirect('/admin/paiements')
             ->assertSessionHasErrors('reason', null, 'reject-'.$payment->id);
         $this->assertTrue($payment->fresh()->isPending());
 
         $this->actingAs($this->admin)
-            ->post(route('admin.payments.reject', $payment), ['reason' => 'Le montant reçu est de 4 000 FCFA au lieu de 5 000.'])
+            ->post(route('admin.payments.reject', $payment), ['reason' => 'Capture illisible.'])
             ->assertRedirect();
 
         $payment->refresh();
         $this->assertSame(PaymentStatus::Rejected, $payment->status);
-        $this->assertSame('Le montant reçu est de 4 000 FCFA au lieu de 5 000.', $payment->rejection_reason);
+        $this->assertSame('Capture illisible.', $payment->rejection_reason);
         $this->assertNull($learner->fresh()->activeSubscription);
 
-        $this->actingAs($learner)->get(route('payment.show', $payment))
-            ->assertSee('Paiement refusé')
-            ->assertSee('Le montant reçu est de 4 000 FCFA au lieu de 5 000.');
         $this->actingAs($learner)->get('/espace')
-            ->assertSee('Le montant reçu est de 4 000 FCFA au lieu de 5 000.')
-            ->assertSee('Renvoyer un paiement corrigé');
+            ->assertSee('Capture illisible.')
+            ->assertSee('Voir mon paiement et nous écrire');
 
-        // Il peut renvoyer un paiement corrigé, même avec la même référence.
-        $this->actingAs($learner)->get('/abonnement')->assertOk()->assertSee('Votre dernier paiement a été refusé');
-        $this->pendingPayment($learner, 'essentiel', ['reference' => 'ABC-123', 'reference_key' => 'ABC123']);
+        // Il peut envoyer un nouveau paiement.
+        $this->actingAs($learner)->get('/abonnement')->assertOk()->assertSee('Vous pouvez aussi envoyer un nouveau paiement');
+        $this->pendingPayment($learner);
         $this->assertSame(2, $learner->payments()->count());
     }
 

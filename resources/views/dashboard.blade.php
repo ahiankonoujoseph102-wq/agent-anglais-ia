@@ -11,18 +11,30 @@
         <div class="alert alert-error rise" role="alert">
             <x-icon name="alert" />
             <div>
-                <strong>Votre paiement du {{ $rejectedPayment->created_at->translatedFormat('j F') }} a été refusé.</strong><br>
-                Motif : {{ $rejectedPayment->rejection_reason }}<br>
-                <a href="{{ route('payment.create', $rejectedPayment->plan) }}">Renvoyer un paiement corrigé</a>
+                <strong>Nous n'avons pas pu valider votre paiement du {{ $rejectedPayment->created_at->translatedFormat('j F') }}.</strong><br>
+                @if ($rejectedPayment->rejection_reason)
+                    Motif : {{ $rejectedPayment->rejection_reason }}<br>
+                @endif
+                <a href="{{ route('payment.show', $rejectedPayment) }}">Voir mon paiement et nous écrire</a>
             </div>
         </div>
     @endif
 
-    @if ($pendingPayment)
+    @if ($pendingPayment && $subscription?->isProvisional())
+        <div class="alert alert-success rise" role="status">
+            <x-icon name="check-circle" />
+            <div>
+                <strong>Accès provisoire ouvert</strong> jusqu'au {{ $subscription->provisional_until->translatedFormat('j F à H:i') }} :
+                vous pouvez suivre vos séances pendant que notre équipe vérifie votre paiement.
+                <a href="{{ route('payment.show', $pendingPayment) }}">Voir mon paiement</a>
+            </div>
+        </div>
+    @elseif ($pendingPayment)
         <div class="alert alert-info rise" role="status">
             <x-icon name="clock" />
             <div>
-                <strong>Paiement en attente de validation</strong> ({{ $pendingPayment->plan_name }}, {{ $pendingPayment->formattedAmount() }}).
+                <strong>Nous vérifions votre paiement</strong> ({{ $pendingPayment->plan_name }}, {{ $pendingPayment->formattedAmount() }}).
+                Vous serez informé ici dès que votre formule est activée.
                 <a href="{{ route('payment.show', $pendingPayment) }}">Voir mon paiement</a>
             </div>
         </div>

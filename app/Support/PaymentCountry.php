@@ -3,7 +3,8 @@
 namespace App\Support;
 
 /**
- * Un pays où l'on peut payer, avec ses opérateurs (config/payment.php).
+ * Un pays où l'on peut payer, avec ses opérateurs (config/payment.php) et leurs
+ * numéros de réception (Réglages de l'administration, App\Support\SiteSettings).
  */
 final readonly class PaymentCountry
 {
@@ -13,11 +14,13 @@ final readonly class PaymentCountry
     public function __construct(
         public string $code,
         public string $name,
-        public string $holder,
+        public string $dialCode,
         public array $operators,
     ) {}
 
     /**
+     * Tous les pays et opérateurs configurés, avec ou sans numéro saisi.
+     *
      * @return array<string, self>
      */
     public static function all(): array
@@ -28,12 +31,38 @@ final readonly class PaymentCountry
             $operators = [];
 
             foreach ($country['operators'] as $key => $operator) {
-                // L'indicatif est lu sur le numéro lui-même (« +228 … »).
-                preg_match('/^\+(\d{1,3})\s/', $operator['number'], $match);
-                $operators[$key] = new PaymentOperator($key, $operator['name'], $operator['number'], $match[1] ?? '');
+                $operators[$key] = new PaymentOperator(
+                    $key,
+                    $operator['name'],
+                    SiteSettings::operatorNumber($code, $key),
+                    SiteSettings::operatorHolder($code, $key),
+                    (string) $country['dial_code'],
+                    $operator['aliases'] ?? [],
+                );
             }
 
-            $countries[$code] = new self($code, $country['name'], $country['holder'], $operators);
+            $countries[$code] = new self($code, $country['name'], (string) $country['dial_code'], $operators);
+        }
+
+        return $countries;
+    }
+
+    /**
+     * Pays proposés aux apprenants : ceux qui ont au moins un opérateur avec un numéro saisi,
+     * avec seulement ces opérateurs.
+     *
+     * @return array<string, self>
+     */
+    public static function available(): array
+    {
+        $countries = [];
+
+        foreach (self::all() as $code => $country) {
+            $operators = array_filter($country->operators, fn (PaymentOperator $operator) => $operator->isAvailable());
+
+            if ($operators !== []) {
+                $countries[$code] = new self($country->code, $country->name, $country->dialCode, $operators);
+            }
         }
 
         return $countries;
@@ -44,13 +73,18 @@ final readonly class PaymentCountry
         return self::all()[strtoupper((string) $code)] ?? null;
     }
 
+    public static function findAvailable(?string $code): ?self
+    {
+        return self::available()[strtoupper((string) $code)] ?? null;
+    }
+
     public function operator(?string $key): ?PaymentOperator
     {
         return $this->operators[(string) $key] ?? null;
     }
 
     /**
-     * Noms de tous les opérateurs acceptés, tous pays confondus.
+     * Noms de tous les opérateurs configurés, tous pays confondus.
      *
      * @return list<string>
      */

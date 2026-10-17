@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Support\SiteSettings;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -17,5 +18,8 @@ abstract class TestCase extends BaseTestCase
 
         // Aucun test n'écrit dans le vrai dossier storage/app/private (captures, attestations).
         Storage::fake('local');
+
+        // Réglages de l'administration relus à chaque test (base vidée entre deux tests).
+        SiteSettings::flush();
     }
 }

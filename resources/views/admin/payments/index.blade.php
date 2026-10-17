@@ -52,7 +52,7 @@
                     <th>Formule</th>
                     <th>Montant</th>
                     <th>Pays / opérateur</th>
-                    <th>Référence</th>
+                    <th>Capture</th>
                     <th>Statut</th>
                 </tr>
             </thead>
@@ -64,7 +64,7 @@
                         <td data-label="Formule">{{ $payment->plan_name }}</td>
                         <td data-label="Montant">{{ $payment->formattedAmount() }}</td>
                         <td data-label="Pays / opérateur">{{ ($countries[$payment->country] ?? null)?->name ?? $payment->country }} · {{ $payment->operator_name }}</td>
-                        <td data-label="Référence"><code>{{ $payment->reference }}</code> · <a href="{{ route('admin.payments.proof', $payment) }}" target="_blank" rel="noopener">capture</a></td>
+                        <td data-label="Capture"><a href="{{ route('admin.payments.proof', $payment) }}" target="_blank" rel="noopener">voir la capture</a>@if ($payment->checks !== null) · {{ $payment->checksPassed() ? 'règles remplies' : 'à vérifier' }}@endif</td>
                         <td data-label="Statut">
                             <span @class(['badge', 'badge-muted' => $payment->status !== \App\Enums\PaymentStatus::Validated])>{{ $payment->status->label() }}</span>
                             @if ($payment->rejection_reason)

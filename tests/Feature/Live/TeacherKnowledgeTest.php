@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\Gemini\LearnerSituation;
 use App\Support\Gemini\SiteGuide;
 use App\Support\Plan;
+use App\Support\SiteSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -75,11 +76,24 @@ class TeacherKnowledgeTest extends TestCase
         }
 
         $this->assertStringContainsString(Plan::find('essentiel')->formattedPrice(), $guide);
+        // Aucun numéro saisi : le paiement n'est pas encore ouvert.
+        $this->assertStringContainsString('le paiement n\'est pas encore ouvert', $guide);
+
+        // Seuls les opérateurs dont le numéro est saisi dans les Réglages (numéros fictifs).
+        SiteSettings::save([
+            SiteSettings::operatorNumberKey('TG', 'mixx') => '+228 90 00 00 11',
+            SiteSettings::operatorNumberKey('TG', 'flooz') => '+228 90 00 00 22',
+            SiteSettings::operatorNumberKey('BJ', 'celtiis') => '+229 01 00 00 00 33',
+        ]);
+        $guide = SiteGuide::text();
         $this->assertStringContainsString('- Togo : Mixx by Yas, Flooz.', $guide);
-        $this->assertStringContainsString('- Burkina Faso : Orange Money, Wave.', $guide);
-        $this->assertStringContainsString('- Bénin : MTN, Moov, Celtiis.', $guide);
+        $this->assertStringContainsString('- Bénin : Celtiis.', $guide);
+        $this->assertStringNotContainsString('Burkina Faso :', $guide);
+        $this->assertStringNotContainsString('90 00 00', $guide);
         $this->assertStringContainsString('ATTESTATION de niveau', $guide);
-        $this->assertStringContainsString('« Envoyer mon paiement »', $guide);
+        $this->assertStringContainsString('« Envoyer ma capture »', $guide);
+        $this->assertStringContainsString('ACCÈS PROVISOIRE de 24 heures', $guide);
+        $this->assertStringNotContainsString('référence', $guide);
         $this->assertStringContainsString(config('platform.name'), $guide);
         // Marqueurs tous remplacés, notes de rédaction retirées.
         $this->assertDoesNotMatchRegularExpression('/:(platform|teacher|assessment|plans|operators)\b/', $guide);
@@ -93,14 +107,13 @@ class TeacherKnowledgeTest extends TestCase
         $this->assertDoesNotMatchRegularExpression('/\+?\d[\d ]{6,}\d/', $raw, 'Numéro de téléphone dans la fiche');
         $this->assertDoesNotMatchRegularExpression('/FCFA|F CFA/i', $raw, 'Prix écrit à la main dans la fiche');
 
-        // La fiche remplie ne contient pas non plus les numéros Mobile Money de la configuration.
+        // La fiche remplie ne contient pas non plus les numéros saisis dans les Réglages.
+        SiteSettings::save([SiteSettings::operatorNumberKey('TG', 'flooz') => '+228 90 00 00 22']);
         $guide = SiteGuide::text();
 
-        foreach (config('payment.countries') as $country) {
-            foreach ($country['operators'] as $operator) {
-                $this->assertStringNotContainsString($operator['number'], $guide);
-            }
-        }
+        $this->assertStringContainsString('Flooz', $guide);
+        $this->assertStringNotContainsString('90 00 00 22', $guide);
+        $this->assertStringNotContainsString('90000022', $guide);
     }
 
     public function test_assessment_token_contains_site_rules_guide_and_learner_status(): void
@@ -149,9 +162,9 @@ class TeacherKnowledgeTest extends TestCase
             'plan' => $plan->key, 'plan_name' => $plan->name, 'daily_minutes' => $plan->dailyMinutes,
             'duration_days' => $plan->durationDays, 'amount' => $plan->price, 'currency' => 'FCFA',
             'country' => 'TG', 'operator' => 'mixx', 'operator_name' => 'Mixx by Yas', 'recipient_number' => 'numero',
-            'payer_phone' => '+22890000001', 'reference' => 'REF1', 'reference_key' => 'REF1', 'proof_path' => 'payment-proofs/x.png',
+            'proof_path' => 'payment-proofs/x.png',
         ]);
-        $this->assertStringContainsString('paiement déclaré (formule Semaine), en attente de validation', LearnerSituation::describe($user, 'lesson'));
+        $this->assertStringContainsString('capture du paiement envoyée (formule Semaine), vérification par l\'équipe en cours', LearnerSituation::describe($user, 'lesson'));
 
         // Formule active, programme pas encore construit.
         $payment->delete();

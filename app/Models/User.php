@@ -246,7 +246,9 @@ class User extends Authenticatable
     }
 
     /**
-     * L'abonnement en cours de validité, s'il y en a un.
+     * L'abonnement en cours de validité, s'il y en a un : définitif, ou provisoire
+     * (capture lue, en attente de la validation) tant que ses 24 heures ne sont pas
+     * écoulées. L'heure de fin est vérifiée à chaque accès, sans attendre le planificateur.
      *
      * @return HasOne<Subscription, $this>
      */
@@ -255,7 +257,11 @@ class User extends Authenticatable
         return $this->hasOne(Subscription::class)->ofMany(
             ['ends_at' => 'max', 'id' => 'max'],
             fn ($query) => $query
-                ->where('status', SubscriptionStatus::Active)
+                ->where(fn ($query) => $query
+                    ->where('status', SubscriptionStatus::Active)
+                    ->orWhere(fn ($query) => $query
+                        ->where('status', SubscriptionStatus::Provisional)
+                        ->where('provisional_until', '>', now())))
                 ->where('starts_at', '<=', now())
                 ->where('ends_at', '>', now()),
         );

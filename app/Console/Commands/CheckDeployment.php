@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Support\PaymentCountry;
 use App\Support\PrivateStorage;
+use App\Support\SiteSettings;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +54,11 @@ class CheckDeployment extends Command
 
         $this->section('Planificateur');
         $this->checkScheduler();
+
+        $this->section('Réglages de l\'administration (page « Réglages »)');
+        $operators = array_sum(array_map(fn (PaymentCountry $country) => count($country->operators), PaymentCountry::available()));
+        $this->check("Numéros Mobile Money saisis : {$operators} opérateur(s) ouvert(s)", $operators > 0, 'Aucun numéro de réception : saisissez-les dans Administration, « Réglages » (les apprenants ne peuvent pas payer).');
+        $this->check('Numéro WhatsApp de l\'équipe saisi', SiteSettings::whatsapp() !== null, 'Saisissez-le dans Administration, « Réglages » (boutons « Prévenir sur WhatsApp », mot de passe oublié).');
 
         $this->section('Professeur IA');
         $this->check('Clé Gemini présente', filled(config('services.gemini.key')), 'GEMINI_API_KEY est vide : les séances vocales ne fonctionneront pas.');

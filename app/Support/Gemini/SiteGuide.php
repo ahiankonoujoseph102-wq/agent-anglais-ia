@@ -42,10 +42,17 @@ class SiteGuide
 
     private static function operators(): string
     {
+        $countries = PaymentCountry::available();
+
+        if ($countries === []) {
+            return '- Aucun pour l\'instant : le paiement n\'est pas encore ouvert, l\'apprenant doit contacter l\'équipe sur WhatsApp (« Aide »).';
+        }
+
+        // Seulement ceux dont le numéro de réception est saisi dans les Réglages.
         return implode("\n", array_map(
             fn (PaymentCountry $country) => "- {$country->name} : "
                 .implode(', ', array_map(fn ($operator) => $operator->name, $country->operators)).'.',
-            array_values(PaymentCountry::all()),
+            array_values($countries),
         ));
     }
 }

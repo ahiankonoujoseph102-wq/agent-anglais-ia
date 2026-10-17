@@ -84,14 +84,7 @@
     <section class="card">
         <h2>Paiements</h2>
         @forelse ($payments as $payment)
-            <p>
-                {{ $payment->created_at->format('d/m/Y') }} — {{ $payment->plan_name }}, {{ $payment->formattedAmount() }},
-                {{ $payment->operator_name }}, référence <code>{{ $payment->reference }}</code> :
-                <strong>{{ $payment->status->label() }}</strong>
-                @if ($payment->rejection_reason)
-                    <br><span class="muted small">Motif : {{ $payment->rejection_reason }}</span>
-                @endif
-            </p>
+            @include('admin.payments.card', ['payment' => $payment, 'actions' => $payment->isPending()])
         @empty
             <p class="muted">Aucun paiement.</p>
         @endforelse

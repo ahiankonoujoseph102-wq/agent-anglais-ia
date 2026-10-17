@@ -11,7 +11,7 @@ enum PaymentStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Pending => 'En attente de validation',
+            self::Pending => 'En attente de vérification',
             self::Validated => 'Validé',
             self::Rejected => 'Refusé',
         };

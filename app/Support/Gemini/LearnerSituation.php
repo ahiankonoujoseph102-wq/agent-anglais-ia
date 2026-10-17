@@ -4,6 +4,7 @@ namespace App\Support\Gemini;
 
 use App\Enums\AssessmentStatus;
 use App\Enums\ProgramStatus;
+use App\Enums\SubscriptionStatus;
 use App\Models\User;
 
 /**
@@ -59,7 +60,11 @@ class LearnerSituation
         }
 
         if ($payment = $user->pendingPayment()->first()) {
-            return 'paiement déclaré (formule '.$payment->plan_name.'), en attente de validation par l\'équipe.';
+            if ($user->activeSubscription()->where('status', SubscriptionStatus::Provisional)->exists()) {
+                return 'capture du paiement envoyée et lue (formule '.$payment->plan_name.') : accès provisoire de 24 heures ouvert, l\'équipe vérifie le paiement. Les séances sont possibles.';
+            }
+
+            return 'capture du paiement envoyée (formule '.$payment->plan_name.'), vérification par l\'équipe en cours ; l\'apprenant sera informé dans son espace.';
         }
 
         if ($user->activeSubscription()->doesntExist()) {
