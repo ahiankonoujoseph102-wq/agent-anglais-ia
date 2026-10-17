@@ -42,7 +42,7 @@ class HomePageTest extends TestCase
             ->assertSee('Professeur Ama')
             ->assertDontSee('Talkami')
             ->assertSee('Découverte')
-            ->assertSee('10 minutes de séance par jour')
+            ->assertSee('10 minutes de séance orale par jour')
             ->assertDontSee('Essentiel');
     }
 

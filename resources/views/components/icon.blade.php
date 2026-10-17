@@ -1,6 +1,6 @@
 {{--
     Icônes SVG intégrées : famille Lucide 1.49.0 (https://lucide.dev, licence ISC, usage commercial permis ;
-    licence dans resources/icons/LICENSE-lucide.txt et sur la page Crédits). Grille de 24 × 24, trait arrondi.
+    licence dans resources/icons/LICENSE-lucide.txt et LICENCES-TIERS.md). Grille de 24 × 24, trait arrondi.
     FICHIER GÉNÉRÉ par tools/icons/build-icons.py : ajouter une icône là-bas, pas ici.
     Utilisation : <x-icon name="mic" /> ; avec label="…" l'icône est annoncée aux lecteurs d'écran.
     Taille et couleur : CSS (.icon, pastilles .icon-bubble) ; épaisseur du trait : 2, 2,25 dans les pastilles.

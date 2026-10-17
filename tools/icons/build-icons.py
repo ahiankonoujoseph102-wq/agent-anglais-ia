@@ -6,7 +6,7 @@ figée ci-dessous, par exemple :
     python3 tools/icons/build-icons.py chemin/vers/svg
 
 Lucide : https://lucide.dev, licence ISC (usage commercial permis), copie dans
-resources/icons/LICENSE-lucide.txt et sur la page Crédits.
+resources/icons/LICENSE-lucide.txt et dans LICENCES-TIERS.md.
 """
 
 import pathlib
@@ -96,7 +96,7 @@ WHATSAPP = '<path d="M20.5 12a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.2-4.2A8.5 8.5 0 
 
 TEMPLATE = """{{{{--
     Icônes SVG intégrées : famille Lucide {version} (https://lucide.dev, licence ISC, usage commercial permis ;
-    licence dans resources/icons/LICENSE-lucide.txt et sur la page Crédits). Grille de 24 × 24, trait arrondi.
+    licence dans resources/icons/LICENSE-lucide.txt et LICENCES-TIERS.md). Grille de 24 × 24, trait arrondi.
     FICHIER GÉNÉRÉ par tools/icons/build-icons.py : ajouter une icône là-bas, pas ici.
     Utilisation : <x-icon name="mic" /> ; avec label="…" l'icône est annoncée aux lecteurs d'écran.
     Taille et couleur : CSS (.icon, pastilles .icon-bubble) ; épaisseur du trait : 2, 2,25 dans les pastilles.

@@ -165,12 +165,14 @@
                         <li><a href="{{ \App\Support\WhatsApp::url($contact['whatsapp']) }}" target="_blank" rel="noopener">WhatsApp</a></li>
                     @endif
                     <li><a href="{{ route('contact') }}">Contact</a></li>
-                    <li><a href="{{ route('credits') }}">Crédits</a></li>
                     <li><button type="button" class="btn btn-link footer-install" data-install-button hidden>Installer l'application</button></li>
                 </ul>
             </div>
             <div class="footer-bottom">
                 <p>&copy; {{ date('Y') }} {{ config('platform.name') }} — Apprenez l'anglais avec votre professeur IA.</p>
+                @if (config('platform.brand.developer'))
+                    <p class="footer-signature">Développé par <strong>{{ config('platform.brand.developer') }}</strong></p>
+                @endif
             </div>
         </div>
     </footer>

@@ -39,6 +39,8 @@ return [
         // « night » (bleu nuit en relief, icône orange), « gradient » (dégradé orange, icône blanche)
         // ou « duotone » (fond blanc, icône bleu nuit remplie d'orange clair). App\Support\IconStyle.
         'icon_style' => 'night',
+        // Signature en bas du pied de page : « Développé par … ».
+        'developer' => 'Joseph Ahiankonou',
     ],
 
     // Devise utilisée pour les prix.
@@ -133,6 +135,8 @@ return [
             'price' => 5000,
             'period' => 'month',
             'duration_days' => 30,
+            // Mise en avant sur toutes les listes de formules (badge « Recommandée », jamais de statistique).
+            'recommended' => true,
         ],
         'intensif' => [
             'name' => 'Intensif',

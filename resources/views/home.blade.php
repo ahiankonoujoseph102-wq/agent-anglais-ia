@@ -129,17 +129,7 @@
         </div>
         <div class="plans">
             @foreach ($plans as $plan)
-                <article class="card plan reveal" style="--i: {{ $loop->index }}">
-                    <h3>{{ $plan->name }}</h3>
-                    <p class="price">{{ $plan->formattedPrice() }}</p>
-                    <span class="period">{{ $plan->periodLabel() }}</span>
-                    <ul>
-                        <li><x-icon name="clock" /> {{ $plan->dailyMinutes }} minutes de séance par jour</li>
-                        <li><x-icon name="calendar" /> Valable {{ $plan->durationDays }} jours</li>
-                        <li><x-icon name="check" /> Programme personnel et suivi de vos erreurs</li>
-                    </ul>
-                    <a class="btn btn-light btn-block" href="{{ auth()->check() ? route('payment.create', $plan->key) : route('register') }}">Choisir {{ $plan->name }}</a>
-                </article>
+                <x-plan-card :plan="$plan" :href="auth()->check() ? route('payment.create', $plan->key) : route('register')" class="reveal" style="--i: {{ $loop->index }}" />
             @endforeach
         </div>
         <p class="muted small reveal next-step">

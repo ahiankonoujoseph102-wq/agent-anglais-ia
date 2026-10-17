@@ -115,6 +115,8 @@
     --shadow: 0 2px 4px rgba(14, 42, 92, .06), 0 6px 18px rgba(14, 42, 92, .08);
     --shadow-lg: 0 10px 30px rgba(14, 42, 92, .18);
     --shadow-accent: 0 6px 18px rgba(255, 122, 26, .35);
+    --shadow-accent-press: 0 2px 6px rgba(255, 122, 26, .35);
+    --shine: inset 0 1px 0 rgba(255, 255, 255, .35);     /* reflet en haut des boutons orange */
     --shadow-up: 0 -4px 16px rgba(14, 42, 92, .06);
 
     /* Animations (désactivées si « réduire les animations ») */

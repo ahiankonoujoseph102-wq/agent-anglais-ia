@@ -14,6 +14,8 @@ final readonly class Plan
         public int $price,
         public string $period,
         public int $durationDays,
+        // Formule mise en avant (badge « Recommandée », contour orange).
+        public bool $recommended = false,
     ) {}
 
     /**
@@ -31,6 +33,7 @@ final readonly class Plan
                 price: (int) $plan['price'],
                 period: $plan['period'],
                 durationDays: (int) $plan['duration_days'],
+                recommended: (bool) ($plan['recommended'] ?? false),
             );
         }
 

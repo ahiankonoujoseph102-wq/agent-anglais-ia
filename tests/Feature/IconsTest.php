@@ -35,14 +35,10 @@ class IconsTest extends TestCase
         $this->assertStringContainsString('Lucide', $component);
     }
 
-    public function test_lucide_license_is_kept_and_credited(): void
+    public function test_lucide_license_is_kept_in_the_repository(): void
     {
         $this->assertStringContainsString('ISC License', File::get(resource_path('icons/LICENSE-lucide.txt')));
-
-        $this->get('/credits')->assertOk()
-            ->assertSee('Icônes Lucide')
-            ->assertSee('Licence ISC')
-            ->assertSee('https://lucide.dev/license');
+        $this->assertStringContainsString('Lucide', File::get(base_path('LICENCES-TIERS.md')));
     }
 
     public function test_home_steps_have_a_big_number_and_a_meaningful_icon(): void
