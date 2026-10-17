@@ -43,7 +43,7 @@ const csrf = document.querySelector('meta[name="csrf-token"]').content;
 const $ = (id) => document.getElementById(id);
 const ui = {
     start: $('start'), stop: $('stop'), resume: $('resume'), back: $('back'),
-    intro: $('intro'), status: $('status'), timer: $('timer'), error: $('error'),
+    intro: $('intro'), status: $('status'), timer: $('timer'), timerLabel: $('timer-label'), error: $('error'),
     subtitles: $('subtitles'), outcome: $('outcome'), mouth: $('mouth'),
     turn: $('turn'), turnText: $('turn-text'), controls: $('controls'), plans: $('plans-offer'),
     micPanel: $('mic-panel'), micLevel: $('mic-level'), micChoice: $('mic-choice'), micSelect: $('mic-select'), micWarning: $('mic-warning'),
@@ -122,7 +122,9 @@ const state = {
     discardTurn: false,
     awaitingSince: 0,
     learnerHeardAt: 0,
+    // Fin d'évaluation (questions et phrase fixe) : réglée à la première réponse du serveur.
     end: new ConversationEnd(),
+    tokenExpiresAt: 0,
     cues: new CueTracker(),
     // Sous-titres de l'évaluation pas encore envoyés au serveur (repli si le temps finit sans verdict).
     transcript: '',
@@ -202,7 +204,12 @@ async function heartbeat() {
     setRemaining(result.data.remaining_seconds);
 
     if (!result.data.active) {
-        finish('time');
+        // Pendant les questions ou la conclusion, la phrase en cours peut finir (tick → timeUp).
+        if (state.end.questions) {
+            setRemaining(0);
+        } else {
+            finish('time');
+        }
     }
 }
 
@@ -228,6 +235,12 @@ function remainingSeconds() {
 
 function renderTimer() {
     const seconds = remainingSeconds();
+
+    if (ui.timerLabel) {
+        // Après le verdict de l'évaluation : le temps restant est celui du moment des questions.
+        ui.timerLabel.textContent = state.end.questions ? 'Vos questions' : 'Temps restant';
+    }
+
     ui.timer.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
     ui.timer.classList.toggle('timer-low', state.config !== null && seconds <= state.config.warning_seconds);
 }
@@ -504,7 +517,7 @@ function sendAudio(buffer) {
         return;
     }
 
-    // Après le verdict, le micro reste fermé : plus de question ni de réponse.
+    // Après le verdict, micro fermé, sauf pendant les questions libres de l'évaluation (jusqu'à la conclusion).
     const action = state.gate.decide(state.audio.context.currentTime, voiceEnd(), state.paused || state.muted || !state.end.micOpen);
 
     if (action === 'send' && buffer) {
@@ -672,6 +685,21 @@ async function connect({ planned = false } = {}) {
 
     const isResume = state.config !== null;
     state.config = result.data;
+    state.tokenExpiresAt = Date.now() + state.config.token_expires_in * 1000;
+
+    if (!isResume && state.config.closing_phrase) {
+        state.end = new ConversationEnd({
+            closingPhrase: state.config.closing_phrase,
+            cueSeconds: state.config.conclusion_cue_seconds,
+            grace: state.config.closing_grace_seconds,
+        });
+    }
+
+    // Page rechargée pendant les questions : le verdict est déjà enregistré.
+    if (state.config.questions && !state.end.hasVerdict) {
+        state.end.recordVerdict(clock(), { questions: true });
+    }
+
     setRemaining(state.config.remaining_seconds);
 
     const ws = new WebSocket(state.config.websocket_url);
@@ -759,10 +787,11 @@ function cue(text) {
  */
 function scheduleRenewal() {
     clearTimeout(state.renewal);
-    const seconds = state.config.token_expires_in - 15;
+    // Recalculé aussi après le verdict : la fin autorisée a bougé (moment des questions).
+    const left = (state.tokenExpiresAt - Date.now()) / 1000;
 
-    if (remainingSeconds() > state.config.token_expires_in + 5) {
-        state.renewal = setTimeout(() => renew(), Math.max(5, seconds) * 1000);
+    if (remainingSeconds() > left + 5) {
+        state.renewal = setTimeout(() => renew(), Math.max(5, left - 15) * 1000);
     }
 }
 
@@ -802,6 +831,11 @@ function handleMessage(message) {
         if (content.outputTranscription?.text && !state.paused && !state.discardTurn) {
             state.learnerLine = null;
             subtitle('teacher', content.outputTranscription.text);
+
+            // Phrase fixe de la conclusion : micro fermé, coupure une fois la voix terminée.
+            if (state.end.teacherSaid(content.outputTranscription.text, clock())) {
+                endMicStream();
+            }
         }
 
         if (content.interrupted) {
@@ -845,7 +879,7 @@ function handleMessage(message) {
 
 // Ce que le professeur doit faire après l'enregistrement du résultat : une seule annonce, puis fin.
 const AFTER_VERDICT = {
-    record_assessment_result: 'Saved. Now, if you have not announced it yet, announce the level ONCE in simple English, add the one French sentence about the plans shown just below and the orange button, then say "Goodbye!". If you have already announced it, only say "Goodbye!". Never ask another question: the conversation ends after this turn.',
+    record_assessment_result: 'Saved. Now, if you have not announced it yet, make the ONE announcement of the level in simple English, then invite questions in French: « Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français. » and wait. Then follow steps 5 and 6 of your instructions (questions in French, then ONE conclusion ending with the exact closing sentence). Never announce the level again and never call this function again.',
     end_lesson: 'Saved. Now say goodbye warmly in one or two short sentences. Do not start anything new: the lesson ends after this turn.',
     record_level_test_result: 'Saved. Now, if you have not announced it yet, announce the result once, kindly, then say goodbye. Do not ask another question: the test ends after this turn.',
 };
@@ -861,16 +895,28 @@ function showAssessmentResult(level, label, feedback) {
 async function handleFunctionCall(call) {
     const args = call.args ?? {};
     let response = { result: 'ok' };
+    let questions = false;
     const isVerdict = call.name in AFTER_VERDICT;
 
     if (isVerdict && state.end.hasVerdict) {
         // Deuxième appel du modèle : rien de nouveau à enregistrer, ni à annoncer.
-        response = { result: 'already_saved', next_step: 'Say only "Goodbye!" if you have not said it yet. Nothing else.' };
+        response = {
+            result: 'already_saved',
+            next_step: state.end.questions
+                ? 'Already saved. Do not announce the level again. Continue exactly where you were (questions or conclusion).'
+                : 'Say only "Goodbye!" if you have not said it yet. Nothing else.',
+        };
     } else if (call.name === 'record_assessment_result' && mode === 'assessment') {
         const result = await post(urls.result, { level: args.level, feedback: args.feedback });
 
         if (result.ok) {
             showAssessmentResult(result.data.level, result.data.label, args.feedback);
+            // Moment des questions ouvert par le serveur : la fin autorisée a été repoussée.
+            questions = Boolean(result.data.questions);
+
+            if (questions) {
+                setRemaining(result.data.remaining_seconds);
+            }
         } else {
             response = { result: 'error', message: result.data.message ?? 'not saved' };
         }
@@ -920,9 +966,16 @@ async function handleFunctionCall(call) {
     }
 
     if (saved) {
-        // Le professeur termine sa phrase, puis la conversation se coupe toute seule.
-        state.end.recordVerdict(clock());
+        // Sans questions : le professeur termine sa phrase, puis la conversation se coupe toute seule.
+        // Avec questions (évaluation) : micro ouvert jusqu'à la conclusion, coupure après la phrase fixe.
+        state.end.recordVerdict(clock(), { questions });
         state.learnerHeardAt = 0;
+
+        if (questions) {
+            scheduleRenewal();
+        }
+
+        renderTimer();
         renderTurn();
     }
 }
@@ -936,7 +989,11 @@ function onClose(event) {
     }
 
     if (remainingSeconds() <= 2) {
-        finish('time');
+        // Google ferme la connexion à la limite : pendant la conclusion, la voix déjà reçue
+        // finit de sortir du haut-parleur (tick → timeUp coupe ensuite).
+        if (!state.end.questions) {
+            finish('time');
+        }
 
         return;
     }
@@ -1016,8 +1073,17 @@ function tick() {
         cue(state.config.cues.warning);
     }
 
+    // UNE indication après le verdict : passer à la conclusion, environ 30 secondes avant la fin.
+    if (state.connected && state.end.shouldConclude(seconds, teacherSpeaking() || state.generating)) {
+        sendText(state.config.cues.conclusion);
+        endMicStream();
+        state.awaitingSince = Date.now();
+    }
+
     if (seconds <= 0) {
-        finish('time');
+        if (state.end.timeUp(clock(), teacherSpeaking())) {
+            finish('time');
+        }
 
         return;
     }
@@ -1048,8 +1114,8 @@ function currentTurn() {
         return 'speaking';
     }
 
-    // Verdict donné : le micro est fermé, la conversation va se terminer.
-    if (state.end.hasVerdict) {
+    // Verdict donné (sans questions), conclusion en cours ou faite : micro fermé, fin proche.
+    if (!state.end.micOpen) {
         return 'ending';
     }
 

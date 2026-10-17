@@ -166,7 +166,7 @@ class TeacherSetup
      */
     public static function cue(string $key, array $replace = []): string
     {
-        return self::fill((string) config("teacher.cues.{$key}"), $replace);
+        return self::fill((string) config("teacher.cues.{$key}"), $replace + ['closing' => (string) config('platform.assessment.closing_phrase')]);
     }
 
     /**
@@ -194,6 +194,10 @@ class TeacherSetup
             'level' => $level,
             'minutes' => $minutes,
             'warning' => (int) config('platform.lessons.warning_minutes_before_end'),
+            // Fin de l'évaluation : questions libres, conclusion et sa phrase fixe.
+            'questions_minutes' => (int) ceil((int) config('platform.assessment.questions_seconds') / 60),
+            'max_questions' => (int) config('platform.assessment.questions_max'),
+            'closing' => (string) config('platform.assessment.closing_phrase'),
         ]);
 
         // Ajoutés APRÈS le remplacement des marqueurs : le nom de l'apprenant n'est jamais relu comme un marqueur.

@@ -108,6 +108,30 @@ class Assessment extends Model
     }
 
     /**
+     * Après le verdict, pendant l'évaluation : moment des questions libres et conclusion.
+     * La fin autorisée devient « maintenant + platform.assessment.questions_seconds » : le
+     * temps s'ajoute à partir du verdict (au plus 5 + 2 minutes au total ; plus court si le
+     * verdict arrive tôt). Le serveur coupe toujours à cette nouvelle limite.
+     */
+    public function startQuestions(): void
+    {
+        if (! $this->isInProgress() || $this->level === null) {
+            return;
+        }
+
+        $this->allowed_seconds = $this->elapsedUntil(now()) + (int) config('platform.assessment.questions_seconds');
+        $this->save();
+    }
+
+    /**
+     * Verdict donné, conversation encore ouverte : moment des questions et de la conclusion.
+     */
+    public function inQuestions(): bool
+    {
+        return $this->isInProgress() && $this->level !== null;
+    }
+
+    /**
      * Enregistre le résultat annoncé par le professeur, ici et sur le compte.
      */
     public function recordResult(Level $level, string $feedback): void

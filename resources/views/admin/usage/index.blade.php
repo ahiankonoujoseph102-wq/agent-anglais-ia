@@ -111,7 +111,7 @@
                                     <span class="badge">{{ $conversation->level->value }}</span>
                                 @endif
                             </td>
-                            <td data-label="Durée réelle">{{ Duration::formatPrecise($conversation->used_seconds) }} / {{ Duration::format($conversation->allowed_seconds) }}</td>
+                            <td data-label="Durée réelle">{{ Duration::formatPrecise($conversation->used_seconds) }} / {{ Duration::formatPrecise($conversation->allowed_seconds) }}</td>
                             <td data-label="Connexions">{{ $conversation->connections }}</td>
                             <td data-label="Jetons">{{ number_format($conversation->input_tokens, 0, ',', ' ') }} / {{ number_format($conversation->output_tokens, 0, ',', ' ') }}</td>
                             <td data-label="Coût estimé">{{ UsageCost::format(UsageCost::usd($conversation->input_tokens, $conversation->output_tokens)) }}</td>

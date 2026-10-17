@@ -134,30 +134,53 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('ask your last question again', TeacherSetup::cue('pause_resume'));
     }
 
-    public function test_assessment_order_is_strict_and_ends_with_one_announcement(): void
+    public function test_assessment_order_is_strict_one_announcement_questions_then_one_conclusion(): void
     {
         $user = new User(['name' => 'Afi']);
         // Même pour un apprenant au niveau déjà connu (évaluation réinitialisée) : règles propres à l'évaluation.
         $user->level = Level::A1;
         $text = TeacherSetup::instructions('assessment', $user, 5);
 
-        $this->assertStringContainsString('STRICT ORDER: 1) the greeting; 2) questions adapted to the learner; 3) ONE final announcement of the level', $text);
-        $this->assertStringContainsString('never ask another question, never announce the level a second time', $text);
+        $this->assertStringContainsString('STRICT ORDER: 1) the greeting; 2) questions adapted to the learner; 3) ONE announcement of the level; 4) the learner\'s questions, in French; 5) ONE conclusion, in French.', $text);
+        $this->assertStringContainsString('Never announce the level a second time, never give the conclusion a second time', $text);
         $this->assertStringContainsString('FIRST call the function "record_assessment_result"', $text);
-        $this->assertStringContainsString('BEFORE saying anything about the level', $text);
+        $this->assertStringContainsString('BEFORE saying anything about the level. Call it only once.', $text);
+        // Questions libres, en français, trois au plus, sans rien inventer.
+        $this->assertStringContainsString('« Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français. »', $text);
+        $this->assertStringContainsString('(in French, 3 questions at most)', $text);
+        $this->assertStringContainsString('always answer in FRENCH, briefly (two or three sentences)', $text);
+        $this->assertStringContainsString('Never invent anything (prices, delays, phone numbers, promises)', $text);
+        $this->assertStringContainsString('green button on the « Aide » page', $text);
+        $this->assertStringContainsString('you are here for English and Talkami', $text);
+        $this->assertStringContainsString('says they have no (more) question, or once you have answered question number 3, go to the conclusion at once', $text);
+        // Conclusion : niveau, pourquoi l'anglais, comment s'abonner, promesse honnête, phrase fixe.
+        $this->assertStringContainsString('recall the level obtained', $text);
+        $this->assertStringContainsString('studies, work, exchanges with Ghana and the rest of the world, the internet', $text);
         $this->assertStringContainsString('« Les formules s\'affichent juste en dessous : il suffit de toucher le bouton orange. »', $text);
+        $this->assertStringContainsString('never a guaranteed result', $text);
+        $this->assertStringContainsString('« Je serai avec vous chaque jour, je corrigerai vos erreurs et vous gagnerez en assurance. »', $text);
+        $this->assertStringContainsString('end with this exact sentence, word for word: « On se retrouve de l\'autre côté ! »', $text);
+        $this->assertStringContainsString('Never say this sentence at any other moment', $text);
+        $this->assertStringContainsString('(2 minutes at most)', $text);
         $this->assertStringContainsString('Never say "on the website"', $text);
         $this->assertStringContainsString('the website ends the conversation automatically', $text);
         $this->assertStringContainsString('Never repeat a sentence or a question you have already said', $text);
+        $this->assertStringNotContainsString('Goodbye!', $text);
         $this->assertStringNotContainsString(config('teacher.level_guidance.A1'), $text);
-        $this->assertStringContainsString('Stop asking questions. Call record_assessment_result now, before saying anything about the level', TeacherSetup::cue('assessment_warning', ['remaining' => 1]));
+        $this->assertStringContainsString('Stop asking assessment questions. Call record_assessment_result now, before saying anything about the level', TeacherSetup::cue('assessment_warning', ['remaining' => 1]));
+
+        // L'indication unique de conclusion contient la phrase fixe.
+        $this->assertSame(
+            '[System] About 30 seconds remain. Do not take any more questions. If you have not given your conclusion yet, give it now, in French, once, ending with « On se retrouve de l\'autre côté ! ». If you have already said this sentence, say nothing.',
+            TeacherSetup::cue('assessment_conclusion', ['seconds' => 30]),
+        );
     }
 
     public function test_assessment_teacher_praises_corrects_once_and_uses_french_as_a_short_tool(): void
     {
         $text = TeacherSetup::instructions('assessment', new User(['name' => 'Afi']), 5);
 
-        $this->assertStringContainsString('the assessment is conducted in ENGLISH', $text);
+        $this->assertStringContainsString('the assessment (steps 1 to 3) is conducted in ENGLISH', $text);
         $this->assertStringContainsString('short, sincere praise ("Great answer!", "Well said.")', $text);
         $this->assertStringContainsString('correct only the most important one, in one sentence: \'You said "…". We say "…".\'', $text);
         $this->assertStringContainsString('Never pretend to hear what you did not clearly hear', $text);
