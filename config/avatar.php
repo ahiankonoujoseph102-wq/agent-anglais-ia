@@ -46,7 +46,7 @@ return [
         'voice_hz' => 130,
     ],
 
-    // Expressions que le professeur peut demander (fonction set_expression de Gemini).
+    // Expressions du professeur 3D, déclenchées dans le navigateur d'après ses paroles (public/js/teacher-cues.js).
     'expressions' => [
         'welcome' => 'once, at the very beginning, with your greeting (smile and wave)',
         'happy' => 'each time the learner answers well or makes progress: big smile',

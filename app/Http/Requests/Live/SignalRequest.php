@@ -17,7 +17,14 @@ class SignalRequest extends FormRequest
         return [
             'input_tokens' => ['nullable', 'integer', 'min:0', 'max:10000000'],
             'output_tokens' => ['nullable', 'integer', 'min:0', 'max:10000000'],
+            // Sous-titres de l'évaluation depuis le signal précédent (repli si le temps finit sans verdict).
+            'transcript' => ['nullable', 'string', 'max:8000'],
         ];
+    }
+
+    public function transcript(): ?string
+    {
+        return $this->validated('transcript');
     }
 
     public function inputTokens(): int

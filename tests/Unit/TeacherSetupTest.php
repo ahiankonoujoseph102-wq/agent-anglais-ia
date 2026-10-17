@@ -39,25 +39,6 @@ class TeacherSetupTest extends TestCase
         $this->assertStringStartsWith('Hello :minutes, 10 min.', TeacherSetup::instructions('lesson', $user, 10));
     }
 
-    public function test_assessment_is_entirely_in_english_with_french_as_a_last_resort(): void
-    {
-        $user = new User(['name' => 'Afi']);
-        // Même pour un apprenant au niveau déjà connu (évaluation réinitialisée), aucune règle « français ».
-        $user->level = Level::A1;
-        $text = TeacherSetup::instructions('assessment', $user, 5);
-
-        $this->assertStringContainsString('lasts 5 minutes at most', $text);
-        $this->assertStringContainsString('the whole assessment is in ENGLISH, from the first word to the last, including the greeting and the conclusion', $text);
-        $this->assertStringContainsString('1) repeat the question more slowly; 2) if still not understood, rephrase it with simpler, shorter words; 3) then move on to an easier question', $text);
-        $this->assertStringContainsString('if the learner has said TWICE, in French, that they understand nothing, say ONE short, reassuring sentence in French', $text);
-        $this->assertStringContainsString('This difficulty must be reflected in the level you record', $text);
-        $this->assertStringContainsString('practical questions about the website (sign-up, payment, plans…) get a short answer in French', $text);
-        $this->assertStringContainsString('Greeting, in English, short and simple', $text);
-        $this->assertStringContainsString('Then, in simple English, announce the level', $text);
-        $this->assertStringNotContainsString(config('teacher.level_guidance.A1'), $text);
-        $this->assertStringNotContainsString('Greet the learner in French', $text);
-    }
-
     public function test_lessons_from_a2_do_not_switch_to_french_too_easily(): void
     {
         foreach (['A2', 'B1'] as $value) {
@@ -88,19 +69,6 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('Never chain questions mechanically', $text);
     }
 
-    public function test_expressions_are_used_often_but_never_twice_in_a_row(): void
-    {
-        config(['avatar.enabled' => true]);
-
-        $functions = TeacherSetup::lesson(new User(['name' => 'Afi']), 15)['tools'][0]['functionDeclarations'];
-        $description = $functions[1]['description'];
-
-        $this->assertStringContainsString('about once every one or two turns', $description);
-        $this->assertStringContainsString('never twice in a row with the same expression', $description);
-        $this->assertStringContainsString('"happy": each time the learner answers well', $description);
-        $this->assertStringContainsString('"encouraging": when the learner hesitates', $description);
-    }
-
     public function test_setup_locks_audio_transcription_and_resumption(): void
     {
         config(['services.gemini.voice' => 'Iapetus']);
@@ -112,31 +80,6 @@ class TeacherSetupTest extends TestCase
         $this->assertSame(['handle' => 'poignee'], $setup['sessionResumption']);
         $this->assertSame('{}', json_encode($setup['inputAudioTranscription']));
         $this->assertSame('{}', json_encode($setup['outputAudioTranscription']));
-    }
-
-    public function test_animated_teacher_expressions_are_declared_after_the_main_function(): void
-    {
-        config(['avatar.enabled' => true]);
-
-        $setup = TeacherSetup::lesson(new User(['name' => 'Afi']), 15);
-        $functions = $setup['tools'][0]['functionDeclarations'];
-
-        $this->assertSame([TeacherSetup::END_LESSON, TeacherSetup::SET_EXPRESSION], array_column($functions, 'name'));
-        $this->assertSame(array_keys(config('avatar.expressions')), $functions[1]['parameters']['properties']['expression']['enum']);
-        $this->assertContains('welcome', $functions[1]['parameters']['properties']['expression']['enum']);
-        $this->assertStringContainsString('never mention it', $functions[1]['description']);
-
-        $assessment = TeacherSetup::assessment(new User(['name' => 'Afi']), 5);
-        $this->assertSame(TeacherSetup::SET_EXPRESSION, $assessment['tools'][0]['functionDeclarations'][1]['name']);
-    }
-
-    public function test_no_expression_function_when_the_animated_teacher_is_disabled(): void
-    {
-        config(['avatar.enabled' => false]);
-
-        $setup = TeacherSetup::lesson(new User(['name' => 'Afi']), 15);
-
-        $this->assertSame([TeacherSetup::END_LESSON], array_column($setup['tools'][0]['functionDeclarations'], 'name'));
     }
 
     public function test_cost_estimate_uses_configured_prices(): void
@@ -189,5 +132,67 @@ class TeacherSetupTest extends TestCase
     {
         $this->assertStringContainsString('Do not greet the learner again', TeacherSetup::cue('resume'));
         $this->assertStringContainsString('ask your last question again', TeacherSetup::cue('pause_resume'));
+    }
+
+    public function test_assessment_order_is_strict_and_ends_with_one_announcement(): void
+    {
+        $user = new User(['name' => 'Afi']);
+        // Même pour un apprenant au niveau déjà connu (évaluation réinitialisée) : règles propres à l'évaluation.
+        $user->level = Level::A1;
+        $text = TeacherSetup::instructions('assessment', $user, 5);
+
+        $this->assertStringContainsString('STRICT ORDER: 1) the greeting; 2) questions adapted to the learner; 3) ONE final announcement of the level', $text);
+        $this->assertStringContainsString('never ask another question, never announce the level a second time', $text);
+        $this->assertStringContainsString('FIRST call the function "record_assessment_result"', $text);
+        $this->assertStringContainsString('BEFORE saying anything about the level', $text);
+        $this->assertStringContainsString('« Les formules s\'affichent juste en dessous : il suffit de toucher le bouton orange. »', $text);
+        $this->assertStringContainsString('Never say "on the website"', $text);
+        $this->assertStringContainsString('the website ends the conversation automatically', $text);
+        $this->assertStringContainsString('Never repeat a sentence or a question you have already said', $text);
+        $this->assertStringNotContainsString(config('teacher.level_guidance.A1'), $text);
+        $this->assertStringContainsString('Stop asking questions. Call record_assessment_result now, before saying anything about the level', TeacherSetup::cue('assessment_warning', ['remaining' => 1]));
+    }
+
+    public function test_assessment_teacher_praises_corrects_once_and_uses_french_as_a_short_tool(): void
+    {
+        $text = TeacherSetup::instructions('assessment', new User(['name' => 'Afi']), 5);
+
+        $this->assertStringContainsString('the assessment is conducted in ENGLISH', $text);
+        $this->assertStringContainsString('short, sincere praise ("Great answer!", "Well said.")', $text);
+        $this->assertStringContainsString('correct only the most important one, in one sentence: \'You said "…". We say "…".\'', $text);
+        $this->assertStringContainsString('Never pretend to hear what you did not clearly hear', $text);
+        $this->assertStringContainsString('French is a short EXPLANATION TOOL, never the language of the conversation', $text);
+        $this->assertStringContainsString('« Essayez en anglais : … »', $text);
+        $this->assertStringContainsString('« "I am living in Lomé" se dit plutôt "I live in Lomé" »', $text);
+        $this->assertStringContainsString('how the learner reacts to your corrections and help, and how much French they needed', $text);
+        $this->assertStringNotContainsString('LAST RESORT', $text);
+        $this->assertStringContainsString('start slowly, then adapt to the level you perceive', $text);
+    }
+
+    public function test_pace_follows_the_level_and_lessons_take_more_time_to_correct(): void
+    {
+        $this->assertStringContainsString('PACE: slow', config('teacher.level_guidance.A1'));
+        $this->assertStringContainsString('PACE: slow', config('teacher.level_guidance.A2'));
+        $this->assertStringContainsString('PACE: moderate', config('teacher.level_guidance.B1'));
+        $this->assertStringContainsString('PACE: natural', config('teacher.level_guidance.B2'));
+        $this->assertStringContainsString('Clarity first: articulate every word, never swallow words, one idea per sentence.', config('teacher.persona'));
+
+        $user = new User(['name' => 'Afi']);
+        $user->level = Level::A2;
+        $lesson = TeacherSetup::instructions('lesson', $user, 15);
+        $this->assertStringContainsString('you have more time than in the assessment', $lesson);
+        $this->assertStringContainsString('make the learner say the correct form again', $lesson);
+        $this->assertStringContainsString(config('teacher.level_guidance.A2'), $lesson);
+    }
+
+    public function test_no_function_call_for_expressions_in_any_conversation(): void
+    {
+        // Les appels de fonction de l'API Live sont synchrones : chaque set_expression faisait reprendre
+        // la parole au modèle, qui répétait sa dernière phrase. Seule la fonction de résultat reste.
+        config(['avatar.enabled' => true]);
+
+        $this->assertSame([TeacherSetup::END_LESSON], array_column(TeacherSetup::lesson(new User(['name' => 'Afi']), 15)['tools'][0]['functionDeclarations'], 'name'));
+        $this->assertSame([TeacherSetup::RECORD_ASSESSMENT_RESULT], array_column(TeacherSetup::assessment(new User(['name' => 'Afi']), 5)['tools'][0]['functionDeclarations'], 'name'));
+        $this->assertSame([TeacherSetup::RECORD_LEVEL_TEST_RESULT], array_column(TeacherSetup::levelTest(new User(['name' => 'Afi']), Level::A1, 10)['tools'][0]['functionDeclarations'], 'name'));
     }
 }

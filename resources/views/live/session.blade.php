@@ -15,6 +15,8 @@
          data-mic-gate="{{ \App\Support\Asset::url('js/mic-gate.js') }}"
          data-pcm-audio="{{ \App\Support\Asset::url('js/pcm-audio.js') }}"
          data-mic-input="{{ \App\Support\Asset::url('js/mic-input.js') }}"
+         data-conversation-end="{{ \App\Support\Asset::url('js/conversation-end.js') }}"
+         data-teacher-cues="{{ \App\Support\Asset::url('js/teacher-cues.js') }}"
          data-audio='@json($audio)'
          @if (\App\Support\Avatar::enabled())
              data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"
@@ -117,6 +119,26 @@
         <div id="subtitles" class="subtitles" aria-live="polite" hidden></div>
 
         <div id="outcome" class="card" hidden></div>
+
+        @if ($mode === 'assessment')
+            {{-- Affiché sous le résultat de l'évaluation : le professeur dit d'y toucher le bouton orange. --}}
+            <section id="plans-offer" class="plans-offer" hidden>
+                <h2>Continuez avec {{ config('avatar.model.name') }} : choisissez votre formule</h2>
+                <div class="plans">
+                    @foreach (\App\Support\Plan::all() as $plan)
+                        <article class="card plan">
+                            <h3>{{ $plan->name }}</h3>
+                            <p class="price">{{ $plan->formattedPrice() }}</p>
+                            <span class="period">{{ $plan->periodLabel() }}</span>
+                            <ul>
+                                <li><x-icon name="clock" /> {{ $plan->dailyMinutes }} minutes de séance par jour pendant {{ $plan->durationDays }} jours</li>
+                            </ul>
+                            <a class="btn btn-accent btn-block" href="{{ route('payment.create', $plan->key) }}">Choisir {{ $plan->name }} <x-icon name="arrow-right" /></a>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
+        @endif
 
         <div class="live-actions">
             <button type="button" id="resume" class="btn btn-block btn-lg" hidden><x-icon name="refresh" /> Se reconnecter</button>

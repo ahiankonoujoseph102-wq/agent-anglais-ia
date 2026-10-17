@@ -103,6 +103,7 @@ class AssessmentController extends Controller
     {
         $assessment = $this->current($request);
 
+        $assessment->appendTranscript($request->transcript());
         $assessment->recordSignal($request->inputTokens(), $request->outputTokens());
         $active = $assessment->closeIfOver();
 
@@ -143,13 +144,20 @@ class AssessmentController extends Controller
     {
         $assessment = $this->current($request);
 
+        $assessment->appendTranscript($request->transcript());
         $assessment->recordSignal($request->inputTokens(), $request->outputTokens());
 
         if ($assessment->closeIfOver()) {
             $assessment->finish(now());
         }
 
-        return response()->json(['status' => $assessment->status->label()]);
+        // Niveau (annoncé par le professeur, ou estimé si le temps a fini avant son verdict).
+        return response()->json([
+            'status' => $assessment->status->label(),
+            'level' => $assessment->level?->value,
+            'label' => $assessment->level?->label(),
+            'feedback' => $assessment->feedback,
+        ]);
     }
 
     private function current(Request $request): Assessment
