@@ -7,5 +7,6 @@
 @endphp
 
 <a href="{{ route('home') }}" {{ $attributes->class(['logo']) }}>
-    <img src="{{ \App\Support\Asset::url($file) }}" width="{{ $width }}" height="{{ $height }}" alt="{{ config('platform.name') }}">
+    {{-- Pied de page : chargé seulement à l'approche (page plus légère au premier affichage). --}}
+    <img src="{{ \App\Support\Asset::url($file) }}" width="{{ $width }}" height="{{ $height }}" alt="{{ config('platform.name') }}" @if ($variant === 'footer') loading="lazy" decoding="async" @endif>
 </a>

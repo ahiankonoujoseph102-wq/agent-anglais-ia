@@ -28,8 +28,8 @@ return [
         'short_name' => env('PLATFORM_SHORT_NAME', 'Talkami'),
         'tagline' => 'Votre professeur d\'anglais à l\'oral',
         'logo' => [
-            'header' => 'brand/logo-horizontal-640.webp',  // fond clair
-            'footer' => 'brand/logo-blanc-640.webp',       // fond bleu nuit
+            'header' => 'brand/logo-horizontal-320.webp',  // fond clair (320 pixels : affiché à environ 130 pixels)
+            'footer' => 'brand/logo-blanc-320.webp',       // fond bleu nuit
         ],
         // Couleurs de l'application installée (barre d'état, écran de démarrage).
         // Les garder identiques à --c-primary et --c-bg de public/css/tokens.css.

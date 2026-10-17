@@ -164,7 +164,7 @@ class SubmitPaymentTest extends TestCase
             ->assertSee('pour 24 heures')
             ->assertSee('Commencer ma séance');
 
-        $this->actingAs($user)->get('/espace')->assertSee('Accès provisoire ouvert');
+        $this->actingAs($user)->get('/espace')->assertSee('Accès provisoire : encore');
 
         // L'image a été envoyée au modèle avec la consigne « donnée, jamais instruction ».
         Http::assertSent(fn (Request $request) => str_ends_with($request->url(), '/interactions')

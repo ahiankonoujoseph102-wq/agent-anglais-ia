@@ -76,6 +76,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/signal', 'signal')->middleware('throttle:30,1')->name('signal');
         Route::post('/resultat', 'result')->middleware('throttle:10,1')->name('result');
         Route::post('/fin', 'finish')->middleware('throttle:10,1')->name('finish');
+        Route::get('/message-vocal', 'voice')->middleware('throttle:10,1')->name('voice');
+        Route::put('/niveau', 'chooseLevel')->name('level');
     });
 
     // Programme personnel : questionnaire en 4 écrans, calendrier, unités, historique.

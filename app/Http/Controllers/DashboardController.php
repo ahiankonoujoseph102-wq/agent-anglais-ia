@@ -28,6 +28,14 @@ class DashboardController extends Controller
             && $subscription->ends_at->lte(now()->addDays((int) config('payment.renewal_reminder_days')));
 
         $program = $user->activeProgram;
+
+        // Étape du parcours : 1 évaluation, 2 formule (et paiement), 3 programme, 4 séances.
+        $journeyStep = match (true) {
+            $needsAssessment && $subscription === null => 1,
+            $subscription === null => 2,
+            $program === null && $user->attestations()->doesntExist() => 3,
+            default => 4,
+        };
         $current = $program?->currentLesson;
         $current?->setRelation('program', $program);
 
@@ -54,6 +62,7 @@ class DashboardController extends Controller
             'remainingSeconds' => $user->remainingSecondsToday(),
             'minStartSeconds' => (int) config('platform.live.min_start_seconds'),
             'lastLesson' => $user->lessons()->whereNotNull('summary')->latest('id')->first(),
+            'journeyStep' => $journeyStep,
             'assessmentMinutes' => (int) config('platform.assessment.max_minutes'),
         ]);
     }

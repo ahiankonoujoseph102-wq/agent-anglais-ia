@@ -43,7 +43,7 @@ class AssessmentResetTest extends TestCase
             ->getContent();
 
         // L'invitation passe avant tout le reste de l'espace (première carte après la bienvenue).
-        $this->assertLessThan(strpos($html, 'class="stats"'), strpos($html, 'Passez votre évaluation gratuite'));
+        $this->assertLessThan(strpos($html, 'class="stats stats-main"'), strpos($html, 'Passez votre évaluation gratuite'));
         $this->assertStringNotContainsString('<div class="value">A2</div>', $html);
 
         $this->actingAs($user->fresh())->get('/evaluation')->assertOk();

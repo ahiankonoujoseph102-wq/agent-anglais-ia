@@ -79,6 +79,10 @@ def main():
         site = image.copy()
         site.thumbnail((640, 640), Image.LANCZOS)
         site.save(BRAND / f'{name}-640.webp', quality=88, method=6)
+        # Version légère pour l'en-tête et le pied de page (affichés à environ 130 pixels de large).
+        small = site.copy()
+        small.thumbnail((320, 320), Image.LANCZOS)
+        small.save(BRAND / f'{name}-320.webp', quality=90, method=6)
         print(f'{name} : {image.width}×{image.height}')
 
     icon = prepared['icone']

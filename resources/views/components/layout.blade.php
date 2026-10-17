@@ -39,30 +39,63 @@
     <header class="site-header">
         <div class="container">
             <x-logo />
-            <nav class="nav" aria-label="Navigation principale">
-                @if ($user)
-                    @if ($user->isAdmin())
-                        <a href="{{ route('admin.payments.pending') }}" @class([$tab('admin.*')]) aria-label="Administration" title="Administration">
-                            <x-icon name="shield" /> <span class="nav-label">Administration</span>
-                            @if ($pendingPaymentsCount > 0)
-                                <span class="badge badge-alert" title="Paiements en attente">{{ $pendingPaymentsCount }}</span>
+            @if ($user)
+                @php
+                    // Liens du compte connecté : la même liste dans le menu (téléphone, tablette)
+                    // et dans la navigation complète (ordinateur, 1200 pixels et plus).
+                    $links = array_values(array_filter([
+                        $user->isAdmin() ? ['route' => 'admin.payments.pending', 'active' => 'admin.*', 'icon' => 'shield', 'label' => 'Administration', 'badge' => $pendingPaymentsCount] : null,
+                        ['route' => 'dashboard', 'active' => 'dashboard', 'icon' => 'home', 'label' => 'Mon espace'],
+                        ['route' => 'program.show', 'active' => 'program.*', 'icon' => 'calendar', 'label' => 'Mon programme'],
+                        ['route' => 'lessons.history', 'active' => 'lessons.history', 'icon' => 'list', 'label' => 'Mes séances'],
+                        ['route' => 'account.edit', 'active' => 'account.*', 'icon' => 'user', 'label' => 'Mon compte'],
+                        ['route' => 'contact', 'active' => 'contact', 'icon' => 'bubble', 'label' => 'Aide'],
+                    ]));
+                @endphp
+                <nav class="nav nav-desktop" aria-label="Navigation principale">
+                    @foreach ($links as $link)
+                        <a href="{{ route($link['route']) }}" @class([$tab($link['active'])]) @if (request()->routeIs($link['active'])) aria-current="page" @endif>
+                            <x-icon :name="$link['icon']" /> {{ $link['label'] }}
+                            @if (($link['badge'] ?? 0) > 0)
+                                <span class="badge badge-alert" title="Paiements en attente">{{ $link['badge'] }}</span>
                             @endif
                         </a>
-                    @endif
-                    <a href="{{ route('dashboard') }}" @class(['nav-wide' => $tabbar, $tab('dashboard')]) aria-label="Mon espace" title="Mon espace"><x-icon name="home" /> <span class="nav-label">Mon espace</span></a>
-                    @if ($tabbar)
-                        <a href="{{ route('program.show') }}" @class(['nav-wide', $tab('program.*')])><x-icon name="calendar" /> Mon programme</a>
-                        <a href="{{ route('lessons.history') }}" @class(['nav-wide', $tab('lessons.history')])><x-icon name="list" /> Mes séances</a>
-                    @endif
+                    @endforeach
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="btn btn-link" aria-label="Déconnexion" title="Déconnexion"><x-icon name="logout" /> <span class="nav-label">Déconnexion</span></button>
+                        <button type="submit" class="btn btn-link"><x-icon name="logout" /> Déconnexion</button>
                     </form>
-                @else
-                    <a href="{{ route('login') }}" @class([$tab('login')]) aria-label="Connexion" title="Connexion"><x-icon name="login" /> <span class="nav-label">Connexion</span></a>
+                </nav>
+
+                {{-- Téléphone et tablette : un seul bouton « Menu » (<details> : fonctionne sans JavaScript, au clavier). --}}
+                <details class="menu" data-menu>
+                    <summary class="menu-button" aria-label="Ouvrir le menu">
+                        <x-icon name="menu" /> <span>Menu</span>
+                        @if ($user->isAdmin() && $pendingPaymentsCount > 0)
+                            <span class="badge badge-alert" title="Paiements en attente">{{ $pendingPaymentsCount }}</span>
+                        @endif
+                    </summary>
+                    <nav class="menu-panel" aria-label="Navigation principale">
+                        @foreach ($links as $link)
+                            <a href="{{ route($link['route']) }}" @class([$tab($link['active'])]) @if (request()->routeIs($link['active'])) aria-current="page" @endif>
+                                <x-icon :name="$link['icon']" /> <span>{{ $link['label'] }}</span>
+                                @if (($link['badge'] ?? 0) > 0)
+                                    <span class="badge badge-alert">{{ $link['badge'] }}</span>
+                                @endif
+                            </a>
+                        @endforeach
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit"><x-icon name="logout" /> <span>Déconnexion</span></button>
+                        </form>
+                    </nav>
+                </details>
+            @else
+                <nav class="nav" aria-label="Navigation principale">
+                    <a href="{{ route('login') }}" @class([$tab('login')]) @if (request()->routeIs('login')) aria-current="page" @endif>Connexion</a>
                     <a class="nav-cta" href="{{ route('register') }}">Inscription</a>
-                @endif
-            </nav>
+                </nav>
+            @endif
         </div>
     </header>
 

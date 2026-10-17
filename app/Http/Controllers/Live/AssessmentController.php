@@ -3,18 +3,23 @@
 namespace App\Http\Controllers\Live;
 
 use App\Enums\AssessmentStatus;
+use App\Enums\Level;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Live\AssessmentResultRequest;
+use App\Http\Requests\Live\ChooseLevelRequest;
 use App\Http\Requests\Live\ConnectRequest;
 use App\Http\Requests\Live\SignalRequest;
 use App\Models\Assessment;
 use App\Support\Gemini\GeminiUnavailable;
+use App\Support\Gemini\LevelMessage;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Plan;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
@@ -28,8 +33,9 @@ class AssessmentController extends Controller
     {
         $assessment = $request->user()->assessment()->first();
 
+        // Évaluation déjà passée : la page de résultat (niveau, message de Teacher Joe, formules).
         if ($assessment !== null && ! $assessment->closeIfOver()) {
-            return to_route('dashboard')->with('status', self::ALREADY_DONE);
+            return $this->resultPage($request, $assessment);
         }
 
         $minutes = (int) config('platform.assessment.max_minutes');
@@ -44,9 +50,57 @@ class AssessmentController extends Controller
                 'signal' => route('assessment.signal'),
                 'finish' => route('assessment.finish'),
                 'result' => route('assessment.result'),
-                'done' => route('dashboard'),
+                // Fin de l'évaluation : la page de résultat complète (message de Teacher Joe, niveau, formules).
+                'done' => route('assessment.show'),
             ],
         ]);
+    }
+
+    /**
+     * Message vocal de Teacher Joe pour le niveau trouvé : généré une fois par niveau,
+     * demandé seulement quand l'apprenant touche « Écouter ».
+     */
+    public function voice(Request $request, LevelMessage $message): Response
+    {
+        $level = $request->user()->assessment()->first()?->level;
+
+        abort_if($level === null, 404);
+
+        $wav = $message->get($level);
+
+        abort_if($wav === null, 503, 'Le message vocal n\'est pas disponible pour le moment.');
+
+        return response($wav, 200, [
+            'Content-Type' => 'audio/wav',
+            'Content-Length' => (string) strlen($wav),
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
+    }
+
+    /**
+     * « Choisir un autre niveau » : le niveau choisi est celui du programme, tant qu'il n'est pas construit.
+     */
+    public function chooseLevel(ChooseLevelRequest $request): RedirectResponse
+    {
+        $user = $request->user();
+        $assessment = $user->assessment()->first();
+
+        abort_if($assessment === null || $assessment->isInProgress(), 404);
+
+        if ($user->programs()->exists()) {
+            return to_route('assessment.show')->with('status', 'Votre programme est déjà construit : son niveau ne change plus ici.');
+        }
+
+        $level = $request->level();
+        $user->forceFill(['level' => $level])->save();
+
+        $message = "Niveau choisi : {$level->value} ({$level->label()}). Votre programme sera construit à ce niveau.";
+
+        if ($assessment->level !== null && self::rank($level) > self::rank($assessment->level)) {
+            $message .= ' Ce niveau est plus élevé que celui de votre évaluation : vous pourrez revenir au niveau recommandé tant que votre programme n\'est pas construit.';
+        }
+
+        return to_route('assessment.show')->with('status', $message);
     }
 
     public function connect(ConnectRequest $request, LiveConnection $live): JsonResponse
@@ -180,6 +234,28 @@ class AssessmentController extends Controller
             'closing_phrase' => (string) config('platform.assessment.closing_phrase'),
             'closing_grace_seconds' => (int) config('platform.assessment.closing_grace_seconds'),
         ];
+    }
+
+    private function resultPage(Request $request, Assessment $assessment): View
+    {
+        $user = $request->user();
+
+        return view('assessment.result', [
+            'assessment' => $assessment,
+            'found' => $assessment->level,
+            'chosen' => $user->level,
+            'levels' => Level::cases(),
+            'rank' => array_flip(array_map(fn (Level $level) => $level->value, Level::cases())),
+            'canChoose' => ! $user->programs()->exists(),
+            'plans' => Plan::all(),
+            'hasSubscription' => $user->activeSubscription()->exists(),
+            'messageText' => $assessment->level ? LevelMessage::text($assessment->level) : null,
+        ]);
+    }
+
+    private static function rank(Level $level): int
+    {
+        return array_search($level, Level::cases(), true);
     }
 
     private function current(Request $request): Assessment

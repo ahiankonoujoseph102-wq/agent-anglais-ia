@@ -33,8 +33,8 @@ return [
         // Cadrage, en mètres dans le repère du modèle : point visé, demi-hauteur
         // et demi-largeur minimales visibles, hauteur des yeux.
         'camera' => [
-            'target' => [0, 0.56, 0],
-            'half_height' => 0.31,
+            'target' => [0, 0.57, 0],
+            'half_height' => 0.33,
             'half_width' => 0.30,
             'eye_height' => 0.68,
         ],

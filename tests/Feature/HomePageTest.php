@@ -50,6 +50,34 @@ class HomePageTest extends TestCase
     {
         $this->get('/')
             ->assertSee(route('register'))
-            ->assertSeeText('Commencer l\'évaluation gratuite');
+            ->assertSeeText('Passer mon évaluation gratuite');
+    }
+
+    public function test_home_page_tells_how_it_works_and_answers_common_questions(): void
+    {
+        $html = $this->get('/')->assertOk()
+            // Promesse et bouton orange en haut de page, Teacher Joe dès l'ouverture.
+            ->assertSee('Parlez anglais avec un professeur')
+            ->assertSee('disponible chaque jour')
+            ->assertSee('class="btn btn-accent btn-lg btn-block" href="'.route('register').'"', false)
+            ->assertSee('class="hero-teacher"', false)
+            // Sections.
+            ->assertSee('Quatre étapes simples')
+            ->assertSee('Ce qui rend Talkami différent')
+            ->assertSee('Grand Marché de Lomé')
+            ->assertSee('Vous êtes élève ?')
+            ->assertSee('Questions fréquentes')
+            ->assertSee('Qu\'est-ce que l\'accès provisoire ?', false)
+            ->assertSee('De quel matériel ai-je besoin ?')
+            ->assertSee('Combien de données internet faut-il ?')
+            ->assertSee('Qu\'est-ce que l\'attestation de niveau ?', false)
+            ->assertSee('Mixx by Yas')
+            // Bouton WhatsApp (seul bouton vert).
+            ->assertSee('class="btn btn-whatsapp btn-lg"', false)
+            ->getContent();
+
+        // Vocabulaire imposé et aucune promesse d'aide aux cours (pas encore disponible).
+        $this->assertDoesNotMatchRegularExpression('/certificat|diplôme|conversation vidéo|devoirs de classe|aide aux cours/iu', strip_tags($html));
+        $this->assertStringNotContainsString('T-Money', $html);
     }
 }
