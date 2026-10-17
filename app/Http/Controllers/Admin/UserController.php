@@ -65,6 +65,7 @@ class UserController extends Controller
             'user' => $user,
             'subscriptions' => $user->subscriptions()->latest('ends_at')->get(),
             'payments' => $user->payments()->with(['user', 'subscription'])->latest('id')->get(),
+            'courseLessons' => $user->courseLessons()->with('pages')->latest('id')->get(),
             'temporaryPassword' => $temporaryPassword,
             'whatsappUrl' => $whatsappUrl,
         ]);

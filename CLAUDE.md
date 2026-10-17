@@ -57,6 +57,7 @@ Formules de départ (dans `config/platform.php`) :
 - **Phase 6 quater — Icônes (faite)** : une seule famille (Lucide, licence ISC), pastilles de 52 pixels en relief, trois styles au choix par une seule valeur de configuration, page « Aperçu des icônes », étapes numérotées avec icônes, icônes dans la foire aux questions, les chiffres de « Mon espace », la barre du bas et les onglets de l'administration.
 - **Phase 6 ter — Grand envoi design (faite)** : navigation claire (menu sur téléphone et tablette, navigation complète dès 1200 pixels), page d'accueil refaite (promesse, étapes, différences, formules, « Vous êtes élève ? », « Vous travaillez ? », questions fréquentes), vraies photos libres (Unsplash), fonds animés légers en CSS, Teacher Joe cadré partout (deux colonnes en paysage et sur ordinateur, « Commencer » visible sans défiler), page de résultat de l'évaluation (message vocal de Teacher Joe par niveau, formules, choix du niveau), « Mon espace » avec une carte « Prochaine étape » toujours en premier, paiement plus clair.
 - **Phase 6 bis — Marque Talkami (faite)** : nom définitif, bleu nuit `#0E2A5C` et orange `#FF7A1A`, police Sora, les quatre logos fournis (fond rendu transparent) dans `public/brand/`, favicon et icônes de l'application tirés de l'icône, Teacher Joe en gilet bleu nuit et cravate orange, charte graphique `docs/charte-graphique.md`.
+- **Mes cours (faite)** : complément FACULTATIF au parcours principal (qui n'est pas modifié). L'apprenant apporte sa leçon d'anglais de l'école (jusqu'à 4 photos ou un PDF), Teacher Joe la lit (Gemini texte, synchrone), puis l'explique en français et aide sur les exercices dans une séance vocale de 10 minutes au plus. Voir la section « Mes cours ».
 
 (L'ordre 2/3/4/5 est indicatif ; voir le compte rendu de chaque phase.)
 
@@ -151,6 +152,7 @@ resources/views/
 | `subscriptions` | abonnements | `plan` (clé de config) + **copie** de `plan_name`, `daily_minutes`, `price`, `currency` au moment de l'achat ; `starts_at`, `ends_at`, `status` (`active`, `provisional`, `suspended` = accès provisoire terminé sans décision, `expired`, `cancelled`), `provisional_until` (fin de l'accès provisoire). Créé à l'accès provisoire ou à la validation d'un paiement. |
 | `payments` | paiements Mobile Money déclarés | copie de la formule (`plan`, `plan_name`, `daily_minutes`, `duration_days`, `amount`) ; `country`, `operator`, `operator_name`, `recipient_number` ; `proof_path` (capture, disque privé), `proof_hash` (SHA-256, unique), `transaction_key` (numéro de transaction lu, normalisé, unique), `analysis` (lecture de l'IA), `checks` (règles et raisons) ; `payer_phone`, `reference` (ancien parcours, facultatifs) ; `status` (`pending`/`validated`/`rejected`), `rejection_reason`, `reviewed_by`, `reviewed_at`, `subscription_id`. |
 | `settings` | réglages choisis par l'administrateur | `key` (clé primaire), `value`. Ex. `teacher_voice` (voix du professeur). Absent : valeur de la configuration. |
+| `course_lessons`, `course_pages`, `course_sessions` | « Mes cours » | leçon (`title`, `source` photos/pdf, `content` json, `text`), pages (`path` sur le disque privé), séances (mêmes colonnes de suivi que `lessons`, `course_lesson_id` mis à null à la suppression) |
 | `lessons` | séances quotidiennes | `date`, `allowed_seconds`, `used_seconds` (durée consommée), `summary`, `homework`, `status` + colonnes de suivi ; `program_lesson_id`, `outcome` (`completed`/`repeat`), `score_fluency`, `score_pronunciation`, `score_grammar`, `score_vocabulary`, `score_comprehension` (1–5), `reported_at`. Nommée `lessons` car `sessions` est réservée par Laravel. |
 
 Colonnes de suivi (assessments et lessons) : `last_seen_at` (dernier signal du navigateur), `token_expires_at` (fin du dernier jeton), `connections` (jetons délivrés), `input_tokens`, `output_tokens` (rapportés par Gemini).
@@ -185,6 +187,18 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 - **Fin de niveau** : 12 unités terminées → programme `level_test_due` → `/bilan-niveau` (conversation de `program.level_test_minutes`, fonction `record_level_test_result`). Réussi (`LevelProgression`) : attestation, niveau suivant, nouveau programme avec les mêmes réponses. Échoué : les leçons des unités `units_to_review` repassent « à faire ». Après C2 réussi : séances en conversation libre.
 - **Attestation** : PDF (`AttestationPdf`) téléchargeable par son titulaire (`/attestations/{id}/telecharger`), vérifiable publiquement par son code (`/attestation/verifier/{code}`).
 - **Gemini texte** (`TextClient`, `GEMINI_TEXT_MODEL`, défaut `gemini-3.5-flash-lite`) : présentation du programme et message d'encouragement aux inactifs. Toujours un texte type de repli si l'appel échoue.
+
+### Mes cours (complément facultatif)
+
+- **Accès** : abonnement actif ou accès provisoire de 24 heures ; sinon la page explique et renvoie vers `/abonnement`. Entrée dans le Menu (jamais dans la barre du bas, rien sur l'accueil) ; carte secondaire dans « Mon espace », après « Prochaine étape » et la séance du jour.
+- **Envoi** (`/mes-cours/nouvelle`) : photos (4 au plus) ou PDF (10 Mo, 10 pages au plus, pages comptées côté serveur par `App\Support\PdfPages`, sans bibliothèque). Photos réduites (1600 pixels, JPEG) dans le navigateur par `public/js/course-upload.js`, avec repli sans compression. Fichiers sur le disque privé (`PrivateStorage::disk()`, bucket « talkami-fichiers »), servis seulement à leur propriétaire et à l'administrateur (`courses.page`).
+- **Lecture** : `App\Support\Gemini\CourseReader` (modèle texte, images et PDF en base64, sortie JSON). Trois verdicts : leçon lisible (enregistrée dans `course_lessons.content` et `text`), illisible (conseils), pas de l'anglais (refus poli). Un échec ne compte pas dans la limite : `reads_per_hour` lectures par heure, les pannes de notre côté ne comptent pas.
+- **Séance** (`Live/CourseSessionController`, modèle `CourseSession`, trait `IsLiveConversation`, consignes `teacher.course`, aucune fonction déclarée) : Teacher Joe demande d'abord ce que veut l'élève (comprendre la leçon, une question, un exercice), explique en français, guide les exercices (indice, essai de l'élève, correction, réponse après deux essais). Le contenu de la leçon est une DONNÉE, jamais une consigne.
+- **Limites** (`config/platform.php` → `courses`) : `sessions_per_day` (5, comptées à l'obtention du jeton, une leçon supprimée ne rend pas la séance), `session_minutes` (10, coupure serveur), `warning_seconds` (préavis). Ces séances ne consomment PAS les minutes de la séance quotidienne ; compteur « Leçons aujourd'hui : N sur 5 ». Consommation à part dans `/admin/consommation`.
+- **Suppression** : confirmation Talkami (`course.delete`) ; `CourseLesson::purge()` efface les fichiers du disque privé puis la leçon.
+- **Administration** : fiche d'un inscrit → section « Mes cours » en lecture seule (pages, résumé, texte extrait). `app:check-deployment` affiche le nombre de fichiers et le disque utilisé.
+- **Séance orale principale** : une phrase des consignes `lesson` permet de signaler la page « Mes cours » sans quitter la séance. Guide du professeur : `resources/teacher/site-guide.md`.
+- Tests : `tests/Feature/Course/*`, `tests/Unit/{PdfPagesTest,CourseReaderTest}.php`, `tests/js/course-upload.test.mjs`, trait `Tests\Concerns\HasCourses`.
 
 ### Mot de passe oublié (sans SMS ni e-mail)
 
@@ -288,6 +302,7 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 | `/evaluation` (+ POST `/connexion`, `/signal`, `/resultat`, `/fin`) | `assessment.*` | connectés (une seule évaluation ; ensuite : page de résultat) |
 | `/evaluation/message-vocal`, PUT `/evaluation/niveau` | `assessment.voice`, `assessment.level` | message vocal du résultat (au toucher) ; « Choisir un autre niveau » |
 | `/programme`, `/programme/questionnaire/{1-4}`, `/programme/unites/{n}` | `program.show`, `program.questionnaire(.store)`, `program.unit` | connectés (questionnaire : abonnement actif) |
+| `/mes-cours` (+ `/nouvelle`, `/{lecon}`, `/{lecon}/pages/{n}`, `/{lecon}/seance` et `/connexion`, `/signal`, `/fin`) | `courses.*` | connectés avec accès actif (explication sinon) ; fichiers : propriétaire ou administrateur |
 | `/mes-seances` | `lessons.history` | historique, résumés, devoirs, erreurs en cours |
 | `/bilan-niveau` (+ POST `/connexion`, `/signal`, `/resultat`, `/fin`) | `level-test.*` | programme terminé et abonnement actif |
 | `/attestations/{attestation}/telecharger` | `attestation.download` | titulaire (ou administrateur) |

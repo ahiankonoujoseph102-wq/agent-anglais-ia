@@ -1,5 +1,5 @@
 /*
- * Conversation vocale avec le professeur (évaluation et séance du jour).
+ * Conversation vocale avec le professeur (évaluation, séance du jour, bilan de niveau et « Mes cours »).
  *
  * Le navigateur se connecte directement à l'API Gemini Live par WebSocket, avec
  * un jeton éphémère délivré par le serveur (la clé API ne quitte jamais le
@@ -407,6 +407,12 @@ async function refreshMicrophones() {
     }
 
     const microphones = listMicrophones(await navigator.mediaDevices.enumerateDevices());
+
+    // La conversation a pu se terminer pendant l'attente de la liste des micros.
+    if (!state.audio) {
+        return;
+    }
+
     const currentId = state.audio.stream.getAudioTracks()[0]?.getSettings?.().deviceId;
 
     ui.micSelect.replaceChildren(...microphones.map(({ id, label }) => new Option(label, id, false, id === currentId)));
@@ -1274,6 +1280,7 @@ async function finish(reason, message = '') {
         showOutcome({
             assessment: '<h2>Évaluation terminée</h2><p>Votre résultat apparaît dans votre espace s\'il a été enregistré.</p>',
             level_test: '<h2>Bilan terminé</h2><p>Le résultat apparaît dans votre espace s\'il a été enregistré.</p>',
+            course: '<h2>Séance terminée</h2><p>Bravo ! Vous pouvez revenir sur cette leçon quand vous voulez.</p>',
         }[mode] ?? '<h2>Séance terminée</h2><p>Merci et à demain !</p>');
     }
 

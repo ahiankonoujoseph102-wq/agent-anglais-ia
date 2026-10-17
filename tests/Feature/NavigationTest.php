@@ -39,7 +39,8 @@ class NavigationTest extends TestCase
     public function test_learner_gets_a_compact_menu_a_full_navigation_and_the_bottom_bar(): void
     {
         $xpath = $this->xpath($this->actingAs(User::factory()->create())->get('/espace')->assertOk()->getContent());
-        $expected = ['Mon espace', 'Mon programme', 'Mes séances', 'Mon compte', 'Aide', 'Déconnexion'];
+        // « Mes cours » est dans le Menu (complément facultatif), jamais dans la barre du bas.
+        $expected = ['Mon espace', 'Mon programme', 'Mes séances', 'Mes cours', 'Mon compte', 'Aide', 'Déconnexion'];
 
         // Menu compact sans JavaScript (<details>) et navigation complète : mêmes liens.
         $this->assertSame(1, $xpath->query('//details[@data-menu]/summary')->length);

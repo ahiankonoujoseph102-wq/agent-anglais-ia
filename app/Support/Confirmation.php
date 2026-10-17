@@ -37,6 +37,11 @@ final class Confirmation
             'message' => 'L\'ancien mot de passe ne fonctionnera plus et l\'apprenant sera déconnecté de tous ses appareils.',
             'confirm' => 'Confirmer',
         ],
+        'course.delete' => [
+            'title' => 'Supprimer cette leçon ?',
+            'message' => 'La leçon et ses photos ou son PDF sont effacés pour toujours, fichiers compris. Les leçons du jour déjà faites avec Teacher Joe restent comptées.',
+            'confirm' => 'Supprimer la leçon',
+        ],
         'conversation.stop' => [
             'title' => 'Terminer maintenant ?',
             'message' => 'La conversation s\'arrête tout de suite. Le temps déjà utilisé est décompté.',

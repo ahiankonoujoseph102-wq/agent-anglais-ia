@@ -18,6 +18,7 @@ class LearnerSituation
         'assessment' => 'la page « Évaluation gratuite » (conversation vocale avec toi, en ce moment)',
         'lesson' => 'la page de la séance du jour (conversation vocale avec toi, en ce moment)',
         'level_test' => 'la page du bilan de fin de niveau (conversation vocale avec toi, en ce moment)',
+        'course' => 'la page « Mes cours » : une séance avec toi sur une leçon d\'anglais de son école (conversation vocale, en ce moment)',
     ];
 
     public static function describe(User $user, string $kind): string
@@ -47,6 +48,10 @@ class LearnerSituation
 
         if ($kind === 'level_test') {
             return 'bilan de fin de niveau en cours.';
+        }
+
+        if ($kind === 'course') {
+            return 'séance « Mes cours » en cours : il t\'a apporté une leçon pour la comprendre et s\'exercer, en complément de son programme.';
         }
 
         if (! $user->exists) {

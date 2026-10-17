@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
+use App\Models\CourseSession;
 use App\Models\Lesson;
 use App\Models\LevelTest;
 use App\Models\User;
@@ -21,23 +22,37 @@ class UsageController extends Controller
             'Évaluations' => $this->totals(Assessment::query()),
             'Séances' => $this->totals(Lesson::query()->whereNotNull('started_at')),
             'Bilans de niveau' => $this->totals(LevelTest::query()),
+            // Séances « Mes cours » : consommation à part, jamais mélangée aux séances orales.
+            'Séances « Mes cours »' => $this->totals(CourseSession::query()->whereNotNull('started_at')),
         ];
 
         $learners = User::query()
             ->where(fn (Builder $query) => $query
                 ->whereHas('lessons', fn (Builder $query) => $query->whereNotNull('started_at'))
+                ->orWhereHas('courseSessions')
                 ->orWhereHas('assessment'))
             ->with('assessment')
             ->withCount(['lessons' => fn (Builder $query) => $query->whereNotNull('started_at')])
             ->withSum('lessons', 'used_seconds')
             ->withSum('lessons', 'input_tokens')
             ->withSum('lessons', 'output_tokens')
+            ->withCount('courseSessions')
+            ->withSum('courseSessions', 'used_seconds')
+            ->withSum('courseSessions', 'input_tokens')
+            ->withSum('courseSessions', 'output_tokens')
             ->orderByDesc('lessons_sum_output_tokens')
             ->paginate(25);
 
         $recentLessons = Lesson::query()
             ->whereNotNull('started_at')
             ->with('user')
+            ->latest('started_at')
+            ->limit(30)
+            ->get();
+
+        $recentCourseSessions = CourseSession::query()
+            ->whereNotNull('started_at')
+            ->with(['user', 'lesson'])
             ->latest('started_at')
             ->limit(30)
             ->get();
@@ -52,12 +67,13 @@ class UsageController extends Controller
             'totals' => $totals,
             'learners' => $learners,
             'recentLessons' => $recentLessons,
+            'recentCourseSessions' => $recentCourseSessions,
             'recentAssessments' => $recentAssessments,
         ]);
     }
 
     /**
-     * @param  Builder<Assessment>|Builder<Lesson>|Builder<LevelTest>  $query
+     * @param  Builder<Assessment>|Builder<CourseSession>|Builder<Lesson>|Builder<LevelTest>  $query
      * @return array{count: int, seconds: int, input: int, output: int}
      */
     private function totals(Builder $query): array
