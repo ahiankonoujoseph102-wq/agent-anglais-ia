@@ -250,3 +250,23 @@ window.addEventListener('pageshow', () => {
         form.querySelectorAll('input[name="confirmed"]').forEach((input) => input.remove());
     });
 });
+
+/* ---------- Menu compact (téléphone, tablette) ---------- */
+
+// Le menu est un <details> (il s'ouvre sans JavaScript) ; ici : fermeture en touchant
+// à côté ou avec Échap, puis retour du clavier sur le bouton.
+const menu = document.querySelector('[data-menu]');
+
+if (menu) {
+    document.addEventListener('click', (event) => {
+        if (menu.open && !menu.contains(event.target)) {
+            menu.open = false;
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && menu.open) {
+            menu.open = false;
+            menu.querySelector('summary').focus();
+        }
+    });
+}

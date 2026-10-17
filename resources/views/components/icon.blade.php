@@ -35,6 +35,7 @@
         'share' => '<path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5v10h14V11h-1"/>',
         'plus-square' => '<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M12 8v8M8 12h8"/>',
         'close' => '<path d="M6 6l12 12M18 6 6 18"/>',
+        'menu' => '<path d="M4 7h16M4 12h16M4 17h16"/>',
         'alert' => '<path d="M12 3.5 21.5 20h-19z"/><path d="M12 10v4.5M12 17.5h.01"/>',
         'info' => '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
         'play' => '<path d="M7.5 4.5v15L19.5 12z"/>',

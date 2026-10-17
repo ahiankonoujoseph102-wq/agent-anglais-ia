@@ -78,15 +78,29 @@ code { overflow-wrap: anywhere; font-size: .95em; background: var(--c-bg-warm); 
 .site-footer .logo img { height: 40px; }
 .footer-tagline { margin: var(--space-3) 0 0; color: var(--c-on-dark-muted); }
 .nav { display: flex; align-items: center; gap: var(--space-1); }
-.nav a, .nav .btn-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; padding: var(--space-2) 10px; border-radius: var(--radius-pill); font-weight: var(--fw-bold); color: var(--c-text); font-size: var(--fs-sm); min-height: 40px; }
+.nav a, .nav .btn-link { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; text-decoration: none; padding: var(--space-2) 10px; border-radius: var(--radius-pill); font-weight: var(--fw-bold); color: var(--c-text); font-size: var(--fs-sm); min-height: 40px; }
 .nav a:hover, .nav .btn-link:hover { background: var(--c-primary-soft); color: var(--c-primary-strong); }
 .nav a.is-active { color: var(--c-primary); background: var(--c-primary-soft); }
 .nav form { margin: 0; }
 .nav .nav-cta { background: var(--c-primary); color: var(--c-on-dark); }
 .nav .nav-cta:hover { background: var(--c-primary-strong); color: var(--c-on-dark); }
-.nav-label { display: none; }
 .nav .badge { margin-left: -2px; }
-.nav .nav-wide { display: none; }
+.nav a[aria-current="page"] { color: var(--c-primary); background: var(--c-primary-soft); }
+
+/* Navigation complète (ordinateur) : cachée sous 1200 pixels, remplacée par le bouton « Menu ». */
+.nav-desktop { display: none; }
+
+/* Menu compact (téléphone, tablette) : <details>, sans JavaScript. */
+.menu { position: relative; }
+.menu-button { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: var(--space-2) 14px; border-radius: var(--radius-pill); border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-heading); font-weight: var(--fw-bold); font-size: var(--fs-sm); cursor: pointer; list-style: none; user-select: none; }
+.menu-button::-webkit-details-marker { display: none; }
+.menu-button:hover, .menu[open] .menu-button { background: var(--c-primary-soft); border-color: var(--c-primary-line); }
+.menu-panel { position: absolute; right: 0; top: calc(100% + var(--space-2)); z-index: 30; display: grid; min-width: 250px; padding: var(--space-2); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius); box-shadow: var(--shadow-lg); animation: rise var(--dur-fast) ease-out; }
+.menu-panel a, .menu-panel button { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 48px; padding: 0 var(--space-3); border-radius: var(--radius-sm); border: 0; background: none; color: var(--c-text); font: inherit; font-weight: var(--fw-bold); text-decoration: none; cursor: pointer; text-align: left; }
+.menu-panel a:hover, .menu-panel button:hover { background: var(--c-primary-soft); color: var(--c-primary-strong); }
+.menu-panel a[aria-current="page"] { background: var(--c-primary-soft); color: var(--c-primary); box-shadow: inset 3px 0 0 var(--c-accent); }
+.menu-panel .badge { margin-left: auto; }
+.menu-panel form { margin: var(--space-1) 0 0; padding-top: var(--space-1); border-top: 1px solid var(--c-border); }
 
 /* Barre de navigation du bas (téléphone, apprenant connecté) */
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--c-surface); border-top: 1px solid var(--c-border); box-shadow: var(--shadow-up); padding-bottom: env(safe-area-inset-bottom); }
@@ -474,9 +488,11 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 
 .admin main { padding-top: var(--space-4); }
 .admin .card { box-shadow: none; border-radius: var(--radius); }
-.tabs { display: flex; gap: var(--space-1); margin-bottom: var(--space-4); border-bottom: 1px solid var(--c-border); overflow-x: auto; scrollbar-width: none; }
-.tabs a { padding: 10px 12px; text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; font-weight: var(--fw-bold); color: var(--c-muted); }
-.tabs a.active { border-bottom-color: var(--c-primary); color: var(--c-primary); }
+/* Onglets de l'administration : sur plusieurs lignes, tous visibles (rien de caché à faire défiler). */
+.tabs { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-5); }
+.tabs a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 1px solid var(--c-border); border-radius: var(--radius-pill); background: var(--c-surface); text-decoration: none; white-space: nowrap; font-weight: var(--fw-bold); font-size: var(--fs-sm); color: var(--c-text); }
+.tabs a:hover { border-color: var(--c-primary-line); background: var(--c-primary-soft); }
+.tabs a.active { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-dark); }
 .inline-form { display: inline; margin: 0; }
 .search { display: flex; gap: var(--space-2); margin-bottom: var(--space-4); }
 .search input { flex: 1; min-width: 0; }
@@ -535,8 +551,13 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
     .hero h1 { font-size: 3.1rem; }
     .hero-media { width: 100%; max-width: 420px; }
     .features { grid-template-columns: repeat(3, 1fr); }
-    .nav-label, .nav .nav-wide { display: inline; }
-    .nav .nav-wide { display: inline-flex; }
+}
+
+/* Ordinateur : navigation complète avec libellés, plus de menu ni de barre du bas. */
+@media (min-width: 1200px) {
+    .nav-desktop { display: flex; gap: 2px; }
+    .nav-desktop a, .nav-desktop .btn-link { padding: var(--space-2) 9px; }
+    .menu { display: none; }
     .tabbar { display: none; }
     .has-tabbar main { padding-bottom: var(--space-12); }
     .has-tabbar .site-footer { padding-bottom: var(--space-6); }
