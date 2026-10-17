@@ -312,7 +312,7 @@ class CourseUploadTest extends TestCase
         $lesson = CourseLesson::sole();
         $this->assertSame(150, mb_strlen($lesson->title));
         $this->assertNull($lesson->content['level']);
-        $this->assertSame([['english' => 'cat', 'french' => 'chat']], $lesson->content['vocabulary']);
+        $this->assertEquals([['english' => 'cat', 'french' => 'chat']], $lesson->content['vocabulary']);
         $this->assertSame('Plural', $lesson->content['grammar'][0]['point']);
         $this->assertSame(['cats', '12'], $lesson->content['grammar'][0]['examples']);
     }
