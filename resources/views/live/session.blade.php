@@ -4,6 +4,7 @@
          data-mode="{{ $mode }}"
          data-urls='@json($urls)'
          data-worklet="{{ \App\Support\Asset::url('js/pcm-capture-worklet.js') }}"
+         data-mic-gate="{{ \App\Support\Asset::url('js/mic-gate.js') }}"
          @if (\App\Support\Avatar::enabled())
              data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"
              data-teacher3d='@json(\App\Support\Avatar::clientConfig())'

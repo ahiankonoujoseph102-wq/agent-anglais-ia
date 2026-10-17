@@ -22,6 +22,8 @@
  */
 
 const root = document.getElementById('live');
+// Porte du micro (URL versionnée par la page, comme les autres fichiers).
+const { MicGate, voiceEndsAt } = await import(root.dataset.micGate);
 const urls = JSON.parse(root.dataset.urls);
 const mode = root.dataset.mode;
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
@@ -100,7 +102,7 @@ const state = {
     paused: false,
     pausedAt: 0,
     muted: false,
-    micStreaming: false,
+    gate: null,
     generating: false,
     discardTurn: false,
     awaitingSince: 0,
@@ -272,51 +274,49 @@ function base64FromBuffer(buffer) {
 }
 
 /**
+ * Instant (horloge audio) où le haut-parleur se tait vraiment : fin programmée
+ * du dernier tampon de voix, retard ajouté et latence de sortie de l'appareil.
+ */
+function voiceEnd() {
+    const { context, playHead } = state.audio;
+
+    return voiceEndsAt(playHead, OUTPUT_DELAY, context.outputLatency || context.baseLatency || 0);
+}
+
+/**
  * Vrai tant que la voix du professeur sort du haut-parleur.
  */
 function teacherSpeaking() {
-    return state.audio !== null && state.audio.context.currentTime < state.audio.playHead + OUTPUT_DELAY;
+    return state.audio !== null && state.audio.context.currentTime < voiceEnd();
 }
 
 /**
- * Micro fermé : pause, micro coupé, ou voix du professeur en cours (et un court délai après).
+ * Chaque paquet du micro passe par la porte : envoyé seulement micro ouvert
+ * (ni voix du professeur, ni echo_guard_ms après, ni pause, ni micro coupé).
+ * Micro fermé plus d'une seconde (tout de suite en pause ou micro coupé) :
+ * « audioStreamEnd », comme le demande Google ; le flux reprend au paquet suivant.
  */
-function micClosed() {
-    if (state.paused || state.muted || !state.audio) {
-        return true;
-    }
-
-    const guard = (state.config?.echo_guard_ms ?? 400) / 1000;
-
-    return state.audio.context.currentTime < state.audio.playHead + OUTPUT_DELAY + guard;
-}
-
 function sendAudio(buffer) {
-    if (!state.connected || state.ending || state.ws?.readyState !== WebSocket.OPEN) {
+    if (!state.connected || state.ending || !state.audio || !state.gate || state.ws?.readyState !== WebSocket.OPEN) {
         return;
     }
 
-    if (micClosed()) {
-        return;
-    }
+    const action = state.gate.decide(state.audio.context.currentTime, voiceEnd(), state.paused || state.muted);
 
-    state.micStreaming = true;
-    state.ws.send(JSON.stringify({
-        realtimeInput: { audio: { data: base64FromBuffer(buffer), mimeType: `audio/pcm;rate=${INPUT_RATE}` } },
-    }));
-}
-
-/**
- * Pause ou micro coupé : Google recommande « audioStreamEnd » quand le son
- * s'arrête plus d'une seconde (il traite tout de suite ce qu'il a reçu).
- * Pas pendant la voix du professeur : l'apprenant a déjà fini son tour.
- */
-function endMicStream() {
-    if (state.micStreaming && state.ws?.readyState === WebSocket.OPEN) {
+    if (action === 'send' && buffer) {
+        state.ws.send(JSON.stringify({
+            realtimeInput: { audio: { data: base64FromBuffer(buffer), mimeType: `audio/pcm;rate=${INPUT_RATE}` } },
+        }));
+    } else if (action === 'end') {
         state.ws.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
     }
+}
 
-    state.micStreaming = false;
+/**
+ * Pause ou micro coupé : fermeture immédiate du flux, sans attendre le prochain paquet.
+ */
+function endMicStream() {
+    sendAudio(null);
 }
 
 function playAudio(base64) {
@@ -459,7 +459,8 @@ async function connect({ planned = false } = {}) {
             ui.turn.hidden = false;
             state.generating = false;
             state.discardTurn = false;
-            state.micStreaming = false;
+            // Nouvelle connexion : flux du micro remis à zéro.
+            state.gate = new MicGate({ guard: (state.config.echo_guard_ms ?? 400) / 1000 });
 
             // Un seul accueil : à la première connexion. En pause, la reprise
             // de la pause suffira (inutile de faire parler le professeur).
