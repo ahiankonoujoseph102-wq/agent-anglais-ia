@@ -109,7 +109,10 @@ class AssessmentTest extends TestCase
             ->assertConflict()
             ->assertJsonPath('message', 'Vous avez déjà passé votre évaluation gratuite : il n\'y en a qu\'une par compte.');
 
-        $this->actingAs($user)->get('/evaluation')->assertRedirect('/espace');
+        // Retour sur /evaluation : la page de résultat, jamais une nouvelle évaluation.
+        $this->actingAs($user)->get('/evaluation')->assertOk()
+            ->assertSee('Votre niveau')
+            ->assertDontSee('id="start"', false);
 
         Http::assertNothingSent();
     }

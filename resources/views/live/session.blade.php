@@ -132,26 +132,14 @@
                 {{-- Affiché sous le résultat de l'évaluation : le professeur dit d'y toucher le bouton orange. --}}
                 <section id="plans-offer" class="plans-offer" hidden>
                     <h2>Continuez avec {{ config('avatar.model.name') }} : choisissez votre formule</h2>
-                    <div class="plans">
-                        @foreach (\App\Support\Plan::all() as $plan)
-                            <article class="card plan">
-                                <h3>{{ $plan->name }}</h3>
-                                <p class="price">{{ $plan->formattedPrice() }}</p>
-                                <span class="period">{{ $plan->periodLabel() }}</span>
-                                <ul>
-                                    <li><x-icon name="clock" /> {{ $plan->dailyMinutes }} minutes de séance par jour pendant {{ $plan->durationDays }} jours</li>
-                                </ul>
-                                <a class="btn btn-accent btn-block" href="{{ route('payment.create', $plan->key) }}">Choisir {{ $plan->name }} <x-icon name="arrow-right" /></a>
-                            </article>
-                        @endforeach
-                    </div>
+                    @include('assessment.plans')
                 </section>
             @endif
 
             <div class="live-actions">
                 <button type="button" id="resume" class="btn btn-block btn-lg" hidden><x-icon name="refresh" /> Se reconnecter</button>
                 <button type="button" id="stop" class="btn btn-light btn-block" hidden>Terminer</button>
-                <a id="back" href="{{ $urls['done'] }}" class="btn btn-light btn-block" hidden>Retour à mon espace</a>
+                <a id="back" href="{{ $urls['done'] }}" @class(['btn btn-block', 'btn-light' => $mode !== 'assessment']) hidden>{{ $mode === 'assessment' ? 'Voir mon résultat complet' : 'Retour à mon espace' }}</a>
             </div>
         </div>
     </div>

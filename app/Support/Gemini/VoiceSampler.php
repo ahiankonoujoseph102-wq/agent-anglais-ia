@@ -58,13 +58,27 @@ class VoiceSampler
      */
     public function generate(string $voice): string
     {
+        $script = self::script();
+        $wav = $this->synthesize($voice, $script['text'], $script['style']);
+
+        PrivateStorage::disk()->put(self::path($voice), $wav);
+
+        return $wav;
+    }
+
+    /**
+     * Fait dire un texte par une voix avec le modèle de synthèse vocale. Renvoie le fichier WAV
+     * (aussi utilisé pour le message vocal du résultat de l'évaluation : LevelMessage).
+     *
+     * @throws GeminiUnavailable
+     */
+    public function synthesize(string $voice, string $text, string $style): string
+    {
         $key = config('services.gemini.key');
 
         if (blank($key)) {
             throw new GeminiUnavailable('GEMINI_API_KEY manquante dans .env.');
         }
-
-        $script = self::script();
 
         try {
             $response = Http::withHeaders(['x-goog-api-key' => $key])
@@ -76,8 +90,8 @@ class VoiceSampler
                         'type' => 'user_input',
                         'content' => [[
                             'type' => 'text',
-                            'text' => $script['text'],
-                            'annotations' => [['type' => 'speech_metadata', 'style' => $script['style']]],
+                            'text' => $text,
+                            'annotations' => [['type' => 'speech_metadata', 'style' => $style]],
                         ]],
                     ]],
                     'response_format' => ['type' => 'audio'],
@@ -95,18 +109,16 @@ class VoiceSampler
         $audio = self::outputAudio($response->json('steps', []));
 
         if ($response->failed() || $audio === null) {
-            Log::warning('Gemini : extrait de voix refusé.', ['status' => $response->status(), 'voice' => $voice]);
+            Log::warning('Gemini : synthèse vocale refusée.', ['status' => $response->status(), 'voice' => $voice]);
 
-            throw new GeminiUnavailable('Extrait de voix refusé (HTTP '.$response->status().').');
+            throw new GeminiUnavailable('Synthèse vocale refusée (HTTP '.$response->status().').');
         }
 
         $wav = base64_decode($audio, true) ?: '';
 
         if (! str_starts_with($wav, 'RIFF')) {
-            throw new GeminiUnavailable('Extrait de voix illisible.');
+            throw new GeminiUnavailable('Synthèse vocale illisible.');
         }
-
-        PrivateStorage::disk()->put(self::path($voice), $wav);
 
         return $wav;
     }

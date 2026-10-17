@@ -139,7 +139,7 @@ class AssessmentEndingTest extends TestCase
 
         $this->assertStringContainsString('id="plans-offer"', $html);
         $this->assertStringContainsString('class="btn btn-accent btn-block" href="'.route('payment.create', 'essentiel').'"', $html);
-        $this->assertStringContainsString('Choisir Essentiel', $html);
+        $this->assertStringContainsString('Je commence maintenant', $html);
         $this->assertStringContainsString('js/conversation-end.js', $html);
         $this->assertStringContainsString('js/teacher-cues.js', $html);
     }

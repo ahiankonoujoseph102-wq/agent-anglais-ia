@@ -81,6 +81,22 @@ return [
         'style' => 'a calm, warm and confident male teacher, speaking clearly and a little slowly to a beginner',
     ],
 
+    // Message vocal du résultat de l'évaluation, en français, un par niveau (App\Support\Gemini\LevelMessage).
+    // Généré une fois par niveau et par voix avec le modèle de synthèse vocale, gardé sur le disque
+    // privé, joué seulement quand l'apprenant touche « Écouter :teacher ». Aussi affiché en texte.
+    // Aucune promesse de résultat garanti, aucun chiffre.
+    'level_messages' => [
+        'style' => 'a warm, enthusiastic and reassuring male teacher speaking French clearly, with a smile in the voice, at a natural pace',
+        'texts' => [
+            'A1' => 'Bravo, vous avez fait le premier pas ! Votre niveau est A1, débutant. C\'est un très bon point de départ. Ensemble, nous allons apprendre les phrases utiles de tous les jours : vous présenter, demander votre chemin, faire vos achats. Chaque jour, vous parlez, et je corrige vos erreurs avec vous. Choisissez votre formule juste en dessous : je vous attends pour notre première séance !',
+            'A2' => 'Bravo ! Votre niveau est A2, élémentaire. Vous avez déjà de bonnes bases : vous comprenez des phrases simples et vous savez parler de vous. Maintenant, nous allons gagner en assurance : parler plus longtemps, avec moins d\'hésitations, au marché, au travail ou avec un visiteur anglophone. Choisissez votre formule juste en dessous, et commençons dès aujourd\'hui !',
+            'B1' => 'Félicitations ! Votre niveau est B1, intermédiaire. Vous vous débrouillez déjà en anglais, et c\'est une vraie force. Ensemble, nous allons rendre votre anglais plus précis et plus naturel, pour raconter, expliquer et donner votre avis, en cours comme au travail. Choisissez votre formule juste en dessous : votre prochaine étape commence maintenant.',
+            'B2' => 'Félicitations ! Votre niveau est B2, intermédiaire avancé. Vous parlez avec aisance sur beaucoup de sujets. Pour aller plus loin, nous allons travailler la précision, les expressions naturelles et la prononciation, pour convaincre en réunion, en entretien ou en présentation. Choisissez votre formule juste en dessous, et passons au niveau supérieur ensemble.',
+            'C1' => 'Bravo, c\'est un très beau niveau ! Votre niveau est C1, avancé. Vous vous exprimez avec facilité. Nos séances vous aideront à affiner cet anglais : les nuances, les expressions idiomatiques, les débats et les présentations exigeantes. Choisissez votre formule juste en dessous, et continuons à pratiquer chaque jour.',
+            'C2' => 'Impressionnant ! Votre niveau est C2, maîtrise. Votre anglais est excellent. Avec moi, vous pourrez le pratiquer chaque jour, sur des sujets exigeants, pour garder toute cette aisance. Choisissez votre formule juste en dessous : ce sera un plaisir de converser avec vous.',
+        ],
+    ],
+
     // Questions sur le site pendant une conversation (la fiche « SITE GUIDE » suit ces règles).
     'site_help' => <<<'TXT'
         QUESTIONS ABOUT THE WEBSITE
