@@ -96,9 +96,15 @@
 
                     <div class="field">
                         <label for="proof">Capture d'écran de la confirmation</label>
+                        {{-- Champ de fichier habillé en bouton français (le texte du navigateur serait en anglais). --}}
                         <input id="proof" name="proof" type="file" accept="image/jpeg,image/png,image/webp" required data-proof-input
+                               class="file-pick-input"
                                data-max-bytes="{{ $maxMegabytes * 1024 * 1024 }}"
                                @error('proof') aria-invalid="true" aria-describedby="proof-error" @enderror>
+                        <label for="proof" class="file-pick">
+                            <span class="btn btn-outline"><x-icon name="upload" /> Choisir ma capture</span>
+                            <span class="file-pick-name" data-proof-name>Aucune capture choisie</span>
+                        </label>
                         <div class="hint">
                             Une image (JPEG, PNG ou WebP), {{ $maxMegabytes }} mégaoctets au maximum.
                             Le montant, la date et le numéro de transaction doivent être bien visibles.
@@ -113,6 +119,19 @@
                     <button type="submit" class="btn btn-accent btn-block btn-lg" data-proof-submit>Envoyer ma capture</button>
                     <p class="muted small next-step">Votre capture reste privée : seule notre équipe peut la voir.</p>
                 </form>
+
+                {{-- Premier paiement en ligne : où trouver de l'aide. --}}
+                <aside class="card pay-help rise" style="--i: 2" aria-labelledby="pay-help-title">
+                    <h2 id="pay-help-title">C'est votre premier paiement par téléphone ?</h2>
+                    <ul class="check-list">
+                        <li><x-icon name="check-circle" /> Vous payez depuis votre propre compte {{ $operator->name }}, comme pour envoyer de l'argent à un proche.</li>
+                        <li><x-icon name="check-circle" /> Vérifiez le nom du titulaire affiché par {{ $operator->name }} avant de valider.</li>
+                        <li><x-icon name="check-circle" /> Pour la capture d'écran : sur la plupart des téléphones Android, appuyez en même temps sur le bouton de marche et le bouton « volume bas » ; sur iPhone, sur le bouton latéral et le bouton « volume haut ».</li>
+                    </ul>
+                    @if ($whatsappUrl)
+                        <a class="btn btn-whatsapp btn-block" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Une question ? WhatsApp</a>
+                    @endif
+                </aside>
 
                 <script src="{{ \App\Support\Asset::url('js/copy.js') }}" defer></script>
                 <script type="module" src="{{ \App\Support\Asset::url('js/proof-upload.js') }}"></script>

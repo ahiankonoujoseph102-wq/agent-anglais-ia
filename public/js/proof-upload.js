@@ -81,8 +81,14 @@ if (typeof document !== 'undefined') {
         status.textContent = text;
     };
 
+    const name = document.querySelector('[data-proof-name]');
+
     input?.addEventListener('change', async () => {
         const file = input.files?.[0];
+
+        if (name) {
+            name.textContent = file ? file.name : 'Aucune capture choisie';
+        }
 
         if (!file || !file.type.startsWith('image/')) {
             preview.hidden = true;

@@ -55,8 +55,9 @@ class DashboardTest extends TestCase
         $this->actingAs($user)
             ->get('/espace')
             ->assertOk()
-            ->assertSee('Contactez-nous pour la repasser.')
-            ->assertDontSee(route('assessment.show'));
+            // La page de résultat permet de choisir son niveau.
+            ->assertSee('Choisir mon niveau')
+            ->assertSee(route('assessment.show'));
     }
 
     public function test_subscriber_can_open_the_daily_lesson(): void
@@ -73,7 +74,7 @@ class DashboardTest extends TestCase
 
         $this->actingAs($user->fresh())
             ->get('/espace')
-            ->assertSee('Commencer ma séance')
+            ->assertSee('Parler avec Teacher Joe')
             ->assertSee('Unité 1')
             ->assertSee(route('lesson.show'));
     }
@@ -112,7 +113,7 @@ class DashboardTest extends TestCase
             ->assertSee('Intensif')
             ->assertSee('30 minutes par jour')
             ->assertSee('20 minutes')
-            ->assertSee('Ma séance du jour');
+            ->assertSee('Votre séance du jour');
 
         $this->assertSame(1200, $user->remainingSecondsToday());
     }
@@ -157,5 +158,44 @@ class DashboardTest extends TestCase
         config(['platform.plans.essentiel.daily_minutes' => 60]);
 
         $this->assertSame(15 * 60, $user->remainingSecondsToday());
+    }
+
+    public function test_next_step_card_always_comes_first_with_the_journey(): void
+    {
+        $user = User::factory()->level(Level::A2)->create();
+        $user->assessment()->create([
+            'status' => AssessmentStatus::Completed,
+            'started_at' => now()->subDay(),
+            'allowed_seconds' => 300,
+            'used_seconds' => 300,
+            'level' => Level::A2,
+        ]);
+
+        $html = $this->actingAs($user)->get('/espace')->assertOk()
+            ->assertSee('Prochaine étape')
+            ->assertSee('Choisissez votre formule')
+            ->assertSee('aria-current="step"', false)
+            ->getContent();
+
+        // Étape 2 du parcours (formule), carte avant les chiffres.
+        $this->assertMatchesRegularExpression('/<li class="current"\s+aria-current="step"\s*>\s*<span>2<\/span>\s*Formule/', $html);
+        $this->assertLessThan(strpos($html, 'stats-main'), strpos($html, 'Prochaine étape'));
+    }
+
+    public function test_provisional_access_shows_the_time_left(): void
+    {
+        $user = User::factory()->level(Level::A1)->create();
+        Subscription::factory()->for($user)->create([
+            'status' => SubscriptionStatus::Provisional,
+            'provisional_until' => now()->addHours(5),
+        ]);
+        $user->payments()->create([
+            'plan' => 'essentiel', 'plan_name' => 'Essentiel', 'daily_minutes' => 15, 'duration_days' => 30,
+            'amount' => 5000, 'currency' => 'FCFA', 'country' => 'TG', 'operator' => 'flooz', 'operator_name' => 'Flooz',
+            'recipient_number' => '+228 90 00 00 22', 'proof_path' => 'payment-proofs/essai.png',
+        ]);
+
+        $this->actingAs($user)->get('/espace')
+            ->assertSee('Accès provisoire : encore 5 heures');
     }
 }

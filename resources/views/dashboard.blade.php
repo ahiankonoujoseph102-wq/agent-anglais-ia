@@ -7,19 +7,100 @@
         </div>
     </div>
 
-    {{-- Évaluation à passer (jamais passée ou réinitialisée) : en grand, avant tout le reste. --}}
-    @if ($needsAssessment)
-        <section class="card next-card next-card-assessment rise" aria-labelledby="assessment-invite">
-            <h2 id="assessment-invite">Passez votre évaluation gratuite</h2>
+    {{-- Où en est l'apprenant dans le parcours : évaluation, formule, programme, séances. --}}
+    <x-stepper :labels="['Évaluation', 'Formule', 'Programme', 'Séances']" :current="$journeyStep" label="Votre parcours" />
+
+    {{-- Prochaine étape : TOUJOURS la première carte, une seule action principale (bouton orange). --}}
+    <section class="card next-card rise" aria-labelledby="next-step-title" style="--i: 1">
+        <span class="next-card-eyebrow">Prochaine étape</span>
+        @if ($needsAssessment && ! $subscription)
+            <h2 id="next-step-title">Passez votre évaluation gratuite</h2>
             <p>
                 Parlez {{ $assessmentMinutes }} minutes au maximum avec {{ config('avatar.model.name') }}
                 pour connaître votre niveau d'anglais. C'est gratuit et sans engagement.
             </p>
-            <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-lg btn-block"><x-icon name="mic" /> Passer mon évaluation</a>
+            <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-lg btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
+        @elseif ($pendingPayment && ! $subscription)
+            <h2 id="next-step-title">Nous vérifions votre paiement</h2>
+            <p>
+                {{ $pendingPayment->plan_name }}, {{ $pendingPayment->formattedAmount() }}, envoyé le
+                {{ $pendingPayment->created_at->translatedFormat('j F à H:i') }}. Votre formule sera activée ici dès la vérification :
+                vous n'avez rien d'autre à faire.
+            </p>
+            <a href="{{ route('payment.show', $pendingPayment) }}" class="btn btn-lg btn-block">Suivre mon paiement <x-icon name="arrow-right" /></a>
+        @elseif (! $subscription)
+            @if ($expiredSubscription)
+                <h2 id="next-step-title">Votre abonnement a expiré</h2>
+                <p>
+                    Votre formule {{ $expiredSubscription->plan_name }} a pris fin le
+                    {{ $expiredSubscription->ends_at->translatedFormat('j F Y') }}. Vos séances sont en pause ;
+                    renouvelez votre formule : votre niveau et votre programme vous attendent.
+                </p>
+                <a href="{{ route('payment.plans') }}" class="btn btn-lg btn-block">Renouveler <x-icon name="arrow-right" /></a>
+            @else
+                <h2 id="next-step-title">Choisissez votre formule</h2>
+                <p>
+                    @if ($user->level)
+                        Votre niveau : {{ $user->level->value }} ({{ $user->level->label() }}).
+                    @endif
+                    Choisissez une formule et payez par Mobile Money : vos séances orales quotidiennes commencent tout de suite après.
+                </p>
+                <a href="{{ route('payment.plans') }}" class="btn btn-lg btn-block">Choisir ma formule <x-icon name="arrow-right" /></a>
+            @endif
+        @elseif (! $program && ! $attestations->contains('level', \App\Enums\Level::C2))
+            <h2 id="next-step-title">Construisons votre programme</h2>
+            <p>Répondez à 4 petites questions : {{ config('avatar.model.name') }} prépare un programme adapté à votre objectif et à vos jours de travail.</p>
+            <a href="{{ route('program.questionnaire', 1) }}" class="btn btn-lg btn-block">Construire mon programme <x-icon name="arrow-right" /></a>
+        @elseif ($program?->status === \App\Enums\ProgramStatus::LevelTestDue)
+            <h2 id="next-step-title">Bilan de fin de niveau {{ $program->level->value }}</h2>
+            <p>Vous avez terminé les 12 unités ! Passez le bilan oral avec le professeur pour obtenir votre attestation et passer au niveau suivant.</p>
+            <a href="{{ route('level-test.show') }}" class="btn btn-lg btn-block"><x-icon name="award" /> Passer mon bilan</a>
+        @else
+            <h2 id="next-step-title">Votre séance du jour</h2>
+            @if ($currentLesson)
+                <p>
+                    Unité {{ $currentLesson->unit_number }} · {{ $currentLesson->unit()->title }} —
+                    leçon {{ $currentLesson->lesson_number }} : {{ $currentLesson->focusLabel() }}
+                </p>
+            @endif
+            @if ($remainingSeconds >= $minStartSeconds)
+                <p>{{ \App\Support\Duration::format($remainingSeconds) }} de séance orale disponibles aujourd'hui.</p>
+                <a href="{{ route('lesson.show') }}" class="btn btn-lg btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
+            @else
+                <p>Votre temps de séance est épuisé pour aujourd'hui. Revenez demain !</p>
+            @endif
+            @if ($lastLesson?->summary)
+                <h3 class="next-step">Dernière séance</h3>
+                <p>{{ $lastLesson->summary }}</p>
+                @if ($lastLesson->homework)
+                    <p><strong>Devoir :</strong> {{ $lastLesson->homework }}</p>
+                @endif
+            @endif
+        @endif
+
+        {{-- Accès provisoire : séances ouvertes pendant la vérification du paiement, avec le temps restant. --}}
+        @if ($subscription?->isProvisional() && $pendingPayment)
+            <p class="next-card-note">
+                <x-icon name="clock" />
+                <span>
+                    <strong>Accès provisoire : encore {{ \App\Support\Duration::format(max(1, (int) ceil(now()->diffInSeconds($subscription->provisional_until) / 60)) * 60) }}</strong>
+                    (jusqu'au {{ $subscription->provisional_until->translatedFormat('j F à H:i') }}), pendant que notre équipe vérifie votre paiement.
+                    <a href="{{ route('payment.show', $pendingPayment) }}">Voir mon paiement</a>
+                </span>
+            </p>
+        @endif
+    </section>
+
+    {{-- Abonné sans évaluation (réinitialisée par l'administrateur) : invitation juste après la prochaine étape. --}}
+    @if ($needsAssessment && $subscription)
+        <section class="card next-step rise" aria-labelledby="assessment-invite">
+            <div class="card-title"><span class="icon-bubble icon-bubble-accent"><x-icon name="mic" /></span><h2 id="assessment-invite">Passez votre évaluation gratuite</h2></div>
+            <p>{{ $assessmentMinutes }} minutes au maximum avec {{ config('avatar.model.name') }} pour mesurer votre niveau.</p>
+            <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
         </section>
     @endif
 
-    @if ($rejectedPayment)
+    @if ($rejectedPayment && ! $pendingPayment)
         <div class="alert alert-error rise" role="alert">
             <x-icon name="alert" />
             <div>
@@ -32,25 +113,7 @@
         </div>
     @endif
 
-    @if ($pendingPayment && $subscription?->isProvisional())
-        <div class="alert alert-success rise" role="status">
-            <x-icon name="check-circle" />
-            <div>
-                <strong>Accès provisoire ouvert</strong> jusqu'au {{ $subscription->provisional_until->translatedFormat('j F à H:i') }} :
-                vous pouvez suivre vos séances pendant que notre équipe vérifie votre paiement.
-                <a href="{{ route('payment.show', $pendingPayment) }}">Voir mon paiement</a>
-            </div>
-        </div>
-    @elseif ($pendingPayment)
-        <div class="alert alert-info rise" role="status">
-            <x-icon name="clock" />
-            <div>
-                <strong>Nous vérifions votre paiement</strong> ({{ $pendingPayment->plan_name }}, {{ $pendingPayment->formattedAmount() }}).
-                Vous serez informé ici dès que votre formule est activée.
-                <a href="{{ route('payment.show', $pendingPayment) }}">Voir mon paiement</a>
-            </div>
-        </div>
-    @elseif ($renewalDue)
+    @if ($renewalDue && ! $pendingPayment)
         <div class="alert alert-warning rise" role="status">
             <x-icon name="calendar" />
             <div>
@@ -68,75 +131,16 @@
         </p>
     @endif
 
-    @if (! $user->level && ! $canTakeAssessment)
-        <div class="alert alert-error">
-            <x-icon name="alert" />
-            <div>
-                Votre évaluation gratuite s'est arrêtée avant que le professeur n'annonce votre niveau.
-                Contactez-nous pour la repasser.
-            </div>
-        </div>
-    @endif
-
-    {{-- Prochaine étape : la carte mise en avant (sans abonnement, l'évaluation suffit comme première étape). --}}
-    @unless ($needsAssessment && ! $subscription)
-    <section class="card next-card rise" style="--i: 1">
-        @if (! $subscription && $expiredSubscription)
-            <h2>Votre abonnement a expiré</h2>
-            <p>
-                Votre formule {{ $expiredSubscription->plan_name }} a pris fin le
-                {{ $expiredSubscription->ends_at->translatedFormat('j F Y') }}. Vos séances sont en pause :
-                renouvelez votre abonnement pour les reprendre. Votre évaluation et votre niveau restent disponibles.
-            </p>
-            @unless ($pendingPayment)
-                <a href="{{ route('payment.plans') }}" class="btn btn-lg btn-block">Renouveler</a>
-            @endunless
-        @elseif (! $subscription)
-            <h2>Continuez avec {{ config('platform.name') }}</h2>
-            <p>Choisissez une formule pour commencer vos séances quotidiennes.</p>
-            @unless ($pendingPayment)
-                <a href="{{ route('payment.plans') }}" class="btn btn-lg btn-block">Choisir ma formule <x-icon name="arrow-right" /></a>
-            @endunless
-        @elseif (! $program && ! $attestations->contains('level', \App\Enums\Level::C2))
-            <h2>Construisons votre programme</h2>
-            <p>Votre abonnement est actif. Répondez à 4 petites questions : le professeur prépare un programme adapté à votre objectif et à vos jours de travail.</p>
-            <a href="{{ route('program.questionnaire', 1) }}" class="btn btn-lg btn-block">Construire mon programme <x-icon name="arrow-right" /></a>
-        @elseif ($program?->status === \App\Enums\ProgramStatus::LevelTestDue)
-            <h2>Bilan de fin de niveau {{ $program->level->value }}</h2>
-            <p>Vous avez terminé les 12 unités ! Passez le bilan oral avec le professeur pour obtenir votre attestation et passer au niveau suivant.</p>
-            <a href="{{ route('level-test.show') }}" class="btn btn-lg btn-block"><x-icon name="award" /> Passer mon bilan</a>
-        @else
-            <h2>Ma séance du jour</h2>
-            @if ($currentLesson)
-                <p>
-                    Unité {{ $currentLesson->unit_number }} · {{ $currentLesson->unit()->title }} —
-                    leçon {{ $currentLesson->lesson_number }} : {{ $currentLesson->focusLabel() }}
-                </p>
-            @endif
-            @if ($remainingSeconds >= $minStartSeconds)
-                <p>Votre professeur vous attend.</p>
-                <a href="{{ route('lesson.show') }}" class="btn btn-lg btn-block"><x-icon name="mic" /> Commencer ma séance</a>
-            @else
-                <p>Votre temps de séance est épuisé pour aujourd'hui. Revenez demain !</p>
-            @endif
-            @if ($lastLesson?->summary)
-                <h3 class="next-step">Dernière séance</h3>
-                <p>{{ $lastLesson->summary }}</p>
-                @if ($lastLesson->homework)
-                    <p><strong>Devoir :</strong> {{ $lastLesson->homework }}</p>
-                @endif
-            @endif
-        @endif
-    </section>
-    @endunless
-
-    <div class="stats">
+    <div class="stats stats-main">
         <div class="stat rise" style="--i: 2">
             <div class="label"><x-icon name="level" /> Mon niveau</div>
             {{-- Évaluation à (re)passer : aucun ancien niveau affiché comme niveau actuel. --}}
             @if ($user->level && ! $needsAssessment)
                 <div class="value">{{ $user->level->value }}</div>
-                <div class="detail">{{ $user->level->label() }}</div>
+                <div class="detail">{{ $user->level->label() }} · <a href="{{ route('assessment.show') }}">Mon résultat</a></div>
+            @elseif (! $needsAssessment)
+                <div class="value">—</div>
+                <div class="detail"><a href="{{ route('assessment.show') }}">Choisir mon niveau</a></div>
             @else
                 <div class="value">—</div>
                 <div class="detail">Pas encore évalué</div>
@@ -167,6 +171,18 @@
                 <div class="detail">Disponible avec un abonnement</div>
             @endif
         </div>
+
+        <div class="stat rise" style="--i: 5">
+            <div class="label"><x-icon name="chart" /> Ma progression</div>
+            @if ($program)
+                <div class="value">{{ $progress }} %</div>
+                <div class="progress" role="progressbar" aria-label="Progression du niveau {{ $program->level->value }}" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ $progress }}%"></span></div>
+                <div class="detail">du niveau {{ $program->level->value }} · <a href="{{ route('program.show') }}">Mon programme</a></div>
+            @else
+                <div class="value">—</div>
+                <div class="detail">Avec votre programme personnel</div>
+            @endif
+        </div>
     </div>
 
     @if ($assessment?->feedback)
@@ -188,20 +204,12 @@
         <section class="next-step">
             <h2 class="next-step">Mon suivi</h2>
             <div class="stats">
-                @if ($program)
-                    <div class="stat reveal">
-                        <div class="label"><x-icon name="chart" /> Progression du niveau {{ $program->level->value }}</div>
-                        <div class="value">{{ $progress }} %</div>
-                        <div class="progress" role="progressbar" aria-label="Progression du niveau" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ $progress }}%"></span></div>
-                        <div class="detail"><a href="{{ route('program.show') }}">Voir mon programme et mon calendrier</a></div>
-                    </div>
-                @endif
-                <div class="stat reveal" style="--i: 1">
+                <div class="stat reveal">
                     <div class="label"><x-icon name="fire" /> Série en cours</div>
                     <div class="value">{{ $streak }} {{ $streak > 1 ? 'jours' : 'jour' }}</div>
                     <div class="detail">de séances consécutives</div>
                 </div>
-                <div class="stat reveal" style="--i: 2">
+                <div class="stat reveal" style="--i: 1">
                     <div class="label"><x-icon name="edit" /> Erreurs à revoir</div>
                     <div class="value">{{ $openErrorsCount }}</div>
                     <div class="detail"><a href="{{ route('lessons.history') }}">Mes séances et mes erreurs</a></div>

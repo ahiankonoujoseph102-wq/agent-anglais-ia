@@ -32,7 +32,7 @@ class RenewalTest extends TestCase
             ->assertSee('Votre formule se termine le')
             ->assertSee('Renouveler')
             ->assertSee(route('payment.plans'))
-            ->assertSee('Commencer ma séance');
+            ->assertSee('Parler avec Teacher Joe');
     }
 
     public function test_expiration_blocks_lessons_and_guides_to_renewal_while_assessment_stays_visible(): void
