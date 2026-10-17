@@ -16,6 +16,7 @@
     <ul>
         <li><x-icon name="clock" /> {{ $plan->dailyMinutes }} minutes de séance orale par jour</li>
         <li><x-icon name="calendar" /> Valable {{ $plan->durationDays }} jours</li>
+        <li><x-icon name="book" /> Aide à vos cours d'anglais (Mes cours) : {{ config('platform.courses.sessions_per_day') }} leçons par jour</li>
         <li><x-icon name="check" /> Programme personnel et suivi de vos erreurs</li>
     </ul>
     <a class="btn btn-accent btn-block btn-plan" href="{{ $href }}">Choisir {{ $plan->name }} <x-icon name="arrow-right" /></a>

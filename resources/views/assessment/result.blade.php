@@ -59,6 +59,7 @@
             et les reprend aux séances suivantes. Plus vous commencez tôt, plus vite l'anglais devient une habitude.
         </p>
         @include('assessment.plans')
+        <p class="muted small next-step"><x-icon name="book" /> Chaque formule comprend aussi l'aide à vos cours d'anglais (« Mes cours »), en plus de l'oral.</p>
         <p class="muted small next-step">Paiement par Mobile Money depuis votre téléphone. Vous choisissez ensuite vos jours de séance.</p>
     </section>
 
