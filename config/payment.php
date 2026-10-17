@@ -10,10 +10,12 @@
 | (App\Support\PaymentChecks) décident d'un accès provisoire de 24 heures ;
 | l'administrateur valide ou refuse ensuite. Aucune API de paiement.
 |
-| AUCUN NUMÉRO NI NOM ICI (le dépôt est public) : le numéro de réception et le
-| titulaire de chaque opérateur se saisissent dans l'administration, page
-| « Réglages » (table settings, App\Support\SiteSettings). Un opérateur sans
-| numéro n'est pas proposé aux apprenants.
+| Numéro de réception (« number ») et titulaire (« holder ») de chaque
+| opérateur : valeurs PAR DÉFAUT, affichées sur le site. Une valeur saisie
+| dans l'administration, page « Réglages » (table settings,
+| App\Support\SiteSettings), les remplace ; un champ vide dans les Réglages
+| revient à la valeur par défaut. Un opérateur sans numéro (ni par défaut, ni
+| dans les Réglages) n'est pas proposé aux apprenants.
 |
 | La clé de chaque pays et de chaque opérateur est enregistrée avec les
 | paiements et les réglages : ne pas la renommer une fois des paiements reçus.
@@ -28,25 +30,26 @@ return [
             'dial_code' => '228',
             'operators' => [
                 // « aliases » : mots qui identifient l'opérateur sur une capture (en minuscules).
-                'mixx' => ['name' => 'Mixx by Yas', 'aliases' => ['mixx', 'yas']],
-                'flooz' => ['name' => 'Flooz', 'aliases' => ['flooz', 'moov']],
+                // « number » et « holder » : valeurs par défaut, remplaçables dans les Réglages.
+                'mixx' => ['name' => 'Mixx by Yas', 'aliases' => ['mixx', 'yas'], 'number' => '+228 72 24 02 31', 'holder' => 'Ahiankonou Kokou Joseph'],
+                'flooz' => ['name' => 'Flooz', 'aliases' => ['flooz', 'moov'], 'number' => '+228 79 16 23 90', 'holder' => 'Ahiankonou Kokou Joseph'],
             ],
         ],
         'BF' => [
             'name' => 'Burkina Faso',
             'dial_code' => '226',
             'operators' => [
-                'orange_money' => ['name' => 'Orange Money', 'aliases' => ['orange']],
-                'wave' => ['name' => 'Wave', 'aliases' => ['wave']],
+                'orange_money' => ['name' => 'Orange Money', 'aliases' => ['orange'], 'number' => '+226 07 27 63 81', 'holder' => 'Anderson Passoule Oyo'],
+                'wave' => ['name' => 'Wave', 'aliases' => ['wave'], 'number' => '+226 03 53 21 76', 'holder' => 'Anderson Passoule Oyo'],
             ],
         ],
         'BJ' => [
             'name' => 'Bénin',
             'dial_code' => '229',
             'operators' => [
-                'mtn' => ['name' => 'MTN', 'aliases' => ['mtn', 'momo']],
-                'moov' => ['name' => 'Moov', 'aliases' => ['moov', 'flooz']],
-                'celtiis' => ['name' => 'Celtiis', 'aliases' => ['celtiis', 'celtis']],
+                'mtn' => ['name' => 'MTN', 'aliases' => ['mtn', 'momo'], 'number' => '+229 01 51 53 39 35', 'holder' => 'KOUAGOU Noutcha Adam Fernando'],
+                'moov' => ['name' => 'Moov', 'aliases' => ['moov', 'flooz'], 'number' => '+229 01 94 55 59 14', 'holder' => 'KOUAGOU Noutcha Adam Fernando'],
+                'celtiis' => ['name' => 'Celtiis', 'aliases' => ['celtiis', 'celtis'], 'number' => '+229 01 40 28 57 61', 'holder' => 'KOUAGOU Noutcha Adam Fernando'],
             ],
         ],
     ],

@@ -227,20 +227,18 @@ La commande `php artisan app:create-admin` **demande** le numéro et le mot de p
 
 Pour créer un autre administrateur plus tard, ou promouvoir un compte existant, refaites les mêmes étapes (si le numéro existe déjà, le compte est promu ; mot de passe laissé vide = mot de passe conservé).
 
-### 10 bis. Saisir les Réglages (numéros Mobile Money et coordonnées)
+### 10 bis. Les Réglages (facultatif)
 
-Le dépôt est public : **aucun numéro de téléphone ni nom de titulaire n'y est écrit**. Tant que rien n'est saisi, les apprenants voient « Le paiement en ligne n'est pas encore ouvert » au lieu des numéros. À faire une fois, juste après la création de l'administrateur (et à refaire seulement si un numéro change) :
+**Rien à saisir pour ouvrir le site** : les numéros Mobile Money, les noms des titulaires et les coordonnées de l'équipe (téléphones, e-mail, adresse, WhatsApp) ont des valeurs par défaut dans le code (`config/payment.php` et `config/platform.php`). Dès le déploiement, les sept opérateurs (Togo : Mixx by Yas, Flooz ; Burkina Faso : Orange Money, Wave ; Bénin : MTN, Moov, Celtiis) sont proposés aux apprenants, et les coordonnées s'affichent dans le pied de page et sur la page Contact.
+
+Pour changer un numéro sans toucher au code :
 
 1. Sur le site, connecté en administrateur : **Administration**, puis l'onglet **Réglages** (adresse `/admin/reglages`).
-2. Pour chaque opérateur que vous utilisez, tapez le **numéro de réception** (avec l'indicatif, par exemple `+228 …`) et le **nom du titulaire** tel qu'il apparaît sur le message de confirmation. Laissez vide un opérateur que vous n'utilisez pas : il ne sera pas proposé.
-   - Togo : Mixx by Yas, Flooz.
-   - Burkina Faso : Orange Money, Wave.
-   - Bénin : MTN, Moov, Celtiis.
-3. En bas : le **numéro WhatsApp de l'équipe** (boutons « Prévenir sur WhatsApp », mot de passe oublié), les téléphones (un par ligne), l'e-mail et l'adresse du centre (pied de page, page Contact, attestations).
-4. **Enregistrer les réglages**. Rien à redéployer : c'est enregistré dans la base.
-5. Vérifiez : `php artisan app:check-deployment` doit afficher « Numéros Mobile Money saisis : N opérateur(s) ouvert(s) » et « Numéro WhatsApp de l'équipe saisi » en « OK » (les numéros eux-mêmes ne sont jamais affichés).
+2. Sous chaque champ vide, le site indique la valeur par défaut utilisée. Tapez seulement ce qui doit changer (numéro avec l'indicatif, par exemple `+228 …`, ou nom du titulaire tel qu'il apparaît sur le message de confirmation).
+3. **Enregistrer les réglages**. Rien à redéployer : c'est enregistré dans la base, et la valeur saisie remplace aussitôt la valeur par défaut.
+4. Pour revenir à la valeur par défaut, videz le champ et enregistrez.
 
-Le numéro saisi sert aussi à vérifier les captures : la règle « Bon destinataire » compare le numéro lu sur la capture à celui-ci. Un numéro mal tapé = aucune capture acceptée automatiquement (les paiements restent alors en attente de votre vérification).
+Le numéro utilisé sert aussi à vérifier les captures : la règle « Bon destinataire » compare le numéro lu sur la capture à celui-ci. Un numéro mal tapé = aucune capture acceptée automatiquement (les paiements restent alors en attente de votre vérification).
 
 ---
 
@@ -274,7 +272,7 @@ Elle ne montre aucun secret. Elle vérifie, avec « OK » ou « À CORRIGER » e
 - la base de données : connexion MySQL et migrations appliquées ;
 - le **disque privé** : c'est bien le bucket (`s3`), et un fichier test y est écrit, relu puis supprimé ; elle affiche aussi **le nombre de captures de paiement et d'attestations enregistrées dans le bucket** ;
 - le **planificateur** : « Dernier passage du planificateur il y a N secondes » (doit être inférieur à 3 minutes) ;
-- les **Réglages** : au moins un numéro Mobile Money saisi, et le numéro WhatsApp de l'équipe (sans jamais les afficher) ;
+- les **moyens de paiement** : nombre d'opérateurs proposés (valeurs par défaut ou Réglages), numéro WhatsApp présent, nombre de valeurs saisies dans les Réglages (sans jamais afficher un numéro) ;
 - la présence de la clé Gemini (« oui » ou « non », jamais la valeur).
 
 Si le planificateur est signalé : attendez deux minutes après le déploiement de l'étape 9 et relancez.
@@ -380,10 +378,9 @@ Pour suivre la consommation : **Organization, Usage** (mise à jour toutes les h
 3. Coller les variables, y compris la clé Gemini et la clé `APP_KEY` (étapes 7 et 8).
 4. Activer **Scheduler** (étape 9).
 5. Créer l'administrateur avec les variables temporaires, puis les supprimer (étape 10).
-6. Saisir les numéros Mobile Money, les titulaires et le WhatsApp de l'équipe dans **Réglages** (étape 10 bis).
-7. Acheter ou choisir le nom de domaine, recopier les enregistrements DNS (étape 11).
-8. Régler la limite de dépense (partie 15).
-9. Faire un paiement de test et vérifier la capture dans le bucket (étape 12.3).
+6. Acheter ou choisir le nom de domaine, recopier les enregistrements DNS (étape 11).
+7. Régler la limite de dépense (partie 15).
+8. Faire un paiement de test et vérifier la capture dans le bucket (étape 12.3).
 
 ---
 

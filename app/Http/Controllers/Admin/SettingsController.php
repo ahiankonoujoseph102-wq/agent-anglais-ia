@@ -11,15 +11,31 @@ use Illuminate\View\View;
 
 /**
  * « Réglages » : numéros de réception Mobile Money (et titulaires), coordonnées du centre.
- * Stockés en base (table settings) : aucun numéro dans le dépôt, qui est public.
+ * Stockés en base (table settings) ; ils remplacent les valeurs par défaut de la
+ * configuration. Un champ vide revient à la valeur par défaut, affichée sous le champ.
  */
 class SettingsController extends Controller
 {
     public function edit(): View
     {
+        $keys = SiteSettings::CONTACT_KEYS;
+
+        foreach (PaymentCountry::all() as $country) {
+            foreach ($country->operators as $operator) {
+                $keys[] = SiteSettings::operatorNumberKey($country->code, $operator->key);
+                $keys[] = SiteSettings::operatorHolderKey($country->code, $operator->key);
+            }
+        }
+
+        $fields = [];
+
+        foreach ($keys as $key) {
+            $fields[$key] = ['saved' => SiteSettings::saved($key), 'default' => SiteSettings::default($key)];
+        }
+
         return view('admin.settings.edit', [
             'countries' => PaymentCountry::all(),
-            'contact' => SiteSettings::contact(),
+            'fields' => $fields,
         ]);
     }
 
@@ -45,6 +61,6 @@ class SettingsController extends Controller
 
         return to_route('admin.settings.edit')->with('status', $available > 0
             ? 'Réglages enregistrés.'
-            : 'Réglages enregistrés. Attention : aucun numéro de paiement n\'est saisi, les apprenants ne peuvent pas payer.');
+            : 'Réglages enregistrés. Attention : aucun numéro de paiement, les apprenants ne peuvent pas payer.');
     }
 }
