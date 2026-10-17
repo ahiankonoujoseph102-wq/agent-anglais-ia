@@ -19,6 +19,13 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        // Ces comptes ont un mot de passe connu (« password ») : jamais en production.
+        if (app()->isProduction()) {
+            $this->command?->error('Données de démonstration refusées en production. Créez l\'administrateur avec « php artisan app:create-admin ».');
+
+            return;
+        }
+
         User::factory()->admin()->create([
             'name' => 'Administrateur',
             'phone' => '+22890000000',

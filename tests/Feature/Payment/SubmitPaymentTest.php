@@ -20,7 +20,7 @@ class SubmitPaymentTest extends TestCase
         parent::setUp();
 
         // Disque non précisé : le disque par défaut de Laravel est utilisé (bucket sur Laravel Cloud).
-        config(['payment.proofs.disk' => null, 'filesystems.default' => 'local']);
+        config(['filesystems.private_disk' => null, 'filesystems.default' => 'local']);
         Storage::fake('local');
     }
 

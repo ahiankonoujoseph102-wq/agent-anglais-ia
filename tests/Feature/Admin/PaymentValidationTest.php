@@ -22,7 +22,7 @@ class PaymentValidationTest extends TestCase
     {
         parent::setUp();
 
-        config(['payment.proofs.disk' => 'local']);
+        config(['filesystems.private_disk' => 'local']);
         Storage::fake('local');
         $this->freezeSecond();
         $this->admin = User::factory()->admin()->create();

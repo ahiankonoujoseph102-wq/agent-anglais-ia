@@ -52,13 +52,10 @@ return [
     'whatsapp' => '+228 72 24 02 31',
 
     /*
-    | Captures d'écran des paiements : stockage privé, visible seulement par
-    | l'administrateur. Disque vide = disque par défaut de Laravel : « local »
-    | (storage/app/private) en développement, le bucket privé attaché comme
-    | disque par défaut sur Laravel Cloud (son système de fichiers est éphémère).
+    | Captures d'écran des paiements : stockage privé (disque réglé par PRIVATE_FILES_DISK,
+    | voir config/filesystems.php), visible seulement par l'administrateur.
     */
     'proofs' => [
-        'disk' => env('PAYMENT_PROOFS_DISK'),
         'directory' => 'payment-proofs',
         'max_kilobytes' => 5120,
         'mimes' => ['jpg', 'jpeg', 'png', 'webp'],

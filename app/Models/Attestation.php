@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\Level;
+use App\Support\AttestationPdf;
+use App\Support\PrivateStorage;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,6 +33,29 @@ class Attestation extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Chemin du PDF sur le disque privé (voir App\Support\PrivateStorage).
+     */
+    public function pdfPath(): string
+    {
+        return 'attestations/'.$this->code.'.pdf';
+    }
+
+    /**
+     * PDF de l'attestation, conservé sur le disque privé : il est écrit à la première demande
+     * puis relu tel quel, pour qu'une attestation délivrée ne change plus (nom, coordonnées).
+     */
+    public function pdf(): string
+    {
+        $disk = PrivateStorage::disk();
+
+        if (! $disk->exists($this->pdfPath())) {
+            $disk->put($this->pdfPath(), AttestationPdf::render($this));
+        }
+
+        return (string) $disk->get($this->pdfPath());
     }
 
     /**

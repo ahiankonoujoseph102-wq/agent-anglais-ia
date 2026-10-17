@@ -39,7 +39,21 @@ return [
     |
     */
 
+    // En production, le mode débogage est toujours coupé (voir AppServiceProvider), quoi que dise APP_DEBUG.
     'debug' => (bool) env('APP_DEBUG', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | HTTPS obligatoire
+    |--------------------------------------------------------------------------
+    |
+    | Actif par défaut en production : les liens générés sont en https:// et toute requête
+    | en http:// est redirigée vers https:// (le micro du navigateur exige HTTPS). Mettre
+    | APP_FORCE_HTTPS=false uniquement pour dépanner une boucle de redirection.
+    |
+    */
+
+    'force_https' => (bool) env('APP_FORCE_HTTPS', env('APP_ENV', 'production') === 'production'),
 
     /*
     |--------------------------------------------------------------------------

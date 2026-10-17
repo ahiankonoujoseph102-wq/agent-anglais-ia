@@ -25,7 +25,8 @@ Le professeur est un **personnage animé en 3D** dans le navigateur, dont la bou
 - **Hébergement : Laravel Cloud** (décision de la phase 3, remplace Hostinger).
   - Rester simple : pas de serveur Node, pas de websockets côté serveur (Reverb), pas de worker de file d'attente. `QUEUE_CONNECTION=sync`.
   - Tâches planifiées par le **planificateur Laravel Cloud** (option « Scheduler » du cluster App) → `schedule:run` chaque minute ; chaque tâche avec `onOneServer()`.
-  - **Système de fichiers éphémère** sur Laravel Cloud : tout fichier à conserver (captures de paiement) va sur un **bucket privé** (Laravel Cloud Object Storage, compatible S3), jamais sur le disque du serveur.
+  - **Système de fichiers éphémère** sur Laravel Cloud : tout fichier à conserver (captures de paiement, attestations en PDF) va sur un **bucket privé** (Laravel Cloud Object Storage, compatible S3), jamais sur le disque du serveur, jamais par une URL publique. Toujours passer par `App\Support\PrivateStorage::disk()` (disque réglé par `PRIVATE_FILES_DISK`, sinon `FILESYSTEM_DISK`) ; il refuse un disque public.
+  - **Production sûre** : débogage toujours coupé en production (`AppServiceProvider`), HTTPS obligatoire (`app.force_https`, middleware `RedirectToHttps`), cookies de session `secure`, proxys crus par défaut en production (`config/trustedproxy.php`, `TRUSTED_PROXIES` pour changer ; sinon redirections sans fin et erreurs 419), fuseau `Africa/Lome`. Sessions et cache en base (`SESSION_DRIVER=database`, `CACHE_STORE=database`). `env()` uniquement dans `config/*.php` (vérifié par un test : `php artisan optimize` met la configuration en cache à chaque déploiement).
 - **Paiement manuel uniquement** : aucune API ni aucun prestataire de paiement en ligne. Coordonnées de paiement **uniquement** dans `config/payment.php`. Au Togo : « Mixx by Yas » et « Flooz », jamais « T-Money ».
 - **Interface entièrement en français, sans abréviations** (« 15 minutes », pas « 15 min »), **pensée d'abord pour le téléphone**, **légère en données** : une seule police hébergée sur le serveur (Sora, woff2, 21 Ko), pas de framework CSS ni de bibliothèque JavaScript, pas d'image inutile. Cible : moins de 150 Ko transférés pour la page d'accueil, hors image de Teacher Joe et police.
 - **Aucun chiffre inventé** sur le site : ni témoignage, ni nombre d'apprenants, ni note, ni partenaire.
@@ -50,6 +51,7 @@ Formules de départ (dans `config/platform.php`) :
 - **Phase 4 — Programme (faite)** : programme officiel original A1 → C2 (12 unités par niveau), questionnaire et programme personnel (calendrier, progression), séance branchée sur la leçon du jour, bilan structuré (notes, erreurs, devoir), erreurs à revoir, bilan de fin de niveau, attestation PDF, suivi (série, compétences), apprenants inactifs dans l'admin, Gemini texte pour les rédactions.
 - **Phase 5 — Professeur 3D (faite)** : personnage 3D « Teacher Joe » (CC0, créé par script), bouche synchronisée sur la voix (HeadAudio), comportement (repos, écoute, parole, expressions déclenchées par Gemini), décor de classe, chargement en arrière-plan avec cache, retour automatique au visage SVG.
 - **Phase 6 — Design et application installable (faite)** : identité visuelle provisoire, toutes les pages apprenant refaites, administration sobre, pages d'erreur, animations discrètes, manifeste web, service worker étendu, page hors connexion, bouton « Installer l'application ».
+- **Phase 7a — Préparation de la mise en ligne sur Laravel Cloud (faite)** : disque privé configurable (captures et attestations), planificateur vérifiable (témoin chaque minute), création de l'administrateur sans secret en clair, réglages de production sûrs, commande de contrôle `app:check-deployment`, guide pas à pas pour téléphone `docs/deploiement-laravel-cloud.md` (variables, coûts de l'offre Starter d'après la documentation lue le 17 octobre 2026).
 - **Phase 6 bis — Marque Talkami (faite)** : nom définitif, bleu nuit `#0E2A5C` et orange `#FF7A1A`, police Sora, les quatre logos fournis (fond rendu transparent) dans `public/brand/`, favicon et icônes de l'application tirés de l'icône, Teacher Joe en gilet bleu nuit et cravate orange, charte graphique `docs/charte-graphique.md`.
 
 (L'ordre 2/3/4/5 est indicatif ; voir le compte rendu de chaque phase.)
@@ -58,7 +60,7 @@ Formules de départ (dans `config/platform.php`) :
 
 ```
 app/
-  Console/Commands/      app:create-admin, subscriptions:expire, live:close-stale (évaluations, séances, bilans de niveau)
+  Console/Commands/      app:create-admin (demande numéro et mot de passe), app:check-deployment (contrôle de la mise en ligne), subscriptions:expire, live:close-stale (évaluations, séances, bilans de niveau)
   Enums/                 Level (A1…C2), Role, *Status — valeurs stockées en anglais, libellés FR via label()
   Http/Controllers/      HomeController, ContactController, CreditsController, DashboardController, Auth/* (dont PasswordController),
                          Admin/* (PaymentController, UserController, UsageController, AssessmentController)
@@ -66,7 +68,7 @@ app/
   Http/Controllers/Program/ ProgramController (questionnaire, programme, unités), LessonHistoryController, AttestationController
   Http/Controllers/Admin/InactiveLearnerController   apprenants inactifs + message WhatsApp rédigé
   Http/Controllers/Payment/ PaymentController (parcours de paiement de l'apprenant)
-  Http/Middleware/       EnsureUserIsAdmin (alias « admin »), EnsurePasswordIsChanged (groupe web)
+  Http/Middleware/       EnsureUserIsAdmin (alias « admin »), EnsurePasswordIsChanged, RedirectToHttps (groupe web)
   Http/Requests/Auth/    RegisterRequest, LoginRequest (normalisation du téléphone + limitation des essais)
   Http/Requests/Payment/ StorePaymentRequest ; Http/Requests/Admin/ RejectPaymentRequest
   Http/Requests/Live/    ConnectRequest, SignalRequest, AssessmentResultRequest, LessonReportRequest, LevelTestResultRequest
@@ -74,7 +76,7 @@ app/
   Models/                User, Assessment, Program, ProgramLesson, Subscription, Payment, Lesson, LearnerError, LevelTest, Attestation
   Models/Concerns/       IsLiveConversation (règles de temps communes à Assessment, Lesson et LevelTest)
   Enums/ (phase 4)       Goal, Difficulty, Skill, ProgramStatus, ProgramLessonStatus, LevelTestStatus, ErrorStatus
-  Support/               PhoneNumber (normalisation E.164), Plan (formules depuis la config), Money, Duration,
+  Support/               PrivateStorage (disque privé : captures, attestations), PhoneNumber (normalisation E.164), Plan (formules depuis la config), Money, Duration,
                          PaymentCountry / PaymentOperator (config/payment.php), WhatsApp (liens wa.me), TemporaryPassword,
                          Avatar (réglages du professeur 3D pour le navigateur, URL versionnées par empreinte)
   Support/Gemini/        LiveClient (jeton éphémère), LiveConnection, TeacherSetup (consignes + config Live), UsageCost,
@@ -85,6 +87,10 @@ resources/curriculum/    a1.php … c2.php : LE PROGRAMME OFFICIEL (données, pa
 config/program.php       mots-clés métier → thèmes, durée du bilan de niveau, erreurs par séance, seuil d'inactivité
 config/platform.php      TOUS les réglages commerciaux (+ durée de l'évaluation, préavis de fin, signaux, coordonnées du centre)
 config/payment.php       pays, opérateurs, numéros et titulaires Mobile Money ; WhatsApp ; captures ; délai du rappel
+config/filesystems.php   `private_disk` (PRIVATE_FILES_DISK) : disque des fichiers privés ; le disque `local` n'est servi par aucune route
+config/admin.php         ADMIN_PHONE / ADMIN_PASSWORD : variables TEMPORAIRES pour `app:create-admin` sans terminal (Laravel Cloud)
+config/trustedproxy.php  TRUSTED_PROXIES (absente : « * » en production, aucun proxy ailleurs)
+docs/deploiement-laravel-cloud.md   guide de mise en ligne pour téléphone Android
 config/teacher.php       consignes du professeur (modifiables sans toucher au code ; marqueurs :platform et :teacher)
 config/avatar.php        professeur 3D : fichier du modèle, cadrage, expressions proposées à Gemini, crédits
 config/services.php      gemini : clé, modèle Live, version d'API, voix, durée des jetons, tarifs pour l'estimation
@@ -140,7 +146,7 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 - Règles garanties **par la base** (index uniques) :
   - `reference_key` = référence normalisée (majuscules, sans espaces ni ponctuation) : une même référence ne peut pas être envoyée deux fois. Elle est remise à `null` au refus, pour permettre un renvoi corrigé.
   - `pending_user_id` = `user_id` tant que le paiement est en attente, `null` ensuite (géré par `Payment::booted`) : un seul paiement en attente par apprenant.
-- Captures : images JPG/PNG/WebP, 5 Mo max, sur le disque `config('payment.proofs.disk')` (privé), servies uniquement par la route admin `admin.payments.proof` (jamais d'URL publique).
+- Captures : images JPG/PNG/WebP, 5 Mo max, sur le disque privé `App\Support\PrivateStorage::disk()`, servies uniquement par la route admin `admin.payments.proof` (jamais d'URL publique).
 - Validation (`Payment::approve`) : crée l'abonnement actif ; s'il en reste un en cours, le nouveau commence à sa fin (`starts_at` = fin la plus lointaine des abonnements actifs). Refus (`Payment::reject`) : motif obligatoire, affiché à l'apprenant.
 - Renouvellement : rappel dans l'espace apprenant `payment.renewal_reminder_days` (3) jours avant la fin, sauf si le suivant est déjà payé. À l'expiration, `/seance` redirige vers `/abonnement` ; l'évaluation et le niveau restent visibles.
 
@@ -255,7 +261,8 @@ php artisan serve                 # http://localhost:8000
 php artisan test                  # SQLite en mémoire (rapide)
 DB_CONNECTION=mysql DB_DATABASE=… php artisan test   # contre MySQL, comme la CI
 vendor/bin/pint                   # formatage
-php artisan app:create-admin      # créer / promouvoir un administrateur
+php artisan app:create-admin      # créer / promouvoir un administrateur (demande numéro et mot de passe)
+php artisan app:check-deployment  # contrôle de la mise en ligne (sécurité, base, disque privé, planificateur)
 php artisan subscriptions:expire  # aussi lancée chaque heure par le planificateur
 php artisan live:close-stale      # clôt les conversations finies/abandonnées (chaque minute par le planificateur)
 cd tools/teacher3d && npm install && npm run model && npm run vendor   # EN LOCAL : régénère le modèle 3D et les bibliothèques
@@ -265,12 +272,14 @@ La CI (`.github/workflows/tests.yml`) lance Pint et toute la suite de tests cont
 
 ## Déploiement sur Laravel Cloud (résumé)
 
-1. Sur cloud.laravel.com, créer une application à partir du dépôt GitHub (branche `main`).
-2. Dans l'environnement, attacher les ressources :
-   - une base **MySQL** (les variables `DB_*` sont injectées automatiquement) ;
-   - un **bucket Object Storage privé**, défini comme **disque par défaut** : il reçoit les captures de paiement (le disque du serveur est effacé à chaque déploiement).
-3. Variables d'environnement : `APP_KEY` (générée en local avec `php artisan key:generate --show`), `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `APP_TIMEZONE=Africa/Lome`, `APP_LOCALE=fr`, `GEMINI_API_KEY`, et les autres réglages de `.env.example` si besoin. Ne jamais committer ces valeurs.
-4. Commande de build : `composer install --no-dev --optimize-autoloader` (aucune compilation front). Commande de déploiement : `php artisan migrate --force`.
-5. Activer **Scheduler** sur le cluster App (lance `schedule:run` chaque minute), puis redéployer.
-6. Après le premier déploiement, créer l'administrateur depuis la console Laravel Cloud : `php artisan app:create-admin`.
-7. Le site est servi en **HTTPS** (obligatoire pour le micro).
+Guide complet, pas à pas, pour quelqu'un qui n'a qu'un téléphone : `docs/deploiement-laravel-cloud.md` (liste de toutes les variables, coûts d'après la documentation officielle). Documentation de référence : <https://laravel.com/cloud/docs> (les pages se lisent aussi en `.md`, par exemple `/cloud/docs/environments.md`).
+
+1. Créer l'application depuis le dépôt GitHub ; **déploiement automatique à chaque envoi sur `main`** (« Push to deploy », activé par défaut ; branche de l'environnement = `main`). Région d'Europe (aucune région en Afrique), PHP 8.3.
+2. Attacher : une base **Laravel MySQL** (Flex 512 MiB ; les variables `DB_*` sont injectées) ; un **bucket Object Storage PRIVÉ**, défini comme **disque par défaut** (injecte `FILESYSTEM_DISK` et `AWS_*` ; le framework configure le disque depuis `LARAVEL_CLOUD_DISK_CONFIG`).
+3. **Commandes de construction** : `composer install --no-dev --optimize-autoloader` puis `php artisan optimize` (aucune compilation front). **Commandes de déploiement** : `php artisan migrate --force` seulement (jamais `db:seed`, `optimize:clear`, `storage:link`). Laravel Cloud ne permet aucune question dans ses commandes.
+4. Variables d'environnement (liste complète dans le guide) : `APP_KEY` (obtenue avec `php artisan key:generate --show` dans l'onglet Commands), `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://…`, `APP_TIMEZONE=Africa/Lome`, `DB_CONNECTION=mysql`, `SESSION_DRIVER=database`, `CACHE_STORE=database`, `QUEUE_CONNECTION=sync`, `LOG_STACK=laravel-cloud-socket`, `GEMINI_API_KEY` (collée seulement dans Laravel Cloud), `PLATFORM_NAME=Talkami` ou absente. Ne jamais committer ces valeurs. Toute modification de variable demande un redéploiement.
+5. Activer **Scheduler** sur le cluster App (lance `schedule:run` chaque minute) : trois tâches, toutes `withoutOverlapping()->onOneServer()` : `subscriptions:expire` (chaque heure), `live:close-stale` (chaque minute), témoin `scheduler-heartbeat` (chaque minute, lu par `app:check-deployment`). La tâche chaque minute empêche la mise en veille : compter l'environnement toujours allumé dans le budget.
+6. Administrateur : `php artisan app:create-admin` demande le numéro et le mot de passe en terminal. Dans l'onglet Commands (non interactif), définir TEMPORAIREMENT `ADMIN_PHONE` et `ADMIN_PASSWORD`, lancer la commande, **supprimer les deux variables** puis redéployer. La commande n'a aucune option pour le numéro ni le mot de passe, n'affiche que le numéro masqué et exige 10 caractères au moins.
+7. Contrôle : `php artisan app:check-deployment` (réglages de sécurité, base MySQL, écriture dans le bucket, nombre de captures et d'attestations enregistrées, dernier passage du planificateur).
+8. Le site est servi en **HTTPS** (obligatoire pour le micro) ; domaine personnalisé et certificat gérés par Laravel Cloud (Settings, Network).
+9. Offre **Starter** (5 $ par mois, 5 $ de crédit d'utilisation, premier mois offert) : estimation toujours allumé en Europe, environ 15,50 $ par mois (détail dans le guide). Fixer une limite de dépense (Organization, Settings, Billing).

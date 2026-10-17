@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Disque privé du site
+    |--------------------------------------------------------------------------
+    |
+    | Captures d'écran des paiements et attestations en PDF (voir App\Support\PrivateStorage).
+    | Vide = disque par défaut ci-dessus. Sur Laravel Cloud, le système de fichiers du
+    | serveur est effacé à chaque déploiement : attacher un bucket PRIVÉ comme disque par
+    | défaut. Ne jamais mettre ici le disque « public ».
+    |
+    */
+
+    'private_disk' => env('PRIVATE_FILES_DISK'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -33,7 +47,8 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Aucune route publique /storage/... : les fichiers privés ne sortent que par des routes protégées.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

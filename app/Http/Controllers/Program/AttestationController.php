@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Program;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attestation;
-use App\Support\AttestationPdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
@@ -21,9 +20,10 @@ class AttestationController extends Controller
 
         $filename = 'attestation-anglais-'.$attestation->level->value.'-'.Str::slug($attestation->user->name).'.pdf';
 
-        return response(AttestationPdf::render($attestation), 200, [
+        return response($attestation->pdf(), 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Cache-Control' => 'private, no-store',
         ]);
     }
 
