@@ -40,6 +40,9 @@ class LiveProvidersTest extends TestCase
 
     private int $callNumber = 0;
 
+    /** L'appel renvoyé par OpenAI donne-t-il son identifiant (en-tête Location) ? */
+    private bool $openaiLocation = true;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -60,7 +63,7 @@ class LiveProvidersTest extends TestCase
             },
             '*/realtime/calls/*/hangup' => Http::response('', 200),
             'api.openai.com/v1/realtime/calls' => fn () => $this->openaiCall === 201
-                ? Http::response("v=0\r\no=- reponse-openai\r\n", 201, ['Location' => '/v1/realtime/calls/rtc_'.(++$this->callNumber)])
+                ? Http::response("v=0\r\no=- reponse-openai\r\n", 201, $this->openaiLocation ? ['Location' => '/v1/realtime/calls/rtc_'.(++$this->callNumber)] : [])
                 : Http::response(['error' => ['message' => 'You exceeded your current quota.', 'code' => 'insufficient_quota']], $this->openaiCall),
             // Présentation du programme (modèle texte) : texte type de repli.
             '*/interactions' => Http::response([], 503),
@@ -206,6 +209,20 @@ class LiveProvidersTest extends TestCase
                 && $tool['parameters']['properties']['errors']['items']['type'] === 'object'
                 && $tool['parameters']['properties']['lesson_status']['enum'] === ['completed', 'repeat'];
         });
+    }
+
+    public function test_an_openai_call_without_an_identifier_is_refused_so_the_server_can_always_hang_up(): void
+    {
+        $this->gemini = 429;
+        $this->openaiLocation = false;
+        $user = $this->subscriber();
+        $url = $this->actingAs($user)->postJson('/seance/connexion')->json('call_url');
+
+        $this->actingAs($user)->postJson($url, ['sdp' => 'v=0'])
+            ->assertStatus(503);
+
+        $this->assertNull($this->lesson($user)->live_call_id);
+        $this->assertStringContainsString('Location', LiveLog::recent()[0]['message']);
     }
 
     public function test_the_call_address_is_single_use_and_personal(): void

@@ -116,10 +116,18 @@ class OpenAiRealtime
         }
 
         $answer = $response->body();
-        $callId = basename((string) parse_url((string) $response->header('Location'), PHP_URL_PATH));
+        $location = (string) $response->header('Location');
+        $callId = $location === '' ? '' : basename((string) parse_url($location, PHP_URL_PATH));
 
-        if (! str_starts_with(ltrim($answer), 'v=') || $callId === '' || $callId === '.') {
+        if (! str_starts_with(ltrim($answer), 'v=')) {
             throw new LiveUnavailable('OpenAI a répondu sans description de l\'appel.', httpStatus: $response->status(), provider: LiveProviders::OPENAI);
+        }
+
+        // Sans identifiant d'appel, le serveur ne pourrait pas raccrocher à la limite de temps : l'appel n'est pas
+        // gardé. (La documentation d'OpenAI donne l'identifiant dans l'en-tête « Location » ; elle ne le montre pas
+        // pour l'interface « unifiée » : « Essayer une conversation de 30 secondes » le vérifie sur le vrai service.)
+        if ($callId === '' || $callId === '.') {
+            throw new LiveUnavailable('OpenAI a ouvert l\'appel sans en donner l\'identifiant (en-tête « Location » absent) : le serveur ne pourrait pas le raccrocher à la limite de temps.', httpStatus: $response->status(), provider: LiveProviders::OPENAI);
         }
 
         return ['sdp' => $answer, 'call_id' => $callId];
