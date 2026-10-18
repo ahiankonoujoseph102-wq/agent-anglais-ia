@@ -852,6 +852,7 @@ async function connect({ planned = false, failed = null } = {}) {
         try {
             await transport.connect();
         } catch (error) {
+            console.warn(`Connexion à ${transport.provider} impossible :`, error);
             transport.handlers.onClose({ reason: error.message ?? '', ready: false, message: error.serverMessage, quota: error.quota });
         }
     } else {

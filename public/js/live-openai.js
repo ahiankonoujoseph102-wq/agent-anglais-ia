@@ -32,7 +32,7 @@ export class OpenAiTransport {
      * @param {object} options   post (échange avec Laravel), context et micBus (audio de l'écran), et pour les
      *                           tests : RTCPeerConnectionImpl, createAudioElement, setTimer
      */
-    constructor(config, handlers, { post, context, micBus, RTCPeerConnectionImpl = globalThis.RTCPeerConnection, createAudioElement = () => new Audio(), setTimer = setTimeout } = {}) {
+    constructor(config, handlers, { post, context, micBus, RTCPeerConnectionImpl = globalThis.RTCPeerConnection, createAudioElement = () => new Audio(), setTimer = (fn, ms) => setTimeout(fn, ms) } = {}) {
         this.config = config;
         this.handlers = handlers;
         this.post = post;
