@@ -123,3 +123,56 @@ self.addEventListener('fetch', (event) => {
 
     // Tout le reste (JSON des séances, captures de paiement, manifeste…) : réseau, sans cache.
 });
+
+// Notifications de paiement de l'administrateur (Web Push). Le contenu est écrit par le serveur : titre, texte
+// court et adresse de la page à ouvrir. Jamais de donnée sensible dedans.
+self.addEventListener('push', (event) => {
+    let data = {};
+
+    try {
+        data = event.data ? event.data.json() : {};
+    } catch {
+        data = { body: event.data ? event.data.text() : '' };
+    }
+
+    event.waitUntil(self.registration.showNotification(data.title || 'Talkami', {
+        body: data.body || '',
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        tag: data.tag || 'alerte',
+        renotify: true,
+        requireInteraction: true,
+        vibrate: [200, 100, 200, 100, 400],
+        data: { url: data.url || '/admin/paiements' },
+    }));
+});
+
+// Un toucher ouvre le paiement dans l'administration : fenêtre déjà ouverte réutilisée, sinon nouvelle.
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const target = new URL(event.notification.data?.url || '/admin/paiements', self.location.origin);
+
+    // Seulement une adresse de ce site.
+    if (target.origin !== self.location.origin) {
+        return;
+    }
+
+    event.waitUntil((async () => {
+        const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+
+        for (const client of windows) {
+            if ('focus' in client) {
+                try {
+                    await client.navigate(target.href);
+                } catch {
+                    // Navigation refusée : on ouvre une fenêtre.
+                    break;
+                }
+
+                return client.focus();
+            }
+        }
+
+        return self.clients.openWindow(target.href);
+    })());
+});

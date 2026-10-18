@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\AlertController;
 use App\Http\Controllers\Admin\AssessmentController as AdminAssessmentController;
 use App\Http\Controllers\Admin\ConversationController;
 use App\Http\Controllers\Admin\GrantedAccessController;
@@ -95,6 +96,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/abonnement', [PaymentController::class, 'plans'])->name('payment.plans');
     Route::get('/abonnement/{plan}', [PaymentController::class, 'create'])->name('payment.create');
     Route::post('/abonnement/{plan}', [PaymentController::class, 'store'])->middleware('throttle:10,1')->name('payment.store');
+    Route::get('/abonnement/{plan}/whatsapp', [PaymentController::class, 'whatsapp'])->middleware('throttle:20,1')->name('payment.whatsapp');
     Route::get('/paiements/{payment}', [PaymentController::class, 'show'])->name('payment.show');
 
     // Évaluation orale gratuite (une seule par compte).
@@ -190,6 +192,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/diagnostic-texte/direct/{provider}/conversation/connexion', [LiveTrialController::class, 'connect'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.connect');
     Route::post('/diagnostic-texte/direct/{provider}/conversation/signal', [LiveTrialController::class, 'signal'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:30,1')->name('live-trial.signal');
     Route::post('/diagnostic-texte/direct/{provider}/conversation/fin', [LiveTrialController::class, 'finish'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.finish');
+    Route::get('/alertes', [AlertController::class, 'index'])->name('alerts.index');
+    Route::post('/alertes/abonnement', [AlertController::class, 'subscribe'])->middleware('throttle:20,1')->name('alerts.subscribe');
+    Route::delete('/alertes/abonnement', [AlertController::class, 'unsubscribe'])->middleware('throttle:20,1')->name('alerts.unsubscribe');
+    Route::post('/alertes/essai-notification', [AlertController::class, 'testPush'])->middleware('throttle:10,1')->name('alerts.test-push');
+    Route::post('/alertes/essai-email', [AlertController::class, 'testMail'])->middleware('throttle:10,1')->name('alerts.test-mail');
+    Route::delete('/alertes/telephones/{subscription}', [AlertController::class, 'destroy'])->name('alerts.destroy');
     Route::get('/icones', IconPreviewController::class)->name('icons.index');
     Route::get('/inactifs', [InactiveLearnerController::class, 'index'])->name('inactive.index');
     Route::get('/inactifs/{user}/whatsapp', [InactiveLearnerController::class, 'whatsapp'])->name('inactive.whatsapp');

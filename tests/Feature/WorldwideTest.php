@@ -161,9 +161,11 @@ class WorldwideTest extends TestCase
         $this->assertStringContainsString('btn btn-whatsapp', $html);
         $this->assertStringNotContainsString('J\'ai payé, j\'envoie ma capture', html_entity_decode($html, ENT_QUOTES));
 
-        preg_match('/href="(https:\/\/wa\.me\/22872240231\?text=[^"]+)"/', $html, $match);
-        $this->assertNotEmpty($match, 'bouton vers le WhatsApp de l\'équipe (+228 72 24 02 31)');
-        $message = urldecode(parse_url(html_entity_decode($match[1]), PHP_URL_QUERY));
+        // Le bouton passe par le serveur (le clic est enregistré), qui renvoie vers le WhatsApp de l'équipe.
+        $this->assertStringContainsString('href="'.route('payment.whatsapp', 'essentiel').'"', $html);
+        $location = $this->actingAs($user)->get(route('payment.whatsapp', 'essentiel'))->assertRedirect()->headers->get('Location');
+        $this->assertMatchesRegularExpression('/^https:\/\/wa\.me\/22872240231\?text=/', $location, 'bouton vers le WhatsApp de l\'équipe (+228 72 24 02 31)');
+        $message = urldecode(parse_url($location, PHP_URL_QUERY));
         $this->assertStringContainsString('Nom : Awa Nguema', $message);
         $this->assertStringContainsString('Pays : Cameroun', $message);
         $this->assertStringContainsString('Formule choisie : Essentiel (7', $message);

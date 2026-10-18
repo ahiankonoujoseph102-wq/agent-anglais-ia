@@ -142,7 +142,7 @@ class ProductionSettingsTest extends TestCase
             ? trim(str_replace("'", '', explode('artisan', $event->command)[1] ?? ''))
             : $event->description)->all();
 
-        $this->assertEqualsCanonicalizing(['subscriptions:expire', 'live:close-stale', 'scheduler-heartbeat', 'app:prepare-voice --budget=50', 'transcripts:purge'], $names);
+        $this->assertEqualsCanonicalizing(['subscriptions:expire', 'live:close-stale', 'scheduler-heartbeat', 'app:prepare-voice --budget=50', 'transcripts:purge', 'payments:alert-expiring'], $names);
 
         foreach ($events as $event) {
             $this->assertTrue($event->onOneServer, "{$event->command} doit utiliser onOneServer().");

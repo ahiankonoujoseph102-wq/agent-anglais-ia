@@ -37,3 +37,6 @@ Schedule::command('app:prepare-voice --budget=50')->hourly()->withoutOverlapping
 
 // Texte des conversations : effacé après platform.transcripts.keep_days jours (90), chaque nuit.
 Schedule::command('transcripts:purge')->dailyAt('03:10')->withoutOverlapping()->onOneServer();
+
+// Alerte de l'administrateur : un accès provisoire se termine dans moins de deux heures sans validation (une seule par paiement).
+Schedule::command('payments:alert-expiring')->everyTenMinutes()->withoutOverlapping()->onOneServer();

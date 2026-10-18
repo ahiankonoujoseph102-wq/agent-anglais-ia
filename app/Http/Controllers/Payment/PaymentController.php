@@ -7,6 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\StorePaymentRequest;
 use App\Models\Payment;
 use App\Models\User;
+use App\Models\WhatsappPaymentClick;
+use App\Support\Alerts\AdminAlerts;
+use App\Support\Alerts\AlertBuilder;
 use App\Support\Duration;
 use App\Support\Gemini\ProofReader;
 use App\Support\Money;
@@ -74,7 +77,9 @@ class PaymentController extends Controller
             return view('payment.abroad', [
                 'plan' => $plan,
                 'country' => $request->user()->countryName(),
-                'whatsappUrl' => $this->abroadWhatsappUrl($request->user(), $plan),
+                'whatsappUrl' => $this->abroadWhatsappUrl($request->user(), $plan) !== null
+                    ? route('payment.whatsapp', $plan->key)
+                    : null,
             ]);
         }
 
@@ -158,7 +163,50 @@ class PaymentController extends Controller
             $payment->grantProvisional();
         }
 
+        // Alerte de l'administrateur (notification et e-mail), envoyée APRÈS la réponse : l'apprenant n'attend rien.
+        AdminAlerts::dispatch(AlertBuilder::captured($payment->fresh(['user', 'subscription'])));
+
         return to_route('payment.show', $payment);
+    }
+
+    /**
+     * Apprenant d'un pays sans paiement en ligne : « Écrire sur WhatsApp ». Le clic est enregistré ICI, côté
+     * serveur, puis l'apprenant est renvoyé aussitôt vers WhatsApp (une seule écriture en base ; l'alerte part
+     * après la réponse). Un échec d'enregistrement ou d'alerte ne retient jamais l'apprenant.
+     */
+    public function whatsapp(Request $request, string $plan): RedirectResponse
+    {
+        $plan = Plan::find($plan) ?? abort(404);
+        $user = $request->user();
+
+        if ($user->canPayOnline()) {
+            return to_route('payment.create', $plan->key);
+        }
+
+        $url = $this->abroadWhatsappUrl($user, $plan);
+
+        if ($url === null) {
+            return to_route('contact');
+        }
+
+        try {
+            $recent = WhatsappPaymentClick::query()
+                ->where('user_id', $user->id)
+                ->where('created_at', '>=', now()->subMinutes((int) config('alerts.whatsapp_click_quiet_minutes')))
+                ->exists();
+
+            $click = new WhatsappPaymentClick(['plan' => $plan->key]);
+            $click->user_id = $user->id;
+            $click->save();
+
+            if (! $recent) {
+                AdminAlerts::dispatch(AlertBuilder::whatsappClick($user, $plan->name, $plan->formattedPrice()));
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return redirect()->away($url);
     }
 
     /**

@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Enums\PaymentStatus;
 use App\Models\Payment;
+use App\Support\Alerts\PushTransport;
+use App\Support\Alerts\WebPushTransport;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
@@ -18,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PushTransport::class, WebPushTransport::class);
     }
 
     /**

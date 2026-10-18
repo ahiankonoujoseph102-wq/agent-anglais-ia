@@ -219,7 +219,7 @@ Sur un téléphone, on ne peut pas lancer d'ordinateur local : on demande la cl�
 
 ## 9. Activer le planificateur de tâches (Scheduler)
 
-Le projet a cinq tâches automatiques : fermeture des séances abandonnées (chaque minute), fin des abonnements (chaque heure), préparation des messages vocaux qui manquent encore (chaque heure, aucune demande à Google quand tout est prêt), effacement du texte des conversations de plus de 90 jours (chaque nuit à 3 heures 10) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
+Le projet a six tâches automatiques (la sixième, `payments:alert-expiring`, tourne toutes les dix minutes : voir l'étape 10 ter) : fermeture des séances abandonnées (chaque minute), fin des abonnements (chaque heure), préparation des messages vocaux qui manquent encore (chaque heure, aucune demande à Google quand tout est prêt), effacement du texte des conversations de plus de 90 jours (chaque nuit à 3 heures 10) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
 
 1. Sur le canvas, touchez la carte **App** (le cluster de l'application).
 2. Activez l'interrupteur **Scheduler**.
@@ -261,6 +261,38 @@ Pour changer un numéro sans toucher au code :
 4. Pour revenir à la valeur par défaut, videz le champ et enregistrez.
 
 Le numéro utilisé sert aussi à vérifier les captures : la règle « Bon destinataire » compare le numéro lu sur la capture à celui-ci. Un numéro mal tapé = aucune capture acceptée automatiquement (les paiements restent alors en attente de votre vérification).
+
+---
+
+## 10 ter. Les alertes de paiement (notification sur le téléphone et e-mail)
+
+Dès qu'une capture de paiement arrive, qu'un accès provisoire va se terminer dans deux heures sans votre validation, ou qu'un apprenant d'un pays sans paiement en ligne touche « Écrire sur WhatsApp », le site vous prévient par une **notification sur votre téléphone** et par **e-mail**. Si l'envoi échoue, l'apprenant ne voit rien : l'échec est noté dans Administration, **Alertes**.
+
+### Variables à créer dans Laravel Cloud (Settings, General, Environment variables)
+
+| Nom | Rôle |
+|---|---|
+| `ADMIN_ALERT_EMAIL` | Une ou plusieurs adresses qui reçoivent les alertes, séparées par des virgules. |
+| `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | E-mail par Brevo : `smtp`, `smtp-relay.brevo.com`, `587`, puis vos identifiants Brevo, l'adresse d'expéditeur vérifiée et `Talkami`. Aucune autre variable n'est nécessaire : le port 587 passe en connexion chiffrée (STARTTLS) tout seul. |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Clés des notifications. `VAPID_SUBJECT` = `mailto:` suivi de votre adresse. |
+
+Créer les deux clés VAPID (une seule fois) : onglet **Commands** de l'environnement, lancez `php artisan alerts:generate-vapid`, copiez les deux premières lignes dans les variables, puis **redéployez**. La clé privée est un secret : ne la collez nulle part ailleurs.
+
+### Activer les notifications sur le Pixel 6
+
+1. Ouvrez le site dans Chrome, connectez-vous en administrateur, puis menu de Chrome, **Installer l'application** (ou le bouton « Installer l'application » en bas du site). Ouvrez ensuite **l'application Talkami installée** (l'icône sur l'écran d'accueil), pas Chrome.
+2. Administration, onglet **Alertes**, touchez **Recevoir les alertes sur ce téléphone**, puis **Autoriser**.
+3. Touchez **Envoyer une alerte d'essai** : la notification « Alerte d'essai Talkami » doit apparaître. Touchez-la : elle ouvre l'administration. Touchez aussi **Envoyer un e-mail d'essai**.
+
+### Laisser passer Talkami en mode « Ne pas déranger » (Pixel 6)
+
+Réglages, **Notifications**, **Ne pas déranger**, **Personnes et applications** (ou **Applications**), **Applications pouvant interrompre**, **Ajouter des applications** (ou **Applications** puis **Ajouter**), choisissez **Talkami**. Ne cochez ni Chrome ni WhatsApp. Ensuite : Réglages, **Applis**, **Talkami**, **Notifications**, vérifiez que « Toutes les notifications Talkami » est activé et que la catégorie est en **Alerte** (son et vibration).
+
+Attention, point à vérifier sur le téléphone : Android attribue les notifications d'une application installée depuis Chrome à l'application **Talkami** (c'est une « WebAPK »), pas à Chrome, si l'abonnement a été fait **depuis l'application installée**. Si la notification d'essai apparaît sous le nom « Chrome » (ou « Chrome : talkami.net ») au lieu de « Talkami », l'abonnement a été fait depuis Chrome : dans l'application Talkami, touchez **Arrêter les alertes sur ce téléphone** puis **Recevoir les alertes sur ce téléphone** de nouveau. Si les notifications restent sous Chrome malgré cela, la meilleure solution est de laisser passer Chrome pour les seules notifications de talkami.net (Réglages, Applis, Chrome, Notifications, catégorie « talkami.net »), et de recevoir en plus l'e-mail : l'e-mail est le filet de sécurité.
+
+### E-mail depuis une adresse Gmail
+
+Un premier e-mail envoyé par Brevo avec une adresse Gmail comme expéditeur peut être classé dans les **courriers indésirables** (Gmail demande que le domaine de l'expéditeur autorise l'envoi). Ouvrez-le dans Spam et touchez **Pas du spam** : les suivants arrivent dans la boîte principale. Plus durable : acheter un nom de domaine, le vérifier dans Brevo (enregistrements SPF et DKIM) et utiliser une adresse à ce domaine pour `MAIL_FROM_ADDRESS`.
 
 ---
 
@@ -423,6 +455,7 @@ Pour suivre la consommation : **Organization, Usage** (mise à jour toutes les h
 6. Acheter ou choisir le nom de domaine, recopier les enregistrements DNS (étape 11).
 7. Régler la limite de dépense (partie 15).
 8. Faire un paiement de test et vérifier la capture dans le bucket (étape 12.3).
+9. Créer les clés des alertes, les variables d'e-mail, et activer les notifications sur votre téléphone (étape 10 ter).
 
 ---
 
