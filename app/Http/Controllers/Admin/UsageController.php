@@ -83,6 +83,8 @@ class UsageController extends Controller
 
         return view('admin.usage.index', [
             'totals' => $totals,
+            // Coût par apprenant : chaque séance au tarif de son fournisseur (Gemini ou OpenAI).
+            'learnerCosts' => LiveUsage::costsByLearner($learners->getCollection()->modelKeys()),
             'granted' => $granted,
             'learners' => $learners,
             'recentLessons' => $recentLessons,
@@ -100,10 +102,11 @@ class UsageController extends Controller
 
     /**
      * @param  Builder<Assessment>|Builder<CourseSession>|Builder<Lesson>|Builder<LevelTest>  $query
-     * @return array{count: int, seconds: int, input: int, output: int}
+     * @return array{count: int, seconds: int, input: int, output: int, cost: float}
      */
     private function totals(Builder $query): array
     {
+        $cost = LiveUsage::tokenCost(clone $query);
         $row = $query->toBase()
             ->selectRaw('count(*) as aggregate_count, coalesce(sum(used_seconds), 0) as seconds, coalesce(sum(input_tokens), 0) as input, coalesce(sum(output_tokens), 0) as output')
             ->first();
@@ -113,6 +116,7 @@ class UsageController extends Controller
             'seconds' => (int) $row->seconds,
             'input' => (int) $row->input,
             'output' => (int) $row->output,
+            'cost' => $cost,
         ];
     }
 }

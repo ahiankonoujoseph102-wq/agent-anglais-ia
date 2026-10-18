@@ -198,6 +198,14 @@ return [
         // Environ 0,04 $ par minute de séance avec gpt-realtime-2.1-mini (audio 10 $ / 20 $ le million de
         // jetons, contexte relu en cache, transcription comprise) : estimation pour « Consommation ».
         'realtime_cost_per_minute' => (float) env('OPENAI_REALTIME_COST_PER_MINUTE', 0.04),
+        // Tarif par million de jetons (audio) de gpt-realtime-2.1-mini, pour le coût par apprenant et par séance
+        // de « Consommation » (developers.openai.com/api/docs/models/gpt-realtime-2.1-mini, relevé du 18 octobre
+        // 2026 : audio 10 $ en entrée, 20 $ en sortie ; texte 0,60 $ / 2,40 $). Les jetons rapportés mêlant audio
+        // et texte, le tarif audio donne une estimation prudente (un peu haute).
+        'realtime_pricing' => [
+            'input_per_million' => (float) env('OPENAI_REALTIME_INPUT_PRICE', 10.00),
+            'output_per_million' => (float) env('OPENAI_REALTIME_OUTPUT_PRICE', 20.00),
+        ],
     ],
 
 ];
