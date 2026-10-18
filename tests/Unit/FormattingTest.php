@@ -32,7 +32,7 @@ class FormattingTest extends TestCase
     {
         $plans = Plan::all();
 
-        $this->assertSame(['essentiel', 'intensif', 'semaine'], array_keys($plans));
+        $this->assertSame(['semaine', 'essentiel', 'intensif'], array_keys($plans));
 
         $this->assertSame([15, 7500, 'par mois'], [$plans['essentiel']->dailyMinutes, $plans['essentiel']->price, $plans['essentiel']->periodLabel()]);
         $this->assertSame([30, 14000, 'par mois'], [$plans['intensif']->dailyMinutes, $plans['intensif']->price, $plans['intensif']->periodLabel()]);
