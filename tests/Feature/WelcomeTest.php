@@ -8,6 +8,8 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\AccessGrant;
+use App\Support\Gemini\LevelMessage;
+use App\Support\Gemini\SpeechLog;
 use App\Support\Gemini\WelcomeMessage;
 use App\Support\Greeting;
 use App\Support\Plan;
@@ -17,6 +19,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Sleep;
 use Tests\Concerns\BuildsPrograms;
 use Tests\TestCase;
 
@@ -41,12 +44,17 @@ class WelcomeTest extends TestCase
         config(['filesystems.private_disk' => 'local', 'services.gemini.key' => 'cle-de-test', 'app.timezone' => 'Africa/Lome']);
     }
 
-    private static function fakeSpeech(): void
+    private static function speech(): array
     {
-        Http::fake(['*/interactions' => Http::response(['steps' => [[
+        return ['steps' => [[
             'type' => 'model_output',
             'content' => [['type' => 'audio', 'data' => base64_encode('RIFF-son-de-test')]],
-        ]]])]);
+        ]]];
+    }
+
+    private static function fakeSpeech(): void
+    {
+        Http::fake(['*/interactions' => Http::response(self::speech())]);
     }
 
     /** Apprenant dont l'accès vient de s'ouvrir : message de bienvenue pas encore vu. */
@@ -355,13 +363,25 @@ class WelcomeTest extends TestCase
 
     /* ---------- Message vocal : généré une fois par morceau, gardé, coût réduit ---------- */
 
-    public function test_the_audio_pieces_are_generated_with_the_teacher_voice_then_kept(): void
+    private function prepareCommonPart(): int
+    {
+        Sleep::fake(syncWithCarbon: true);
+        $this->artisan('app:prepare-voice')->assertSuccessful();
+
+        return count(WelcomeMessage::commonParagraphs()) + count(LevelMessage::all());
+    }
+
+    public function test_listening_generates_only_the_greeting_once_the_common_part_is_ready(): void
     {
         self::fakeSpeech();
-        $user = $this->newcomer();
-        $count = $this->listenToEveryPiece($user);
+        $prepared = $this->prepareCommonPart();
+        Http::assertSentCount($prepared);
 
-        Http::assertSentCount($count);
+        $user = $this->newcomer();
+        $this->listenToEveryPiece($user);
+
+        // Seule la salutation avec le prénom est demandée pendant l'écoute.
+        Http::assertSentCount($prepared + 1);
         Http::assertSent(fn (Request $request) => $request['generation_config']['speech_config'][0]['voice'] === config('services.gemini.voice')
             && $request['model'] === config('services.gemini.tts_model')
             && str_contains($request['input'][0]['content'][0]['annotations'][0]['style'], 'welcoming a new learner'));
@@ -376,17 +396,19 @@ class WelcomeTest extends TestCase
     public function test_only_the_opening_is_generated_for_each_new_learner(): void
     {
         self::fakeSpeech();
-        $count = $this->listenToEveryPiece($this->newcomer('Koffi Mensah', '+22890000001'));
-        Http::assertSentCount($count);
+        $prepared = $this->prepareCommonPart();
 
-        // Un autre prénom, même formule : seule l'ouverture est nouvelle, les paragraphes sont déjà gardés.
+        $this->listenToEveryPiece($this->newcomer('Koffi Mensah', '+22890000001'));
+        Http::assertSentCount($prepared + 1);
+
+        // Un autre prénom, même formule : seule l'ouverture est nouvelle.
         $this->listenToEveryPiece($this->newcomer('Adjoa Kodjo', '+22890000002'));
-        Http::assertSentCount($count + 1);
+        Http::assertSentCount($prepared + 2);
         Http::assertSent(fn (Request $request) => str_contains($request['input'][0]['content'][0]['text'], 'Bonsoir Adjoa ! Good evening, Adjoa !'));
 
         // Le même prénom que le premier, le même soir : rien de nouveau du tout.
         $this->listenToEveryPiece($this->newcomer('Koffi Agbeko', '+22890000003'));
-        Http::assertSentCount($count + 1);
+        Http::assertSentCount($prepared + 2);
     }
 
     public function test_the_salutation_asked_by_the_page_is_the_one_spoken(): void
@@ -398,7 +420,7 @@ class WelcomeTest extends TestCase
         Http::assertSent(fn (Request $request) => str_contains($request['input'][0]['content'][0]['text'], 'Bonjour Koffi ! Good morning, Koffi !'));
     }
 
-    public function test_outdated_pieces_are_deleted_and_corrected_sentences_generated_again(): void
+    public function test_outdated_pieces_are_deleted_and_corrected_sentences_prepared_again(): void
     {
         self::fakeSpeech();
         $disk = PrivateStorage::disk();
@@ -410,28 +432,27 @@ class WelcomeTest extends TestCase
         $opening = WelcomeMessage::DIRECTORY.'/'.WelcomeMessage::OPENING_PREFIX.$voice.'-ouverture00000000001.wav';
         $disk->put($opening, 'ouverture');
 
-        $user = $this->newcomer();
-        $count = $this->listenToEveryPiece($user);
+        $prepared = $this->prepareCommonPart();
 
         $this->assertFalse($disk->exists(WelcomeMessage::DIRECTORY.'/'.$voice.'-ancienmessage0000001.wav'));
         $this->assertFalse($disk->exists(WelcomeMessage::DIRECTORY.'/Puck-ancienne0voix00002.wav'));
         $this->assertTrue($disk->exists($opening));
 
         // Une phrase corrigée : seul ce paragraphe est régénéré, son ancienne version disparaît.
+        $user = $this->newcomer();
         $old = WelcomeMessage::path($this->texts($user)['paragraphs'][3], $voice);
         config(['teacher.welcome.paragraphs.questionnaire' => 'Première étape : un court questionnaire, corrigé.']);
         $new = WelcomeMessage::path($this->texts($user)['paragraphs'][3], $voice);
-        Http::assertSentCount($count);
 
-        $this->listenToEveryPiece($user);
+        $this->artisan('app:prepare-voice')->assertSuccessful();
 
-        Http::assertSentCount($count + 1);
+        Http::assertSentCount($prepared + 1);
         $this->assertTrue($disk->exists($new));
         $this->assertFalse($disk->exists($old));
         $this->assertTrue($disk->exists(WelcomeMessage::path($this->texts($user)['paragraphs'][0], $voice)));
     }
 
-    public function test_unknown_pieces_and_guests_are_refused_and_a_failure_is_not_retried_at_once(): void
+    public function test_a_paragraph_not_yet_prepared_is_never_generated_while_listening(): void
     {
         Http::fake(['*/interactions' => Http::response('erreur', 500)]);
         $user = $this->newcomer();
@@ -441,12 +462,46 @@ class WelcomeTest extends TestCase
         $this->actingAs($user);
         $this->get(route('welcome.audio', ['index' => 99]))->assertNotFound();
 
+        // Paragraphe pas encore préparé : aucune demande à Google, la page l'affiche en texte.
         $this->get(route('welcome.audio', ['index' => 1]))->assertStatus(503);
-        $this->get(route('welcome.audio', ['index' => 1]))->assertStatus(503);
+        Http::assertNothingSent();
+
+        // Salutation en échec : une seule demande, puis aucune pendant quelques minutes.
+        $this->get(route('welcome.audio', ['index' => 0]))->assertStatus(503);
+        $this->get(route('welcome.audio', ['index' => 0]))->assertStatus(503);
         Http::assertSentCount(1);
 
-        // La page, elle, reste utilisable : le texte est affiché.
-        $this->get(route('welcome.show'))->assertOk()->assertSee('Je suis Teacher Joe, votre professeur d&#039;anglais.', false);
+        // La page reste utilisable : le texte est affiché, chaque morceau dit s'il est prêt.
+        $page = $this->get(route('welcome.show', ['reecouter' => 1]))->assertOk()->assertSee('Je suis Teacher Joe, votre professeur d&#039;anglais.', false);
+        $pieces = json_decode(html_entity_decode((string) preg_replace('/.*data-pieces=\'([^\']*)\'.*/s', '$1', $page->getContent())), true);
+        $this->assertTrue($pieces[0]['ready']);
+        $this->assertFalse($pieces[1]['ready']);
+    }
+
+    public function test_a_failed_greeting_still_lets_the_ready_common_part_play(): void
+    {
+        // La préparation réussit, puis Google refuse la salutation (erreur 429).
+        $sequence = Http::sequence();
+
+        foreach (range(1, count(WelcomeMessage::commonParagraphs()) + count(LevelMessage::all())) as $ignored) {
+            $sequence->push(self::speech());
+        }
+
+        Http::fake(['*/interactions' => $sequence->push(['error' => ['code' => 429, 'message' => 'Resource exhausted.', 'status' => 'RESOURCE_EXHAUSTED']], 429)]);
+        $this->prepareCommonPart();
+        $user = $this->newcomer();
+        $this->actingAs($user);
+
+        $this->get(route('welcome.audio', ['index' => 0]))->assertStatus(503);
+
+        // Toute la partie commune reste jouable ; la salutation est affichée en texte.
+        for ($index = 1; $index < WelcomeMessage::count($this->texts($user)); $index++) {
+            $this->get(route('welcome.audio', ['index' => $index]))->assertOk()->assertHeader('Content-Type', 'audio/wav');
+        }
+
+        $this->get(route('welcome.show', ['reecouter' => 1]))->assertSee($this->texts($user)['opening']);
+        $this->assertSame('Bienvenue, salutation', SpeechLog::recent()[0]['label']);
+        $this->assertSame(429, SpeechLog::recent()[0]['status']);
     }
 
     public function test_the_welcome_message_uses_neither_the_assessment_nor_the_oral_minutes(): void

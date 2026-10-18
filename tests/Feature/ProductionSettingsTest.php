@@ -142,7 +142,7 @@ class ProductionSettingsTest extends TestCase
             ? trim(str_replace("'", '', explode('artisan', $event->command)[1] ?? ''))
             : $event->description)->all();
 
-        $this->assertEqualsCanonicalizing(['subscriptions:expire', 'live:close-stale', 'scheduler-heartbeat'], $names);
+        $this->assertEqualsCanonicalizing(['subscriptions:expire', 'live:close-stale', 'scheduler-heartbeat', 'app:prepare-voice --budget=50'], $names);
 
         foreach ($events as $event) {
             $this->assertTrue($event->onOneServer, "{$event->command} doit utiliser onOneServer().");
@@ -152,14 +152,15 @@ class ProductionSettingsTest extends TestCase
         $this->assertSame('* * * * *', $events->first(fn (Event $e) => str_contains((string) $e->command, 'live:close-stale'))->expression);
         $this->assertSame('0 * * * *', $events->first(fn (Event $e) => str_contains((string) $e->command, 'subscriptions:expire'))->expression);
         $this->assertSame('* * * * *', $events->first(fn (Event $e) => $e->description === 'scheduler-heartbeat')->expression);
+        $this->assertSame('0 * * * *', $events->first(fn (Event $e) => str_contains((string) $e->command, 'app:prepare-voice'))->expression);
     }
 
     public function test_every_artisan_command_of_the_app_is_either_scheduled_or_manual(): void
     {
         // Commandes de l'application : planifiées (ci-dessus) ou lancées à la main (administrateur).
-        $app = collect(Artisan::all())->keys()->filter(fn (string $name) => in_array($name, ['app:create-admin', 'app:check-deployment', 'subscriptions:expire', 'live:close-stale'], true));
+        $app = collect(Artisan::all())->keys()->filter(fn (string $name) => in_array($name, ['app:create-admin', 'app:check-deployment', 'subscriptions:expire', 'live:close-stale', 'app:prepare-voice'], true));
 
-        $this->assertCount(4, $app);
+        $this->assertCount(5, $app);
     }
 
     public function test_the_deployment_never_needs_an_interactive_answer(): void

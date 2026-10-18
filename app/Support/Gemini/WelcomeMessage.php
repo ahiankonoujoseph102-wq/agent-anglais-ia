@@ -83,6 +83,16 @@ class WelcomeMessage
      */
     private static function paragraphs(string $planName, int $dailyMinutes, bool $programReady): array
     {
+        return array_values(self::namedParagraphs($planName, $dailyMinutes, $programReady));
+    }
+
+    /**
+     * Paragraphes avec leur nom (clé de config/teacher.php → welcome.paragraphs).
+     *
+     * @return array<string, string>
+     */
+    private static function namedParagraphs(string $planName, int $dailyMinutes, bool $programReady): array
+    {
         $paragraphs = (array) config('teacher.welcome.paragraphs', []);
 
         if ($programReady && isset($paragraphs['questionnaire'])) {
@@ -98,7 +108,34 @@ class WelcomeMessage
             ':course_sessions' => (string) config('platform.courses.sessions_per_day'),
         ];
 
-        return array_values(array_map(fn (string $text) => strtr($text, $replace), $paragraphs));
+        return array_map(fn (string $text) => strtr($text, $replace), $paragraphs);
+    }
+
+    /**
+     * Paragraphes communs à préparer avant toute écoute : chaque formule (la formule recommandée d'abord),
+     * programme à construire ou déjà prêt, sans doublon, dans l'ordre du message. Le nom sert aux journaux.
+     *
+     * @return list<array{label: string, text: string}>
+     */
+    public static function commonParagraphs(): array
+    {
+        $plans = Plan::all();
+        uasort($plans, fn (Plan $a, Plan $b) => (int) $b->recommended <=> (int) $a->recommended);
+        $pieces = [];
+
+        foreach ([false, true] as $programReady) {
+            foreach ($plans as $plan) {
+                $position = 0;
+
+                foreach (self::namedParagraphs($plan->name, $plan->dailyMinutes, $programReady) as $name => $text) {
+                    $position++;
+                    $name = $programReady && $name === 'questionnaire' ? 'program_ready' : $name;
+                    $pieces[$text] ??= ['label' => "Bienvenue, paragraphe {$position} ({$name}, {$plan->name})", 'text' => $text];
+                }
+            }
+        }
+
+        return array_values($pieces);
     }
 
     /**
@@ -110,13 +147,35 @@ class WelcomeMessage
     public static function currentParagraphPaths(): array
     {
         $voice = (string) TeacherVoice::current();
-        $texts = [];
 
-        foreach (Plan::all() as $plan) {
-            array_push($texts, ...self::paragraphs($plan->name, $plan->dailyMinutes, false), ...self::paragraphs($plan->name, $plan->dailyMinutes, true));
+        return array_map(fn (array $piece) => self::path($piece['text'], $voice), self::commonParagraphs());
+    }
+
+    /**
+     * Le paragraphe commun est-il déjà prêt (gardé sur le disque privé) ?
+     */
+    public static function isReady(string $text): bool
+    {
+        try {
+            return PrivateStorage::disk()->exists(self::path($text, (string) TeacherVoice::current()));
+        } catch (\Throwable) {
+            return false;
         }
+    }
 
-        return array_values(array_unique(array_map(fn (string $text) => self::path($text, $voice), $texts)));
+    /**
+     * Partie commune : paragraphes prêts sur le total.
+     *
+     * @return array{ready: int, total: int}
+     */
+    public static function status(): array
+    {
+        $pieces = self::commonParagraphs();
+
+        return [
+            'ready' => count(array_filter($pieces, fn (array $piece) => self::isReady($piece['text']))),
+            'total' => count($pieces),
+        ];
     }
 
     /**
@@ -173,7 +232,10 @@ class WelcomeMessage
     }
 
     /**
-     * Le fichier WAV du morceau, généré au besoin ; null s'il n'est pas disponible.
+     * Le fichier WAV d'un morceau, ou null s'il n'est pas disponible. Pendant l'écoute, seule l'ouverture
+     * (salutation et prénom, courte) est générée ; les paragraphes communs sont préparés à l'avance
+     * (commande app:prepare-voice, bouton de « Diagnostic de la voix ») : un paragraphe pas encore prêt reste
+     * affiché en texte, sans demande à Google.
      */
     public function get(string $text, bool $opening = false): ?string
     {
@@ -185,44 +247,52 @@ class WelcomeMessage
             return $disk->get($path);
         }
 
+        if (! $opening) {
+            return null;
+        }
+
         $failed = 'welcome-message-failed:'.$path;
 
         if (Cache::has($failed)) {
             return null;
         }
 
-        // Un seul appel à la fois pour un même morceau (deux apprenants qui arrivent ensemble).
+        // Un seul appel à la fois pour une même salutation (deux Koffi qui arrivent ensemble).
+        $wait = (int) config('services.gemini.tts_listen_timeout') + 5;
+
         try {
-            return Cache::lock('welcome-message:'.$path, 40)->block(35, fn () => $this->generate($text, $voice, $path, $failed, $opening));
+            return Cache::lock('welcome-message:'.$path, $wait + 5)->block($wait, function () use ($text, $voice, $path, $failed, $disk) {
+                if ($disk->exists($path)) {
+                    return $disk->get($path);
+                }
+
+                try {
+                    $wav = $this->sampler->synthesize($voice, $text, (string) config('teacher.welcome.style'), 'Bienvenue, salutation', (int) config('services.gemini.tts_listen_timeout'));
+                    VoiceSampler::store($path, $wav, 'Bienvenue, salutation');
+                } catch (GeminiUnavailable) {
+                    // Cause déjà journalisée ; aucune nouvelle demande pendant quelques minutes.
+                    Cache::put($failed, true, self::RETRY_AFTER);
+
+                    return null;
+                }
+
+                return $wav;
+            });
         } catch (LockTimeoutException) {
             return null;
         }
     }
 
-    private function generate(string $text, string $voice, string $path, string $failed, bool $opening): ?string
+    /**
+     * Génère et garde un paragraphe commun (préparation à l'avance).
+     *
+     * @throws SpeechFailed
+     */
+    public function prepare(array $piece, ?int $timeout = null): void
     {
-        $disk = PrivateStorage::disk();
+        $voice = (string) TeacherVoice::current();
+        $wav = $this->sampler->synthesize($voice, $piece['text'], (string) config('teacher.welcome.style'), $piece['label'], $timeout);
 
-        if ($disk->exists($path)) {
-            return $disk->get($path);
-        }
-
-        try {
-            $wav = $this->sampler->synthesize($voice, $text, (string) config('teacher.welcome.style'));
-        } catch (GeminiUnavailable $e) {
-            report($e);
-            Cache::put($failed, true, self::RETRY_AFTER);
-
-            return null;
-        }
-
-        $disk->put($path, $wav);
-
-        // Un nouveau paragraphe remplace souvent une ancienne version : on la supprime.
-        if (! $opening) {
-            self::purgeOutdated();
-        }
-
-        return $wav;
+        VoiceSampler::store(self::path($piece['text'], $voice), $wav, $piece['label']);
     }
 }

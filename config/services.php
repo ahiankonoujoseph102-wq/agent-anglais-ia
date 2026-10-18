@@ -71,6 +71,17 @@ return [
         'tts_model' => env('GEMINI_TTS_MODEL', 'gemini-3.8-flash-tts'),
         // Extraits nouveaux (non gardés) qu'un administrateur peut demander par heure.
         'voice_trial_per_hour' => 12,
+        // Synthèse vocale (VoiceSampler::synthesize) : délai d'attente d'une demande, en secondes ; plus court
+        // pendant l'écoute (seule la salutation avec le prénom est alors générée, la page attend).
+        'tts_timeout' => (int) env('GEMINI_TTS_TIMEOUT', 60),
+        'tts_listen_timeout' => 20,
+        // Préparation des messages communs (App\Support\Gemini\SpeechPreparer) : pause entre deux demandes
+        // (limite de demandes par minute du mode gratuit), délais croissants avant un nouvel essai après une
+        // erreur 429, et temps total accordé (commande de déploiement, bouton de « Diagnostic de la voix »).
+        'tts_spacing_seconds' => 8,
+        'tts_retry_delays' => [15, 30, 60],
+        'tts_prepare_budget' => 150,
+        'tts_web_budget' => 25,
         // Durée de vie maximale d'un jeton (et donc d'une connexion), en minutes.
         // Tout le temps de validité d'un jeton est décompté, même si le navigateur
         // disparaît : une valeur courte limite la perte en cas de coupure.

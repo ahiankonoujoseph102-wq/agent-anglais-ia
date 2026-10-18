@@ -60,7 +60,7 @@ class NavigationTest extends TestCase
         $this->assertSame('Administration', $this->labels($xpath, '//nav[contains(@class,"menu-panel")]//a')[0]);
 
         $xpath = $this->xpath($this->actingAs($admin)->get('/admin/inscrits')->assertOk()->getContent());
-        $this->assertCount(8, $this->labels($xpath, '//nav[@class="tabs"]/a'));
+        $this->assertCount(9, $this->labels($xpath, '//nav[@class="tabs"]/a'));
         $this->assertContains('Inscrits', $this->labels($xpath, '//nav[@class="tabs"]/a[@aria-current="page"]'));
         // Pas de barre du bas dans l'administration.
         $this->assertSame(0, $xpath->query('//nav[@class="tabbar"]')->length);

@@ -4,8 +4,9 @@ namespace App\Support\Gemini;
 
 use App\Support\PrivateStorage;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Extraits de voix pour la page « Essai des voix » : la même phrase de présentation,
@@ -59,31 +60,71 @@ class VoiceSampler
     public function generate(string $voice): string
     {
         $script = self::script();
-        $wav = $this->synthesize($voice, $script['text'], $script['style']);
+        $label = 'Essai des voix : '.$voice;
+        $wav = $this->synthesize($voice, $script['text'], $script['style'], $label);
 
-        PrivateStorage::disk()->put(self::path($voice), $wav);
+        self::store(self::path($voice), $wav, $label);
 
         return $wav;
     }
 
     /**
      * Fait dire un texte par une voix avec le modèle de synthèse vocale. Renvoie le fichier WAV
-     * (aussi utilisé pour le message vocal du résultat de l'évaluation : LevelMessage).
+     * (aussi utilisé pour le message vocal du résultat et le message de bienvenue). Chaque échec est
+     * journalisé avec sa cause (SpeechLog) : code HTTP, type d'erreur, durée, morceau concerné ($label).
      *
-     * @throws GeminiUnavailable
+     * @param  int|null  $timeout  délai d'attente en secondes (services.gemini.tts_timeout par défaut)
+     *
+     * @throws SpeechFailed
      */
-    public function synthesize(string $voice, string $text, string $style): string
+    public function synthesize(string $voice, string $text, string $style, string $label = 'Synthèse vocale', ?int $timeout = null): string
+    {
+        try {
+            return $this->request($voice, $text, $style, max(1, $timeout ?? (int) config('services.gemini.tts_timeout')));
+        } catch (SpeechFailed $e) {
+            SpeechLog::failure($e, $label);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Garde un fichier audio sur le disque privé. Un échec d'écriture (droits, bucket) est journalisé.
+     *
+     * @throws SpeechFailed
+     */
+    public static function store(string $path, string $wav, string $label): void
+    {
+        try {
+            $written = PrivateStorage::disk()->put($path, $wav);
+        } catch (\Throwable $e) {
+            $written = false;
+            $cause = class_basename($e);
+        }
+
+        if ($written === false) {
+            $failure = new SpeechFailed(SpeechFailed::STORAGE, 'Écriture refusée par le disque « '.PrivateStorage::name().' »'.(isset($cause) ? ' ('.$cause.')' : '').'.');
+            SpeechLog::failure($failure, $label);
+
+            throw $failure;
+        }
+    }
+
+    private function request(string $voice, string $text, string $style, int $timeout): string
     {
         $key = config('services.gemini.key');
 
         if (blank($key)) {
-            throw new GeminiUnavailable('GEMINI_API_KEY manquante dans .env.');
+            throw new SpeechFailed(SpeechFailed::MISSING_KEY, 'GEMINI_API_KEY manquante dans les variables d\'environnement.');
         }
+
+        $started = hrtime(true);
+        $elapsed = fn () => (int) round((hrtime(true) - $started) / 1e6);
 
         try {
             $response = Http::withHeaders(['x-goog-api-key' => $key])
                 ->acceptJson()
-                ->timeout(30)
+                ->timeout($timeout)
                 ->post(rtrim(config('services.gemini.base_url'), '/').'/'.config('services.gemini.text_api_version').'/interactions', [
                     'model' => config('services.gemini.tts_model'),
                     'input' => [[
@@ -99,36 +140,113 @@ class VoiceSampler
                     'store' => false,
                 ]);
         } catch (ConnectionException $e) {
-            throw new GeminiUnavailable('Connexion à l\'API Gemini impossible : '.$e->getMessage());
+            $timedOut = str_contains($e->getMessage(), 'cURL error 28') || stripos($e->getMessage(), 'timed out') !== false;
+
+            throw new SpeechFailed(
+                $timedOut ? SpeechFailed::TIMEOUT : SpeechFailed::CONNECTION,
+                $timedOut ? "Pas de réponse de Google en {$timeout} secondes." : 'Connexion à l\'API Gemini impossible.',
+                durationMs: $elapsed(),
+            );
         }
 
-        if ($response->status() === 429) {
-            throw new GeminiUnavailable('Quota Gemini atteint.', quotaExceeded: true);
+        if ($response->failed()) {
+            throw self::httpFailure($response, $elapsed());
         }
 
-        $audio = self::outputAudio($response->json('steps', []));
+        $audio = self::outputAudioItem($response->json('steps', []));
 
-        if ($response->failed() || $audio === null) {
-            Log::warning('Gemini : synthèse vocale refusée.', ['status' => $response->status(), 'voice' => $voice]);
-
-            throw new GeminiUnavailable('Synthèse vocale refusée (HTTP '.$response->status().').');
+        if ($audio === null) {
+            throw new SpeechFailed(SpeechFailed::NO_AUDIO, 'Google a répondu sans audio.', $response->status(), $elapsed());
         }
 
-        $wav = base64_decode($audio, true) ?: '';
+        $wav = self::toWav(base64_decode($audio['data'], true) ?: '', $audio['mime_type']);
 
-        if (! str_starts_with($wav, 'RIFF')) {
-            throw new GeminiUnavailable('Synthèse vocale illisible.');
+        if ($wav === null) {
+            throw new SpeechFailed(SpeechFailed::UNREADABLE, 'Audio reçu illisible (type « '.($audio['mime_type'] ?: 'inconnu').' »).', $response->status(), $elapsed());
         }
 
         return $wav;
     }
 
     /**
-     * Dernier bloc audio de la réponse (steps[].content[] de type « audio »).
+     * Cause d'un refus de Google : 429 (par minute ou par jour, avec le délai conseillé), sinon le code HTTP
+     * et le message d'erreur de Google (jamais la requête, donc jamais la clé).
+     */
+    private static function httpFailure(Response $response, int $durationMs): SpeechFailed
+    {
+        $error = (array) $response->json('error', []);
+        $message = Str::limit(trim((string) ($error['message'] ?? '')), 240);
+        $retryAfter = null;
+        $daily = false;
+
+        foreach ((array) ($error['details'] ?? []) as $detail) {
+            if (preg_match('/^(\d+)(?:\.\d+)?s$/', (string) ($detail['retryDelay'] ?? ''), $match)) {
+                $retryAfter = (int) $match[1];
+            }
+
+            foreach ((array) ($detail['violations'] ?? []) as $violation) {
+                $daily = $daily || stripos((string) ($violation['quotaId'] ?? '').' '.($violation['quotaMetric'] ?? ''), 'PerDay') !== false;
+            }
+        }
+
+        if ($response->status() === 429) {
+            $daily = $daily || stripos($message, 'per day') !== false;
+            $retryAfter ??= is_numeric($response->header('Retry-After')) ? (int) $response->header('Retry-After') : null;
+
+            return new SpeechFailed(
+                $daily ? SpeechFailed::QUOTA_DAILY : SpeechFailed::QUOTA,
+                $message !== '' ? $message : 'Quota Gemini atteint.',
+                429,
+                $durationMs,
+                $retryAfter,
+            );
+        }
+
+        return new SpeechFailed(
+            SpeechFailed::HTTP,
+            'HTTP '.$response->status().($message !== '' ? ' : '.$message : '').' (modèle « '.config('services.gemini.tts_model').' »).',
+            $response->status(),
+            $durationMs,
+        );
+    }
+
+    /**
+     * Fichier WAV à partir de l'audio reçu : gardé tel quel s'il a déjà un en-tête WAV (« RIFF ») ; PCM brut
+     * (audio/l16 ou audio/pcm, sans en-tête : 16 bits, mono, 24 kHz sauf mention « rate= ») enveloppé dans un
+     * en-tête WAV ; null s'il est vide ou d'un autre format.
+     */
+    public static function toWav(string $bytes, string $mimeType = ''): ?string
+    {
+        if ($bytes === '') {
+            return null;
+        }
+
+        if (str_starts_with($bytes, 'RIFF')) {
+            return $bytes;
+        }
+
+        $mime = strtolower($mimeType);
+
+        if ($mime !== '' && ! str_contains($mime, 'l16') && ! str_contains($mime, 'pcm')) {
+            return null;
+        }
+
+        $rate = preg_match('/rate=(\d+)/', $mime, $match) ? (int) $match[1] : 24000;
+        $bytes = strlen($bytes) % 2 === 0 ? $bytes : substr($bytes, 0, -1);
+        $length = strlen($bytes);
+
+        return 'RIFF'.pack('V', 36 + $length).'WAVE'
+            .'fmt '.pack('V', 16).pack('v', 1).pack('v', 1).pack('V', $rate).pack('V', $rate * 2).pack('v', 2).pack('v', 16)
+            .'data'.pack('V', $length).$bytes;
+    }
+
+    /**
+     * Dernier bloc audio de la réponse (steps[].content[] de type « audio ») : données en base64 et type.
      *
      * @param  array<int, array<string, mixed>>  $steps
+     * @return array{data: string, mime_type: string}|null
      */
-    public static function outputAudio(array $steps): ?string
+    public static function outputAudioItem(array $steps): ?array
     {
         $audio = null;
 
@@ -139,7 +257,7 @@ class VoiceSampler
 
             foreach ($step['content'] ?? [] as $item) {
                 if (($item['type'] ?? null) === 'audio' && is_string($item['data'] ?? null)) {
-                    $audio = $item['data'];
+                    $audio = ['data' => $item['data'], 'mime_type' => (string) ($item['mime_type'] ?? $item['mimeType'] ?? '')];
                 }
             }
         }

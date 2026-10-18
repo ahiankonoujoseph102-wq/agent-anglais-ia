@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UsageController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VoiceController;
+use App\Http\Controllers\Admin\VoiceDiagnosticController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -152,6 +153,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/voix', [VoiceController::class, 'index'])->name('voices.index');
     Route::get('/voix/{voice}/extrait', [VoiceController::class, 'sample'])->where('voice', '[A-Za-z]+')->middleware('throttle:30,1')->name('voices.sample');
     Route::post('/voix', [VoiceController::class, 'choose'])->name('voices.choose');
+    Route::get('/diagnostic-voix', [VoiceDiagnosticController::class, 'index'])->name('voice-diagnostic.index');
+    Route::post('/diagnostic-voix/essai', [VoiceDiagnosticController::class, 'test'])->middleware('throttle:10,1')->name('voice-diagnostic.test');
+    Route::post('/diagnostic-voix/preparer', [VoiceDiagnosticController::class, 'prepare'])->middleware('throttle:6,1')->name('voice-diagnostic.prepare');
     Route::get('/icones', IconPreviewController::class)->name('icons.index');
     Route::get('/inactifs', [InactiveLearnerController::class, 'index'])->name('inactive.index');
     Route::get('/inactifs/{user}/whatsapp', [InactiveLearnerController::class, 'whatsapp'])->name('inactive.whatsapp');

@@ -30,3 +30,7 @@ Schedule::call(fn () => Cache::put(CheckDeployment::HEARTBEAT_KEY, now()->timest
     ->everyMinute()
     ->withoutOverlapping()
     ->onOneServer();
+
+// Messages vocaux communs (bienvenue, résultat de l'évaluation) : ce qui manque encore est préparé, sans dépasser
+// la limite de Google ; aucune demande quand tout est prêt. Aussi lancée à chaque déploiement.
+Schedule::command('app:prepare-voice --budget=50')->hourly()->withoutOverlapping()->onOneServer();
