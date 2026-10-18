@@ -1,4 +1,4 @@
-<x-layout title="Inscription" narrow :description="'Créez votre compte '.config('platform.name').' avec votre nom et votre numéro de téléphone, puis passez votre évaluation orale gratuite avec '.config('avatar.model.name').'.'">
+<x-layout title="Inscription et évaluation d'anglais gratuite" narrow :description="'Créez votre compte '.config('platform.name').' avec votre nom et votre numéro de téléphone, puis passez votre évaluation d\'anglais orale gratuite avec '.config('avatar.model.name').'.'">
     <div class="auth-head rise">
         <span class="icon-bubble icon-bubble-primary"><x-icon name="user-plus" /></span>
         <h1>Créer mon compte</h1>

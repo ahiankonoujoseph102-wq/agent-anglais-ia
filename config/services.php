@@ -41,6 +41,12 @@ return [
     | jeton éphémère, à usage unique et à durée limitée.
     | Les consignes du professeur sont dans config/teacher.php.
     */
+    // Google Search Console : code de la balise « google-site-verification » (méthode « Balise HTML »).
+    // Vide : aucune balise. Ce n'est pas un secret (il est visible dans la page).
+    'google' => [
+        'site_verification' => env('GOOGLE_SITE_VERIFICATION'),
+    ],
+
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
         // Modèle audio natif de l'API Live (voir ai.google.dev/gemini-api/docs/models).

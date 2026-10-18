@@ -15,7 +15,7 @@
     $coursesIcon = $hasAccess ? 'book' : 'mic';
 @endphp
 
-<x-layout install :description="'Apprenez à parler anglais avec '.$teacher.', le professeur de '.$platform.', disponible chaque jour depuis votre téléphone. Évaluation orale gratuite, séances quotidiennes, paiement par Mobile Money.'">
+<x-layout install :description="'Apprenez à parler anglais avec '.$teacher.', professeur d\'anglais en ligne disponible chaque jour sur votre téléphone. Évaluation orale gratuite.'">
     {{-- Haut de page : la promesse et le bouton orange, visibles sans faire défiler. --}}
     <section class="hero" aria-labelledby="promesse">
         <div class="hero-text rise">
@@ -139,6 +139,7 @@
             @endforeach
         </div>
         <p class="muted small reveal next-step">
+            <a href="{{ route('plans') }}">Tout savoir sur les formules et les prix</a>.
             Paiement par Mobile Money ({{ implode(', ', $countries) }}) : {{ implode(', ', $operators) }}.
         </p>
     </section>
@@ -187,6 +188,15 @@
         </div>
     </section>
 
+    <section class="section" aria-labelledby="pays">
+        <div class="section-head reveal">
+            <span class="eyebrow">Dans votre pays</span>
+            <h2 id="pays">Apprendre l'anglais au Togo, au Bénin, au Burkina Faso et en Côte d'Ivoire</h2>
+            <p class="muted">Mêmes formules et mêmes prix partout, avec les moyens de paiement de votre pays. <a href="{{ route('about') }}">Qui sommes-nous ?</a></p>
+        </div>
+        <x-country-links :pages="$countryPages" />
+    </section>
+
     <section class="section" aria-labelledby="questions">
         <div class="section-head reveal">
             <span class="eyebrow">Vos questions</span>
@@ -233,6 +243,8 @@
         {!! $faqHtml !!}
         @push('head')
             {!! \App\Support\Seo::jsonLd(\App\Support\Seo::organization()) !!}
+            {!! \App\Support\Seo::jsonLd(\App\Support\Seo::website()) !!}
+            {!! \App\Support\Seo::jsonLd(\App\Support\Seo::offers()) !!}
             {!! \App\Support\Seo::jsonLd(\App\Support\Seo::faq($faqHtml)) !!}
         @endpush
     </section>

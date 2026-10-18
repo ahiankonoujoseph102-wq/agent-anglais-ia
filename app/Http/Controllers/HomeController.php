@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CountryPage;
 use App\Support\PaymentCountry;
 use App\Support\Plan;
 use App\Support\SiteSettings;
@@ -26,6 +27,7 @@ class HomeController extends Controller
 
         return view('home', [
             'plans' => Plan::all(),
+            'countryPages' => CountryPage::all(),
             'operators' => array_values(array_unique($operators)),
             'countries' => array_map(fn (PaymentCountry $country) => $country->name, array_values($countries)),
             // Opérateurs pays par pays (question fréquente sur le paiement).

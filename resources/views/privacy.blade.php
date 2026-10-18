@@ -10,7 +10,7 @@
     $keepDays = (int) config('platform.transcripts.keep_days');
 @endphp
 
-<x-layout title="Confidentialité" narrow :description="'Quelles informations '.$platform.' garde, à quoi elles servent, combien de temps, et comment en demander l\'accès ou la suppression.'">
+<x-layout title="Confidentialité et données personnelles" narrow :description="'Quelles informations '.$platform.' garde, à quoi elles servent, combien de temps, et comment en demander l\'accès ou la suppression.'">
     <div class="auth-head rise">
         <span class="icon-bubble"><x-icon name="shield" /></span>
         <h1>Confidentialité</h1>

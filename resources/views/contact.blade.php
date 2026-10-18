@@ -1,4 +1,4 @@
-<x-layout title="Contact" narrow :description="'Coordonnées du centre '.config('platform.name').' : adresse, horaires, téléphones, WhatsApp.'">
+<x-layout title="Contact et WhatsApp, cours d'anglais à Lomé" narrow :description="'Contactez '.config('platform.name').' : bureau à Lomé, horaires, téléphones et WhatsApp pour vos questions sur les cours d\'anglais en ligne et le paiement.'">
     <div class="auth-head rise">
         <span class="icon-bubble"><x-icon name="bubble" /></span>
         <h1>Nous contacter</h1>

@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\MarkPrivatePagesNoIndex;
 use App\Http\Middleware\RedirectToHttps;
+use App\Http\Middleware\RedirectToPrimaryDomain;
 use App\Http\Middleware\RequireConfirmation;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -23,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // Actions graves : page de confirmation si le formulaire arrive sans confirmed=1.
             'confirm' => RequireConfirmation::class,
         ]);
+
+        // Changement de domaine : ancienne adresse → APP_URL en 301 (toutes les routes, après les proxys de confiance).
+        $middleware->append(RedirectToPrimaryDomain::class);
 
         // HTTPS obligatoire en production (avant tout le reste du groupe web).
         $middleware->prependToGroup('web', RedirectToHttps::class);
