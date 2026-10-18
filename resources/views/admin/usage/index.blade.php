@@ -54,6 +54,31 @@
     </div>
     <p class="muted small">Ces conversations sont aussi comptées dans les totaux ci-dessus ; elles sont reconnaissables à « Accès offert » dans les listes.</p>
 
+    {{-- Synthèse vocale des messages (bienvenue, résultat de l'évaluation, essais) : jamais mélangée aux conversations. --}}
+    <h2 class="next-step">Synthèse vocale des messages</h2>
+    <div class="stats">
+        @foreach ($speechProviders as $provider)
+            @php
+                $total = $speech[$provider->name()];
+            @endphp
+            <div class="stat">
+                <div class="label">{{ $provider->label() }}</div>
+                <div class="value">{{ $total['count'] }}</div>
+                <div class="detail">
+                    {{ $total['count'] > 1 ? 'synthèses' : 'synthèse' }} ·
+                    {{ Duration::formatPrecise(intdiv($total['milliseconds'], 1000)) }} de voix ·
+                    {{ number_format($total['characters'], 0, ',', ' ') }} caractères ·
+                    {{ UsageCost::format($total['cost']) }}
+                </div>
+            </div>
+        @endforeach
+    </div>
+    <p class="muted small">
+        Coût estimé à {{ UsageCost::format((float) config('services.gemini.tts_cost_per_minute')) }} par minute de voix pour Gemini (mode gratuit)
+        et {{ UsageCost::format((float) config('services.openai.tts_cost_per_minute')) }} par minute pour OpenAI (tarif publié).
+        Les séances orales en direct n'en font pas partie.
+    </p>
+
     <h2 class="next-step">Par apprenant</h2>
     @if ($learners->isEmpty())
         <div class="card empty-state"><span class="icon-bubble"><x-icon name="chart" /></span><p>Aucune conversation pour le moment.</p></div>

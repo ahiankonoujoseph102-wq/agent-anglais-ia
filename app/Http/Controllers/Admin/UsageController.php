@@ -9,11 +9,14 @@ use App\Models\Lesson;
 use App\Models\LevelTest;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Speech\SpeechProviders;
+use App\Support\Speech\SpeechUsage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 
 /**
- * Durée réelle et jetons consommés par conversation, pour calculer le coût par apprenant.
+ * Durée réelle et jetons consommés par conversation, pour calculer le coût par apprenant ; synthèse vocale
+ * des messages à part, par fournisseur.
  */
 class UsageController extends Controller
 {
@@ -82,6 +85,9 @@ class UsageController extends Controller
             'recentLessons' => $recentLessons,
             'recentCourseSessions' => $recentCourseSessions,
             'recentAssessments' => $recentAssessments,
+            // Synthèse vocale des messages (bienvenue, résultat, essais) : à part, par fournisseur.
+            'speech' => SpeechUsage::totals(),
+            'speechProviders' => SpeechProviders::all(),
         ]);
     }
 

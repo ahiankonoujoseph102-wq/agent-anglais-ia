@@ -14,6 +14,7 @@ use App\Support\Gemini\WelcomeMessage;
 use App\Support\Greeting;
 use App\Support\Plan;
 use App\Support\PrivateStorage;
+use App\Support\Speech\GeminiSpeech;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
@@ -385,7 +386,7 @@ class WelcomeTest extends TestCase
         Http::assertSent(fn (Request $request) => $request['generation_config']['speech_config'][0]['voice'] === config('services.gemini.voice')
             && $request['model'] === config('services.gemini.tts_model')
             && str_contains($request['input'][0]['content'][0]['annotations'][0]['style'], 'welcoming a new learner'));
-        $this->assertTrue(PrivateStorage::disk()->exists(WelcomeMessage::path($this->texts($user, 'evening')['opening'], (string) config('services.gemini.voice'), true)));
+        $this->assertTrue(PrivateStorage::disk()->exists(WelcomeMessage::path($this->texts($user, 'evening')['opening'], app(GeminiSpeech::class), true)));
 
         // Réécoute : plus aucun appel à Google.
         Http::fake();
@@ -425,31 +426,34 @@ class WelcomeTest extends TestCase
         self::fakeSpeech();
         $disk = PrivateStorage::disk();
         $voice = (string) config('services.gemini.voice');
+        $gemini = app(GeminiSpeech::class);
 
-        // Restes de l'ancien message « après l'inscription » et ouverture d'un prénom déjà gardée.
+        // Restes de l'ancien message « après l'inscription », ancienne ouverture, et ouverture d'un prénom déjà gardée.
         $disk->put(WelcomeMessage::DIRECTORY.'/'.$voice.'-ancienmessage0000001.wav', 'ancien');
         $disk->put(WelcomeMessage::DIRECTORY.'/Puck-ancienne0voix00002.wav', 'ancien');
-        $opening = WelcomeMessage::DIRECTORY.'/'.WelcomeMessage::OPENING_PREFIX.$voice.'-ouverture00000000001.wav';
+        $disk->put(WelcomeMessage::DIRECTORY.'/'.WelcomeMessage::LEGACY_OPENING_PREFIX.$voice.'-ouverture00000000002.wav', 'ancienne ouverture');
+        $opening = WelcomeMessage::DIRECTORY.'/'.WelcomeMessage::OPENINGS.'/gemini-'.$voice.'-ouverture00000000001.wav';
         $disk->put($opening, 'ouverture');
 
         $prepared = $this->prepareCommonPart();
 
         $this->assertFalse($disk->exists(WelcomeMessage::DIRECTORY.'/'.$voice.'-ancienmessage0000001.wav'));
         $this->assertFalse($disk->exists(WelcomeMessage::DIRECTORY.'/Puck-ancienne0voix00002.wav'));
+        $this->assertFalse($disk->exists(WelcomeMessage::DIRECTORY.'/'.WelcomeMessage::LEGACY_OPENING_PREFIX.$voice.'-ouverture00000000002.wav'));
         $this->assertTrue($disk->exists($opening));
 
         // Une phrase corrigée : seul ce paragraphe est régénéré, son ancienne version disparaît.
         $user = $this->newcomer();
-        $old = WelcomeMessage::path($this->texts($user)['paragraphs'][3], $voice);
+        $old = WelcomeMessage::path($this->texts($user)['paragraphs'][3], $gemini);
         config(['teacher.welcome.paragraphs.questionnaire' => 'Première étape : un court questionnaire, corrigé.']);
-        $new = WelcomeMessage::path($this->texts($user)['paragraphs'][3], $voice);
+        $new = WelcomeMessage::path($this->texts($user)['paragraphs'][3], $gemini);
 
         $this->artisan('app:prepare-voice')->assertSuccessful();
 
         Http::assertSentCount($prepared + 1);
         $this->assertTrue($disk->exists($new));
         $this->assertFalse($disk->exists($old));
-        $this->assertTrue($disk->exists(WelcomeMessage::path($this->texts($user)['paragraphs'][0], $voice)));
+        $this->assertTrue($disk->exists(WelcomeMessage::path($this->texts($user)['paragraphs'][0], $gemini)));
     }
 
     public function test_a_paragraph_not_yet_prepared_is_never_generated_while_listening(): void

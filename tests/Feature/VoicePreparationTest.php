@@ -60,9 +60,16 @@ class VoicePreparationTest extends TestCase
         ]];
     }
 
+    /** Morceaux communs, sans doublon. */
     private static function total(): int
     {
         return count(WelcomeMessage::commonParagraphs()) + count(LevelMessage::all());
+    }
+
+    /** Messages communs (un message de bienvenue par formule et par état du programme, un message par niveau). */
+    private static function messages(): int
+    {
+        return count(SpeechPreparer::messages());
     }
 
     public function test_everything_is_prepared_one_by_one_with_spacing(): void
@@ -119,7 +126,7 @@ class VoicePreparationTest extends TestCase
         // Un essai, puis un nouvel essai par délai de la configuration (15, 30, 60 secondes), puis arrêt.
         Http::assertSentCount(1 + count(config('services.gemini.tts_retry_delays')));
         $this->assertSame(SpeechFailed::QUOTA, $result['stopped']);
-        $this->assertStringContainsString('Il en reste '.self::total(), SpeechPreparer::summary($result));
+        $this->assertStringContainsString('Il en reste '.self::messages().' :', SpeechPreparer::summary($result));
         $this->assertStringContainsString('Relancez dans quelques minutes', SpeechPreparer::summary($result));
     }
 
@@ -132,7 +139,7 @@ class VoicePreparationTest extends TestCase
         Http::assertSentCount(1);
         $this->assertSame(SpeechFailed::QUOTA_DAILY, $result['stopped']);
         $this->assertStringContainsString('Relancez demain', SpeechPreparer::summary($result));
-        $this->assertSame('Limite de demandes du jour atteinte (erreur 429)', SpeechLog::recent()[0]['reason']);
+        $this->assertSame('Limite de demandes du jour atteinte ou crédit épuisé (erreur 429)', SpeechLog::recent()[0]['reason']);
     }
 
     public function test_a_timeout_is_logged_and_the_preparation_stops_after_a_few_failures(): void
@@ -177,7 +184,8 @@ class VoicePreparationTest extends TestCase
 
         $this->assertSame(3, $result['generated']);
         $this->assertSame('budget', $result['stopped']);
-        $this->assertStringContainsString('Il en reste '.(self::total() - 3).' : le temps accordé est écoulé', SpeechPreparer::summary($result));
+        // Aucun message n'est encore complet : tous restent à finir.
+        $this->assertStringContainsString('Il en reste '.self::messages().' : le temps accordé est écoulé', SpeechPreparer::summary($result));
     }
 
     public function test_raw_pcm_audio_is_wrapped_in_a_wav_header(): void
@@ -230,7 +238,7 @@ class VoicePreparationTest extends TestCase
         $this->artisan('app:prepare-voice')->expectsOutputToContain('Relancez demain')->assertSuccessful();
 
         config(['services.gemini.key' => null]);
-        $this->artisan('app:prepare-voice')->expectsOutputToContain('GEMINI_API_KEY est absente')->assertSuccessful();
+        $this->artisan('app:prepare-voice')->expectsOutputToContain('aucune clé de synthèse vocale n\'est présente (GEMINI_API_KEY, OPENAI_API_KEY)')->assertSuccessful();
 
         // Même une erreur inattendue ne fait pas échouer la commande.
         $this->app->instance(SpeechPreparer::class, new class extends SpeechPreparer
@@ -268,10 +276,14 @@ class VoicePreparationTest extends TestCase
 
         $page = $this->actingAs(User::factory()->admin()->create())->get(route('admin.voice-diagnostic.index'))->assertOk()
             ->assertSee('Diagnostic de la voix')
-            ->assertSee('Tester la synthèse vocale')
+            ->assertSee('Tester Gemini (Google)')
+            ->assertSee('Tester OpenAI')
             ->assertSee('Préparer le message de bienvenue')
-            ->assertSeeText('Message de bienvenue : 0 paragraphes prêts sur '.count(WelcomeMessage::commonParagraphs()))
-            ->assertSee('Clé Gemini : <strong>présente</strong>', false)
+            ->assertSeeText('Messages de bienvenue : 0 prêts sur '.count(WelcomeMessage::messages()))
+            ->assertSee('Clé GEMINI_API_KEY : <strong>présente</strong>', false)
+            ->assertSee('Clé OPENAI_API_KEY : <strong>absente</strong>', false)
+            ->assertSee(config('services.openai.tts_model'))
+            ->assertSee(config('services.openai.tts_voice'))
             ->assertSee(config('services.gemini.tts_model'))
             ->assertSee('Aucune erreur enregistrée.');
 
@@ -286,12 +298,12 @@ class VoicePreparationTest extends TestCase
             ->push(self::speech())
             ->push(self::quota(), 429)]);
 
-        $this->actingAs($admin)->from(route('admin.voice-diagnostic.index'))->post(route('admin.voice-diagnostic.test'))
+        $this->actingAs($admin)->from(route('admin.voice-diagnostic.index'))->post(route('admin.voice-diagnostic.test', 'gemini'))
             ->assertRedirect(route('admin.voice-diagnostic.index'))
-            ->assertSessionHas('diagnostic', fn (array $result) => $result['ok'] && str_contains($result['text'], 'Réussi'));
+            ->assertSessionHas('diagnostic', fn (array $result) => $result['ok'] && str_contains($result['text'], 'Gemini (Google) : réussi'));
         $this->assertSame([], PrivateStorage::disk()->allFiles('voice-diagnostic'));
 
-        $this->actingAs($admin)->from(route('admin.voice-diagnostic.index'))->post(route('admin.voice-diagnostic.test'))
+        $this->actingAs($admin)->from(route('admin.voice-diagnostic.index'))->post(route('admin.voice-diagnostic.test', 'gemini'))
             ->assertSessionHas('diagnostic', fn (array $result) => ! $result['ok'] && str_contains($result['text'], 'code HTTP 429'));
 
         $this->get(route('admin.voice-diagnostic.index'))->assertSee('Diagnostic : phrase d&#039;essai', false)->assertSee('Limite de demandes par minute atteinte (erreur 429)');
@@ -306,7 +318,7 @@ class VoicePreparationTest extends TestCase
             ->assertSessionHas('diagnostic', fn (array $result) => ! $result['ok'] && str_contains($result['text'], 'relancez la préparation'));
 
         // Nouveaux touchers jusqu'à ce que tout soit prêt.
-        for ($i = 0; $i < 10 && ! (WelcomeMessage::status()['ready'] === WelcomeMessage::status()['total'] && LevelMessage::status()['ready'] === LevelMessage::status()['total']); $i++) {
+        for ($i = 0; $i < 10 && ! (SpeechPreparer::status()['welcome']['ready'] === SpeechPreparer::status()['welcome']['total'] && SpeechPreparer::status()['levels']['ready'] === SpeechPreparer::status()['levels']['total']); $i++) {
             $this->travel(1)->minutes();
             $this->post(route('admin.voice-diagnostic.prepare'));
         }

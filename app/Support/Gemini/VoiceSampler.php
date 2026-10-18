@@ -3,6 +3,9 @@
 namespace App\Support\Gemini;
 
 use App\Support\PrivateStorage;
+use App\Support\Speech\GeminiSpeech;
+use App\Support\Speech\SpeechProvider;
+use App\Support\Speech\SpeechUsage;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -71,7 +74,8 @@ class VoiceSampler
     /**
      * Fait dire un texte par une voix avec le modèle de synthèse vocale. Renvoie le fichier WAV
      * (aussi utilisé pour le message vocal du résultat et le message de bienvenue). Chaque échec est
-     * journalisé avec sa cause (SpeechLog) : code HTTP, type d'erreur, durée, morceau concerné ($label).
+     * journalisé avec sa cause (SpeechLog) : code HTTP, type d'erreur, durée, morceau concerné ($label) ;
+     * chaque réussite est comptée dans la consommation (SpeechUsage).
      *
      * @param  int|null  $timeout  délai d'attente en secondes (services.gemini.tts_timeout par défaut)
      *
@@ -80,12 +84,16 @@ class VoiceSampler
     public function synthesize(string $voice, string $text, string $style, string $label = 'Synthèse vocale', ?int $timeout = null): string
     {
         try {
-            return $this->request($voice, $text, $style, max(1, $timeout ?? (int) config('services.gemini.tts_timeout')));
+            $wav = $this->request($voice, $text, $style, max(1, $timeout ?? (int) config('services.gemini.tts_timeout')));
         } catch (SpeechFailed $e) {
             SpeechLog::failure($e, $label);
 
             throw $e;
         }
+
+        SpeechUsage::record(app(GeminiSpeech::class), $label, $text, $wav, $voice);
+
+        return $wav;
     }
 
     /**
@@ -93,7 +101,7 @@ class VoiceSampler
      *
      * @throws SpeechFailed
      */
-    public static function store(string $path, string $wav, string $label): void
+    public static function store(string $path, string $wav, string $label, ?SpeechProvider $provider = null): void
     {
         try {
             $written = PrivateStorage::disk()->put($path, $wav);
@@ -104,7 +112,7 @@ class VoiceSampler
 
         if ($written === false) {
             $failure = new SpeechFailed(SpeechFailed::STORAGE, 'Écriture refusée par le disque « '.PrivateStorage::name().' »'.(isset($cause) ? ' ('.$cause.')' : '').'.');
-            SpeechLog::failure($failure, $label);
+            SpeechLog::failure($failure, $label, $provider);
 
             throw $failure;
         }
