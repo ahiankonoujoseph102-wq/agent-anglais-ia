@@ -39,6 +39,8 @@ const { CueTracker } = await import(root.dataset.teacherCues);
 // Adaptateurs des fournisseurs (même langage d'événements pour l'écran).
 const { GeminiTransport } = await import(root.dataset.liveGemini);
 const { OpenAiTransport } = await import(root.dataset.liveOpenai);
+// Texte de la conversation (jamais l'audio), envoyé au serveur par petits lots.
+const { TranscriptRecorder } = await import(root.dataset.transcript);
 // Secondes, pour la fin automatique.
 const clock = () => performance.now() / 1000;
 const MIC_PREFERENCE = 'mic-device';
@@ -156,6 +158,10 @@ const state = {
     learnerLines: new Map(),
     voiceSource: null,
     lastAudibleAt: 0,
+    // Texte de la conversation : une réplique par ligne de sous-titres.
+    recorder: new TranscriptRecorder(),
+    utterances: new WeakMap(),
+    sendingTranscript: false,
 };
 
 /* ---------- Échanges avec le serveur Laravel ---------- */
@@ -214,6 +220,8 @@ async function heartbeat() {
     if (state.ending) {
         return;
     }
+
+    flushTranscript();
 
     const tokens = takeTokens();
     const transcript = takeTranscript();
@@ -276,6 +284,8 @@ function makeLine(speaker) {
     const line = document.createElement('p');
     line.className = `line line-${speaker}`;
     line.dataset.speaker = speaker === 'teacher' ? 'Professeur' : 'Vous';
+    // Heure de la réplique : quand sa ligne apparaît (la transcription peut arriver après la phrase).
+    line.dataset.startedAt = String(Date.now());
     ui.subtitles.append(line);
 
     return line;
@@ -328,6 +338,7 @@ function subtitle(speaker, text, key = null) {
     const line = lineFor(speaker, key);
     line.hidden = false;
     line.textContent += text;
+    recordUtterance(line, speaker, text);
     ui.subtitles.scrollTop = ui.subtitles.scrollHeight;
     recordTranscript(speaker, text);
     recordHistory(speaker, text);
@@ -344,6 +355,62 @@ function subtitle(speaker, text, key = null) {
     // On garde les 30 dernières répliques : la page reste légère.
     while (ui.subtitles.children.length > 30) {
         ui.subtitles.firstElementChild.remove();
+    }
+}
+
+/**
+ * La réplique de cette ligne de sous-titres (créée au premier mot), qui partira au serveur.
+ */
+function recordUtterance(line, speaker, text) {
+    let utterance = state.utterances.get(line);
+
+    if (!utterance) {
+        utterance = state.recorder.start(speaker, Number(line.dataset.startedAt) || Date.now());
+        state.utterances.set(line, utterance);
+    }
+
+    state.recorder.append(utterance, text);
+}
+
+/**
+ * Envoie un lot de répliques. Jamais bloquant : en cas d'échec (réseau), le lot repartira au prochain envoi ;
+ * un refus du serveur (séance trop ancienne, envoi non valable) ne se répète pas.
+ */
+async function sendTranscript() {
+    const url = state.config?.transcript_url;
+    const batch = url ? state.recorder.takeBatch() : [];
+
+    if (batch.length === 0) {
+        return false;
+    }
+
+    const result = await post(url, { lines: TranscriptRecorder.payload(batch) });
+
+    if (!result.ok && (result.status === 0 || result.status === 429 || result.status >= 500)) {
+        state.recorder.restore(batch);
+
+        return false;
+    }
+
+    return true;
+}
+
+/** Envoi régulier (à chaque signal), un lot à la fois. */
+function flushTranscript() {
+    if (state.sendingTranscript) {
+        return;
+    }
+
+    state.sendingTranscript = true;
+    sendTranscript().finally(() => { state.sendingTranscript = false; });
+}
+
+/** Dernier envoi, à la fin de la séance : tout ce qui reste. */
+async function flushAllTranscript() {
+    for (let i = 0; i < 20 && state.recorder.hasPending; i++) {
+        if (!await sendTranscript()) {
+            break;
+        }
     }
 }
 
@@ -1540,6 +1607,8 @@ async function finish(reason, message = '') {
     let closing = null;
 
     if (state.config) {
+        // Le texte de la conversation part en même temps, sans retarder la fin.
+        flushAllTranscript();
         closing = await post(urls.finish, { ...takeTokens(), ...takeTranscript() });
     }
 
@@ -1596,5 +1665,15 @@ window.addEventListener('pagehide', () => {
         }
 
         navigator.sendBeacon(urls.finish, form);
+
+        // Répliques pas encore envoyées : un dernier lot, sans attendre de réponse.
+        const lines = state.config.transcript_url ? TranscriptRecorder.payload(state.recorder.takeBatch()) : [];
+
+        if (lines.length > 0) {
+            const text = new FormData();
+            text.append('_token', csrf);
+            lines.forEach((line, index) => Object.entries(line).forEach(([key, value]) => text.append(`lines[${index}][${key}]`, value)));
+            navigator.sendBeacon(state.config.transcript_url, text);
+        }
     }
 });

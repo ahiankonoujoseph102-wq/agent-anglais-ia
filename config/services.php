@@ -187,6 +187,11 @@ return [
         'realtime_model' => env('OPENAI_REALTIME_MODEL') ?: 'gpt-realtime-2.1-mini',
         'realtime_voice' => env('OPENAI_REALTIME_VOICE') ?: 'cedar',
         'realtime_transcription_model' => env('OPENAI_REALTIME_TRANSCRIPTION_MODEL') ?: 'gpt-4o-mini-transcribe',
+        // Transcription de la voix de l'apprenant chez OpenAI (sous-titres « Vous » et texte des conversations) :
+        // facturée à part, au tarif du modèle de transcription (gpt-4o-mini-transcribe : 0,003 $ par minute de voix
+        // de l'apprenant, le moins cher, developers.openai.com/api/docs/pricing, relevé du 18 octobre 2026). La voix de
+        // Teacher Joe est transcrite avec sa réponse, sans modèle en plus. « false », « 0 », « off » ou « no » la coupent.
+        'realtime_input_transcription' => ! in_array(env('OPENAI_REALTIME_INPUT_TRANSCRIPTION'), [false, '0', 'off', 'no'], true),
         // Réflexion du modèle (modèles « 2 » et suivants) : minimal, low, medium ; vide : réglage d'OpenAI.
         'realtime_reasoning' => env('OPENAI_REALTIME_REASONING', 'low'),
         // Détection de parole peu sensible, comme chez Gemini : 1,2 seconde de silence avant la réponse.

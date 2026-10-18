@@ -18,6 +18,7 @@
         <x-input name="password_confirmation" label="Confirmer le mot de passe" type="password" autocomplete="new-password" required />
 
         <button type="submit" class="btn btn-accent btn-block btn-lg">Créer mon compte</button>
+        <p class="muted small register-privacy">En créant un compte, vous acceptez notre <a href="{{ route('privacy') }}">politique de confidentialité</a>.</p>
     </form>
 
     <div class="form-footer">

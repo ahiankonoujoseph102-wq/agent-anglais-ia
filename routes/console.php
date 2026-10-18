@@ -34,3 +34,6 @@ Schedule::call(fn () => Cache::put(CheckDeployment::HEARTBEAT_KEY, now()->timest
 // Messages vocaux communs (bienvenue, résultat de l'évaluation) : ce qui manque encore est préparé, sans dépasser
 // la limite de Google ; aucune demande quand tout est prêt. Aussi lancée à chaque déploiement.
 Schedule::command('app:prepare-voice --budget=50')->hourly()->withoutOverlapping()->onOneServer();
+
+// Texte des conversations : effacé après platform.transcripts.keep_days jours (90), chaque nuit.
+Schedule::command('transcripts:purge')->dailyAt('03:10')->withoutOverlapping()->onOneServer();

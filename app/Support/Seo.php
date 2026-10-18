@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 final class Seo
 {
     /** Pages publiques indexées, dans l'ordre du sitemap. */
-    public const INDEXABLE_ROUTES = ['home', 'contact', 'register'];
+    public const INDEXABLE_ROUTES = ['home', 'contact', 'register', 'privacy'];
 
     /** Image de partage (WhatsApp, Facebook…), 1200 × 630 pixels, produite par tools/brand/share-image.mjs. */
     public const SHARE_IMAGE = 'images/partage-talkami.jpg';

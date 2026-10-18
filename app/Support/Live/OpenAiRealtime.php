@@ -50,8 +50,6 @@ class OpenAiRealtime
             'audio' => [
                 'input' => [
                     'noise_reduction' => ['type' => 'near_field'],
-                    // Sous-titres « Vous » : transcription de ce que dit l'apprenant (anglais ou français).
-                    'transcription' => ['model' => (string) config('services.openai.realtime_transcription_model')],
                     // Détection de parole peu sensible : l'apprenant qui hésite n'est pas coupé.
                     'turn_detection' => [
                         'type' => 'server_vad',
@@ -65,6 +63,12 @@ class OpenAiRealtime
                 'output' => ['voice' => (string) config('services.openai.realtime_voice')],
             ],
         ];
+
+        // Sous-titres « Vous » et texte des conversations : transcription de ce que dit l'apprenant (anglais ou
+        // français), facturée à part par OpenAI ; désactivable (OPENAI_REALTIME_INPUT_TRANSCRIPTION=false).
+        if (config('services.openai.realtime_input_transcription')) {
+            $session['audio']['input']['transcription'] = ['model' => (string) config('services.openai.realtime_transcription_model')];
+        }
 
         if ($tools !== []) {
             $session['tools'] = $tools;

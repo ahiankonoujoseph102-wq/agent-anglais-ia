@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * Une séance « Mes cours » : Teacher Joe réexplique une leçon de l'apprenant puis la fait pratiquer.
- * Elle ne consomme PAS les minutes de la séance orale quotidienne (table et compteur à part).
+ * Elle prend sur le temps du jour de la formule, partagé avec la séance orale (User::remainingSecondsToday).
  */
 #[Fillable(['course_lesson_id', 'date', 'allowed_seconds', 'used_seconds', 'started_at', 'ended_at', 'status'])]
 class CourseSession extends Model

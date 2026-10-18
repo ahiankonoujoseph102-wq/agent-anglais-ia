@@ -394,7 +394,7 @@ class LiveProvidersTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.users.show', $user))
             ->assertOk()
-            ->assertSeeText('Séances en direct')
+            ->assertSeeText('Conversations')
             ->assertSeeInOrder(['Séance du jour', '10 minutes', 'OpenAI']);
 
         $this->actingAs($admin)->get('/admin/consommation')

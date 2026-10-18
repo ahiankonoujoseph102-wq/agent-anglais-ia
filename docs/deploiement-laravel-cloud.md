@@ -16,7 +16,7 @@ Ce guide se suit dans l'ordre, avec le navigateur du téléphone (Chrome). Aucun
 Vous n'avez rien à programmer. Le dépôt est déjà prêt :
 
 - les captures de paiement et les attestations vont dans un **bucket privé** (jamais sur le disque du serveur, qui est effacé à chaque déploiement, jamais par un lien public) ;
-- les tâches automatiques (fin des abonnements, fermeture des séances abandonnées) sont déclarées dans `routes/console.php` : il suffit d'activer **Scheduler** (étape 9) ;
+- les tâches automatiques (fin des abonnements, fermeture des séances abandonnées, effacement des conversations de plus de 90 jours) sont déclarées dans `routes/console.php` : il suffit d'activer **Scheduler** (étape 9) ;
 - en production : mode débogage coupé quoi qu'on écrive, cookies sécurisés, HTTPS obligatoire, proxys de Laravel Cloud crus (sinon le site croirait être en http), fuseau Africa/Lome ;
 - les données de démonstration (compte « password ») **refusent** de s'installer en production.
 
@@ -166,6 +166,7 @@ Dans **Settings, General** (section **Environment variables**), ajoutez les vari
 | `LIVE_PROVIDERS` | Ordre des fournisseurs des séances orales en direct, séparés par une virgule. Le fournisseur est choisi au début de chaque séance et ne change jamais pendant la séance. Facultative. `openai` seul : toutes les séances se font chez OpenAI (pour un essai). | absente (`gemini,openai`) |
 | `OPENAI_REALTIME_MODEL` | Modèle de conversation vocale en direct d'OpenAI. Facultative (plus naturel mais environ trois fois plus cher : `gpt-realtime-2.1`). | absente (`gpt-realtime-2.1-mini`, audio : 10 $ par million de jetons en entrée, 20 $ en sortie) |
 | `OPENAI_REALTIME_VOICE` | Voix de Teacher Joe chez OpenAI. Facultative (autre voix recommandée : `marin`). | absente (`cedar`, voix masculine) |
+| `OPENAI_REALTIME_INPUT_TRANSCRIPTION` | Transcription de ce que dit l'apprenant pendant une séance chez OpenAI (sous-titres « Vous » et texte des conversations relu dans l'administration). Facturée à part par OpenAI : 0,003 $ par minute de voix de l'apprenant (`gpt-4o-mini-transcribe`, le moins cher). `false` la coupe : la séance marche, mais sans le texte de l'apprenant chez OpenAI. Chez Gemini, la transcription n'a pas de prix à part. | absente (activée) |
 | `OPENAI_REALTIME_COST_PER_MINUTE`, `GEMINI_LIVE_COST_PER_MINUTE` | Coût estimé par minute de séance, seulement pour la page « Consommation ». Facultatives (Gemini : à régler si vous passez au palier payant). | absentes (OpenAI 0,04 $ ; Gemini 0) |
 | `OPENAI_REALTIME_INPUT_PRICE`, `OPENAI_REALTIME_OUTPUT_PRICE` | Tarif d'OpenAI en dollars par million de jetons, pour le coût par apprenant et par séance de la page « Consommation » (chaque séance est comptée au tarif de son fournisseur : Gemini avec `GEMINI_PRICE_INPUT` / `GEMINI_PRICE_OUTPUT`, OpenAI avec ces deux variables). Facultatives. | absentes (10 $ en entrée, 20 $ en sortie : tarif audio de `gpt-realtime-2.1-mini`) |
 | `OPENAI_TTS_VOICE` | Voix d'OpenAI. Facultative (autres voix : marin, ash, onyx, echo…). | absente (`cedar`, voix masculine posée et chaleureuse) |
@@ -214,7 +215,7 @@ Sur un téléphone, on ne peut pas lancer d'ordinateur local : on demande la cl�
 
 ## 9. Activer le planificateur de tâches (Scheduler)
 
-Le projet a quatre tâches automatiques : fermeture des séances abandonnées (chaque minute), fin des abonnements (chaque heure), préparation des messages vocaux qui manquent encore (chaque heure, aucune demande à Google quand tout est prêt) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
+Le projet a cinq tâches automatiques : fermeture des séances abandonnées (chaque minute), fin des abonnements (chaque heure), préparation des messages vocaux qui manquent encore (chaque heure, aucune demande à Google quand tout est prêt), effacement du texte des conversations de plus de 90 jours (chaque nuit à 3 heures 10) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
 
 1. Sur le canvas, touchez la carte **App** (le cluster de l'application).
 2. Activez l'interrupteur **Scheduler**.
@@ -296,7 +297,7 @@ Si le planificateur est signalé : attendez deux minutes après le déploiement 
 
 ### 12.2 Le planificateur, à l'œil
 
-Commande `php artisan schedule:list` : elle affiche les trois tâches et leur prochaine exécution.
+Commande `php artisan schedule:list` : elle affiche les cinq tâches et leur prochaine exécution.
 
 ### 12.3 Les captures de paiement dans le bucket
 

@@ -101,6 +101,42 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Texte des conversations (jamais l'audio)
+    |--------------------------------------------------------------------------
+    |
+    | Toutes les séances orales (évaluation, séance du jour, « Mes cours », bilan de niveau) : le
+    | navigateur envoie les répliques de l'apprenant et de Teacher Joe par petits lots pendant la
+    | séance, puis à la fin. L'administrateur les relit (fiche d'un inscrit). Effacées automatiquement
+    | (commande transcripts:purge, chaque jour) après keep_days jours.
+    |
+    */
+    'transcripts' => [
+        // Durée de conservation du texte des conversations, en jours.
+        'keep_days' => 90,
+        // Répliques acceptées seulement pour une séance commencée il y a moins de ce nombre d'heures.
+        'accept_hours' => 6,
+        // Taille des envois : répliques par envoi, caractères par réplique, répliques par séance.
+        'max_lines_per_request' => 50,
+        'max_line_characters' => 4000,
+        'max_lines_per_conversation' => 3000,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Confidentialité (page /confidentialite)
+    |--------------------------------------------------------------------------
+    |
+    | Responsable du traitement des données, affiché sur la page « Confidentialité ».
+    |
+    */
+    'privacy' => [
+        'controller' => 'Joseph Ahiankonou',
+        'email' => 'ahiankonoujoseph102@gmail.com',
+        'phone' => '+228 72 24 02 31',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | « Mes cours » : l'apprenant apporte une leçon d'anglais, Teacher Joe la réexplique
     |--------------------------------------------------------------------------
     |
