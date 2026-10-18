@@ -940,3 +940,22 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .busy-spinner { display: inline-block; width: 1em; height: 1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -.15em; animation: busy-spin .8s linear infinite; }
 @keyframes busy-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .busy-spinner { animation: none; border-right-color: currentColor; opacity: .6; } }
+
+/* Lecture d'une conversation (administration) : bulles distinctes, pensées pour le téléphone. */
+.conversation-facts { list-style: none; margin: var(--space-3) 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+.conversation-facts li { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: var(--fw-heavy); color: var(--c-heading); }
+.chat { list-style: none; margin: var(--space-4) 0; padding: 0; display: grid; gap: var(--space-3); }
+.chat-bubble { max-width: 88%; padding: var(--space-2) var(--space-3); border-radius: var(--radius-lg); border: 1px solid var(--c-border); background: var(--c-surface); }
+.chat-bubble p { margin: 0; }
+.chat-teacher { justify-self: start; background: var(--c-primary-soft); border-color: var(--c-primary-line); border-bottom-left-radius: var(--space-1); }
+.chat-learner { justify-self: end; background: var(--c-accent-soft); border-color: var(--c-accent-line); border-bottom-right-radius: var(--space-1); }
+.chat-meta { display: flex; justify-content: space-between; gap: var(--space-3); font-size: var(--fs-sm); color: var(--c-muted); margin-bottom: var(--space-1) !important; }
+.chat-teacher .chat-meta strong { color: var(--c-primary-strong); }
+.chat-learner .chat-meta strong { color: var(--c-accent-ink); }
+.chat-text { white-space: pre-line; overflow-wrap: anywhere; color: var(--c-text); }
+
+/* Page « Confidentialité » et lien du gabarit simple. */
+.privacy h2 { margin-top: 0; }
+.privacy ul:not(.contact-list) { padding-left: var(--space-5); display: grid; gap: var(--space-2); }
+.register-privacy { margin: var(--space-3) 0 0; text-align: center; }
+.site-footer-simple { padding: var(--space-4) 0 var(--space-6); text-align: center; font-size: var(--fs-sm); }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AssessmentController as AdminAssessmentController;
+use App\Http\Controllers\Admin\ConversationController;
 use App\Http\Controllers\Admin\GrantedAccessController;
 use App\Http\Controllers\Admin\IconPreviewController;
 use App\Http\Controllers\Admin\InactiveLearnerController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Live\CourseSessionController;
 use App\Http\Controllers\Live\LessonController;
 use App\Http\Controllers\Live\LevelTestController;
 use App\Http\Controllers\Live\RealtimeCallController;
+use App\Http\Controllers\Live\TranscriptController;
 use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\Program\AttestationController;
 use App\Http\Controllers\Program\LessonHistoryController;
@@ -33,6 +35,7 @@ use App\Http\Controllers\SeoController;
 use App\Http\Controllers\WebAppController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Support\Live\Transcripts;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +43,8 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/contact', ContactController::class)->name('contact');
+// Confidentialité : ce que le site garde, pourquoi, combien de temps, et comment en demander la suppression.
+Route::view('/confidentialite', 'privacy')->name('privacy');
 // Ancienne page « Crédits » : supprimée, l'adresse renvoie vers l'accueil (licences : LICENCES-TIERS.md).
 Route::permanentRedirect('/credits', '/');
 
@@ -132,6 +137,9 @@ Route::middleware('auth')->group(function () {
     // Séances en direct chez OpenAI : ouverture de l'appel WebRTC (adresse à usage unique).
     Route::post('/en-direct/appel/{ticket}', [RealtimeCallController::class, 'store'])->where('ticket', '[A-Za-z0-9]{40}')->middleware('throttle:10,1')->name('live.call');
 
+    // Texte des conversations (jamais l'audio) : répliques envoyées par petits lots pendant la séance et à la fin.
+    Route::post('/en-direct/texte/{type}/{id}', [TranscriptController::class, 'store'])->whereIn('type', array_keys(Transcripts::TYPES))->whereNumber('id')->middleware('throttle:60,1')->name('live.transcript');
+
     // Séance du jour des abonnés.
     Route::prefix('seance')->name('lesson.')->controller(LessonController::class)->group(function () {
         Route::get('/', 'show')->name('show');
@@ -157,6 +165,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'store'])->middleware('confirm:access.grant')->name('users.grant');
     Route::delete('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'destroy'])->middleware('confirm:access.revoke')->name('users.revoke');
     Route::delete('/inscrits/{user}/evaluation', [AdminAssessmentController::class, 'destroy'])->middleware('confirm:assessment.reset')->name('assessments.destroy');
+    // Texte des conversations d'un apprenant : lecture d'une séance, suppression de toutes (demande de suppression).
+    Route::get('/inscrits/{user}/conversations/{type}/{id}', [ConversationController::class, 'show'])->whereIn('type', array_keys(Transcripts::TYPES))->whereNumber('id')->name('conversations.show');
+    Route::delete('/inscrits/{user}/conversations', [ConversationController::class, 'destroy'])->middleware('confirm:transcripts.delete')->name('conversations.destroy');
     Route::get('/consommation', [UsageController::class, 'index'])->name('usage.index');
     Route::get('/reglages', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/reglages', [SettingsController::class, 'update'])->name('settings.update');

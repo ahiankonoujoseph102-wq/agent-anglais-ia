@@ -23,5 +23,8 @@
     <main id="contenu">
         <div class="container">{{ $slot }}</div>
     </main>
+    <footer class="site-footer-simple">
+        <div class="container"><a href="{{ route('privacy') }}">Confidentialité</a></div>
+    </footer>
 </body>
 </html>

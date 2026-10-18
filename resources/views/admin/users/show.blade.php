@@ -152,26 +152,44 @@
         @endif
     </section>
 
-    <section class="card">
-        <h2>Séances en direct</h2>
+    {{-- Toutes les séances orales, avec le texte de leur conversation (jamais l'audio), gardé platform.transcripts.keep_days jours. --}}
+    <section class="card" id="conversations" aria-labelledby="conversations-title">
+        <h2 id="conversations-title">Conversations</h2>
         @if ($conversations->isEmpty())
             <p class="muted">Aucune séance pour le moment.</p>
         @else
+            <p class="muted small">Heure de Lomé. Le texte de chaque conversation est gardé {{ (int) config('platform.transcripts.keep_days') }} jours, puis effacé automatiquement. La voix n'est jamais enregistrée.</p>
             <table class="table">
                 <thead>
-                    <tr><th>Date</th><th>Séance</th><th>Durée</th><th>Fournisseur</th></tr>
+                    <tr><th>Date</th><th>Séance</th><th>Durée</th><th>Fournisseur</th><th>Verdict</th><th>Conversation</th></tr>
                 </thead>
                 <tbody>
-                    @foreach ($conversations as $conversation)
+                    @foreach ($conversations as $row)
                         <tr>
-                            <td data-label="Date">{{ $conversation['started_at']->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
-                            <td data-label="Séance">{{ $conversation['kind'] }}</td>
-                            <td data-label="Durée">{{ Duration::formatPrecise($conversation['seconds']) }}</td>
-                            <td data-label="Fournisseur" data-live-provider>{{ \App\Support\Live\LiveProviders::label($conversation['provider']) }}</td>
+                            <td data-label="Date">{{ $row['conversation']->started_at->timezone('Africa/Lome')->format('d/m/Y H:i') }}</td>
+                            <td data-label="Séance">{{ $row['label'] }}</td>
+                            <td data-label="Durée">{{ Duration::formatPrecise((int) $row['conversation']->used_seconds) }}</td>
+                            <td data-label="Fournisseur" data-live-provider>{{ \App\Support\Live\LiveProviders::label($row['conversation']->liveProvider()) }}</td>
+                            <td data-label="Verdict">{{ \App\Support\Live\Transcripts::verdict($row['conversation']) ?? '—' }}</td>
+                            <td data-label="Conversation">
+                                @if ($row['lines'] > 0)
+                                    <a href="{{ route('admin.conversations.show', [$user, $row['type'], $row['conversation']->getKey()]) }}">Lire la conversation</a>
+                                    <span class="muted small">({{ $row['lines'] }} {{ $row['lines'] > 1 ? 'répliques' : 'réplique' }})</span>
+                                @else
+                                    <span class="muted">Aucun texte</span>
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
+            @if ($conversations->sum('lines') > 0)
+                <form method="POST" action="{{ route('admin.conversations.destroy', $user) }}" {!! \App\Support\Confirmation::attributes('transcripts.delete') !!}>
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-light"><x-icon name="trash" /> Supprimer les conversations de cet apprenant</button>
+                </form>
+            @endif
         @endif
     </section>
 

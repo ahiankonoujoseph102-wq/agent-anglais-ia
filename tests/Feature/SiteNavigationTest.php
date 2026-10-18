@@ -145,6 +145,6 @@ class SiteNavigationTest extends TestCase
         $this->get(route('dashboard'))->assertOk()->assertSee('Passez votre évaluation gratuite');
         $this->assertStringNotContainsString('jours de travail', file_get_contents(resource_path('views/dashboard.blade.php')));
         $this->assertStringNotContainsString('jours de travail', file_get_contents(resource_path('views/program/show.blade.php')));
-        $this->assertSame(['home', 'contact', 'register'], Seo::INDEXABLE_ROUTES);
+        $this->assertSame(['home', 'contact', 'register', 'privacy'], Seo::INDEXABLE_ROUTES);
     }
 }

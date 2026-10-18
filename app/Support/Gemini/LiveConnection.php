@@ -10,6 +10,7 @@ use App\Support\Live\LiveLog;
 use App\Support\Live\LiveProviders;
 use App\Support\Live\LiveUnavailable;
 use App\Support\Live\OpenAiRealtime;
+use App\Support\Live\Transcripts;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -142,6 +143,8 @@ class LiveConnection
             ];
 
         return ['provider' => $provider] + $connection + [
+            // Texte de la conversation (jamais l'audio), envoyé par petits lots : Transcripts.
+            'transcript_url' => route('live.transcript', ['type' => Transcripts::typeOf($conversation), 'id' => $conversation->getKey()]),
             'remaining_seconds' => $conversation->remainingSeconds(),
             'warning_seconds' => $warningSeconds,
             'heartbeat_seconds' => (int) config('platform.live.heartbeat_seconds'),

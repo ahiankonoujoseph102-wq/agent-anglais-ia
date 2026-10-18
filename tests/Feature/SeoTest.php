@@ -35,7 +35,7 @@ class SeoTest extends TestCase
         $titles = [];
         $descriptions = [];
 
-        foreach (['/' => 'https://talkami.net/', '/contact' => 'https://talkami.net/contact', '/inscription' => 'https://talkami.net/inscription'] as $path => $canonical) {
+        foreach (['/' => 'https://talkami.net/', '/contact' => 'https://talkami.net/contact', '/inscription' => 'https://talkami.net/inscription', '/confidentialite' => 'https://talkami.net/confidentialite'] as $path => $canonical) {
             $html = $this->get($path)->assertOk()->assertHeaderMissing('X-Robots-Tag')->getContent();
 
             $this->assertStringContainsString('<html lang="fr">', $html);
@@ -54,8 +54,8 @@ class SeoTest extends TestCase
             $this->assertSame(html_entity_decode($title[1], ENT_QUOTES), $this->meta($html, 'property', 'og:title'));
         }
 
-        $this->assertCount(3, array_unique($titles), 'Un titre par page.');
-        $this->assertCount(3, array_unique($descriptions), 'Une description par page.');
+        $this->assertCount(4, array_unique($titles), 'Un titre par page.');
+        $this->assertCount(4, array_unique($descriptions), 'Une description par page.');
         $this->assertSame('Talkami · Apprendre à parler anglais depuis votre téléphone', html_entity_decode($titles[0], ENT_QUOTES));
     }
 
@@ -146,7 +146,7 @@ class SeoTest extends TestCase
             $urls[] = (string) $url->loc;
         }
 
-        $this->assertSame(['https://talkami.net/', 'https://talkami.net/contact', 'https://talkami.net/inscription'], $urls);
+        $this->assertSame(['https://talkami.net/', 'https://talkami.net/contact', 'https://talkami.net/inscription', 'https://talkami.net/confidentialite'], $urls);
     }
 
     public function test_robots_txt_closes_private_pages_and_points_to_the_sitemap(): void

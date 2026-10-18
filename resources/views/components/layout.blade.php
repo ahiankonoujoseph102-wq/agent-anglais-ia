@@ -209,6 +209,7 @@
                         <li><a href="{{ \App\Support\WhatsApp::url($contact['whatsapp']) }}" target="_blank" rel="noopener">WhatsApp</a></li>
                     @endif
                     <li><a href="{{ route('contact') }}">Contact</a></li>
+                    <li><a href="{{ route('privacy') }}">Confidentialité</a></li>
                     <li><button type="button" class="btn btn-link footer-install" data-install-button hidden>Installer l'application</button></li>
                 </ul>
             </div>

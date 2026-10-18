@@ -20,6 +20,7 @@
          data-teacher-cues="{{ \App\Support\Asset::url('js/teacher-cues.js') }}"
          data-live-gemini="{{ \App\Support\Asset::url('js/live-gemini.js') }}"
          data-live-openai="{{ \App\Support\Asset::url('js/live-openai.js') }}"
+         data-transcript="{{ \App\Support\Asset::url('js/transcript.js') }}"
          data-audio='@json($audio)'
          @if (\App\Support\Avatar::enabled())
              data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"

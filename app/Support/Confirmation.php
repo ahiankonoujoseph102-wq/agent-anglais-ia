@@ -49,8 +49,13 @@ final class Confirmation
         ],
         'course.delete' => [
             'title' => 'Supprimer cette leçon ?',
-            'message' => 'La leçon et ses photos ou son PDF sont effacés pour toujours, fichiers compris. Les leçons du jour déjà faites avec Teacher Joe restent comptées.',
+            'message' => 'La leçon et ses photos ou son PDF sont effacés pour toujours, fichiers compris. Le temps du jour déjà utilisé avec le professeur reste compté.',
             'confirm' => 'Supprimer la leçon',
+        ],
+        'transcripts.delete' => [
+            'title' => 'Supprimer les conversations de cet apprenant ?',
+            'message' => 'Le texte de toutes ses conversations avec le professeur est effacé pour toujours. Ses séances, son niveau et son suivi restent.',
+            'confirm' => 'Supprimer les conversations',
         ],
         'conversation.stop' => [
             'title' => 'Terminer maintenant ?',
