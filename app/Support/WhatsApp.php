@@ -14,4 +14,21 @@ class WhatsApp
 
         return $message === '' ? $url : $url.'?text='.rawurlencode($message);
     }
+
+    /**
+     * Bouton WhatsApp de la page 404 : le groupe (platform.contact.whatsapp_group) s'il existe,
+     * sinon une conversation avec le numéro WhatsApp de l'équipe ; null si aucun des deux.
+     */
+    public static function communityUrl(): ?string
+    {
+        $group = trim((string) config('platform.contact.whatsapp_group'));
+
+        if (str_starts_with($group, 'https://chat.whatsapp.com/')) {
+            return $group;
+        }
+
+        $number = SiteSettings::whatsapp();
+
+        return $number ? self::url($number) : null;
+    }
 }

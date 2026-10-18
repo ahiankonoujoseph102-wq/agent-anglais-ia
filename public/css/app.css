@@ -959,3 +959,17 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .privacy ul:not(.contact-list) { padding-left: var(--space-5); display: grid; gap: var(--space-2); }
 .register-privacy { margin: var(--space-3) 0 0; text-align: center; }
 .site-footer-simple { padding: var(--space-4) 0 var(--space-6); text-align: center; font-size: var(--fs-sm); }
+
+/* Pages publiques du référencement : liens vers les pages par pays, « À propos ». */
+.country-links { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-3); }
+.country-link { display: flex; align-items: center; gap: var(--space-3); margin: 0; text-decoration: none; color: var(--c-text); }
+.country-link > span:nth-child(2) { display: grid; gap: 2px; flex: 1; }
+.country-link strong { color: var(--c-primary); }
+.country-link > .icon { flex: none; color: var(--c-accent-strong); }
+.country-link:hover strong { text-decoration: underline; }
+.about-card { display: flex; gap: var(--space-4); align-items: flex-start; }
+.about-card h2 { margin-top: 0; }
+.footer-countries { margin-top: var(--space-2); }
+.students h1 { margin-top: 0; }
+@media (min-width: 640px) { .footer-countries { grid-column: 1 / -1; margin-top: 0; } }
+@media (min-width: 640px) { .country-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

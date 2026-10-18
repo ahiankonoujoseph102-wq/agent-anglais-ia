@@ -21,6 +21,7 @@ L'apprenant est DÉJÀ sur le site (ou l'application) :platform, sur son télép
 ## Les pages
 
 - Barre du bas (sur téléphone, une fois connecté) : « Mon espace », « Programme », « Séances », « Aide ».
+- Pages publiques : « Formules » (prix et contenu des formules), « À propos » (qui a créé :platform, comment fonctionne :teacher) et une page « Apprendre l'anglais » par pays (Togo, Bénin, Burkina Faso, Côte d'Ivoire), avec les moyens de paiement du pays. « À propos » et les pages par pays sont dans le pied de page ; « Formules » est sur l'accueil, sous les formules.
 - « Mon espace » : la page principale de l'apprenant. On y trouve le bouton de l'étape suivante (évaluation, formule, programme ou séance du jour), son niveau, son suivi et ses attestations. En bas : « Mon compte et mon adresse e-mail ».
 - « Programme » : le programme personnel, le calendrier des leçons et les unités.
 - « Séances » : l'historique des séances, les résumés, les devoirs et les erreurs à revoir.

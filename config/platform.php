@@ -297,6 +297,28 @@ return [
         'phones' => ['+228 72 24 02 31', '+228 79 74 21 27', '+228 79 16 23 90'],
         'email' => 'ahiankonoujoseph102@gmail.com',
         'whatsapp' => '+228 72 24 02 31',
+        // Lien d'invitation du GROUPE WhatsApp (https://chat.whatsapp.com/…), À COMPLÉTER quand il existe.
+        // Vide : le bouton WhatsApp de la page 404 ouvre une conversation avec le numéro ci-dessus.
+        'whatsapp_group' => env('WHATSAPP_GROUP_URL'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fondateur (page « À propos » et données structurées Person)
+    |--------------------------------------------------------------------------
+    |
+    | Uniquement des faits vérifiés. « bio » : À COMPLÉTER par le fondateur (2 à 4 phrases :
+    | parcours, pourquoi Talkami) ; tant qu'elle est vide, la page ne l'affiche pas et
+    | « php artisan app:check-deployment » le signale.
+    |
+    */
+    'founder' => [
+        'name' => 'Joseph Ahiankonou',
+        'role' => 'Fondateur',
+        'city' => 'Lomé',
+        'country' => 'Togo',
+        'country_code' => 'TG',
+        'bio' => null,
     ],
 
     /*

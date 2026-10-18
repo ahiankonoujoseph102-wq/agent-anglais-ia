@@ -23,6 +23,9 @@
     <meta name="theme-color" content="{{ config('platform.brand.theme_color') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $pageTitle }}</title>
+    @if (config('services.google.site_verification'))
+        <meta name="google-site-verification" content="{{ config('services.google.site_verification') }}">
+    @endif
     <meta name="description" content="{{ $pageDescription }}">
     @if ($indexable)
         <meta name="robots" content="index, follow">
@@ -209,9 +212,18 @@
                         <li><a href="{{ \App\Support\WhatsApp::url($contact['whatsapp']) }}" target="_blank" rel="noopener">WhatsApp</a></li>
                     @endif
                     <li><a href="{{ route('contact') }}">Contact</a></li>
+                    <li><a href="{{ route('about') }}">À propos</a></li>
                     <li><a href="{{ route('privacy') }}">Confidentialité</a></li>
                     <li><button type="button" class="btn btn-link footer-install" data-install-button hidden>Installer l'application</button></li>
                 </ul>
+                @guest
+                    {{-- Visiteurs (et moteurs de recherche) : les pages « Apprendre l'anglais » de chaque pays. --}}
+                    <ul class="footer-links footer-countries" aria-label="Apprendre l'anglais dans votre pays">
+                        @foreach (\App\Support\CountryPage::all() as $countryPage)
+                            <li><a href="{{ route('country', $countryPage->slug) }}">{{ $countryPage->heading }}</a></li>
+                        @endforeach
+                    </ul>
+                @endguest
             </div>
             <div class="footer-bottom">
                 <p>&copy; {{ date('Y') }} {{ config('platform.name') }} — Apprenez l'anglais avec votre professeur IA.</p>

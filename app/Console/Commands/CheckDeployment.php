@@ -64,6 +64,15 @@ class CheckDeployment extends Command
         $custom = count(array_filter(array_keys(self::settingKeys()), fn (string $key) => SiteSettings::saved($key) !== null));
         $this->line("    Valeurs saisies dans les Réglages : {$custom} (les autres : valeurs par défaut)");
 
+        // Référencement : informations seulement, jamais un échec (aucune valeur n'est obligatoire).
+        $this->section('Référencement');
+        $this->line('    Adresse du site : '.(parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'absente'));
+        $this->line('    Balise Google Search Console : '.(filled(config('services.google.site_verification')) ? 'présente' : 'absente (GOOGLE_SITE_VERIFICATION)'));
+        $redirects = (array) config('app.redirect_from_hosts');
+        $this->line('    Anciennes adresses redirigées en 301 : '.($redirects === [] ? 'aucune' : implode(', ', $redirects)));
+        $this->line('    Groupe WhatsApp : '.(filled(config('platform.contact.whatsapp_group')) ? 'lien présent' : 'à compléter (WHATSAPP_GROUP_URL ; sinon le numéro WhatsApp)'));
+        $this->line('    Présentation du fondateur (page « À propos ») : '.(filled(config('platform.founder.bio')) ? 'présente' : 'à compléter (config/platform.php, founder.bio)'));
+
         $this->section('Professeur IA');
         $this->check('Clé Gemini présente', filled(config('services.gemini.key')), 'GEMINI_API_KEY est vide : les séances vocales ne fonctionneront pas.');
         // Séances en direct : fournisseurs utilisables dans l'ordre réglé (jamais la clé, seulement sa présence).

@@ -27,6 +27,7 @@ use App\Http\Controllers\Live\LessonController;
 use App\Http\Controllers\Live\LevelTestController;
 use App\Http\Controllers\Live\RealtimeCallController;
 use App\Http\Controllers\Live\TranscriptController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\Program\AttestationController;
 use App\Http\Controllers\Program\LessonHistoryController;
@@ -35,6 +36,7 @@ use App\Http\Controllers\SeoController;
 use App\Http\Controllers\WebAppController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Support\CountryPage;
 use App\Support\Live\Transcripts;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
@@ -43,6 +45,10 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/contact', ContactController::class)->name('contact');
+// Pages publiques du référencement : formules et prix, « À propos », une page par pays de paiement.
+Route::get('/formules', [PageController::class, 'plans'])->name('plans');
+Route::get('/a-propos', [PageController::class, 'about'])->name('about');
+Route::get('/apprendre-anglais/{country}', [PageController::class, 'country'])->whereIn('country', CountryPage::slugs())->name('country');
 // Confidentialité : ce que le site garde, pourquoi, combien de temps, et comment en demander la suppression.
 Route::view('/confidentialite', 'privacy')->name('privacy');
 // Ancienne page « Crédits » : supprimée, l'adresse renvoie vers l'accueil (licences : LICENCES-TIERS.md).

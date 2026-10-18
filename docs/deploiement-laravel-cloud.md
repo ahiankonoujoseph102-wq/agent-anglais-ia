@@ -170,6 +170,9 @@ Dans **Settings, General** (section **Environment variables**), ajoutez les vari
 | `OPENAI_REALTIME_COST_PER_MINUTE`, `GEMINI_LIVE_COST_PER_MINUTE` | Coût estimé par minute de séance, seulement pour la page « Consommation ». Facultatives (Gemini : à régler si vous passez au palier payant). | absentes (OpenAI 0,04 $ ; Gemini 0) |
 | `OPENAI_REALTIME_INPUT_PRICE`, `OPENAI_REALTIME_OUTPUT_PRICE` | Tarif d'OpenAI en dollars par million de jetons, pour le coût par apprenant et par séance de la page « Consommation » (chaque séance est comptée au tarif de son fournisseur : Gemini avec `GEMINI_PRICE_INPUT` / `GEMINI_PRICE_OUTPUT`, OpenAI avec ces deux variables). Facultatives. | absentes (10 $ en entrée, 20 $ en sortie : tarif audio de `gpt-realtime-2.1-mini`) |
 | `OPENAI_TTS_VOICE` | Voix d'OpenAI. Facultative (autres voix : marin, ash, onyx, echo…). | absente (`cedar`, voix masculine posée et chaleureuse) |
+| `GOOGLE_SITE_VERIFICATION` | Code de Google Search Console (méthode « Balise HTML » : seulement ce qui est entre les guillemets de `content="…"`). Remplie, la balise est ajoutée en haut de chaque page. Ce n'est pas un secret. | absente |
+| `REDIRECT_FROM_HOSTS` | Changement de domaine : anciennes adresses, sans `https://`, séparées par une virgule (par exemple `talkami.laravel.cloud`). Chaque page ouverte sur l'une d'elles est redirigée (301) vers la même page sur `APP_URL`. Voir l'étape 11 bis. | absente |
+| `WHATSAPP_GROUP_URL` | Lien d'invitation du **groupe** WhatsApp (`https://chat.whatsapp.com/…`). Rempli, le bouton WhatsApp de la page « introuvable » (404) ouvre le groupe ; absent, il ouvre une conversation avec le numéro WhatsApp de l'équipe. | absente |
 | `GEMINI_TOKEN_MINUTES` | Durée d'un jeton éphémère, en minutes. | `5` |
 | `AVATAR_3D_ENABLED` | `false` désactive le professeur 3D partout. | `true` |
 | `APP_FORCE_HTTPS` | Redirection vers HTTPS. Active en production si la variable est **absente** : ne la laissez jamais **vide**. | absente |
@@ -273,6 +276,25 @@ Le numéro utilisé sert aussi à vérifier les captures : la règle « Bon dest
 L'offre Starter inclut 10 domaines personnalisés par organisation.
 
 ---
+
+## 11 bis. Changer de domaine sans perdre le référencement (talkami.laravel.cloud vers talkami.net)
+
+1. Branchez le nouveau domaine (étape 11, points 1 à 5) et attendez **Connected**.
+2. Dans **Settings, Environment variables** : `APP_URL=https://talkami.net` et `REDIRECT_FROM_HOSTS=talkami.laravel.cloud`, **Save**, **Deploy**.
+3. Vérifiez sur le téléphone : `https://talkami.laravel.cloud/formules` doit ouvrir `https://talkami.net/formules` (redirection 301 : Google transfère le référencement de chaque page) ; `https://talkami.net/robots.txt` montre `Sitemap: https://talkami.net/sitemap.xml`.
+4. Google Search Console : ajoutez la propriété `https://talkami.net/` (étape 11 ter), puis dans l'**ancienne** propriété : **Paramètres**, **Changement d'adresse**, choisissez la nouvelle, **Valider et mettre à jour**. Envoyez ensuite `https://talkami.net/sitemap.xml` dans la nouvelle propriété.
+5. Gardez `REDIRECT_FROM_HOSTS` au moins un an (Google conseille de garder les redirections longtemps).
+
+## 11 ter. Google Search Console, depuis un téléphone
+
+1. Ouvrez `search.google.com/search-console` dans Chrome, connectez-vous avec le compte Google de l'équipe.
+2. **Ajouter une propriété**, choisissez **Préfixe de l'URL**, entrez l'adresse exacte du site (`https://talkami.laravel.cloud/` aujourd'hui, `https://talkami.net/` après le changement), **Continuer**.
+3. Méthode **Balise HTML** : copiez seulement le code entre les guillemets de `content="…"`.
+4. Laravel Cloud : variable `GOOGLE_SITE_VERIFICATION` = ce code, **Save**, **Deploy**.
+5. Revenez sur Search Console, touchez **Valider**.
+6. Menu **Sitemaps** : entrez `sitemap.xml`, **Envoyer**. L'état doit devenir « Opération effectuée » (10 pages).
+7. Menu **Inspection de l'URL** : collez l'adresse de l'accueil, puis **Demander une indexation** ; recommencez pour `/formules`, `/a-propos` et les quatre pages par pays.
+8. Quelques jours plus tard, menu **Pages** : les pages publiques doivent être « Indexée » ; les pages privées n'y apparaissent pas (elles portent noindex).
 
 ## 12. Vérifier que tout fonctionne
 

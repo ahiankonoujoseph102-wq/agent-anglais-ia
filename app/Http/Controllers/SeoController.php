@@ -34,8 +34,6 @@ class SeoController extends Controller
 
     public function sitemap(): Response
     {
-        $urls = array_map(fn (string $route) => Seo::url(route($route, [], false)), Seo::INDEXABLE_ROUTES);
-
-        return response()->view('seo.sitemap', ['urls' => $urls], 200, ['Content-Type' => 'application/xml; charset=UTF-8']);
+        return response()->view('seo.sitemap', ['urls' => Seo::sitemapUrls()], 200, ['Content-Type' => 'application/xml; charset=UTF-8']);
     }
 }

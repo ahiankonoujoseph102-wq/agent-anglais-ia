@@ -15,8 +15,11 @@ use Illuminate\Http\Request;
  */
 final class Seo
 {
-    /** Pages publiques indexées, dans l'ordre du sitemap. */
-    public const INDEXABLE_ROUTES = ['home', 'contact', 'register', 'privacy'];
+    /** Pages publiques indexées, dans l'ordre du sitemap (« country » : une page par pays, CountryPage). */
+    public const INDEXABLE_ROUTES = ['home', 'plans', 'about', 'country', 'contact', 'register', 'privacy'];
+
+    /** Types de données structurées autorisés : aucune note, aucun avis, aucun nombre d'apprenants. */
+    public const SCHEMA_TYPES = ['Organization', 'WebSite', 'Person', 'Service', 'Offer', 'FAQPage', 'Question', 'Answer', 'ContactPoint', 'PostalAddress', 'Country'];
 
     /** Image de partage (WhatsApp, Facebook…), 1200 × 630 pixels, produite par tools/brand/share-image.mjs. */
     public const SHARE_IMAGE = 'images/partage-talkami.jpg';
@@ -37,6 +40,26 @@ final class Seo
         $path = trim($path, '/');
 
         return self::base().'/'.$path;
+    }
+
+    /**
+     * Adresses complètes du sitemap : chaque page publique, chaque page pays.
+     *
+     * @return list<string>
+     */
+    public static function sitemapUrls(): array
+    {
+        $urls = [];
+
+        foreach (self::INDEXABLE_ROUTES as $route) {
+            $parameters = $route === 'country' ? array_map(fn (string $slug) => ['country' => $slug], CountryPage::slugs()) : [[]];
+
+            foreach ($parameters as $parameter) {
+                $urls[] = self::url(route($route, $parameter, false));
+            }
+        }
+
+        return $urls;
     }
 
     public static function indexable(?Request $request = null): bool
@@ -69,12 +92,14 @@ final class Seo
         return array_filter([
             '@context' => 'https://schema.org',
             '@type' => 'Organization',
+            '@id' => self::url().'#organisation',
             'name' => config('platform.name'),
             'url' => self::url(),
             'logo' => self::url('brand/logo-vertical.png'),
             'description' => config('platform.brand.tagline'),
             'email' => $contact['email'] ?: null,
             'address' => $contact['address'] ?: null,
+            'founder' => array_filter(['@type' => 'Person', '@id' => self::url('a-propos').'#fondateur', 'name' => config('platform.founder.name')]),
             'contactPoint' => array_filter([
                 '@type' => 'ContactPoint',
                 'contactType' => 'customer service',
@@ -83,6 +108,76 @@ final class Seo
                 'areaServed' => $countries ?: null,
             ]) ?: null,
         ]);
+    }
+
+    /**
+     * Données structurées « WebSite » : nom et adresse du site, langue française.
+     *
+     * @return array<string, mixed>
+     */
+    public static function website(): array
+    {
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            'name' => config('platform.name'),
+            'url' => self::url(),
+            'inLanguage' => 'fr',
+            'publisher' => ['@id' => self::url().'#organisation'],
+        ];
+    }
+
+    /**
+     * Données structurées « Person » : le fondateur (config/platform.php → founder), faits vérifiés seulement.
+     *
+     * @return array<string, mixed>
+     */
+    public static function founder(): array
+    {
+        $founder = (array) config('platform.founder');
+
+        return array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => 'Person',
+            '@id' => self::url('a-propos').'#fondateur',
+            'name' => $founder['name'] ?? null,
+            'jobTitle' => $founder['role'] ?? null,
+            'url' => self::url('a-propos'),
+            'worksFor' => ['@type' => 'Organization', '@id' => self::url().'#organisation', 'name' => config('platform.name'), 'url' => self::url()],
+            'address' => ['@type' => 'PostalAddress', 'addressLocality' => $founder['city'] ?? null, 'addressCountry' => $founder['country_code'] ?? null],
+            'description' => ($founder['bio'] ?? null) ?: null,
+        ]);
+    }
+
+    /**
+     * Données structurées « Service » avec une « Offer » par formule : prix réels de la configuration,
+     * en francs CFA d'Afrique de l'Ouest (code XOF), pays desservis = pays de paiement.
+     *
+     * @return array<string, mixed>
+     */
+    public static function offers(): array
+    {
+        $countries = array_values(array_map(fn (PaymentCountry $country) => ['@type' => 'Country', 'name' => $country->name], PaymentCountry::all()));
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'Service',
+            'name' => 'Cours d\'anglais oral en ligne avec '.config('avatar.model.name'),
+            'serviceType' => 'Cours d\'anglais en ligne',
+            'provider' => ['@id' => self::url().'#organisation'],
+            'areaServed' => $countries,
+            'availableLanguage' => ['French', 'English'],
+            'url' => self::url(route('plans', [], false)),
+            'offers' => array_values(array_map(fn (Plan $plan) => [
+                '@type' => 'Offer',
+                'name' => $plan->name,
+                'description' => $plan->dailyMinutes.' minutes par jour, valable '.$plan->durationDays.' jours',
+                'price' => (string) $plan->price,
+                'priceCurrency' => 'XOF',
+                'url' => self::url(route('plans', [], false)),
+                'availability' => 'https://schema.org/InStock',
+            ], Plan::all())),
+        ];
     }
 
     /**
