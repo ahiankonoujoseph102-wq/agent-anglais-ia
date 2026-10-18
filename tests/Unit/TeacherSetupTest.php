@@ -19,6 +19,7 @@ class TeacherSetupTest extends TestCase
             'platform.name' => 'Prof Test',
             'teacher.persona' => 'Teacher of :platform for :name.',
             'teacher.lesson' => 'Lesson of :minutes minutes, warning :warning minutes before.',
+            'teacher.coaching' => '',
         ]);
 
         $user = new User(['name' => 'Yao']);
@@ -67,6 +68,35 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('Never mocking', $text);
         $this->assertStringContainsString('pick up one element of the learner\'s answer', $text);
         $this->assertStringContainsString('Never chain questions mechanically', $text);
+    }
+
+    public function test_daily_lesson_and_my_courses_teach_like_a_real_teacher(): void
+    {
+        $user = new User(['name' => 'Afi']);
+        $user->level = Level::A2;
+
+        foreach (['lesson', 'course'] as $kind) {
+            $text = TeacherSetup::instructions($kind, $user, 10);
+
+            $this->assertStringContainsString('LIKE A REAL TEACHER (daily lesson and « My courses » sessions)', $text, $kind);
+            $this->assertStringContainsString('"Is it clear? C\'est clair ?"', $text);
+            $this->assertStringContainsString('explain it another way, more slowly, with simpler words and a concrete example', $text);
+            $this->assertStringContainsString('switch to French if you were in English', $text);
+            $this->assertStringContainsString('"En anglais, on dit … ; en français, ça veut dire …"', $text);
+            $this->assertStringContainsString('false friend', $text);
+            $this->assertStringContainsString('break it slowly into syllables; say it again at a normal pace; then make them repeat the whole sentence', $text);
+            $this->assertStringContainsString('ONE short, gentle and funny remark', $text);
+            $this->assertStringContainsString('never mock the learner, never target a person, and never touch politics, religion or real people', $text);
+            $this->assertStringContainsString('Then go straight back to the lesson', $text);
+            $this->assertStringContainsString('Adapt to the learner\'s tone, rhythm and apparent age', $text);
+            $this->assertStringContainsString('French only unblocks them, then you return to English at once', $text);
+            $this->assertStringContainsString('"Try in English: …"', $text);
+            $this->assertStringContainsString('In « MY COURSES » sessions, French remains the main language of the explanation', $text);
+        }
+
+        foreach (['assessment', 'level_test'] as $kind) {
+            $this->assertStringNotContainsString('Is it clear? C\'est clair ?', TeacherSetup::instructions($kind, $user, 5), $kind);
+        }
     }
 
     public function test_setup_locks_audio_transcription_and_resumption(): void

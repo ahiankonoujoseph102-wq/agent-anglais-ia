@@ -26,6 +26,7 @@ use App\Http\Controllers\Program\AttestationController;
 use App\Http\Controllers\Program\LessonHistoryController;
 use App\Http\Controllers\Program\ProgramController;
 use App\Http\Controllers\WebAppController;
+use App\Http\Controllers\WelcomeController;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
@@ -62,6 +63,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/mot-de-passe/nouveau', [PasswordController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 
     Route::get('/espace', DashboardController::class)->name('dashboard');
+
+    // Bienvenue de Teacher Joe : message vocal après l'inscription, puis à l'ouverture d'un accès.
+    Route::get('/bienvenue', [WelcomeController::class, 'show'])->name('welcome.show');
+    Route::get('/bienvenue/audio/{index}', [WelcomeController::class, 'audio'])->whereNumber('index')->middleware('throttle:60,1')->name('welcome.audio');
 
     // Compte : adresse e-mail facultative.
     Route::get('/compte', [AccountController::class, 'edit'])->name('account.edit');

@@ -882,3 +882,37 @@ main { overflow-x: clip; }
 .grant-durations label { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-4); border: 1px solid var(--c-border); border-radius: var(--radius-pill); background: var(--c-surface); font-weight: var(--fw-bold); cursor: pointer; margin: 0; }
 .grant-durations label:has(input:checked) { border-color: var(--c-primary); box-shadow: 0 0 0 3px var(--c-ring); }
 .grant-history { margin: 0 0 var(--space-3); }
+
+/* Bienvenue de Teacher Joe : professeur en grand sur un fond aux couleurs de la marque */
+.welcome-page { max-width: 560px; margin: 0 auto; padding: var(--space-5) var(--space-4) var(--space-6); border-radius: var(--radius-lg); color: var(--c-on-dark);
+    background: radial-gradient(120% 70% at 50% 0%, var(--c-primary-raised) 0%, var(--c-primary) 55%, var(--c-primary-strong) 100%); box-shadow: var(--shadow-lg); position: relative; overflow: hidden; isolation: isolate; }
+.welcome-page::before { content: ""; position: absolute; z-index: -1; width: 320px; height: 320px; border-radius: 50%; left: -120px; bottom: 18%; background: radial-gradient(circle, rgba(255, 122, 26, .22), transparent 70%); pointer-events: none; }
+.welcome-head { text-align: center; margin-bottom: var(--space-3); }
+.welcome-page h1 { color: var(--c-on-dark); margin: 0 0 var(--space-1); }
+.welcome-lead { color: var(--c-on-dark-muted); margin: 0; font-size: var(--fs-lg); }
+.welcome-page .teacher { background: transparent; border: 0; margin: 0; padding: 0; }
+.welcome-page .teacher-3d .teacher3d-stage { height: clamp(300px, 52dvh, 480px); }
+.welcome-page .face { width: min(260px, 70%); height: auto; }
+.welcome-page .teacher3d-loading { color: var(--c-on-dark-muted); }
+.welcome-page .teacher3d-loading progress { accent-color: var(--c-accent); }
+.welcome-page .btn-link, .welcome-page .btn-link:hover { color: var(--c-on-dark); }
+.welcome-page .btn-light, .welcome-page .btn-light:hover, .welcome-page .btn-light:focus-visible { background: var(--c-on-dark-glow); color: var(--c-on-dark); border: 1px solid var(--c-on-dark-line); box-shadow: none; }
+.welcome-panel { display: grid; gap: var(--space-3); }
+.welcome-start { text-align: center; }
+.welcome-hint { color: var(--c-on-dark-muted); font-size: var(--fs-sm); margin: var(--space-2) 0 0; }
+.welcome-controls { display: flex; align-items: center; justify-content: center; gap: var(--space-3); }
+.welcome-status { text-align: center; color: var(--c-on-dark-muted); margin: 0; }
+.welcome-subtitles { max-height: 11.5em; overflow-y: auto; padding: var(--space-3) var(--space-4); border-radius: var(--radius); background: var(--c-on-dark-glow); border: 1px solid var(--c-on-dark-line); line-height: 1.55; }
+.welcome-subtitles p { margin: 0 0 var(--space-2); color: var(--c-on-dark-muted); }
+.welcome-subtitles p:last-child { margin-bottom: 0; }
+.welcome-subtitles .sentence { border-radius: 4px; transition: color var(--dur-fast), background var(--dur-fast); }
+.welcome-subtitles .sentence.is-now { color: var(--c-on-dark); background: rgba(255, 122, 26, .28); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.js .welcome-next { display: none; }
+.js .welcome-next.is-shown { display: flex; animation: rise var(--dur) var(--ease) both; }
+.welcome-replay { margin-top: var(--space-1); font-size: var(--fs-sm); }
+@media (min-width: 900px) {
+    .welcome-page { max-width: 980px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--space-6); align-items: center; padding: var(--space-8); }
+    .welcome-head { grid-column: 1 / -1; }
+    .welcome-page .teacher-3d .teacher3d-stage { height: clamp(360px, 60dvh, 560px); }
+}
+@media (prefers-reduced-motion: reduce) { .js .welcome-next.is-shown { animation: none; } }

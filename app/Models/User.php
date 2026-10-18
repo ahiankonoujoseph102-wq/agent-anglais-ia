@@ -50,6 +50,7 @@ class User extends Authenticatable
             'level' => Level::class,
             'role' => Role::class,
             'must_change_password' => 'boolean',
+            'welcomed_at' => 'datetime',
         ];
     }
 

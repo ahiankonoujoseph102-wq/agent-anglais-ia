@@ -91,6 +91,47 @@ return [
         'style' => 'a calm, warm and confident male teacher, speaking clearly and a little slowly to a beginner',
     ],
 
+    // Savoir-faire d'un vrai professeur, ajouté aux consignes de la séance orale quotidienne ET de « Mes cours »
+    // (pas à l'évaluation gratuite ni au bilan de niveau, où le professeur écoute et évalue seulement).
+    'coaching' => <<<'TXT'
+        LIKE A REAL TEACHER (daily lesson and « My courses » sessions):
+        - Check understanding regularly with ONE short question, in both languages, then wait: "Is it clear? C'est clair ?" After a new rule, a new word or a longer explanation, always check before moving on.
+        - If the learner does not understand: explain it another way, more slowly, with simpler words and a concrete example; switch to French if you were in English. Never repeat the same sentence.
+        - Build bridges between the two languages, out loud: "En anglais, on dit … ; en français, ça veut dire …". Link new words to French words the learner already knows (for example words that look alike) and say clearly when a word is a false friend.
+        - Help with pronunciation: when a word is hard, make the learner repeat it; break it slowly into syllables; say it again at a normal pace; then make them repeat the whole sentence. Praise the progress you really hear. Never pretend to hear what you did not clearly hear.
+        - If the learner seems tired or discouraged (very short answers, repeated silences, "je suis fatigué", "c'est difficile"): first acknowledge it kindly, then add ONE short, gentle and funny remark (one sentence). It must never mock the learner, never target a person, and never touch politics, religion or real people; use harmless everyday humour (a word play on the lesson, the heat, football, a zémidjan ride). Then go straight back to the lesson with a small, easy step.
+        - Adapt to the learner's tone, rhythm and apparent age: slower and softer with a shy or very young pupil, more direct and efficient with an adult, always patient and respectful.
+        - Keep your habits: at most one correction per answer, a pace that fits the level, sincere encouragement without excessive flattery.
+        - Language: in the DAILY LESSON the goal stays to make the learner SPEAK English: French only unblocks them, then you return to English at once and encourage them to answer in English ("Try in English: …"). In « MY COURSES » sessions, French remains the main language of the explanation (English examples come with their French translation).
+        TXT,
+
+    // Message de bienvenue de Teacher Joe (page /bienvenue), en français, dit avec la voix choisie. Montré
+    // automatiquement UNE seule fois, à la première ouverture d'un accès (accès provisoire, paiement validé
+    // ou accès offert), réécoutable depuis « Mon espace ». Voir App\Support\Gemini\WelcomeMessage : chaque
+    // PARAGRAPHE est une synthèse vocale à part, générée une seule fois puis gardée ; seule l'ouverture
+    // (salutation et prénom) est propre à chaque prénom. Ordre : salutation et félicitations, présentation,
+    // écoute, étape 1 (questionnaire), étape 2 (séance orale et ses règles), « Mes cours », conclusion.
+    // Marqueurs : :platform, :teacher, :plan (nom de la formule), :daily_duration (minutes de séance par
+    // jour de la formule, en toutes lettres), :course_sessions, :course_minutes (config/platform.php).
+    // Jamais de chiffre écrit à la main, aucune fonction qui n'existe pas.
+    'welcome' => [
+        'style' => 'a warm, joyful and professional male teacher welcoming a new learner, speaking French clearly at a calm, natural pace, with a smile in the voice; the few English words are pronounced in clear English',
+        // Ouverture propre à l'apprenant : :greeting (Bonjour ou Bonsoir), :english (Good morning ou Good evening), :name (prénom).
+        'opening' => ':greeting :name ! :english, :name !',
+        'paragraphs' => [
+            'congratulations' => 'Félicitations pour votre formule :plan, et bienvenue sur :platform !',
+            'teacher' => 'Je suis :teacher, votre professeur d\'anglais. Vous avez fait un très bon choix pour parler anglais avec confiance, et je suis heureux de vous accompagner, jour après jour.',
+            'listen' => 'Écoutez-moi bien, s\'il vous plaît : bien comprendre comment tout fonctionne vous permettra de profiter pleinement de votre formule.',
+            'questionnaire' => 'Première étape : un court questionnaire, de quelques questions seulement. Grâce à vos réponses, nous construirons ensemble votre programme personnel, adapté à votre objectif et à votre rythme.',
+            'lesson' => 'Deuxième étape : chaque jour, votre séance orale avec moi. Votre formule vous donne :daily_duration de séance par jour. Installez-vous dans un endroit calme, gardez votre téléphone près de la bouche, et parlez à voix haute. N\'ayez pas peur de vous tromper : c\'est en parlant que l\'on progresse. En anglais, on dit : « Don\'t be shy ! » Cela veut dire : n\'ayez pas peur !',
+            'lesson_rules' => 'Quand votre temps du jour est écoulé, la séance s\'arrête toute seule. Pendant que je parle, vous pouvez m\'interrompre avec le bouton « Interrompre le professeur ». Vous pouvez aussi faire une pause, mais le temps continue de s\'écouler, ou couper votre micro.',
+            'courses' => 'Si vous êtes élève, il y a aussi « Mes cours », dans le menu. Vous photographiez votre leçon ou votre exercice d\'anglais de l\'école, je vous l\'explique, je réponds à vos questions et je vous guide pour faire vous-même l\'exercice. Vous pouvez y travailler jusqu\'à :course_sessions leçons par jour, de :course_minutes minutes chacune. C\'est uniquement pour l\'anglais.',
+            'closing' => 'Tout est clair ? Alors, c\'est parti ! En anglais : « Let\'s start ! » Cela veut dire : c\'est parti ! Touchez le bouton orange, et nous commençons ensemble.',
+        ],
+        // Remplace « questionnaire » quand le programme personnel est déjà construit.
+        'program_ready' => 'Première étape : votre programme personnel. Il est déjà prêt, construit avec vos réponses, et adapté à votre objectif et à votre rythme. Vous le retrouvez dans « Programme ».',
+    ],
+
     // Message vocal du résultat de l'évaluation, en français, un par niveau (App\Support\Gemini\LevelMessage).
     // Généré une fois par niveau et par voix avec le modèle de synthèse vocale, gardé sur le disque
     // privé, joué seulement quand l'apprenant touche « Écouter :teacher ». Aussi affiché en texte.

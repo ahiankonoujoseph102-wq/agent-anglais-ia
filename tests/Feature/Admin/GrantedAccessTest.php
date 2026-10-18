@@ -331,6 +331,9 @@ class GrantedAccessTest extends TestCase
 
     public function test_the_dashboard_shows_the_granted_access_and_a_discreet_message_the_last_two_days(): void
     {
+        // Heure fixe : « 4 jours et 12 heures plus tard » doit tomber le jour de la fin, à toute heure du test.
+        $this->travelTo(now()->setTime(15, 0));
+
         $learner = $this->learnerWithoutAccess();
         $this->granted($learner, 'essentiel', 5);
 

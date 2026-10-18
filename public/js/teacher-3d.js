@@ -211,7 +211,10 @@ class Teacher3D {
         this.failed = false;
         this.time = 0;
 
-        const renderer = new THREE.WebGLRenderer({ antialias: (window.devicePixelRatio || 1) < 2, powerPreference: 'low-power' });
+        // Page de bienvenue : fond aux couleurs de la marque (derrière le canevas transparent), sans salle de classe.
+        this.brand = config.scene?.mode === 'brand';
+
+        const renderer = new THREE.WebGLRenderer({ antialias: (window.devicePixelRatio || 1) < 2, powerPreference: 'low-power', alpha: this.brand });
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
         renderer.setPixelRatio(this.pixelRatio);
@@ -227,7 +230,12 @@ class Teacher3D {
         container.teacher3d = this;
 
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color('#ecd8bd');
+        if (this.brand) {
+            renderer.setClearColor(0x000000, 0);
+        } else {
+            this.scene.background = new THREE.Color('#ecd8bd');
+        }
+
         this.camera = new THREE.PerspectiveCamera(30, 4 / 3, 0.1, 10);
         this.buildLights();
         this.buildClassroom();
@@ -290,39 +298,41 @@ class Teacher3D {
             return mesh;
         };
 
-        // Mur et plinthe.
-        box(4, 3, 0.02, '#ecd8bd', 0, 0.9, -0.62);
-        box(4, 0.5, 0.03, '#d9bf9c', 0, -0.05, -0.6);
+        // Mur, tableau et fenêtre : seulement dans la salle de classe (pas sur le fond de la page de bienvenue).
+        if (!this.brand) {
+            box(4, 3, 0.02, '#ecd8bd', 0, 0.9, -0.62);
+            box(4, 0.5, 0.03, '#d9bf9c', 0, -0.05, -0.6);
 
-        // Tableau noir avec quelques mots écrits à la craie.
-        const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 256;
-        const g = canvas.getContext('2d');
-        g.fillStyle = '#16305e';
-        g.fillRect(0, 0, 512, 256);
-        g.textAlign = 'right';
-        g.fillStyle = 'rgba(255,255,255,0.85)';
-        g.font = 'bold 54px sans-serif';
-        g.fillText('Hello!', 470, 80);
-        g.font = '32px sans-serif';
-        g.fillStyle = 'rgba(255,255,255,0.7)';
-        g.fillText('Good morning', 470, 140);
-        g.fillText('A  B  C', 470, 205);
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        const board = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.5), new THREE.MeshLambertMaterial({ map: texture }));
-        board.position.set(-0.62, 0.80, -0.6);
-        room.add(board);
-        box(1.06, 0.03, 0.03, '#8a5a36', -0.62, 0.535, -0.59);
-        box(1.06, 0.03, 0.03, '#8a5a36', -0.62, 1.065, -0.59);
-        box(0.03, 0.56, 0.03, '#8a5a36', -0.11, 0.80, -0.59);
-        box(0.03, 0.56, 0.03, '#8a5a36', -1.13, 0.80, -0.59);
+            // Tableau noir avec quelques mots écrits à la craie.
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 256;
+            const g = canvas.getContext('2d');
+            g.fillStyle = '#16305e';
+            g.fillRect(0, 0, 512, 256);
+            g.textAlign = 'right';
+            g.fillStyle = 'rgba(255,255,255,0.85)';
+            g.font = 'bold 54px sans-serif';
+            g.fillText('Hello!', 470, 80);
+            g.font = '32px sans-serif';
+            g.fillStyle = 'rgba(255,255,255,0.7)';
+            g.fillText('Good morning', 470, 140);
+            g.fillText('A  B  C', 470, 205);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            const board = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.5), new THREE.MeshLambertMaterial({ map: texture }));
+            board.position.set(-0.62, 0.80, -0.6);
+            room.add(board);
+            box(1.06, 0.03, 0.03, '#8a5a36', -0.62, 0.535, -0.59);
+            box(1.06, 0.03, 0.03, '#8a5a36', -0.62, 1.065, -0.59);
+            box(0.03, 0.56, 0.03, '#8a5a36', -0.11, 0.80, -0.59);
+            box(0.03, 0.56, 0.03, '#8a5a36', -1.13, 0.80, -0.59);
 
-        // Fenêtre ensoleillée.
-        box(0.56, 0.5, 0.01, '#bfe0f2', 0.66, 0.88, -0.605);
-        for (const [w, h, x, y] of [[0.6, 0.03, 0.66, 1.13], [0.6, 0.03, 0.66, 0.63], [0.03, 0.53, 0.37, 0.88], [0.03, 0.53, 0.95, 0.88], [0.02, 0.5, 0.66, 0.88], [0.56, 0.02, 0.66, 0.88]]) {
-            box(w, h, 0.03, '#f6efe4', x, y, -0.59);
+            // Fenêtre ensoleillée.
+            box(0.56, 0.5, 0.01, '#bfe0f2', 0.66, 0.88, -0.605);
+            for (const [w, h, x, y] of [[0.6, 0.03, 0.66, 1.13], [0.6, 0.03, 0.66, 0.63], [0.03, 0.53, 0.37, 0.88], [0.03, 0.53, 0.95, 0.88], [0.02, 0.5, 0.66, 0.88], [0.56, 0.02, 0.66, 0.88]]) {
+                box(w, h, 0.03, '#f6efe4', x, y, -0.59);
+            }
         }
 
         // Bureau, livres et pot à crayons.
