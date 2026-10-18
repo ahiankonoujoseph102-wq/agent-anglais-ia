@@ -265,7 +265,18 @@ return [
     | - duration_days : nombre de jours de validité de l'abonnement
     |
     */
+    // ORDRE D'AFFICHAGE : les formules sont présentées partout (accueil, /formules, résultat de l'évaluation, paiement,
+    // données structurées, fiche du site de Teacher Joe) dans l'ordre de cette liste, du prix le plus bas au plus haut.
+    // Pour changer l'ordre, déplacer une formule dans cette liste : rien d'autre à modifier.
     'plans' => [
+        'semaine' => [
+            'name' => 'Semaine',
+            'daily_minutes' => 15,
+            'price' => 2000,
+            'period' => 'week',
+            'duration_days' => 7,
+            'badge' => 'Pour essayer',
+        ],
         'essentiel' => [
             'name' => 'Essentiel',
             'daily_minutes' => 15,
@@ -284,14 +295,6 @@ return [
             'period' => 'month',
             'duration_days' => 30,
             'badge' => 'Progrès plus rapides',
-        ],
-        'semaine' => [
-            'name' => 'Semaine',
-            'daily_minutes' => 15,
-            'price' => 2000,
-            'period' => 'week',
-            'duration_days' => 7,
-            'badge' => 'Pour essayer',
         ],
     ],
 

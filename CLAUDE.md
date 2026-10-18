@@ -40,9 +40,11 @@ Formules et **prix définitifs** (dans `config/platform.php`), affichés sur les
 
 | Clé | Nom | Temps par jour (partagé : séance orale et « Mes cours ») | Prix | Validité |
 |---|---|---|---|---|
-| `essentiel` | Essentiel (recommandée) | 15 minutes | 7 500 FCFA | 30 jours (par mois) |
-| `intensif` | Intensif | 30 minutes | 14 000 FCFA | 30 jours (par mois) |
-| `semaine` | Semaine | 15 minutes | 2 000 FCFA | 7 jours (par semaine) |
+| `semaine` | Semaine (« Pour essayer ») | 15 minutes | 2 000 FCFA | 7 jours (par semaine) |
+| `essentiel` | Essentiel (« Recommandée », mise en avant) | 15 minutes | 7 500 FCFA | 30 jours (par mois) |
+| `intensif` | Intensif (« Progrès plus rapides ») | 30 minutes | 14 000 FCFA | 30 jours (par mois) |
+
+**Ordre d'affichage : du prix le plus bas au plus haut (Semaine, Essentiel, Intensif), défini à UN seul endroit : l'ordre des formules dans `config('platform.plans')`** (`Plan::all()` le respecte ; accueil, `/formules`, pages par pays, résultat de l'évaluation, formules sous le verdict, choix du paiement, données structurées JSON-LD et fiche du site de Teacher Joe le suivent). Pour le changer : déplacer une formule dans cette liste, rien d'autre. Essentiel garde seule le contour et le badge orange (`recommended`), donc reste la plus visible même au milieu, sur téléphone comme sur ordinateur. `tests/Feature/PlanOrderTest.php`.
 
 **Temps du jour partagé** : chaque formule donne UN temps par jour, partagé librement entre la séance orale quotidienne et « Mes cours » (aucun nombre de leçons). Une séance « Mes cours » dure `courses.max_session_minutes` (10) au plus, jamais plus que le temps restant ; sous `daily_time.min_start_seconds` (2 minutes), aucune nouvelle séance (message `App\Support\DailyTime::EXHAUSTED`). Remise à zéro à minuit, heure de Lomé (`APP_TIMEZONE`). Le serveur accorde le temps au début et coupe à la fin, quel que soit le fournisseur. L'évaluation gratuite et le bilan de niveau n'y comptent pas. « Mon espace » affiche « Il vous reste … aujourd'hui ». Tests : `tests/Feature/DailyTimeTest.php`.
 
@@ -84,6 +86,8 @@ Formules et **prix définitifs** (dans `config/platform.php`), affichés sur les
 - **Mesure des tours de parole et écoute active (faite)** : pour chaque tour (Gemini et OpenAI), début et fin de la parole de l'apprenant (micro du navigateur et fournisseur), fin du tour, premier son de Teacher Joe et délai de réponse, gardés avec le texte (heure réelle du début de la parole), événements de la séance (reconnexion, erreur, micro fermé ou rouvert, pause…) ; « Lire la conversation » : délai sous chaque réponse (orange au-delà de 5 secondes), délai médian et le plus long, événements en gris ; sécurités : porte du micro rouverte si la fin de la voix se perd, fin de tour signalée par le navigateur 3 secondes après la parole si le fournisseur ne la voit pas, message après 8 secondes sans réponse puis bouton « Relancer Teacher Joe » ; consignes d'écoute active. Voir « Tours de parole : mesure et sécurités ».
 
 - **Alerte de paiement (faite)** : l'administrateur est prévenu tout de suite, par notification sur son téléphone (Web Push, clés VAPID) ET par e-mail (SMTP, Brevo), quand une capture arrive (accès provisoire ouvert ou paiement à vérifier, avec une raison courte), quand un accès provisoire va se terminer dans 2 heures sans validation (une seule alerte par paiement) et quand un apprenant d'un pays sans paiement en ligne touche « Écrire sur WhatsApp ». Page « Alertes » de l'administration. Voir « Alertes de paiement ».
+
+- **Ordre des formules (faite)** : Semaine, Essentiel, Intensif (prix croissant), ordre lu dans `config/platform.php`, partout ; Essentiel reste mise en avant. Voir « Formules et prix définitifs ».
 
 (L'ordre 2/3/4/5 est indicatif ; voir le compte rendu de chaque phase.)
 

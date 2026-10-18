@@ -205,7 +205,7 @@ class SeoTest extends TestCase
         // Les vrais prix de la configuration, en francs CFA (XOF), une offre par formule.
         $expected = array_values(array_map(fn ($plan) => [$plan->name, (string) $plan->price], Plan::all()));
         $this->assertSame($expected, array_map(fn (array $offer) => [$offer['name'], $offer['price']], $service['offers']));
-        $this->assertSame([['Essentiel', '7500'], ['Intensif', '14000'], ['Semaine', '2000']], $expected);
+        $this->assertSame([['Semaine', '2000'], ['Essentiel', '7500'], ['Intensif', '14000']], $expected);
         $this->assertSame(['XOF'], array_values(array_unique(array_column($service['offers'], 'priceCurrency'))));
         $this->assertSame(['Togo', 'Burkina Faso', 'Bénin', 'Côte d\'Ivoire'], array_column($service['areaServed'], 'name'));
 
