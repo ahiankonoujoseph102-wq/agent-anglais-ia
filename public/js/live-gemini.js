@@ -24,7 +24,8 @@ export class GeminiTransport {
     /**
      * @param {object} config    réponse du serveur à /connexion (websocket_url, setup)
      * @param {object} handlers  onReady, onAudio, onGenerating, onTeacherText, onLearnerText, onInterrupted,
-     *                           onTurnComplete, onFunctionCall, onUsage, onResumeHandle, onGoAway, onClose
+     *                           onTurnComplete, onFunctionCall, onUsage, onResumeHandle, onGoAway, onClose,
+     *                           onVoiceActivity (début ou fin de la parole de l'apprenant, si Google l'envoie)
      */
     constructor(config, handlers, { WebSocketImpl = globalThis.WebSocket, inputRate = 16000 } = {}) {
         this.config = config;
@@ -104,6 +105,11 @@ export class GeminiTransport {
 
         for (const call of message.toolCall?.functionCalls ?? []) {
             h.onFunctionCall?.({ id: call.id, name: call.name, args: call.args ?? {} });
+        }
+
+        // Début et fin de la parole de l'apprenant vus par Google, quand il les envoie (voiceActivity).
+        if (message.voiceActivity?.type === 'ACTIVITY_START' || message.voiceActivity?.type === 'ACTIVITY_END') {
+            h.onVoiceActivity?.(message.voiceActivity.type === 'ACTIVITY_START');
         }
 
         if (message.usageMetadata) {

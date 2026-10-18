@@ -25,6 +25,9 @@ class TranscriptController extends Controller
             return response()->json(['message' => 'Cette séance est trop ancienne.'], 409);
         }
 
-        return response()->json(['kept' => Transcripts::record($conversation, $request->lines())]);
+        return response()->json([
+            'kept' => Transcripts::record($conversation, $request->lines()),
+            'events' => Transcripts::recordEvents($conversation, $request->events()),
+        ]);
     }
 }

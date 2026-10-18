@@ -5,6 +5,10 @@
         'echo_cancellation' => (bool) config('platform.live.echo_cancellation'),
         'voice_gain' => (float) config('platform.live.voice_gain'),
         'silent_mic_seconds' => (int) config('platform.live.silent_mic_seconds'),
+        'end_of_turn_seconds' => (float) config('platform.live.end_of_turn_seconds'),
+        'no_answer_seconds' => (float) config('platform.live.no_answer_seconds'),
+        'stuck_seconds' => (float) config('platform.live.stuck_seconds'),
+        'voice_stuck_seconds' => (float) config('platform.live.voice_stuck_seconds'),
     ];
 @endphp
 <x-layout :title="$title" focus>
@@ -21,6 +25,7 @@
          data-live-gemini="{{ \App\Support\Asset::url('js/live-gemini.js') }}"
          data-live-openai="{{ \App\Support\Asset::url('js/live-openai.js') }}"
          data-transcript="{{ \App\Support\Asset::url('js/transcript.js') }}"
+         data-turn-watch="{{ \App\Support\Asset::url('js/turn-watch.js') }}"
          data-audio='@json($audio)'
          @if (\App\Support\Avatar::enabled())
              data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"
@@ -88,6 +93,15 @@
             <div id="turn" class="live-turn" data-turn="listening" role="status" aria-live="polite" hidden>
                 <span class="live-turn-dot" aria-hidden="true"></span>
                 <span id="turn-text"></span>
+            </div>
+
+            {{-- Aucune réponse 8 secondes après la fin de la parole : message clair, puis « Relancer » (turn-watch.js). --}}
+            <div id="wait-note" class="alert alert-warning live-wait" role="status" hidden>
+                <x-icon name="hourglass" />
+                <div>
+                    <p id="wait-text"></p>
+                    <button type="button" id="nudge" class="btn btn-accent" hidden><x-icon name="refresh" /> Relancer {{ config('avatar.model.name') }}</button>
+                </div>
             </div>
 
             {{-- Micro : témoin de niveau et choix du micro (plusieurs micros : téléphone, Bluetooth, écouteurs). --}}

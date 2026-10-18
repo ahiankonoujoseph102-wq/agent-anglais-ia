@@ -49,6 +49,7 @@ export class OpenAiTransport {
         this.closed = false;
         // Voix envoyée par OpenAI en ce moment (output_audio_buffer.started → stopped).
         this.speaking = false;
+        this.speakingSince = 0;
         this.stoppedAt = 0;
         this.responding = false;
         // Le son arrive sur une piste : l'écran ne programme aucun tampon.
@@ -162,6 +163,15 @@ export class OpenAiTransport {
         this.handlers.onReady?.();
     }
 
+    /**
+     * Sécurité (live-session.js, mic-gate.js) : fin de la voix tenue pour acquise quand output_audio_buffer.stopped
+     * ne vient pas alors que plus rien n'est audible.
+     */
+    voiceEnded(at) {
+        this.speaking = false;
+        this.stoppedAt = at;
+    }
+
     /** Connexion perdue en cours de séance (réseau, appel raccroché par le serveur à la limite). */
     lost(reason) {
         if (this.closed) {
@@ -190,6 +200,7 @@ export class OpenAiTransport {
 
             case 'output_audio_buffer.started':
                 this.speaking = true;
+                this.speakingSince = this.context?.currentTime ?? 0;
                 h.onSpeechStarted?.();
                 break;
 
@@ -261,6 +272,7 @@ export class OpenAiTransport {
 
             case 'error':
                 console.warn('OpenAI :', event.error?.type, event.error?.code, event.error?.message);
+                h.onProviderError?.(event.error?.code || event.error?.type || 'error');
                 break;
 
             default:

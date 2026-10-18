@@ -6,6 +6,7 @@ use App\Enums\Level;
 use App\Models\User;
 use App\Support\Gemini\TeacherSetup;
 use App\Support\Gemini\UsageCost;
+use App\Support\Live\OpenAiRealtime;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -20,6 +21,7 @@ class TeacherSetupTest extends TestCase
             'teacher.persona' => 'Teacher of :platform for :name.',
             'teacher.lesson' => 'Lesson of :minutes minutes, warning :warning minutes before.',
             'teacher.coaching' => '',
+            'teacher.listening' => '',
         ]);
 
         $user = new User(['name' => 'Yao']);
@@ -139,7 +141,7 @@ class TeacherSetupTest extends TestCase
 
             $this->assertFalse($detection['disabled']);
             $this->assertSame('START_SENSITIVITY_LOW', $detection['startOfSpeechSensitivity']);
-            $this->assertSame('END_SENSITIVITY_LOW', $detection['endOfSpeechSensitivity']);
+            $this->assertSame('END_SENSITIVITY_HIGH', $detection['endOfSpeechSensitivity']);
             $this->assertSame(250, $detection['prefixPaddingMs']);
             $this->assertSame(1500, $detection['silenceDurationMs']);
         }
@@ -259,5 +261,35 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('do not leave it', $text);
         // Seule la séance du jour le propose : pas l'évaluation gratuite.
         $this->assertStringNotContainsString('page « Mes cours » (in the', TeacherSetup::instructions('assessment', new User(['name' => 'Yao']), 5));
+    }
+
+    public function test_teacher_joe_shows_he_listened_in_the_lesson_my_courses_and_the_level_test_at_both_providers(): void
+    {
+        $user = new User(['name' => 'Kossi']);
+        $user->level = Level::A2;
+        config(['services.openai.realtime_model' => 'gpt-realtime-2.1-mini']);
+        $setups = [
+            'lesson' => TeacherSetup::lesson($user, 15),
+            'course' => TeacherSetup::course($user, 10, 'Lesson: the present simple.'),
+            'level_test' => TeacherSetup::levelTest($user, Level::A2, 10),
+        ];
+
+        foreach ($setups as $kind => $setup) {
+            $gemini = $setup['systemInstruction']['parts'][0]['text'];
+            $openai = OpenAiRealtime::session($setup)['instructions'];
+
+            $this->assertSame($gemini, $openai, "{$kind} : mêmes consignes chez Gemini et chez OpenAI");
+            $this->assertStringContainsString('ACTIVE LISTENING', $gemini, $kind);
+            $this->assertStringContainsString('sum up in ONE short sentence what the learner just said', $gemini, $kind);
+            $this->assertStringContainsString('ONE or TWO mistakes that matter most for being understood', $gemini, $kind);
+            $this->assertStringContainsString('ask ONE question linked to what the learner has just told you', $gemini, $kind);
+            $this->assertStringNotContainsString('at most ONE correction per answer', $gemini, $kind);
+        }
+
+        // Évaluation gratuite : pas de cours, mais un bref résumé de ce qui a été dit avant la question suivante.
+        $assessment = TeacherSetup::assessment($user, 5)['systemInstruction']['parts'][0]['text'];
+        $this->assertStringNotContainsString('ACTIVE LISTENING', $assessment);
+        $this->assertStringContainsString('sum up in a few words what the learner just said', $assessment);
+        $this->assertStringContainsString('This is not a lesson', $assessment);
     }
 }

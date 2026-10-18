@@ -65,3 +65,17 @@ export class MicGate {
         return 'hold';
     }
 }
+
+/**
+ * Sécurité de la porte du micro quand la fin de la voix est ANNONCÉE par le fournisseur (OpenAI :
+ * output_audio_buffer.stopped) : si cet événement se perd, la porte resterait fermée et l'apprenant parlerait
+ * dans le vide. La voix est donc tenue pour finie quand plus rien n'est audible depuis « after » secondes
+ * (heures de l'horloge audio), même sans l'événement.
+ *
+ * @param {number} now            heure actuelle
+ * @param {number} speakingSince  début annoncé de la voix
+ * @param {number} lastAudibleAt  dernier instant où la voix reçue était audible
+ */
+export function voiceLooksOver({ now, speakingSince, lastAudibleAt, after = 4 }) {
+    return now - Math.max(speakingSince || 0, lastAudibleAt || 0) >= after;
+}

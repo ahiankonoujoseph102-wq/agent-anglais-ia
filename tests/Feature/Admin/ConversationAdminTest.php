@@ -67,6 +67,42 @@ class ConversationAdminTest extends TestCase
             ->assertSeeText('La voix n\'est jamais enregistrée');
     }
 
+    public function test_each_reply_shows_its_delay_slow_ones_in_orange_with_the_median_and_the_longest_and_grey_events(): void
+    {
+        $ms = fn (int $minutes, int $seconds = 0) => now()->subMinutes($minutes)->addSeconds($seconds)->getTimestampMs();
+        Transcripts::record($this->lesson, [
+            ['seq' => 1, 'speaker' => 'teacher', 'text' => 'Good morning Kossi! Today: at the market.', 'at' => $ms(14), 'metrics' => []],
+            ['seq' => 3, 'speaker' => 'teacher', 'text' => 'Great! What do you buy?', 'at' => $ms(12, 30), 'metrics' => ['delay_ms' => 1400]],
+            ['seq' => 4, 'speaker' => 'learner', 'text' => 'I buy tomatoes and rice for my family.', 'at' => $ms(11), 'end' => $ms(10)],
+            ['seq' => 5, 'speaker' => 'teacher', 'text' => 'So you buy tomatoes and rice. Nice!', 'at' => $ms(10, 12), 'metrics' => ['delay_ms' => 12300]],
+            ['seq' => 6, 'speaker' => 'teacher', 'text' => 'Do you cook?', 'at' => $ms(9), 'metrics' => ['delay_ms' => 2000]],
+        ]);
+        Transcripts::recordEvents($this->lesson, [
+            ['kind' => 'gate_closed', 'detail' => 'voix du professeur', 'at' => $ms(12, 31)],
+            ['kind' => 'no_answer', 'detail' => '8 secondes', 'at' => $ms(10, 8)],
+        ]);
+
+        $this->actingAs($this->admin)->get(route('admin.conversations.show', [$this->learner, 'lesson', $this->lesson->id]))
+            ->assertOk()
+            ->assertSeeInOrder(['Délai de réponse : médian', '2,0 secondes', 'le plus long', 'chat-delay-slow', '12,3 secondes', '(3 réponses mesurées)'], false)
+            ->assertSeeInOrder([
+                'Great! What do you buy?', 'répond en 1,4 seconde',
+                'chat-event', '09:18:31', 'Micro fermé : voix du professeur',
+                'I buy tomatoes and rice for my family.',
+                'Aucune réponse du professeur : 8 secondes',
+                'So you buy tomatoes and rice. Nice!', '<p class="chat-delay chat-delay-slow">répond en 12,3 secondes</p>',
+                'Do you cook?', '<p class="chat-delay">répond en 2,0 secondes</p>',
+            ], false);
+    }
+
+    public function test_a_session_without_measures_says_so(): void
+    {
+        $this->actingAs($this->admin)->get(route('admin.conversations.show', [$this->learner, 'lesson', $this->lesson->id]))
+            ->assertOk()
+            ->assertSeeText('Délai de réponse : aucune réponse mesurée pour cette séance.')
+            ->assertDontSee('répond en', false);
+    }
+
     public function test_only_administrators_can_read_or_delete_conversations(): void
     {
         $this->get(route('admin.conversations.show', [$this->learner, 'lesson', $this->lesson->id]))->assertRedirect(route('login'));
