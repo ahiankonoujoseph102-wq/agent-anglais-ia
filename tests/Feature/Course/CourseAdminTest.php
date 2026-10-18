@@ -71,13 +71,13 @@ class CourseAdminTest extends TestCase
         $learner = $this->learner();
         $html = $this->actingAs($learner)->get('/espace')->assertOk()->getContent();
 
-        $this->assertStringContainsString('Leçons aujourd\'hui', $html);
+        $this->assertStringContainsString('Pris sur votre temps du jour', $html);
         $this->assertLessThan(strpos($html, 'Mes cours</h2>'), strpos($html, 'Prochaine étape'));
         $this->assertLessThan(strpos($html, 'Mon niveau'), strpos($html, 'Mes cours</h2>'));
         $this->assertStringContainsString(route('courses.index'), $html);
 
         $without = $this->actingAs(User::factory()->create())->get('/espace')->assertOk()->getContent();
-        $this->assertStringNotContainsString('Leçons aujourd\'hui', $without);
+        $this->assertStringNotContainsString('Pris sur votre temps du jour', $without);
     }
 
     public function test_my_courses_is_in_the_menu_but_not_in_the_bottom_bar_and_not_linked_for_visitors(): void

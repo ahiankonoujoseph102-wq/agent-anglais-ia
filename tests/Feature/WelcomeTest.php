@@ -285,7 +285,7 @@ class WelcomeTest extends TestCase
 
     public function test_the_message_follows_the_planned_order_and_reads_the_configuration(): void
     {
-        config(['platform.plans.intensif.name' => 'Progrès', 'platform.courses.session_minutes' => 12, 'platform.courses.sessions_per_day' => 3]);
+        config(['platform.plans.intensif.name' => 'Progrès', 'platform.courses.max_session_minutes' => 12]);
         $texts = $this->texts($this->newcomer(plan: 'intensif'));
         $all = implode("\n", [$texts['opening'], ...$texts['paragraphs']]);
 
@@ -299,12 +299,14 @@ class WelcomeTest extends TestCase
             // d) étape 1 : le questionnaire
             'Première étape : un court questionnaire', 'programme personnel, adapté à votre objectif et à votre rythme',
             // e) étape 2 : la séance orale et ses règles (durée lue dans la formule de l'apprenant)
-            'Deuxième étape : chaque jour, votre séance orale', 'vous donne 30 minutes de séance par jour',
+            // Un seul temps par jour, partagé librement entre la conversation et l'explication des leçons de l'école.
+            'Deuxième étape : chaque jour, vous parlez anglais avec moi', 'vous donne 30 minutes par jour',
+            'partagez-le librement entre notre conversation en anglais et l\'explication de vos leçons d\'anglais de l\'école',
             'endroit calme', 'téléphone près de la bouche', 'parlez à voix haute', 'N\'ayez pas peur de vous tromper',
-            'la séance s\'arrête toute seule', '« Interrompre le professeur »', 'faire une pause', 'couper votre micro',
+            'le temps qu\'il vous reste aujourd\'hui', 'la séance s\'arrête toute seule', 'revient chaque jour à minuit', '« Interrompre le professeur »', 'faire une pause', 'couper votre micro',
             // f) « Mes cours », limites de la configuration
             '« Mes cours »', 'leçon ou votre exercice d\'anglais', 'je vous l\'explique', 'je réponds à vos questions',
-            'je vous guide pour faire vous-même l\'exercice', 'jusqu\'à 3 leçons par jour, de 12 minutes chacune', 'uniquement pour l\'anglais',
+            'je vous guide pour faire vous-même l\'exercice', 'Une explication dure 12 minutes au plus', 'prend simplement sur votre temps du jour', 'uniquement pour l\'anglais',
             // g) conclusion motivante, en anglais traduit
             'Let\'s start !', 'Cela veut dire : c\'est parti !',
         ];
@@ -318,7 +320,12 @@ class WelcomeTest extends TestCase
         }
 
         // Le nom de la formule et ses minutes suivent l'accès de l'apprenant.
-        $this->assertStringContainsString('vous donne 15 minutes de séance par jour', implode(' ', $this->texts($this->newcomer('Ama', '+22890000001'))['paragraphs']));
+        $paragraphs = implode(' ', $this->texts($this->newcomer('Ama', '+22890000001'))['paragraphs']);
+        $this->assertStringContainsString('vous donne 15 minutes par jour', $paragraphs);
+        // Jamais un nombre de leçons ni l'ancienne règle des séances à part.
+        foreach (['leçons par jour', 'minutes chacune', 'de séance par jour', 'à part'] as $old) {
+            $this->assertStringNotContainsString($old, $paragraphs);
+        }
 
         // Aucun chiffre écrit à la main : tout vient de la configuration.
         $raw = implode("\n", [...(array) config('teacher.welcome.paragraphs'), config('teacher.welcome.program_ready'), config('teacher.welcome.opening')]);
@@ -454,6 +461,28 @@ class WelcomeTest extends TestCase
         $this->assertTrue($disk->exists($new));
         $this->assertFalse($disk->exists($old));
         $this->assertTrue($disk->exists(WelcomeMessage::path($this->texts($user)['paragraphs'][0], $gemini)));
+    }
+
+    public function test_the_audio_of_the_old_rule_is_never_played_again(): void
+    {
+        self::fakeSpeech();
+        $disk = PrivateStorage::disk();
+        $gemini = app(GeminiSpeech::class);
+        $user = $this->newcomer();
+        $paragraphs = $this->texts($user)['paragraphs'];
+
+        // L'ancien paragraphe « Mes cours » (5 leçons de 10 minutes) avait déjà son fichier audio.
+        $old = 'Si vous êtes élève, il y a aussi « Mes cours », dans le menu. Vous photographiez votre leçon ou votre exercice d\'anglais de l\'école, je vous l\'explique, je réponds à vos questions et je vous guide pour faire vous-même l\'exercice. Vous pouvez y travailler jusqu\'à 5 leçons par jour, de 10 minutes chacune. C\'est uniquement pour l\'anglais.';
+        $disk->put(WelcomeMessage::path($old, $gemini), 'ancienne voix');
+
+        $current = collect($paragraphs)->first(fn (string $text) => str_contains($text, '« Mes cours »'));
+        $this->assertNotSame(WelcomeMessage::path($old, $gemini), WelcomeMessage::path($current, $gemini));
+        $this->assertFalse(WelcomeMessage::isReady($current, $gemini), 'Le nouveau texte n\'a pas encore de voix : l\'ancienne n\'est jamais jouée à sa place.');
+
+        // « Préparer le message de bienvenue » : le nouveau paragraphe est préparé, l'ancien fichier effacé.
+        $this->prepareCommonPart();
+        $this->assertTrue(WelcomeMessage::isReady($current, $gemini));
+        $this->assertFalse($disk->exists(WelcomeMessage::path($old, $gemini)));
     }
 
     public function test_a_paragraph_not_yet_prepared_is_never_generated_while_listening(): void

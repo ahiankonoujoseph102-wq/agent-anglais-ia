@@ -34,9 +34,14 @@ class FormattingTest extends TestCase
 
         $this->assertSame(['essentiel', 'intensif', 'semaine'], array_keys($plans));
 
-        $this->assertSame([15, 5000, 'par mois'], [$plans['essentiel']->dailyMinutes, $plans['essentiel']->price, $plans['essentiel']->periodLabel()]);
-        $this->assertSame([30, 9000, 'par mois'], [$plans['intensif']->dailyMinutes, $plans['intensif']->price, $plans['intensif']->periodLabel()]);
-        $this->assertSame([15, 1500, 'par semaine'], [$plans['semaine']->dailyMinutes, $plans['semaine']->price, $plans['semaine']->periodLabel()]);
+        $this->assertSame([15, 7500, 'par mois'], [$plans['essentiel']->dailyMinutes, $plans['essentiel']->price, $plans['essentiel']->periodLabel()]);
+        $this->assertSame([30, 14000, 'par mois'], [$plans['intensif']->dailyMinutes, $plans['intensif']->price, $plans['intensif']->periodLabel()]);
+        $this->assertSame([15, 2000, 'par semaine'], [$plans['semaine']->dailyMinutes, $plans['semaine']->price, $plans['semaine']->periodLabel()]);
+
+        // Prix définitifs, affichés à la française partout (formules, paiement, administration).
+        $this->assertSame(["7\u{202F}500\u{00A0}FCFA", "14\u{202F}000\u{00A0}FCFA", "2\u{202F}000\u{00A0}FCFA"], [$plans['essentiel']->formattedPrice(), $plans['intensif']->formattedPrice(), $plans['semaine']->formattedPrice()]);
+        $this->assertSame([30, 30, 7], [$plans['essentiel']->durationDays, $plans['intensif']->durationDays, $plans['semaine']->durationDays]);
+        $this->assertTrue($plans['essentiel']->recommended);
 
         $this->assertNull(Plan::find('inconnue'));
     }

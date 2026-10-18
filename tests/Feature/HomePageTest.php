@@ -13,11 +13,11 @@ class HomePageTest extends TestCase
             ->assertSee(config('platform.name'))
             ->assertSee(config('avatar.model.name'))
             ->assertSee('Essentiel')
-            ->assertSee("5\u{202F}000\u{00A0}FCFA", false)
+            ->assertSee("7\u{202F}500\u{00A0}FCFA", false)
             ->assertSee('Intensif')
-            ->assertSee("9\u{202F}000\u{00A0}FCFA", false)
+            ->assertSee("14\u{202F}000\u{00A0}FCFA", false)
             ->assertSee('Semaine')
-            ->assertSee("1\u{202F}500\u{00A0}FCFA", false)
+            ->assertSee("2\u{202F}000\u{00A0}FCFA", false)
             ->assertSee('par semaine');
     }
 
@@ -42,7 +42,7 @@ class HomePageTest extends TestCase
             ->assertSee('Professeur Ama')
             ->assertDontSee('Talkami')
             ->assertSee('Découverte')
-            ->assertSee('10 minutes de séance orale par jour')
+            ->assertSee('10 minutes par jour, à partager entre la séance orale et « Mes cours »', false)
             ->assertDontSee('Essentiel');
     }
 

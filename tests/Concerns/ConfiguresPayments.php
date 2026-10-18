@@ -59,7 +59,7 @@ trait ConfiguresPayments
         return array_merge([
             'readable' => true,
             'operator' => 'Flooz',
-            'amount' => 5000,
+            'amount' => 7500,
             'currency' => 'FCFA',
             'date_time' => now()->subMinutes(10)->format('Y-m-d\TH:i'),
             'transaction_id' => 'TX 2026.00123',

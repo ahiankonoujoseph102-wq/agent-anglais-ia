@@ -14,23 +14,22 @@ use App\Models\ProgramLesson;
 use App\Models\User;
 use App\Support\Curriculum\LessonContext;
 use App\Support\Curriculum\LessonReport;
-use App\Support\Duration;
+use App\Support\DailyTime;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 /**
- * La séance du jour des abonnés, limitée au temps restant de leur formule.
+ * La séance du jour des abonnés, limitée au temps restant du jour de leur formule (partagé avec « Mes cours »).
  */
 class LessonController extends Controller
 {
     private const NO_SUBSCRIPTION = 'Votre abonnement n\'est pas actif : choisissez une formule pour suivre vos séances.';
-
-    private const NO_TIME_LEFT = 'Votre temps de séance est épuisé pour aujourd\'hui. Revenez demain !';
 
     public function show(Request $request): View|RedirectResponse
     {
@@ -47,14 +46,15 @@ class LessonController extends Controller
         }
         $remaining = $lesson?->remainingSeconds() ?? $user->remainingSecondsToday();
 
-        if ($remaining < (int) config('platform.live.min_start_seconds')) {
-            return to_route('dashboard')->with('status', self::NO_TIME_LEFT);
+        // Moins de 2 minutes dans le temps du jour (partagé avec « Mes cours ») : pas de nouvelle séance.
+        if ($lesson === null && $remaining < DailyTime::minStartSeconds()) {
+            return to_route('dashboard')->with('status', DailyTime::EXHAUSTED);
         }
 
         return view('live.session', [
             'mode' => 'lesson',
             'title' => 'Ma séance du jour',
-            'intro' => 'Il vous reste '.Duration::format($remaining).' de séance aujourd\'hui. Le professeur vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
+            'intro' => DailyTime::remainingSentence($remaining).' Ce temps du jour est partagé avec « Mes cours ». Le professeur vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
             'remainingSeconds' => $remaining,
             'urls' => [
                 'connect' => route('lesson.connect'),
@@ -66,7 +66,31 @@ class LessonController extends Controller
         ]);
     }
 
+    /**
+     * Verrou commun à la séance orale et à « Mes cours » : deux ouvertures en même temps ne prennent
+     * jamais plus que le temps du jour.
+     */
+    public static function connectLockKey(User $user): string
+    {
+        return 'live-connect:'.$user->id;
+    }
+
     public function connect(ConnectRequest $request, LiveConnection $live): JsonResponse
+    {
+        $lock = Cache::lock(self::connectLockKey($request->user()), 20);
+
+        if (! $lock->get()) {
+            return $this->refuse('Une connexion est déjà en cours. Patientez un instant, puis réessayez.', 429);
+        }
+
+        try {
+            return $this->start($request, $live);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function start(ConnectRequest $request, LiveConnection $live): JsonResponse
     {
         $user = $request->user();
         $subscription = $user->activeSubscription;
@@ -89,8 +113,8 @@ class LessonController extends Controller
         // Une séance ouverte est reprise ; sinon on en commence une avec le temps restant du jour.
         $allowedSeconds = $lesson?->allowed_seconds ?? (int) $user->remainingSecondsToday();
 
-        if ($lesson === null && $allowedSeconds < (int) config('platform.live.min_start_seconds')) {
-            return $this->refuse(self::NO_TIME_LEFT, 403);
+        if ($lesson === null && $allowedSeconds < DailyTime::minStartSeconds()) {
+            return $this->refuse(DailyTime::EXHAUSTED, 403);
         }
 
         $deadline = $lesson?->deadline() ?? now()->addSeconds($allowedSeconds);

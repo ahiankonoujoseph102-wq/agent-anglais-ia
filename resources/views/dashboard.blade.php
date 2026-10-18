@@ -71,11 +71,11 @@
                     leçon {{ $currentLesson->lesson_number }} : {{ $currentLesson->focusLabel() }}
                 </p>
             @endif
-            @if ($remainingSeconds >= $minStartSeconds)
-                <p>{{ \App\Support\Duration::format($remainingSeconds) }} de séance orale disponibles aujourd'hui.</p>
+            @if ($canStartToday)
+                <p>{{ \App\Support\DailyTime::remainingSentence((int) $remainingSeconds) }} Ce temps est partagé entre la séance orale et « Mes cours ».</p>
                 <a href="{{ route('lesson.show') }}" class="btn btn-lg btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
             @else
-                <p>Votre temps de séance est épuisé pour aujourd'hui. Revenez demain !</p>
+                <p>{{ \App\Support\DailyTime::EXHAUSTED }}</p>
             @endif
             @if ($lastLesson?->summary)
                 <h3 class="next-step">Dernière séance</h3>
@@ -159,7 +159,7 @@
     @endif
 
     {{-- « Mes cours » : complément facultatif, après la prochaine étape et la séance orale du jour. --}}
-    @if ($courseCounter)
+    @if ($showCourses)
         <section class="card rise" aria-labelledby="courses-card-title" style="--i: 2">
             <div class="card-title">
                 <span class="icon-bubble"><x-icon name="book" /></span>
@@ -169,7 +169,7 @@
                 Un complément facultatif : apportez une leçon d'anglais de votre école, et {{ config('avatar.model.name') }}
                 vous aide à la comprendre et à vous exercer.
             </p>
-            <p class="course-counter"><x-icon name="clock" /> <span>Leçons aujourd'hui : <strong>{{ $courseCounter['used'] }} sur {{ $courseCounter['limit'] }}</strong></span></p>
+            <p class="course-counter"><x-icon name="clock" /> <span>Pris sur votre temps du jour, partagé avec la séance orale.</span></p>
             <a href="{{ route('courses.index') }}" class="btn btn-light btn-block"><x-icon name="arrow-right" /> Ouvrir Mes cours</a>
         </section>
     @endif
@@ -208,7 +208,7 @@
             <div class="label"><x-icon name="clock" /> Temps restant aujourd'hui</div>
             @if ($remainingSeconds !== null)
                 <div class="value">{{ \App\Support\Duration::format($remainingSeconds) }}</div>
-                <div class="detail">sur {{ $subscription->daily_minutes }} minutes</div>
+                <div class="detail">sur {{ $subscription->daily_minutes }} minutes, séance orale et « Mes cours »</div>
             @else
                 <div class="value">—</div>
                 <div class="detail">Disponible avec un abonnement</div>

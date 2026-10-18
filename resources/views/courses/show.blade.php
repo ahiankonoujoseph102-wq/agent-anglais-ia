@@ -25,18 +25,18 @@
 
         <p class="course-counter">
             <x-icon name="clock" />
-            <span>Leçons aujourd'hui : <strong>{{ $counter['used'] }} sur {{ $counter['limit'] }}</strong></span>
+            <span>{{ \App\Support\DailyTime::remainingSentence($counter['remaining']) }}</span>
         </p>
 
-        @if ($counter['reached'])
+        @if ($counter['exhausted'])
             <div class="alert alert-info" role="status">
                 <x-icon name="info" />
-                <div>Vous avez fait vos {{ $counter['limit'] }} leçons du jour. Revenez demain : votre séance orale du jour reste disponible.</div>
+                <div>{{ \App\Support\DailyTime::EXHAUSTED }}</div>
             </div>
         @else
             <a href="{{ route('courses.session', $course) }}" class="btn btn-accent btn-block btn-lg"><x-icon name="mic" /> Parler avec {{ $teacher }}</a>
             <p class="muted small next-step">
-                Séance de {{ \App\Support\Duration::format((int) config('platform.courses.session_minutes') * 60) }} au plus, en complément de votre séance orale du jour.
+                Séance de {{ \App\Support\Duration::format($counter['session']) }} au plus, prise sur votre temps du jour (partagé avec la séance orale).
             </p>
         @endif
     </section>

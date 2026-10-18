@@ -7,6 +7,7 @@ use App\Http\Requests\Course\StoreCourseRequest;
 use App\Models\CourseLesson;
 use App\Models\CoursePage;
 use App\Models\User;
+use App\Support\DailyTime;
 use App\Support\Gemini\CourseReader;
 use App\Support\PdfPages;
 use App\Support\PrivateStorage;
@@ -249,16 +250,20 @@ class CourseController extends Controller
     }
 
     /**
-     * « Leçons aujourd'hui : 2 sur 5 » (séances avec Teacher Joe, nouvelle leçon ou retour sur une ancienne).
+     * Temps du jour restant (partagé avec la séance orale) et durée de la prochaine séance « Mes cours » :
+     * la durée maximale d'une séance, jamais plus que le temps restant.
      *
-     * @return array{used: int, limit: int, reached: bool}
+     * @return array{remaining: int, session: int, exhausted: bool}
      */
     private function counter(User $user): array
     {
-        $used = $user->courseSessionsToday();
-        $limit = (int) config('platform.courses.sessions_per_day');
+        $available = (int) $user->remainingSecondsToday();
 
-        return ['used' => $used, 'limit' => $limit, 'reached' => $used >= $limit];
+        return [
+            'remaining' => (int) $user->remainingSecondsToday(false),
+            'session' => min((int) config('platform.courses.max_session_minutes') * 60, $available),
+            'exhausted' => $available < DailyTime::minStartSeconds(),
+        ];
     }
 
     /**

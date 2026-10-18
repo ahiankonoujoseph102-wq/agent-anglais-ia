@@ -92,7 +92,7 @@ class PaymentValidationTest extends TestCase
         $this->assertSame(SubscriptionStatus::Active, $subscription->status);
         $this->assertSame('Intensif', $subscription->plan_name);
         $this->assertSame(30, $subscription->daily_minutes);
-        $this->assertSame(9000, $subscription->price);
+        $this->assertSame(14000, $subscription->price);
         $this->assertTrue($subscription->starts_at->equalTo(now()));
         $this->assertTrue($subscription->ends_at->equalTo(now()->addDays(30)));
 
@@ -180,8 +180,8 @@ class PaymentValidationTest extends TestCase
             ->assertSee('Apprenant Togo')
             ->assertSee('Apprenant Bénin')
             ->assertSee('Apprenant Ancien')
-            // Seul le paiement validé ce mois-ci compte : 9 000 FCFA.
-            ->assertSee("9\u{202F}000\u{00A0}FCFA", false);
+            // Seul le paiement validé ce mois-ci compte : 14 000 FCFA.
+            ->assertSee("14\u{202F}000\u{00A0}FCFA", false);
 
         $this->actingAs($this->admin)->get('/admin/paiements/historique?pays=BJ')
             ->assertSee('Apprenant Bénin')->assertDontSee('Apprenant Togo');

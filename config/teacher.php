@@ -111,9 +111,11 @@ return [
     // PARAGRAPHE est une synthèse vocale à part, générée une seule fois puis gardée ; seule l'ouverture
     // (salutation et prénom) est propre à chaque prénom. Ordre : salutation et félicitations, présentation,
     // écoute, étape 1 (questionnaire), étape 2 (séance orale et ses règles), « Mes cours », conclusion.
-    // Marqueurs : :platform, :teacher, :plan (nom de la formule), :daily_duration (minutes de séance par
-    // jour de la formule, en toutes lettres), :course_sessions, :course_minutes (config/platform.php).
-    // Jamais de chiffre écrit à la main, aucune fonction qui n'existe pas.
+    // Marqueurs : :platform, :teacher, :plan (nom de la formule), :daily_duration (temps par jour de la
+    // formule, partagé entre la séance orale et « Mes cours », en toutes lettres), :course_minutes (durée
+    // maximale d'une séance « Mes cours », en toutes lettres) (config/platform.php). Jamais de chiffre écrit
+    // à la main, jamais un nombre de leçons, aucune fonction qui n'existe pas. Changer un texte change le
+    // nom de son fichier audio : l'ancien n'est plus jamais joué (préparer le nouveau dans « Diagnostic de la voix »).
     'welcome' => [
         'style' => 'a warm, joyful and professional male teacher welcoming a new learner, speaking French clearly at a calm, natural pace, with a smile in the voice; the few English words are pronounced in clear English',
         // Ouverture propre à l'apprenant : :greeting (Bonjour ou Bonsoir), :english (Good morning ou Good evening), :name (prénom).
@@ -123,9 +125,9 @@ return [
             'teacher' => 'Je suis :teacher, votre professeur d\'anglais. Vous avez fait un très bon choix pour parler anglais avec confiance, et je suis heureux de vous accompagner, jour après jour.',
             'listen' => 'Écoutez-moi bien, s\'il vous plaît : bien comprendre comment tout fonctionne vous permettra de profiter pleinement de votre formule.',
             'questionnaire' => 'Première étape : un court questionnaire, de quelques questions seulement. Grâce à vos réponses, nous construirons ensemble votre programme personnel, adapté à votre objectif et à votre rythme.',
-            'lesson' => 'Deuxième étape : chaque jour, votre séance orale avec moi. Votre formule vous donne :daily_duration de séance par jour. Installez-vous dans un endroit calme, gardez votre téléphone près de la bouche, et parlez à voix haute. N\'ayez pas peur de vous tromper : c\'est en parlant que l\'on progresse. En anglais, on dit : « Don\'t be shy ! » Cela veut dire : n\'ayez pas peur !',
-            'lesson_rules' => 'Quand votre temps du jour est écoulé, la séance s\'arrête toute seule. Pendant que je parle, vous pouvez m\'interrompre avec le bouton « Interrompre le professeur ». Vous pouvez aussi faire une pause, mais le temps continue de s\'écouler, ou couper votre micro.',
-            'courses' => 'Si vous êtes élève, il y a aussi « Mes cours », dans le menu. Vous photographiez votre leçon ou votre exercice d\'anglais de l\'école, je vous l\'explique, je réponds à vos questions et je vous guide pour faire vous-même l\'exercice. Vous pouvez y travailler jusqu\'à :course_sessions leçons par jour, de :course_minutes minutes chacune. C\'est uniquement pour l\'anglais.',
+            'lesson' => 'Deuxième étape : chaque jour, vous parlez anglais avec moi. Votre formule vous donne :daily_duration par jour, et ce temps est à vous : partagez-le librement entre notre conversation en anglais et l\'explication de vos leçons d\'anglais de l\'école. Installez-vous dans un endroit calme, gardez votre téléphone près de la bouche, et parlez à voix haute. N\'ayez pas peur de vous tromper : c\'est en parlant que l\'on progresse. En anglais, on dit : « Don\'t be shy ! » Cela veut dire : n\'ayez pas peur !',
+            'lesson_rules' => 'Dans « Mon espace », vous voyez toujours le temps qu\'il vous reste aujourd\'hui. Quand il est écoulé, la séance s\'arrête toute seule, et votre temps revient chaque jour à minuit. Pendant que je parle, vous pouvez m\'interrompre avec le bouton « Interrompre le professeur ». Vous pouvez aussi faire une pause, mais le temps continue de s\'écouler, ou couper votre micro.',
+            'courses' => 'Si vous êtes élève, il y a aussi « Mes cours », dans le menu. Vous photographiez votre leçon ou votre exercice d\'anglais de l\'école, je vous l\'explique, je réponds à vos questions et je vous guide pour faire vous-même l\'exercice. Une explication dure :course_minutes au plus, et elle prend simplement sur votre temps du jour. C\'est uniquement pour l\'anglais.',
             'closing' => 'Tout est clair ? Alors, c\'est parti ! En anglais : « Let\'s start ! » Cela veut dire : c\'est parti ! Touchez le bouton orange, et nous commençons ensemble.',
         ],
         // Remplace « questionnaire » quand le programme personnel est déjà construit.
@@ -158,6 +160,7 @@ return [
         - If you do not know, say they can touch « Aide » in the bottom bar, then the green WhatsApp button, to ask the team.
         - During the assessment, these questions must not use up the assessment time: one short answer, then resume the assessment immediately.
         - The document given after a passed end-of-level test is an "attestation" de niveau, never a "certificat" or a "diplôme".
+        - Daily time: each plan gives ONE amount of time per day, shared freely between the daily oral lesson and « Mes cours ». Never announce a number of lessons or sessions per day, and never promise more time than the plan gives or than what remains today.
         TXT,
 
     // Orientation selon le niveau (débit, place du français) pour les séances et les bilans de niveau.

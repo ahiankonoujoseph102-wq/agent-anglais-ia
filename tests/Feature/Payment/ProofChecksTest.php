@@ -37,12 +37,12 @@ class ProofChecksTest extends TestCase
      *
      * @param  array<string, mixed>|null  $reading
      */
-    private function submit(?array $reading, ?User $user = null, ?UploadedFile $image = null): Payment
+    private function submit(?array $reading, ?User $user = null, ?UploadedFile $image = null, string $plan = 'essentiel'): Payment
     {
         $this->fakeProofReader($reading);
         $user ??= User::factory()->create();
 
-        $this->actingAs($user)->post('/abonnement/essentiel', [
+        $this->actingAs($user)->post('/abonnement/'.$plan, [
             'country' => 'TG',
             'operator' => 'flooz',
             'proof' => $image ?? $this->proofImage('capture.png', $this->imageWidth++),
@@ -108,6 +108,33 @@ class ProofChecksTest extends TestCase
         $this->assertCount(6, $payment->checks);
     }
 
+    /**
+     * Prix définitifs : Semaine 2 000, Essentiel 7 500, Intensif 14 000 FCFA. Le montant lu doit atteindre
+     * le prix de la formule choisie ; les anciens prix (1 500, 5 000, 9 000) ne suffisent plus.
+     *
+     * @return array<string, array{0: string, 1: int, 2: int}>
+     */
+    public static function planPrices(): array
+    {
+        return [
+            'Semaine' => ['semaine', 2000, 1500],
+            'Essentiel' => ['essentiel', 7500, 5000],
+            'Intensif' => ['intensif', 14000, 9000],
+        ];
+    }
+
+    #[DataProvider('planPrices')]
+    public function test_the_amount_must_reach_the_price_of_the_chosen_plan(string $plan, int $price, int $oldPrice): void
+    {
+        $paid = $this->submit($this->proofReading(['amount' => $price, 'transaction_id' => 'TX-'.$plan]), plan: $plan);
+        $this->assertTrue($paid->checksPassed());
+        $this->assertSame($price, $paid->amount, 'Le paiement garde une copie du prix de la formule.');
+        $this->assertSame($price, $paid->subscription->price);
+
+        $old = $this->submit($this->proofReading(['amount' => $oldPrice, 'transaction_id' => 'TX-ancien-'.$plan]), plan: $plan);
+        $this->assertNoProvisionalAccess($old, 'amount');
+    }
+
     public function test_a_recent_payment_within_48_hours_passes(): void
     {
         $payment = $this->submit($this->proofReading(['date_time' => now()->subHours(47)->format('Y-m-d\TH:i')]));
@@ -121,7 +148,7 @@ class ProofChecksTest extends TestCase
         $payment = $this->submit($this->proofReading([
             'operator' => 'Moov Africa Togo (Flooz)',
             'currency' => 'XOF',
-            'amount' => '5 000',
+            'amount' => '7 500',
             'recipient_number' => '+228 90 00 00 22',
         ]));
 
