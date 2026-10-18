@@ -68,11 +68,24 @@ class PaymentController extends Controller
             return to_route('payment.show', $pending);
         }
 
+        // Pays sans paiement Mobile Money sur le site : aucune capture, l'équipe explique sur WhatsApp
+        // (puis active l'accès avec « Offrir un accès »). Prix en francs CFA, sans aucune conversion.
+        if (! $request->user()->canPayOnline()) {
+            return view('payment.abroad', [
+                'plan' => $plan,
+                'country' => $request->user()->countryName(),
+                'whatsappUrl' => $this->abroadWhatsappUrl($request->user(), $plan),
+            ]);
+        }
+
         $countries = PaymentCountry::available();
         $chosen = PaymentCountry::findAvailable($request->query('pays') ?? old('country'));
+        // Pays du compte (choisi à l'inscription), sinon celui de l'indicatif du téléphone.
+        $fromPhone = PaymentCountry::forPhone($request->user()->phone);
+        $guessed = PaymentCountry::findAvailable($request->user()->country) ?? $fromPhone;
         $country = $chosen
             ?? (count($countries) === 1 ? array_values($countries)[0] : null)
-            ?? PaymentCountry::forPhone($request->user()->phone);
+            ?? $guessed;
         $operator = $country?->operator($request->query('moyen') ?? $request->query('operateur') ?? old('operator'))
             ?? ($country !== null && count($country->operators) === 1 ? array_values($country->operators)[0] : null);
 
@@ -82,6 +95,7 @@ class PaymentController extends Controller
             'country' => $country,
             // Pays choisi d'après l'indicatif du téléphone (phrase d'explication sous les pays).
             'countryFromPhone' => $chosen === null && count($countries) > 1 && $country !== null,
+            'countryMatchesPhone' => $country !== null && $country->code === $fromPhone?->code,
             'operator' => $operator,
             'maxMegabytes' => (int) (config('payment.proofs.max_kilobytes') / 1024),
             'whatsappUrl' => $this->whatsappUrl($request->user(), 'Bonjour, je voudrais payer la formule '.$plan->name.'. Comment faire ?'),
@@ -95,6 +109,11 @@ class PaymentController extends Controller
     {
         $plan = Plan::find($plan) ?? abort(404);
         $user = $request->user();
+
+        // Hors des pays de paiement : jamais de capture Mobile Money (rien n'est enregistré).
+        if (! $user->canPayOnline()) {
+            return to_route('payment.create', $plan->key);
+        }
 
         if ($pending = $user->pendingPayment()->first()) {
             return to_route('payment.show', $pending)->with('status', self::ALREADY_PENDING);
@@ -205,6 +224,22 @@ class PaymentController extends Controller
 
         return $number === null ? null : WhatsApp::url($number, $message ?? implode("\n", [
             'Bonjour, j\'ai une question sur mon paiement '.config('platform.name').'.',
+            'Compte : '.$user->phone,
+        ]));
+    }
+
+    /**
+     * Pays sans paiement en ligne : message WhatsApp prérempli (nom, pays, formule choisie).
+     */
+    private function abroadWhatsappUrl(User $user, Plan $plan): ?string
+    {
+        $number = SiteSettings::whatsapp();
+
+        return $number === null ? null : WhatsApp::url($number, implode("\n", [
+            'Bonjour, je voudrais m\'abonner à '.config('platform.name').'.',
+            'Nom : '.$user->name,
+            'Pays : '.$user->countryName(),
+            'Formule choisie : '.$plan->name.' ('.$plan->formattedPrice().')',
             'Compte : '.$user->phone,
         ]));
     }

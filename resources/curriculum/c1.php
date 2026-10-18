@@ -34,7 +34,7 @@ return [
                 'to keep on track' => 'garder le cap',
                 'to draw someone in' => "faire participer quelqu'un",
                 'to steer the discussion' => 'orienter la discussion',
-                'to table a motion' => 'soumettre une proposition',
+                'to put forward a motion' => 'soumettre une proposition',
                 'to weigh up options' => 'peser les options',
                 'trade-off' => 'compromis, arbitrage',
                 'to reach a decision' => 'prendre une décision',
@@ -59,19 +59,19 @@ return [
             ],
             'pronunciation' => [
                 "Variation du débit et des pauses pour marquer les transitions d'une réunion.",
-                "Différences d'accent : l'anglais du Ghana prononce souvent toutes les syllabes ; habituez votre oreille à cet accent et à celui des natifs.",
+                "Différences d'accent : en visioconférence internationale, habituez votre oreille à l'anglais américain d'abord, puis à l'anglais britannique et aux accents des anglophones non natifs.",
             ],
             'spoken' => [
                 "« Let's not go down that rabbit hole » = ne nous perdons pas dans les détails.",
                 "« Can I play devil's advocate for a moment? » = je me fais l'avocat du diable un instant ?",
             ],
             'pitfalls' => [
-                "« To table » a deux sens opposés selon l'interlocuteur : mettre à l'ordre du jour (anglais britannique) ou reporter (anglais américain) ! Précisez si besoin.",
+                "« To table » veut dire reporter en anglais américain (le sens à retenir), mais mettre à l'ordre du jour en anglais britannique ! Précisez si besoin.",
                 "Évitez la traduction littérale « we will see that » pour « on verra » : dites « we'll see » ou « let's revisit it ».",
             ],
             'situations' => [
                 ['title' => 'Comité de direction', 'description' => 'Vous animez à Lomé un comité de direction qui doit choisir entre deux fournisseurs ; un participant monopolise la parole.', 'tags' => ['work', 'business']],
-                ['title' => 'Réunion de partenaires Lomé–Accra', 'description' => 'Vous animez une réunion entre partenaires togolais et ghanéens sur un projet commun de transport de marchandises.', 'tags' => ['business', 'transport']],
+                ['title' => 'Réunion de partenaires internationaux', 'description' => 'Vous animez une réunion entre partenaires togolais et étrangers anglophones sur un projet commun de transport de marchandises depuis le port autonome de Lomé.', 'tags' => ['business', 'transport']],
                 ['title' => 'Conseil d\'établissement', 'description' => 'Vous animez le conseil d\'une école privée bilingue de Lomé qui doit trancher sur les frais de scolarité.', 'tags' => ['education', 'admin']],
             ],
         ],
@@ -126,7 +126,7 @@ return [
                 "Faux ami : « to precise » n'existe pas : « préciser » = to specify / clarify.",
             ],
             'situations' => [
-                ['title' => 'Accord de franchise', 'description' => 'Vous négociez à Lomé une franchise avec une chaîne de restauration d\'Accra ; les redevances bloquent.', 'tags' => ['business']],
+                ['title' => 'Accord de franchise', 'description' => 'Vous négociez à Lomé une franchise avec une chaîne internationale de restauration ; les redevances bloquent.', 'tags' => ['business']],
                 ['title' => 'Convention avec une ONG', 'description' => 'Vous négociez avec une ONG internationale installée à Lomé le financement d\'un projet de santé dans la région Centrale.', 'tags' => ['work', 'health']],
                 ['title' => 'Négociation salariale collective', 'description' => 'Vous représentez les employés d\'une entreprise du port autonome de Lomé face à une direction anglophone.', 'tags' => ['work', 'admin']],
             ],
@@ -183,7 +183,7 @@ return [
             'situations' => [
                 ['title' => 'Discours d\'inauguration', 'description' => 'Vous prononcez le discours d\'inauguration d\'une nouvelle usine dans la zone franche de Lomé devant des invités anglophones.', 'tags' => ['business', 'work']],
                 ['title' => 'Colloque universitaire', 'description' => 'Vous présentez vos travaux de recherche dans un colloque à l\'université de Lomé et gérez des questions critiques.', 'tags' => ['studies', 'education', 'exam']],
-                ['title' => 'Témoignage inspirant', 'description' => 'Vous racontez votre parcours d\'entrepreneur devant des jeunes lors d\'un événement à Accra.', 'tags' => ['conversation', 'travel']],
+                ['title' => 'Témoignage inspirant', 'description' => 'Vous racontez votre parcours d\'entrepreneur devant des jeunes lors d\'un forum international de la jeunesse, à l\'étranger.', 'tags' => ['conversation', 'travel']],
             ],
         ],
 
@@ -237,7 +237,7 @@ return [
                 'Faux ami : « to control » = maîtriser, diriger ; « contrôler » (vérifier) = to check / inspect.',
             ],
             'situations' => [
-                ['title' => 'Panel sur l\'économie informelle', 'description' => 'Dans un panel à Lomé, vous débattez de la fiscalisation du secteur informel avec un économiste ghanéen.', 'tags' => ['business', 'conversation']],
+                ['title' => 'Panel sur l\'économie informelle', 'description' => 'Dans un panel à Lomé, vous débattez de la fiscalisation du secteur informel avec un économiste anglophone d\'une organisation internationale.', 'tags' => ['business', 'conversation']],
                 ['title' => 'Oral de concours', 'description' => 'Oral d\'un concours administratif togolais : analysez une politique éducative et répondez au jury en anglais.', 'tags' => ['exam', 'admin', 'education']],
                 ['title' => 'Conseil municipal', 'description' => 'Vous défendez devant des élus de Lomé un projet de transport urbain financé par un partenaire anglophone.', 'tags' => ['admin', 'transport']],
             ],
@@ -276,13 +276,13 @@ return [
                 'Les participes et réductions de relatives pour la concision : « The figures shown in Table 2… ».',
             ],
             'functions' => [
-                'Dicter une synthèse : « This report assesses the impact of the training programme and recommends three improvements. »',
+                'Dicter une synthèse : « This report assesses the impact of the training program and recommends three improvements. »',
                 'Formuler une recommandation : « It is recommended that the pilot be extended to two additional regions. »',
                 'Simplifier un passage verbeux avec le professeur : « In order to » → « to » ; « at this point in time » → « now ».',
             ],
             'pronunciation' => [
                 'Lire un texte formel à voix haute : regroupement des mots en unités de sens et pauses aux virgules.',
-                'Methodology [ˌmeθəˈdɒlədʒi] : th et accent sur « do ».',
+                'Methodology [ˌmeθəˈdɑːlədʒi] : th et accent sur « do ».',
             ],
             'spoken' => [
                 "« Cut to the chase » = allez droit au but (conseil de style aussi à l'écrit).",
@@ -321,7 +321,7 @@ return [
                 'to boost morale' => 'remonter le moral',
                 'burnout' => 'épuisement professionnel',
                 'work-life balance' => 'équilibre vie pro / vie perso',
-                'one-to-one' => 'entretien individuel',
+                'one-on-one' => 'entretien individuel',
                 'to step up' => 'prendre ses responsabilités',
                 'to let someone go' => 'licencier (euphémisme)',
                 'constructive criticism' => 'critique constructive',
@@ -334,11 +334,11 @@ return [
             'functions' => [
                 'Retour positif précis : « The way you handled that client yesterday was excellent — calm and very professional. »',
                 "Retour correctif : « I've noticed the reports have been late recently. Can we talk about what's getting in the way? »",
-                "Motiver : « I'd like you to take the lead on the Accra account. I think you're ready for it. »",
+                "Motiver : « I'd like you to take the lead on our biggest international account. I think you're ready for it. »",
             ],
             'pronunciation' => [
                 'Une intonation chaleureuse et posée ; la voix descend en fin de phrase pour rassurer.',
-                'Morale [məˈrɑːl] (le moral) ≠ moral [ˈmɒrəl] (la morale) : accent différent !',
+                'Morale [məˈræl] (le moral) ≠ moral [ˈmɔːrəl] (la morale) : accent différent !',
             ],
             'spoken' => [
                 '« Great job on… » = bravo pour…',
@@ -350,8 +350,8 @@ return [
             ],
             'situations' => [
                 ['title' => 'Entretien individuel', 'description' => 'Dans votre agence de Lomé, vous recevez un collaborateur dont les résultats baissent et cherchez avec lui des solutions.', 'tags' => ['work']],
-                ['title' => 'Motiver l\'équipe commerciale', 'description' => 'Après un mauvais trimestre, vous remotivez votre équipe de vente avant une foire commerciale à Accra.', 'tags' => ['business', 'work']],
-                ['title' => 'Encadrer un stagiaire', 'description' => 'Vous encadrez à Lomé un stagiaire ghanéen : objectifs, premiers retours et conseils.', 'tags' => ['work', 'education']],
+                ['title' => 'Motiver l\'équipe commerciale', 'description' => 'Après un mauvais trimestre, vous remotivez votre équipe de vente avant un salon professionnel international.', 'tags' => ['business', 'work']],
+                ['title' => 'Encadrer un stagiaire', 'description' => 'Vous encadrez à Lomé un stagiaire étranger anglophone : objectifs, premiers retours et conseils.', 'tags' => ['work', 'education']],
             ],
         ],
 
@@ -394,11 +394,11 @@ return [
             ],
             'pronunciation' => [
                 "L'accent est sur la particule : « Let's carry ON », « It turned OUT well ».",
-                'Liaisons naturelles : « put it off » → [ˌpʊtɪˈtɒf].',
+                'Liaisons naturelles : « put it off » → [ˌpʊɾɪˈɑːf].',
             ],
             'spoken' => [
                 "« I'm all ears » = je suis tout ouïe.",
-                "« It's not my cup of tea » = ce n'est pas mon truc.",
+                "« It's not really my thing » = ce n'est pas mon truc (en anglais britannique, on dit aussi « not my cup of tea »).",
             ],
             'pitfalls' => [
                 'Les idiomes mal placés sonnent faux : un ou deux par conversation suffisent.',
@@ -406,7 +406,7 @@ return [
             ],
             'situations' => [
                 ['title' => 'Dîner d\'affaires détendu', 'description' => 'Un dîner informel à Lomé avec des partenaires anglophones : comprenez et utilisez leurs expressions.', 'tags' => ['business', 'conversation']],
-                ['title' => 'Collègues ghanéens', 'description' => 'Une discussion de pause avec des collègues d\'Accra, pleine d\'expressions et d\'humour.', 'tags' => ['work', 'conversation']],
+                ['title' => 'Collègues internationaux', 'description' => 'Une discussion de pause avec des collègues étrangers de votre entreprise internationale à Lomé, pleine d\'expressions et d\'humour.', 'tags' => ['work', 'conversation']],
                 ['title' => 'Série télévisée', 'description' => 'Vous expliquez au professeur des répliques d\'une série anglophone que vous n\'avez pas comprises.', 'tags' => ['conversation', 'studies']],
             ],
         ],
@@ -446,10 +446,10 @@ return [
             'functions' => [
                 'Expliquer : « Under the AfCFTA, tariffs on most goods are due to be phased out over several years. »',
                 "Analyser un risque : « Owing to currency volatility, we'd recommend invoicing in a stable currency. »",
-                "Présenter une opportunité : « There's a clear gap in the Ghanaian market for processed cassava products. »",
+                "Présenter une opportunité : « There's a clear gap in the regional market for processed cassava products. »",
             ],
             'pronunciation' => [
-                'Les sigles se prononcent lettre par lettre (ECOWAS se dit souvent comme un mot : [eˈkəʊwəs]).',
+                'Les sigles se prononcent lettre par lettre (ECOWAS se dit souvent comme un mot : [eˈkoʊwəs]).',
                 'Tariff [ˈtærɪf] : accent sur la première syllabe.',
             ],
             'spoken' => [
@@ -461,8 +461,8 @@ return [
                 'Faux ami : « a commission » = une commission (pourcentage) ; « faire les commissions » = to run errands.',
             ],
             'situations' => [
-                ['title' => 'Exporter vers le Ghana', 'description' => 'Vous préparez avec un transitaire du port autonome de Lomé l\'exportation de vos produits transformés vers Accra.', 'tags' => ['business', 'transport', 'admin']],
-                ['title' => 'Forum des exportateurs', 'description' => 'Dans un forum organisé à Lomé, vous présentez les obstacles concrets que rencontrent les petits exportateurs vers le Ghana.', 'tags' => ['business', 'conversation']],
+                ['title' => 'Exporter vers un marché étranger', 'description' => 'Vous préparez avec un transitaire du port autonome de Lomé l\'exportation de vos produits transformés vers un client étranger anglophone.', 'tags' => ['business', 'transport', 'admin']],
+                ['title' => 'Forum des exportateurs', 'description' => 'Dans un forum organisé à Lomé, vous présentez les obstacles concrets que rencontrent les petits exportateurs vers les marchés internationaux.', 'tags' => ['business', 'conversation']],
                 ['title' => 'Cours de commerce international', 'description' => 'Oral d\'examen en école de commerce à Lomé sur l\'intégration régionale ouest-africaine.', 'tags' => ['studies', 'exam']],
             ],
         ],
@@ -556,7 +556,7 @@ return [
             'functions' => [
                 'Vulgariser : « Think of a vaccine as a training session for your immune system. »',
                 "Démystifier : « A common misconception is that malaria comes from dirty water. In fact, it's spread by mosquitoes. »",
-                'Vérifier : « Does that make sense so far? Shall I give you another example? »',
+                'Vérifier : « Does that make sense so far? Should I give you another example? »',
             ],
             'pronunciation' => [
                 'Accent des mots en -logy et -graphy : techNOlogy, biOlogy, phoTOgraphy — toujours sur la syllabe qui précède la finale.',
@@ -572,7 +572,7 @@ return [
             ],
             'situations' => [
                 ['title' => 'Expliquer le paludisme', 'description' => 'Vous expliquez à des visiteurs anglophones installés à Lomé comment se transmet le paludisme et comment s\'en protéger.', 'tags' => ['health', 'education']],
-                ['title' => 'Former des commerçantes', 'description' => 'Vous expliquez simplement à des commerçantes du Grand Marché comment fonctionne le taux de change entre le franc CFA et le cédi.', 'tags' => ['business', 'market', 'education']],
+                ['title' => 'Former des commerçantes', 'description' => 'Vous expliquez simplement à des commerçantes du Grand Marché comment fonctionne le taux de change quand un client étranger paie dans une autre monnaie que le franc CFA.', 'tags' => ['business', 'market', 'education']],
                 ['title' => 'Présenter sa recherche', 'description' => 'Vous présentez votre sujet de thèse de l\'université de Lomé à un public non spécialiste.', 'tags' => ['studies', 'exam']],
             ],
         ],
@@ -582,7 +582,7 @@ return [
             'title' => 'Communication interculturelle',
             'objectives' => [
                 'reconnaître les différences culturelles dans la communication',
-                "comprendre plusieurs variétés d'anglais (britannique, américaine, ghanéenne)",
+                "comprendre plusieurs variétés d'anglais (l'américaine d'abord, la britannique, celles des anglophones non natifs)",
                 'éviter et réparer les malentendus culturels',
             ],
             'vocabulary' => [
@@ -596,7 +596,7 @@ return [
                 'eye contact' => 'contact visuel',
                 'taboo' => 'tabou',
                 'stereotype' => 'stéréotype',
-                'Ghanaian English' => "l'anglais du Ghana",
+                'American English' => "l'anglais américain",
                 'accent' => 'accent',
                 'to code-switch' => 'changer de registre / de langue',
                 'punctuality' => 'ponctualité',
@@ -614,21 +614,21 @@ return [
                 "Comprendre l'implicite : « British “quite good” can mean “not very good”. »",
             ],
             'pronunciation' => [
-                "Différences d'accent : « water » [ˈwɔːtə] (anglais britannique), [ˈwɑːɾɚ] (anglais américain), et la prononciation syllabique de l'anglais du Ghana.",
-                "L'anglais familier d'Accra : comprendre « Chale, how be? » (Salut mon ami, ça va ?) et y répondre simplement.",
+                "Différences d'accent : « water » [ˈwɑːɾɚ] en anglais américain (« t » battu, « r » prononcé) ; en anglais britannique, on entend aussi [ˈwɔːtə].",
+                'Les accents des anglophones non natifs en visioconférence internationale : demander de répéter sans gêne (« Sorry, could you say that again? ») et adapter son débit.',
             ],
             'spoken' => [
                 '« With all due respect… » annonce souvent un désaccord fort !',
                 "« I'll bear it in mind » peut signifier poliment « non » chez un interlocuteur britannique.",
             ],
             'pitfalls' => [
-                'Les salutations longues, très valorisées au Togo et au Ghana, sont souvent plus courtes chez les natifs en contexte professionnel — et inversement.',
+                'Les salutations longues, très valorisées au Togo, sont souvent plus courtes chez les natifs en contexte professionnel — et inversement.',
                 'Faux ami : « to be formal » = être protocolaire ; « formel » (certain) = definite / categorical.',
             ],
             'situations' => [
                 ['title' => 'Délégation en visite à Lomé', 'description' => 'Vous accueillez à Lomé une délégation d\'entreprises anglophones : salutations, small talk, protocole et lecture de l\'implicite.', 'tags' => ['business', 'work']],
-                ['title' => 'Équipe multiculturelle', 'description' => 'Votre équipe à Lomé compte des Togolais, des Ghanéens et des anglophones natifs : gérez un malentendu culturel.', 'tags' => ['work', 'conversation']],
-                ['title' => 'Séjour à Accra', 'description' => 'En voyage à Accra, vous comprenez les expressions du quotidien et adaptez votre façon de parler.', 'tags' => ['travel', 'conversation']],
+                ['title' => 'Équipe multiculturelle', 'description' => 'Votre équipe à Lomé compte des Togolais, des collègues étrangers et des anglophones natifs : gérez un malentendu culturel.', 'tags' => ['work', 'conversation']],
+                ['title' => 'Séjour à l\'étranger', 'description' => 'En voyage à l\'étranger, dans un pays anglophone, vous comprenez les expressions du quotidien et adaptez votre façon de parler.', 'tags' => ['travel', 'conversation']],
             ],
         ],
 
@@ -681,7 +681,7 @@ return [
                 'Faux ami : « to control a crisis » sonne étrange : dites « to manage / handle a crisis ».',
             ],
             'situations' => [
-                ['title' => 'Conteneur bloqué', 'description' => 'Votre conteneur est bloqué au port autonome de Lomé : informez vos clients d\'Accra et coordonnez une solution.', 'tags' => ['business', 'transport', 'phone']],
+                ['title' => 'Conteneur bloqué', 'description' => 'Votre conteneur est bloqué au port autonome de Lomé : informez vos clients étrangers et coordonnez une solution.', 'tags' => ['business', 'transport', 'phone']],
                 ['title' => 'Incident à la clinique', 'description' => 'Une coupure d\'électricité touche une clinique de Lomé : coordonnez l\'équipe et rassurez les familles anglophones.', 'tags' => ['health', 'work']],
                 ['title' => 'Bad buzz en ligne', 'description' => 'Une vidéo négative sur votre entreprise togolaise devient virale : préparez votre réponse publique.', 'tags' => ['business', 'tech']],
             ],

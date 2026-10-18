@@ -217,6 +217,8 @@ class TeacherSetup
             // Écoute active (résumé de la réponse, une ou deux corrections importantes, question liée) : séance
             // quotidienne, « Mes cours » et bilan de niveau ; l'évaluation gratuite a sa propre règle, plus courte.
             in_array($kind, ['lesson', 'course', 'level_test'], true) ? trim((string) config('teacher.listening')) : '',
+            // Anglais américain, toutes les conversations (aucun réglage d'accent chez les fournisseurs : voir config/teacher.php).
+            trim((string) config('teacher.american_english')),
             trim((string) config("teacher.{$kind}")),
             trim((string) config('teacher.site_help')),
         ]));

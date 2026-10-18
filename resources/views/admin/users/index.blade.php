@@ -6,17 +6,26 @@
 
     <form method="GET" action="{{ route('admin.users.index') }}" class="search" role="search">
         <input id="q" type="search" aria-label="Rechercher un inscrit" name="q" value="{{ $search }}" placeholder="Nom ou numéro">
+        {{-- Pays : les quatre pays de paiement, ou « Autres pays » (abonnement par WhatsApp et « Offrir un accès »). --}}
+        <select name="pays" aria-label="Pays">
+            <option value="">Tous les pays</option>
+            @foreach ($paymentCountries as $code => $name)
+                <option value="{{ $code }}" @selected($country === $code)>{{ $name }}</option>
+            @endforeach
+            <option value="autres" @selected($country === 'autres')>Autres pays</option>
+        </select>
         <button type="submit" class="btn">Rechercher</button>
     </form>
 
     @if ($users->isEmpty())
-        <div class="card empty-state"><span class="icon-bubble"><x-icon name="users" /></span><p>Aucun inscrit{{ $search !== '' ? ' ne correspond à cette recherche' : ' pour le moment' }}.</p></div>
+        <div class="card empty-state"><span class="icon-bubble"><x-icon name="users" /></span><p>Aucun inscrit{{ $search !== '' || $country !== '' ? ' ne correspond à cette recherche' : ' pour le moment' }}.</p></div>
     @else
         <table class="table">
             <thead>
                 <tr>
                     <th>Nom</th>
                     <th>Téléphone</th>
+                    <th>Pays</th>
                     <th>Niveau</th>
                     <th>Formule</th>
                     <th>Rôle</th>
@@ -28,6 +37,7 @@
                     <tr>
                         <td data-label="Nom"><a href="{{ route('admin.users.show', $user) }}">{{ $user->name }}</a></td>
                         <td data-label="Téléphone"><a href="tel:{{ $user->phone }}">{{ $user->phone }}</a></td>
+                        <td data-label="Pays">{{ $user->countryName() }}@unless ($user->canPayOnline()) <span class="badge">Paiement par WhatsApp</span>@endunless</td>
                         <td data-label="Niveau">
                             @if ($user->level)
                                 <span class="badge">{{ $user->level->value }}</span>

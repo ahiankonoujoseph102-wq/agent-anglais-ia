@@ -48,7 +48,7 @@ return [
                 'lesson learned' => 'leçon tirée',
             ],
             'grammar' => [
-                "Present perfect pour l'expérience sans date : « I've worked in three countries », « Have you ever been to Accra? ».",
+                "Present perfect pour l'expérience sans date : « I've worked in three countries », « Have you ever been abroad? ».",
                 "Prétérit dès qu'il y a un moment précis : « I went there in 2019 » (pas « I have been there in 2019 »).",
                 "Already, yet, just avec le present perfect : « I've just finished », « I haven't paid yet ».",
             ],
@@ -71,7 +71,7 @@ return [
             ],
             'situations' => [
                 ['title' => 'Présentation en formation', 'description' => 'Au premier jour d\'une formation professionnelle à Lomé animée en anglais, vous racontez votre parcours au groupe.', 'tags' => ['work', 'education']],
-                ['title' => 'Rencontre d\'entrepreneurs', 'description' => 'À un événement de la Chambre de commerce du Togo, échangez sur vos expériences avec un entrepreneur ghanéen.', 'tags' => ['business', 'conversation']],
+                ['title' => 'Rencontre d\'entrepreneurs', 'description' => 'À un événement de la Chambre de commerce du Togo, échangez sur vos expériences avec un entrepreneur étranger anglophone.', 'tags' => ['business', 'conversation']],
                 ['title' => 'Candidature à une bourse', 'description' => 'Un jury anglophone réuni à Lomé vous demande ce que vous avez déjà accompli et ce que vous avez appris de vos difficultés.', 'tags' => ['studies', 'exam']],
             ],
         ],
@@ -92,7 +92,7 @@ return [
                 'to steal / stolen' => 'voler / volé',
                 'thief' => 'voleur',
                 'to break down' => 'tomber en panne',
-                'flat tyre' => 'pneu crevé',
+                'flat tire' => 'pneu crevé',
                 'to crash into' => 'percuter',
                 'injured' => 'blessé',
                 'witness' => 'témoin',
@@ -107,7 +107,7 @@ return [
             'grammar' => [
                 'Prétérit progressif (past continuous) pour le décor : « I was driving home when it started to rain ».',
                 'When / while : « While I was waiting, someone stole my bag », « When the police arrived, he ran away ».',
-                'Le plus-que-parfait pour revenir en arrière : « I realised I had left my phone in the taxi ».',
+                'Le plus-que-parfait pour revenir en arrière : « I realized I had left my phone in the taxi ».',
             ],
             'functions' => [
                 'Planter le décor : « It was raining heavily and I was riding my motorbike near the stadium. »',
@@ -116,7 +116,7 @@ return [
             ],
             'pronunciation' => [
                 'Was dans « I was driving » est faible [wəz] ; ne le prononcez pas comme dans une réponse courte.',
-                'Les groupes de consonnes : crashed [kræʃt], stopped [stɒpt] — pas de voyelle ajoutée.',
+                'Les groupes de consonnes : crashed [kræʃt], stopped [stɑːpt] — pas de voyelle ajoutée.',
             ],
             'spoken' => [
                 "« You won't believe what happened to me! » = tu ne vas pas croire ce qui m'est arrivé !",
@@ -127,8 +127,8 @@ return [
                 'Faux ami : « an injury » = une blessure ; « une injure » = an insult.',
             ],
             'situations' => [
-                ['title' => 'Déclaration de vol à Accra', 'description' => 'On vous a volé votre téléphone dans un trotro à Accra : racontez l\'incident au policier.', 'tags' => ['travel', 'admin']],
-                ['title' => 'Retard de livraison', 'description' => 'Votre camion est tombé en panne sur la route d\'Aflao : expliquez à votre client d\'Accra ce qui s\'est passé.', 'tags' => ['business', 'transport', 'phone']],
+                ['title' => 'Déclaration de vol à l\'étranger', 'description' => 'En voyage à l\'étranger, on vous a volé votre téléphone dans un bus : racontez l\'incident au policier.', 'tags' => ['travel', 'admin']],
+                ['title' => 'Retard de livraison', 'description' => 'Votre camion est tombé en panne sur la route du port autonome de Lomé : expliquez à votre client étranger ce qui s\'est passé.', 'tags' => ['business', 'transport', 'phone']],
                 ['title' => 'Une histoire de zémidjan', 'description' => 'Racontez à un ami anglophone une aventure drôle ou effrayante vécue en zémidjan dans les embouteillages de Lomé.', 'tags' => ['conversation', 'transport']],
             ],
         ],
@@ -153,7 +153,7 @@ return [
                 'responsibility' => 'responsabilité',
                 'to improve' => 'améliorer, progresser',
                 'motivated' => 'motivé',
-                'organised' => 'organisé',
+                'organized' => 'organisé',
                 'salary expectations' => 'prétentions salariales',
                 'notice period' => 'préavis',
                 'probation period' => "période d'essai",
@@ -221,16 +221,16 @@ return [
             'grammar' => [
                 'Premier conditionnel : « If you order 200 boxes, we will give you a 5% discount ».',
                 "Unless = sauf si : « We won't ship unless we receive the deposit ».",
-                'Les nombres : thousands, millions, percentages (« five per cent »), « 2,500 » se lit « two thousand five hundred ».',
+                'Les nombres : thousands, millions, percentages (« five percent »), « 2,500 » se lit « two thousand five hundred ».',
             ],
             'functions' => [
-                'Demander un devis : « Could you send me a quote for 500 bags of rice, delivered to Lomé port? »',
+                'Demander un devis : « Could you send me a quote for 500 bags of rice, delivered to the port of Lomé? »',
                 'Négocier : « If we pay 50% upfront, can you lower the unit price? »',
                 'Suivre une livraison : « When will the container arrive? Has it cleared customs yet? »',
             ],
             'pronunciation' => [
-                "Invoice [ˈɪnvɔɪs], supplier [səˈplaɪə] : déplacez l'accent par rapport au français.",
-                'Per cent [pə ˈsent] : deux mots, accent sur cent.',
+                "Invoice [ˈɪnvɔɪs], supplier [səˈplaɪɚ] : déplacez l'accent par rapport au français.",
+                'Percent [pɚˈsent] : un seul mot en anglais américain, accent sur cent.',
             ],
             'spoken' => [
                 "« That's my best price » = c'est mon dernier prix.",
@@ -241,9 +241,9 @@ return [
                 'Faux ami : « a delay » = un retard ; « un délai » de livraison = delivery time / lead time.',
             ],
             'situations' => [
-                ['title' => 'Commande à un fournisseur d\'Accra', 'description' => 'Vous commandez des pagnes à un fournisseur d\'Accra : quantité, prix, acompte, livraison à Lomé.', 'tags' => ['business', 'phone']],
+                ['title' => 'Commande à un fournisseur étranger', 'description' => 'En visioconférence, vous commandez des pagnes à un fournisseur international : quantité, prix, acompte, livraison à Lomé.', 'tags' => ['business', 'phone']],
                 ['title' => 'Au port autonome de Lomé', 'description' => 'Vous suivez le dédouanement d\'un conteneur avec un transitaire anglophone au port autonome de Lomé.', 'tags' => ['business', 'transport', 'admin']],
-                ['title' => 'Négociation avec un grossiste', 'description' => 'Un grossiste ghanéen veut acheter vos produits en gros au Grand Marché : négociez prix et conditions de paiement.', 'tags' => ['business', 'market']],
+                ['title' => 'Négociation avec un grossiste', 'description' => 'Un grossiste étranger anglophone veut acheter vos produits en gros au Grand Marché : négociez prix et conditions de paiement.', 'tags' => ['business', 'market']],
             ],
         ],
 
@@ -265,7 +265,7 @@ return [
                 'on the one hand' => "d'un côté",
                 'on the other hand' => "d'un autre côté",
                 'however' => 'cependant',
-                'to be against / in favour of' => 'être contre / pour',
+                'to be against / in favor of' => 'être contre / pour',
                 'issue' => 'question, problème',
                 'society' => 'société',
                 'youth' => 'les jeunes',
@@ -286,7 +286,7 @@ return [
             ],
             'pronunciation' => [
                 'Intonation du désaccord poli : montée sur « but », chute à la fin.',
-                'Issue [ˈɪʃuː] ou [ˈɪsjuː] : jamais « issue » à la française.',
+                'Issue [ˈɪʃuː] : jamais « issue » à la française.',
             ],
             'spoken' => [
                 "« Fair enough » = d'accord, c'est juste (pour accepter un argument).",
@@ -318,7 +318,7 @@ return [
                 'refund' => 'remboursement',
                 'replacement' => 'remplacement',
                 'to exchange' => 'échanger',
-                'to apologise' => "s'excuser",
+                'to apologize' => "s'excuser",
                 'inconvenience' => 'désagrément',
                 'to sort out' => 'régler, arranger',
                 'manager' => 'responsable',
@@ -345,16 +345,16 @@ return [
             ],
             'spoken' => [
                 "« Leave it with me » = je m'en occupe.",
-                "« I do apologise » : le do d'insistance rend l'excuse plus sincère.",
+                "« I do apologize » : le do d'insistance rend l'excuse plus sincère.",
             ],
             'pitfalls' => [
                 'Faux ami : « to demand » = exiger avec force ; « demander » = to ask (for).',
                 'Faux ami : « deceived » = trompé ; « déçu » = disappointed.',
             ],
             'situations' => [
-                ['title' => 'Marchandise abîmée', 'description' => 'Les cartons reçus d\'un fournisseur d\'Accra sont endommagés : faites une réclamation au téléphone.', 'tags' => ['business', 'phone']],
+                ['title' => 'Marchandise abîmée', 'description' => 'Les cartons reçus d\'un fournisseur étranger sont endommagés : faites une réclamation au téléphone.', 'tags' => ['business', 'phone']],
                 ['title' => 'Client mécontent', 'description' => 'Vous êtes au service client d\'une entreprise de Lomé : un client anglophone se plaint d\'une facture erronée.', 'tags' => ['work', 'business']],
-                ['title' => 'Chambre d\'hôtel à Accra', 'description' => 'Votre chambre réservée à Accra a été donnée à quelqu\'un d\'autre : obtenez une solution.', 'tags' => ['travel']],
+                ['title' => 'Chambre d\'hôtel à l\'étranger', 'description' => 'Votre chambre réservée dans un hôtel à l\'étranger a été donnée à quelqu\'un d\'autre : obtenez une solution.', 'tags' => ['travel']],
             ],
         ],
 
@@ -452,8 +452,8 @@ return [
                 'Parler de ses habitudes : « I spend about three hours a day on my phone, mostly on WhatsApp. »',
             ],
             'pronunciation' => [
-                'Le son [ʃ] de social et share (comme « ch ») ; privacy se dit [ˈprɪvəsi] (anglais britannique) ou [ˈpraɪvəsi] (anglais américain).',
-                'Les sigles : on épelle (« an S-M-S », « a P-D-F »).',
+                'Le son [ʃ] de social et share (comme « ch ») ; privacy se dit [ˈpraɪvəsi] (anglais américain) ; en anglais britannique, on entend aussi [ˈprɪvəsi].',
+                'Les sigles : on épelle (« a P-D-F », « an A-T-M »).',
             ],
             'spoken' => [
                 "« Did you see what she posted? » = t'as vu ce qu'elle a posté ?",
@@ -465,14 +465,14 @@ return [
             ],
             'situations' => [
                 ['title' => 'Arnaque sur WhatsApp', 'description' => 'Un proche à Lomé a reçu un message suspect sur WhatsApp : expliquez-lui ce qu\'on vous a dit et comment vérifier.', 'tags' => ['phone', 'family', 'tech']],
-                ['title' => 'Vendre sur les réseaux', 'description' => 'Vous discutez avec un ami ghanéen de la meilleure façon de vendre vos produits du Grand Marché sur les réseaux sociaux.', 'tags' => ['business', 'tech']],
+                ['title' => 'Vendre sur les réseaux', 'description' => 'Vous discutez avec un ami anglophone rencontré en ligne de la meilleure façon de vendre vos produits du Grand Marché sur les réseaux sociaux.', 'tags' => ['business', 'tech']],
                 ['title' => 'Exposé sur le numérique', 'description' => 'À l\'université de Lomé, vous présentez les dangers et les avantages des réseaux sociaux pour les jeunes.', 'tags' => ['studies', 'education']],
             ],
         ],
 
         // 9
         [
-            'title' => "Voyage d'affaires à Accra",
+            'title' => "Voyage d'affaires à l'étranger",
             'objectives' => [
                 'organiser un voyage : vol, hôtel, rendez-vous',
                 "parler de rendez-vous fixés et d'horaires",
@@ -485,17 +485,17 @@ return [
                 'gate' => "porte d'embarquement",
                 'layover / stopover' => 'escale',
                 'to be delayed' => 'être retardé',
-                'to be cancelled' => 'être annulé',
+                'to be canceled' => 'être annulé',
                 'itinerary' => 'itinéraire, programme du voyage',
                 'schedule' => 'emploi du temps, planning',
                 'to confirm' => 'confirmer',
                 'to postpone' => 'reporter',
                 'venue' => "lieu (d'un événement)",
-                'trade fair' => 'foire commerciale',
-                'accommodation' => 'hébergement',
+                'trade show' => 'salon professionnel, foire commerciale',
+                'accommodations / lodging' => 'hébergement',
                 'per diem' => 'indemnité journalière',
-                'border post' => 'poste frontière',
-                'coach' => 'car, autocar',
+                'conference center' => 'centre de conférences',
+                'shuttle' => 'navette',
                 'to pick someone up' => "aller chercher quelqu'un",
             ],
             'grammar' => [
@@ -503,26 +503,26 @@ return [
                 'Présent simple pour les horaires officiels : « The flight leaves at 7:45 ».',
             ],
             'functions' => [
-                'Fixer un rendez-vous : « Are you free on Wednesday afternoon? Shall we say 3 pm at your office? »',
+                'Fixer un rendez-vous : « Are you free on Wednesday afternoon? How about 3 p.m. at your office? »',
                 "Reporter : « I'm afraid my flight has been delayed. Could we push the meeting to Thursday? »",
-                "Confirmer : « Just to confirm: we're meeting at the Accra trade fair, stand B12. »",
+                "Confirmer : « Just to confirm: we're meeting at the international trade show, booth B12. »",
             ],
             'pronunciation' => [
-                'Schedule : [ˈʃedjuːl] (anglais britannique) ou [ˈskedʒuːl] (anglais américain) — les deux sont corrects.',
-                'Les heures avec am / pm : « three pm » [ˌθriː piː ˈem].',
+                'Schedule [ˈskedʒuːl] à l\'américaine ; en anglais britannique, on entend aussi [ˈʃedjuːl].',
+                'Les heures avec a.m. / p.m. : « three p.m. » [ˌθriː piː ˈem].',
             ],
             'spoken' => [
                 "« Let's touch base when you land » = on fait le point quand tu atterris.",
-                "« I'm running a bit late, traffic is crazy » = j'ai un peu de retard, la circulation est folle (classique sur la route Lomé–Accra !).",
+                "« I'm running a bit late, traffic is crazy » = j'ai un peu de retard, la circulation est folle (classique aux heures de pointe à Lomé !).",
             ],
             'pitfalls' => [
                 'Faux ami : « to assist » = aider ; « assister à une réunion » = to attend a meeting.',
                 'Faux ami : « a location » = un emplacement ; « une location » = a rental.',
             ],
             'situations' => [
-                ['title' => 'Préparer le voyage', 'description' => 'Vous organisez au téléphone avec votre contact d\'Accra le programme de votre visite d\'affaires.', 'tags' => ['business', 'travel', 'phone']],
-                ['title' => 'Car annulé', 'description' => 'Votre car Lomé–Accra est annulé : trouvez une solution au guichet de la compagnie.', 'tags' => ['travel', 'transport']],
-                ['title' => 'Foire commerciale d\'Accra', 'description' => 'À une foire commerciale à Accra, prenez rendez-vous avec un distributeur intéressé par vos produits.', 'tags' => ['business', 'work']],
+                ['title' => 'Préparer le voyage', 'description' => 'Vous organisez au téléphone avec votre contact à l\'étranger le programme de votre visite d\'affaires.', 'tags' => ['business', 'travel', 'phone']],
+                ['title' => 'Vol annulé', 'description' => 'Votre vol international au départ de l\'aéroport de Lomé est annulé : trouvez une solution au guichet de la compagnie aérienne.', 'tags' => ['travel', 'transport']],
+                ['title' => 'Salon professionnel international', 'description' => 'À un salon professionnel international, à l\'étranger, prenez rendez-vous avec un distributeur intéressé par vos produits.', 'tags' => ['business', 'work']],
             ],
         ],
 
@@ -573,7 +573,7 @@ return [
             ],
             'pitfalls' => [
                 'Pas de would après if : « If I would have money » ✗ → « If I had money » ✓.',
-                'Faux ami : « to realise » = se rendre compte ; « réaliser un projet » = to carry out / achieve.',
+                'Faux ami : « to realize » = se rendre compte ; « réaliser un projet » = to carry out / achieve.',
             ],
             'situations' => [
                 ['title' => 'Si j\'étais ministre', 'description' => 'Un ami vous demande ce que vous feriez si vous étiez ministre de l\'Éducation ou du Commerce au Togo.', 'tags' => ['conversation', 'education']],
@@ -593,17 +593,17 @@ return [
             'vocabulary' => [
                 'environment' => 'environnement',
                 'pollution' => 'pollution',
-                'rubbish / waste' => 'ordures, déchets',
+                'trash / garbage' => 'ordures, déchets',
                 'plastic bags' => 'sacs plastique',
                 'to recycle' => 'recycler',
                 'flood' => 'inondation',
                 'drain / gutter' => 'caniveau',
-                'power cut' => 'coupure de courant',
+                'power outage' => 'coupure de courant',
                 'water shortage' => "pénurie d'eau",
                 'traffic' => 'circulation',
                 'solar panel' => 'panneau solaire',
                 'to plant trees' => 'planter des arbres',
-                'council / town hall' => 'mairie',
+                'city council / city hall' => 'mairie',
                 'authorities' => 'autorités',
                 'climate change' => 'changement climatique',
                 'to protect' => 'protéger',
@@ -611,13 +611,13 @@ return [
                 'erosion' => 'érosion',
             ],
             'grammar' => [
-                'Le passif au présent et au passé : « Rubbish is collected twice a week », « The road was built in 2015 ».',
+                'Le passif au présent et au passé : « Trash is collected twice a week », « The road was built in 2015 ».',
                 'Should be + participe : « The drains should be cleaned before the rainy season ».',
             ],
             'functions' => [
                 'Décrire un problème : « Every rainy season, our street is flooded because the drains are blocked. »',
                 'Proposer : « Plastic bags should be banned, and people should be paid to collect waste. »',
-                'Interpeller : « What is the council doing about the power cuts? »',
+                'Interpeller : « What is the city council doing about the power outages? »',
             ],
             'pronunciation' => [
                 'Environment [ɪnˈvaɪrənmənt] : accent sur « vi ».',
@@ -629,7 +629,7 @@ return [
             ],
             'pitfalls' => [
                 "Ne confondez pas le passif (is built) et l'actif (builds) : le sujet subit l'action.",
-                "Faux ami : « a coupure » n'existe pas : « coupure de courant » = power cut / blackout.",
+                "Faux ami : « a coupure » n'existe pas : « coupure de courant » = power outage / blackout.",
             ],
             'situations' => [
                 ['title' => 'Réunion de quartier', 'description' => 'Avec des voisins, vous discutez des inondations de la saison des pluies à Lomé et préparez des propositions pour la mairie.', 'tags' => ['conversation', 'admin']],

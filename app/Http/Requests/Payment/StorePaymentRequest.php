@@ -4,6 +4,7 @@ namespace App\Http\Requests\Payment;
 
 use App\Support\PaymentCountry;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
 /**
@@ -12,6 +13,19 @@ use Illuminate\Validation\Rule;
  */
 class StorePaymentRequest extends FormRequest
 {
+    /**
+     * Hors des pays de paiement, aucune capture n'est lue ni validée : retour à la page de la formule
+     * (message et bouton WhatsApp), avant toute validation.
+     */
+    public function validateResolved(): void
+    {
+        if ($this->user() !== null && ! $this->user()->canPayOnline()) {
+            throw new HttpResponseException(to_route('payment.create', (string) $this->route('plan')));
+        }
+
+        parent::validateResolved();
+    }
+
     protected function prepareForValidation(): void
     {
         $this->merge(['country' => strtoupper((string) $this->input('country'))]);

@@ -12,7 +12,7 @@
     <div class="auth-head rise">
         <span class="icon-bubble icon-bubble-primary"><x-icon name="wallet" /></span>
         <h1>Formules et prix</h1>
-        <p>Des formules simples, sans engagement, au même prix au Togo, au Bénin, au Burkina Faso et en Côte d'Ivoire.</p>
+        <p>Des formules simples, sans engagement, au même prix au Togo, au Bénin, au Burkina Faso et en Côte d'Ivoire. Pour les francophones de tous les pays, en anglais américain, compris partout dans le monde.</p>
     </div>
 
     <section class="section" aria-label="Les formules">
@@ -41,6 +41,7 @@
             <p class="muted">Vous envoyez le montant exact au numéro affiché, puis la capture d'écran de la confirmation. Aucune carte bancaire.</p>
         </div>
         <x-country-links :pages="$countryPages" />
+        <p class="muted small next-step">Dans les autres pays, le paiement en ligne n'est pas encore disponible : après votre inscription et votre évaluation gratuite, notre équipe vous explique sur WhatsApp comment vous abonner. Les prix restent en francs CFA.</p>
     </section>
 
     @push('head')

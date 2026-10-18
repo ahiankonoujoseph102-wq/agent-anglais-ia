@@ -19,7 +19,7 @@
                 <input id="telephone" name="telephone" type="tel" inputmode="tel" autocomplete="tel" value="{{ $input }}" required
                        @class(['is-invalid' => $invalid]) @if ($invalid) aria-invalid="true" aria-describedby="telephone-error" @endif>
                 @if ($invalid)
-                    <div class="error" id="telephone-error">Ce numéro de téléphone n'est pas valide. Exemple : 90 12 34 56 ou +228 90 12 34 56.</div>
+                    <div class="error" id="telephone-error">Ce numéro de téléphone n'est pas valide. Hors du Togo, écrivez-le avec l'indicatif de votre pays, par exemple +237 6 77 12 34 56.</div>
                 @endif
             </div>
             <button type="submit" class="btn btn-light btn-block">Préparer le message</button>

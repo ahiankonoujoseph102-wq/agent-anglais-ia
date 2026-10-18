@@ -8,6 +8,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Enums\Skill;
 use App\Enums\SubscriptionStatus;
+use App\Support\Countries;
 use App\Support\DailyTime;
 use App\Support\EmailAddress;
 use Database\Factories\UserFactory;
@@ -26,7 +27,7 @@ use Illuminate\Support\Carbon;
  * volontairement pas « fillable » : ils ne doivent jamais pouvoir être
  * fixés depuis un formulaire.
  */
-#[Fillable(['name', 'phone', 'email', 'password'])]
+#[Fillable(['name', 'phone', 'country', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -65,9 +66,34 @@ class User extends Authenticatable
         return Attribute::make(set: fn (?string $value) => EmailAddress::normalize($value));
     }
 
+    protected static function booted(): void
+    {
+        // Pays absent (compte créé sans le formulaire d'inscription) : celui de l'indicatif du numéro.
+        static::creating(function (User $user) {
+            $user->country ??= Countries::forPhone($user->phone);
+        });
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === Role::Admin;
+    }
+
+    /** Pays de l'apprenant (choisi à l'inscription, sinon celui de l'indicatif du numéro). */
+    public function countryCode(): ?string
+    {
+        return $this->country ?? Countries::forPhone($this->phone);
+    }
+
+    public function countryName(): string
+    {
+        return Countries::name($this->countryCode());
+    }
+
+    /** Pays où l'on paie par Mobile Money sur le site ; ailleurs, l'abonnement passe par WhatsApp. */
+    public function canPayOnline(): bool
+    {
+        return Countries::hasOnlinePayment($this->countryCode());
     }
 
     /**

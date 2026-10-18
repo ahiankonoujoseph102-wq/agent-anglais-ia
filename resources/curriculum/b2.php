@@ -59,19 +59,19 @@ return [
             ],
             'pronunciation' => [
                 "L'accent de phrase sert à mettre en valeur l'information nouvelle : « I didn't say MONDAY, I said FRIDAY ».",
-                'Les réductions naturelles : « What do you think? » → [ˈwɒdʒə θɪŋk].',
+                'Les réductions naturelles : « What do you think? » → [ˈwʌdʒə θɪŋk].',
             ],
             'spoken' => [
                 "« Let's circle back to that later » = on y reviendra plus tard.",
                 "« Can we park that for now? » = on met ce point de côté pour l'instant ?",
             ],
             'pitfalls' => [
-                'Faux ami : « an agenda » = un ordre du jour ; « un agenda » (carnet) = a diary / planner.',
-                'Faux ami : « to resume » = reprendre ; « résumer » = to sum up / summarise.',
+                'Faux ami : « an agenda » = un ordre du jour ; « un agenda » (carnet) = a planner (en anglais britannique, on dit aussi a diary).',
+                'Faux ami : « to resume » = reprendre ; « résumer » = to sum up / summarize.',
             ],
             'situations' => [
-                ['title' => 'Réunion de projet', 'description' => 'Réunion à Lomé avec des partenaires d\'Accra sur un projet commun : prenez la parole, interrompez et faites le résumé.', 'tags' => ['work', 'business']],
-                ['title' => 'Visioconférence Lomé–Accra', 'description' => 'Visioconférence entre vos bureaux de Lomé et d\'Accra : la connexion est mauvaise, gérez les échanges et clarifiez.', 'tags' => ['work', 'phone', 'tech']],
+                ['title' => 'Réunion de projet', 'description' => 'Réunion à Lomé avec des partenaires étrangers anglophones sur un projet commun : prenez la parole, interrompez et faites le résumé.', 'tags' => ['work', 'business']],
+                ['title' => 'Visioconférence internationale', 'description' => 'Visioconférence entre vos bureaux de Lomé et une filiale à l\'étranger : la connexion est mauvaise, gérez les échanges et clarifiez.', 'tags' => ['work', 'phone', 'tech']],
                 ['title' => 'Conseil d\'association', 'description' => 'Vous présidez la réunion d\'une association d\'anciens élèves de Kara et devez faire respecter l\'ordre du jour.', 'tags' => ['conversation', 'admin']],
             ],
         ],
@@ -94,7 +94,7 @@ return [
                 'to compromise' => 'faire un compromis',
                 'exclusive rights' => 'exclusivité',
                 'payment terms' => 'conditions de paiement',
-                'in instalments' => 'en plusieurs versements',
+                'in installments' => 'en plusieurs versements',
                 'penalty' => 'pénalité',
                 'to commit to' => "s'engager à",
                 'long-term partnership' => 'partenariat à long terme',
@@ -112,11 +112,11 @@ return [
             'functions' => [
                 'Proposer : « What if we split the transport costs fifty-fifty? »',
                 "Refuser poliment : « I'm afraid that's not something we can accept at this stage. »",
-                "Conclure : « So, just to make sure we're clear: 2,000 units, delivered in March, paid in three instalments. »",
+                "Conclure : « So, just to make sure we're clear: 2,000 units, delivered in March, paid in three installments. »",
             ],
             'pronunciation' => [
                 'Le ton : phrases descendantes et pauses courtes inspirent confiance ; évitez de monter en fin de phrase affirmative.',
-                'Contract : nom [ˈkɒntrækt], verbe [kənˈtrækt].',
+                'Contract : nom [ˈkɑːntrækt], verbe [kənˈtrækt].',
             ],
             'spoken' => [
                 "« That's a deal-breaker for us » = c'est rédhibitoire pour nous.",
@@ -127,9 +127,9 @@ return [
                 '« We are agree on » ✗ → « We agree on » / « We have agreed on » ✓.',
             ],
             'situations' => [
-                ['title' => 'Contrat de distribution', 'description' => 'Vous négociez avec une entreprise d\'Accra l\'exclusivité de la distribution de ses produits au Togo.', 'tags' => ['business']],
+                ['title' => 'Contrat de distribution', 'description' => 'Vous négociez avec une entreprise internationale l\'exclusivité de la distribution de ses produits au Togo.', 'tags' => ['business']],
                 ['title' => 'Salaire à l\'embauche', 'description' => 'Une entreprise du port autonome de Lomé vous propose un poste : négociez votre salaire et vos avantages en anglais.', 'tags' => ['work']],
-                ['title' => 'Location d\'entrepôt', 'description' => 'Vous négociez le loyer et la durée du bail d\'un entrepôt près du port avec un investisseur ghanéen.', 'tags' => ['business', 'admin']],
+                ['title' => 'Location d\'entrepôt', 'description' => 'Vous négociez le loyer et la durée du bail d\'un entrepôt près du port autonome de Lomé avec un investisseur étranger.', 'tags' => ['business', 'admin']],
             ],
         ],
 
@@ -153,10 +153,10 @@ return [
                 'soft skills' => 'compétences relationnelles',
                 'to upskill' => 'se perfectionner',
                 'mentor' => 'mentor',
-                'appraisal' => "entretien d'évaluation",
+                'performance review' => "entretien d'évaluation",
                 'promotion' => 'promotion',
                 'to resign' => 'démissionner',
-                'redundancy' => 'licenciement économique',
+                'layoff' => 'licenciement économique',
                 'career break' => 'pause de carrière',
                 'to network' => 'développer son réseau',
                 'track record' => 'antécédents, résultats passés',
@@ -171,11 +171,11 @@ return [
                 'Ambitions : « In five years, I see myself leading the regional office. »',
             ],
             'pronunciation' => [
-                'Les nombres et pourcentages à voix haute : « forty per cent », « one point five million ».',
+                'Les nombres et pourcentages à voix haute : « forty percent », « one point five million ».',
                 "Mots longs : reSPONsible, implemenTAtion, aCHIEVEment — l'accent ne tombe pas sur la dernière syllabe comme en français.",
             ],
             'spoken' => [
-                "« I'm keen to take on more responsibility » = je souhaite prendre plus de responsabilités.",
+                "« I'm eager to take on more responsibility » = je souhaite prendre plus de responsabilités.",
                 "« It was a steep learning curve » = j'ai dû apprendre très vite.",
             ],
             'pitfalls' => [
@@ -185,7 +185,7 @@ return [
             'situations' => [
                 ['title' => 'Entretien de promotion', 'description' => 'Vous défendez votre candidature à un poste de responsable régional devant la direction anglophone de votre entreprise à Lomé.', 'tags' => ['work']],
                 ['title' => 'Entretien d\'évaluation', 'description' => 'Votre manager anglophone, en visite à Lomé, fait le bilan de votre année : résultats, difficultés, objectifs.', 'tags' => ['work']],
-                ['title' => 'Réseautage à Accra', 'description' => 'Lors d\'un événement professionnel à Accra, présentez votre parcours à une personne influente.', 'tags' => ['business', 'conversation']],
+                ['title' => 'Réseautage à l\'étranger', 'description' => 'Lors d\'un salon professionnel international, à l\'étranger, présentez votre parcours à une personne influente.', 'tags' => ['business', 'conversation']],
             ],
         ],
 
@@ -227,7 +227,7 @@ return [
                 'Conclure son argument : « All things considered, I believe investment in training is the priority. »',
             ],
             'pronunciation' => [
-                'Argument [ˈɑːɡjumənt] : pas de « u » français ; evidence [ˈevɪdəns].',
+                'Argument [ˈɑːrɡjəmənt] : pas de « u » français ; evidence [ˈevɪdəns].',
                 'Rythme : les mots grammaticaux (to, of, the) sont faibles, les mots porteurs de sens accentués.',
             ],
             'spoken' => [
@@ -283,8 +283,8 @@ return [
                 'Parler de la concurrence : « Our main competitor is cheaper, but customers prefer our service. »',
             ],
             'pronunciation' => [
-                'Les verbes rise / rose / risen : [aɪ] / [əʊ] / [ɪ].',
-                'Survey : nom [ˈsɜːveɪ], verbe [səˈveɪ].',
+                'Les verbes rise / rose / risen : [aɪ] / [oʊ] / [ɪ].',
+                'Survey : nom [ˈsɝveɪ], verbe [sɚˈveɪ].',
             ],
             'spoken' => [
                 "« It's flying off the shelves » = ça se vend comme des petits pains.",
@@ -295,7 +295,7 @@ return [
                 "Faux ami : « a concurrent » n'existe pas en ce sens → competitor ; « concurrence » = competition.",
             ],
             'situations' => [
-                ['title' => 'Présenter sa marque', 'description' => 'Vous présentez votre marque de jus de fruits togolais à l\'acheteur d\'une chaîne de supermarchés d\'Accra.', 'tags' => ['business', 'market']],
+                ['title' => 'Présenter sa marque', 'description' => 'Vous présentez votre marque de jus de fruits togolais à l\'acheteur d\'une chaîne internationale de supermarchés.', 'tags' => ['business', 'market']],
                 ['title' => 'Réunion marketing', 'description' => 'Vous analysez les ventes du trimestre avec votre équipe à Lomé et proposez une campagne sur WhatsApp.', 'tags' => ['work', 'business', 'tech']],
                 ['title' => 'Étude de cas', 'description' => 'En école de commerce à Lomé, vous analysez à l\'oral la stratégie d\'une entreprise togolaise.', 'tags' => ['studies', 'exam']],
             ],
@@ -323,7 +323,7 @@ return [
                 'to overlook' => 'négliger',
                 'careless' => 'négligent',
                 'if only' => 'si seulement',
-                "it's no use crying over spilt milk" => 'ce qui est fait est fait',
+                "it's no use crying over spilled milk" => 'ce qui est fait est fait',
                 'to learn the hard way' => 'apprendre à ses dépens',
                 'to second-guess' => 'remettre en question après coup',
                 'excuse' => 'excuse (prétexte)',
@@ -348,11 +348,11 @@ return [
             ],
             'pitfalls' => [
                 '« If I would have known » ✗ → « If I had known » ✓.',
-                "Faux ami : « to excuse oneself » = demander à partir ; « s'excuser » = to apologise.",
+                "Faux ami : « to excuse oneself » = demander à partir ; « s'excuser » = to apologize.",
             ],
             'situations' => [
                 ['title' => 'Bilan d\'un projet raté', 'description' => 'Le lancement de votre produit au Grand Marché a échoué : analysez avec votre associé ce que vous auriez dû faire.', 'tags' => ['business', 'work']],
-                ['title' => 'Colis perdu', 'description' => 'Un colis envoyé à Accra n\'est jamais arrivé : faites des hypothèses avec le transporteur.', 'tags' => ['transport', 'business', 'phone']],
+                ['title' => 'Colis perdu', 'description' => 'Un colis envoyé à l\'étranger n\'est jamais arrivé : faites des hypothèses avec le transporteur.', 'tags' => ['transport', 'business', 'phone']],
                 ['title' => 'Conseils à un cadet', 'description' => 'Un jeune de votre famille, étudiant à Kara, vous demande des conseils : racontez ce que vous auriez fait différemment à son âge.', 'tags' => ['family', 'conversation', 'studies']],
             ],
         ],
@@ -374,7 +374,7 @@ return [
                 'at your earliest convenience' => 'dans les meilleurs délais',
                 'to look forward to' => 'attendre avec impatience',
                 'kind regards' => 'cordialement',
-                'yours faithfully / sincerely' => 'veuillez agréer…',
+                'sincerely / sincerely yours' => 'veuillez agréer…',
                 'subject line' => "objet (d'un e-mail)",
                 'to forward' => 'transférer',
                 'to cc' => 'mettre en copie',
@@ -390,12 +390,12 @@ return [
                 'Registre formel : pas de contractions, phrases complètes, verbes plus soutenus (to request, to inform).',
             ],
             'functions' => [
-                'Dicter un e-mail : « Subject: payment reminder. Dear Mr Mensah, I am writing with reference to invoice 245… »',
+                'Dicter un e-mail : « Subject: payment reminder. Dear Mr. Mensah, I am writing with reference to invoice 245… »',
                 'Adoucir une relance : « I was wondering whether you had had a chance to look at our proposal. »',
                 "Passer du formel à l'amical : « Thanks a lot for your help — speak soon! »",
             ],
             'pronunciation' => [
-                'Dicter la ponctuation : comma, full stop (anglais britannique) / period (anglais américain), colon, dash, new paragraph.',
+                'Dicter la ponctuation : comma, period (en anglais britannique, on dit aussi « full stop »), colon, dash, new paragraph.',
                 'Lire une adresse e-mail : « k dot mensah at gmail dot com ».',
             ],
             'spoken' => [
@@ -407,7 +407,7 @@ return [
                 'Faux ami : « eventually » dans un e-mail ne signifie pas « éventuellement » : utilisez « if necessary » ou « possibly ».',
             ],
             'situations' => [
-                ['title' => 'Relance de paiement', 'description' => 'Vous dictez au professeur un e-mail de relance poli mais ferme pour un client d\'Accra en retard de paiement.', 'tags' => ['business', 'work']],
+                ['title' => 'Relance de paiement', 'description' => 'Vous dictez au professeur un e-mail de relance poli mais ferme pour un client étranger en retard de paiement.', 'tags' => ['business', 'work']],
                 ['title' => 'Candidature par e-mail', 'description' => 'Vous préparez l\'e-mail qui accompagne votre CV pour un poste dans une ONG anglophone installée à Lomé.', 'tags' => ['work']],
                 ['title' => 'Message à un professeur', 'description' => 'Vous rédigez un message formel à votre directeur de mémoire de l\'université de Lomé pour demander un délai.', 'tags' => ['studies', 'education']],
             ],
@@ -427,7 +427,7 @@ return [
                 'outbreak' => 'épidémie (début)',
                 'vaccination campaign' => 'campagne de vaccination',
                 'to be screened' => 'être dépisté',
-                'health centre' => 'centre de santé',
+                'health center' => 'centre de santé',
                 'waiting list' => "liste d'attente",
                 'patient record' => 'dossier du patient',
                 'to be admitted' => 'être hospitalisé',
@@ -459,12 +459,12 @@ return [
                 '« Let me walk you through it » = je vais vous expliquer étape par étape.',
             ],
             'pitfalls' => [
-                'Faux ami : « to be hospitalized » existe mais on dit plus souvent « to be admitted (to hospital) ».',
+                'Faux ami : « to be hospitalized » existe mais on dit plus souvent « to be admitted (to the hospital) ».',
                 "Faux ami : « a consultation » est une réunion d'avis ; une « consultation médicale » = an appointment / a check-up.",
             ],
             'situations' => [
                 ['title' => 'Campagne de vaccination', 'description' => 'Vous expliquez à une famille anglophone installée à Lomé le déroulement d\'une campagne de vaccination.', 'tags' => ['health', 'family']],
-                ['title' => 'Accueil hospitalier', 'description' => 'Vous êtes agent d\'accueil au CHU de Kara : expliquez les étapes d\'une hospitalisation à un patient ghanéen.', 'tags' => ['health', 'work', 'admin']],
+                ['title' => 'Accueil hospitalier', 'description' => 'Vous êtes agent d\'accueil au CHU de Kara : expliquez les étapes d\'une hospitalisation à un patient anglophone venu de l\'étranger.', 'tags' => ['health', 'work', 'admin']],
                 ['title' => 'Rapport de mission', 'description' => 'Vous présentez à un bailleur de fonds anglophone les résultats d\'une campagne de sensibilisation dans la région des Savanes.', 'tags' => ['work', 'health']],
             ],
         ],
@@ -507,7 +507,7 @@ return [
                 'Spéculer : « In ten years, AI is likely to change how farmers sell their crops. »',
             ],
             'pronunciation' => [
-                'Data : [ˈdeɪtə] (anglais britannique) ou [ˈdætə] (anglais américain) ; jamais « da-ta » à la française.',
+                'Data : [ˈdeɪɾə] ou [ˈdæɾə] en anglais américain (le « t » devient un « r » français très bref) ; jamais « da-ta » à la française.',
                 "Mots composés : l'accent est sur le premier élément — SMARTphone, START-up.",
             ],
             'spoken' => [
@@ -520,7 +520,7 @@ return [
             ],
             'situations' => [
                 ['title' => 'Présenter une application', 'description' => 'Vous présentez une application de paiement mobile à des commerçantes du Grand Marché et répondez à leurs craintes.', 'tags' => ['tech', 'business', 'market']],
-                ['title' => 'Conférence tech à Accra', 'description' => 'Dans une conférence technologique à Accra, vous échangez avec un développeur ghanéen sur l\'innovation au Togo.', 'tags' => ['tech', 'work', 'travel']],
+                ['title' => 'Conférence tech internationale', 'description' => 'Dans une conférence technologique internationale, à l\'étranger, vous échangez avec un développeur anglophone sur l\'innovation au Togo.', 'tags' => ['tech', 'work', 'travel']],
                 ['title' => 'Débat en classe', 'description' => 'À l\'université de Lomé, vous débattez de l\'impact de l\'intelligence artificielle sur l\'emploi au Togo.', 'tags' => ['studies', 'tech']],
             ],
         ],
@@ -540,7 +540,7 @@ return [
                 'to calm down' => 'se calmer',
                 'to get on with' => "bien s'entendre avec",
                 'to fall out with' => 'se brouiller avec',
-                'to criticise' => 'critiquer',
+                'to criticize' => 'critiquer',
                 'constructive' => 'constructif',
                 'to defuse' => 'désamorcer',
                 'frustrated' => 'frustré',
@@ -558,7 +558,7 @@ return [
             ],
             'functions' => [
                 "Exprimer un problème : « I'm a bit concerned that the deadlines keep changing at the last minute. »",
-                "Reformuler l'émotion de l'autre : « So you feel that your work isn't being recognised, is that right? »",
+                "Reformuler l'émotion de l'autre : « So you feel that your work isn't being recognized, is that right? »",
                 'Proposer : « How about we agree on a weekly meeting to plan the work together? »',
             ],
             'pronunciation' => [
@@ -575,8 +575,8 @@ return [
             ],
             'situations' => [
                 ['title' => 'Conflit dans l\'équipe', 'description' => 'Deux collègues de votre agence de Lomé ne s\'entendent pas sur la répartition du travail : vous servez de médiateur.', 'tags' => ['work']],
-                ['title' => 'Client agressif', 'description' => 'Un client d\'Accra mécontent élève la voix au téléphone : calmez la situation et trouvez une solution.', 'tags' => ['business', 'phone']],
-                ['title' => 'Malentendu familial', 'description' => 'Un malentendu avec un parent installé à Accra : vous en parlez calmement pour le régler.', 'tags' => ['family', 'conversation']],
+                ['title' => 'Client agressif', 'description' => 'Un client étranger mécontent élève la voix au téléphone : calmez la situation et trouvez une solution.', 'tags' => ['business', 'phone']],
+                ['title' => 'Malentendu familial', 'description' => 'Un malentendu avec un parent installé à l\'étranger : vous en parlez calmement pour le régler.', 'tags' => ['family', 'conversation']],
             ],
         ],
 
@@ -601,7 +601,7 @@ return [
                 'tenant / landlord' => 'locataire / propriétaire',
                 'deposit' => 'caution',
                 'registration' => 'immatriculation, enregistrement',
-                'permit / licence' => 'permis / licence',
+                'permit / license' => 'permis / licence',
                 'to comply with' => 'se conformer à',
                 'lawyer' => 'avocat',
                 'fine' => 'amende',
@@ -615,11 +615,11 @@ return [
             'functions' => [
                 "Expliquer une clause : « This clause says that either party may terminate the contract with one month's notice. »",
                 "Défendre ses droits : « According to the lease, I'm entitled to get my deposit back. »",
-                'Démarche : « What documents are required to register a company in Ghana? »',
+                'Démarche : « What documents are required to register a subsidiary abroad? »',
             ],
             'pronunciation' => [
                 'Accent des mots juridiques : liaBILity, obliGAtion, regiSTRAtion — juste avant les finales -ty et -tion.',
-                'Lawyer [ˈlɔːjə] : « aw » comme dans law.',
+                'Lawyer [ˈlɔɪɚ] à l\'américaine : comme « loy-eur », et le « r » final se prononce.',
             ],
             'spoken' => [
                 '« Read the small print » = lisez les petits caractères.',
@@ -630,7 +630,7 @@ return [
                 "Faux ami : « to resign a contract » n'existe pas : « résilier » = to terminate / cancel.",
             ],
             'situations' => [
-                ['title' => 'Créer une société au Ghana', 'description' => 'Vous vous renseignez auprès d\'un conseiller sur les démarches pour ouvrir une filiale de votre entreprise à Accra.', 'tags' => ['business', 'admin', 'travel']],
+                ['title' => 'Ouvrir une filiale à l\'étranger', 'description' => 'En visioconférence, vous vous renseignez auprès d\'un conseiller anglophone sur les démarches pour ouvrir une filiale de votre entreprise à l\'étranger.', 'tags' => ['business', 'admin', 'travel']],
                 ['title' => 'Litige de location', 'description' => 'Votre propriétaire à Lomé refuse de rendre la caution : expliquez vos droits à un avocat anglophone en vous appuyant sur le bail.', 'tags' => ['admin', 'conversation']],
                 ['title' => 'Contrat de travail', 'description' => 'Avant de signer avec une entreprise anglophone de Lomé, vous posez des questions précises sur les clauses de votre contrat.', 'tags' => ['work', 'admin']],
             ],
@@ -659,7 +659,7 @@ return [
                 'call to action' => "appel à l'action",
                 'rhetorical question' => 'question rhétorique',
                 'pace' => 'rythme',
-                'to emphasise' => 'insister sur',
+                'to emphasize' => 'insister sur',
                 'takeaway' => 'message à retenir',
                 'Q&A session' => 'séance de questions-réponses',
             ],
@@ -673,7 +673,7 @@ return [
                 "Appel à l'action : « So, let's start with a pilot in three markets next month. »",
             ],
             'pronunciation' => [
-                'Utiliser les pauses avant les chiffres importants : « We reduced losses by… [pause] forty per cent. »',
+                'Utiliser les pauses avant les chiffres importants : « We reduced losses by… [pause] forty percent. »',
                 "L'accent contrastif : « We don't need MORE money, we need SMARTER spending. »",
             ],
             'spoken' => [
@@ -682,7 +682,7 @@ return [
             ],
             'pitfalls' => [
                 'Ne lisez pas vos diapositives : parlez au public, les diapositives illustrent.',
-                'Faux ami : « to realise » ≠ réaliser une présentation → to give / deliver a presentation.',
+                'Faux ami : « to realize » ≠ réaliser une présentation → to give / deliver a presentation.',
             ],
             'situations' => [
                 ['title' => 'Convaincre un bailleur', 'description' => 'Vous présentez un projet agricole de la région des Plateaux à un bailleur de fonds international et répondez à ses objections.', 'tags' => ['business', 'work']],

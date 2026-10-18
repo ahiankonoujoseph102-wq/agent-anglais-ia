@@ -13,7 +13,8 @@
 |   :daily      temps par jour des formules  :dial        indicatif du pays
 | Interdits : « certificat », « diplôme », « fait les devoirs » (sauf « ne fait pas les devoirs »),
 | « donne les réponses », « tous vos cours », « T-Money », tout chiffre inventé.
-| Les situations du programme se passent au Togo et au Ghana (seul autre pays cité).
+| Les situations du programme se passent au Togo ou dans un cadre international (aucun autre pays cité).
+| Le site s'adresse aux francophones de tous les pays ; ces quatre pages sont celles du paiement Mobile Money.
 | Titre : 50 caractères au plus (« · :platform » est ajouté) ; description : 155 au plus.
 |
 */
@@ -31,12 +32,12 @@ return [
             [
                 'icon' => 'pin',
                 'title' => 'Des leçons qui se passent chez vous',
-                'text' => 'Le programme de :platform a été écrit pour le Togo. Vous vous entraînez dans des situations que vous connaissez : accueillir un commerçant d\'Accra dans votre boutique de Bè, marchander au Grand Marché de Lomé, travailler avec des clients au port autonome, prendre un zémidjan ou un taxi, vous inscrire à l\'université de Lomé ou de Kara, faire une démarche à l\'administration.',
+                'text' => 'Le programme de :platform a été écrit pour le Togo. Vous vous entraînez dans des situations que vous connaissez : accueillir un client étranger dans votre boutique de Bè, marchander au Grand Marché de Lomé, travailler avec des clients au port autonome, prendre un zémidjan ou un taxi, vous inscrire à l\'université de Lomé ou de Kara, faire une démarche à l\'administration.',
             ],
             [
                 'icon' => 'globe',
-                'title' => 'Le Ghana, votre voisin anglophone',
-                'text' => 'Passer la frontière d\'Aflao, faire ses courses au marché de Makola, appeler un grossiste d\'Accra pour une livraison à Lomé : le programme vous prépare aussi à ces échanges avec le Ghana, avec les expressions qu\'on y entend vraiment.',
+                'title' => 'L\'anglais du monde entier',
+                'text' => 'Accueillir des visiteurs anglophones à Lomé, parler à un client étranger au téléphone, voyager, étudier en ligne : le programme vous prépare aussi aux échanges internationaux, en anglais américain, compris partout dans le monde.',
             ],
             [
                 'icon' => 'wallet',
@@ -77,7 +78,7 @@ return [
             [
                 'icon' => 'pin',
                 'title' => 'Des situations de la vie de tous les jours',
-                'text' => 'Les leçons se passent au Togo voisin et au Ghana : marché, transport, administration, accueil de visiteurs anglophones, affaires avec Accra. Des scènes proches de votre quotidien, où l\'anglais sert vraiment.',
+                'text' => 'Les leçons mêlent des scènes de la vie de tous les jours (marché, transport, administration) et des situations internationales : travail, voyage, études, appels et rencontres en ligne. Des scènes où l\'anglais sert vraiment.',
             ],
             [
                 'icon' => 'wallet',
@@ -117,8 +118,8 @@ return [
             ],
             [
                 'icon' => 'globe',
-                'title' => 'Le Ghana, voisin du sud',
-                'text' => 'Le Burkina Faso a une frontière avec le Ghana, pays anglophone. Le programme comprend des scènes de commerce et de voyage avec Accra : appeler un fournisseur, comparer des prix, acheter un billet de bus.',
+                'title' => 'Pour vos échanges internationaux',
+                'text' => 'Le programme comprend des scènes de travail et de voyage à l\'international : appeler un fournisseur étranger, comparer des prix, réserver un billet, participer à une visioconférence.',
             ],
             [
                 'icon' => 'wallet',
@@ -158,8 +159,8 @@ return [
             ],
             [
                 'icon' => 'globe',
-                'title' => 'Le Ghana, voisin de l\'est',
-                'text' => 'Le Ghana, pays anglophone, est votre voisin. Le programme vous entraîne aux échanges avec Accra : voyage, achats, appels à des clients et à des fournisseurs.',
+                'title' => 'Un anglais compris partout',
+                'text' => ':teacher enseigne l\'anglais américain, compris partout dans le monde. Le programme vous entraîne aux échanges internationaux : voyage, études, appels à des clients et à des fournisseurs étrangers.',
             ],
             [
                 'icon' => 'wallet',

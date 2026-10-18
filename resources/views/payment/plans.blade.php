@@ -4,10 +4,18 @@
     <div class="step-panel">
         <div class="page-head">
             <h1>Choisissez votre formule</h1>
-            <p class="muted">
-                Vous payez par Mobile Money depuis votre téléphone, puis vous envoyez la capture d'écran de la confirmation.
-                Si tout est clair, vous pouvez commencer vos séances tout de suite, le temps que notre équipe vérifie votre paiement.
-            </p>
+            @if (auth()->user()->canPayOnline())
+                <p class="muted">
+                    Vous payez par Mobile Money depuis votre téléphone, puis vous envoyez la capture d'écran de la confirmation.
+                    Si tout est clair, vous pouvez commencer vos séances tout de suite, le temps que notre équipe vérifie votre paiement.
+                </p>
+            @else
+                {{-- Pays sans paiement en ligne : l'équipe explique l'abonnement sur WhatsApp (bouton sur la page suivante). --}}
+                <p class="muted">
+                    Choisissez votre formule : le paiement en ligne n'est pas encore disponible dans votre pays ({{ auth()->user()->countryName() }}),
+                    nous vous expliquons ensuite sur WhatsApp comment vous abonner. Les prix sont en francs CFA.
+                </p>
+            @endif
         </div>
 
         @if ($rejected)

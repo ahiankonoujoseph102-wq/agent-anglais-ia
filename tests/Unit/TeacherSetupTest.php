@@ -22,6 +22,7 @@ class TeacherSetupTest extends TestCase
             'teacher.lesson' => 'Lesson of :minutes minutes, warning :warning minutes before.',
             'teacher.coaching' => '',
             'teacher.listening' => '',
+            'teacher.american_english' => '',
         ]);
 
         $user = new User(['name' => 'Yao']);
@@ -187,7 +188,7 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('says they have no (more) question, or once you have answered question number 3, go to the conclusion at once', $text);
         // Conclusion : niveau, pourquoi l'anglais, comment s'abonner, promesse honnête, phrase fixe.
         $this->assertStringContainsString('recall the level obtained', $text);
-        $this->assertStringContainsString('studies, work, exchanges with Ghana and the rest of the world, the internet', $text);
+        $this->assertStringContainsString('studies, work, travel, international exchanges, the internet', $text);
         $this->assertStringContainsString('« Les formules s\'affichent juste en dessous : il suffit de toucher le bouton orange. »', $text);
         $this->assertStringContainsString('never a guaranteed result', $text);
         $this->assertStringContainsString('« Je serai avec vous chaque jour, je corrigerai vos erreurs et vous gagnerez en assurance. »', $text);
@@ -291,5 +292,51 @@ class TeacherSetupTest extends TestCase
         $this->assertStringNotContainsString('ACTIVE LISTENING', $assessment);
         $this->assertStringContainsString('sum up in a few words what the learner just said', $assessment);
         $this->assertStringContainsString('This is not a lesson', $assessment);
+    }
+
+    public function test_every_conversation_teaches_american_english_at_both_providers(): void
+    {
+        $user = new User(['name' => 'Afi']);
+        $user->level = Level::A2;
+
+        $setups = [
+            'assessment' => TeacherSetup::assessment($user, 5),
+            'lesson' => TeacherSetup::lesson($user, 15),
+            'course' => TeacherSetup::course($user, 10, 'Lesson: colour, favourite.'),
+            'level_test' => TeacherSetup::levelTest($user, Level::A2, 10),
+            'trial' => TeacherSetup::trial($user),
+        ];
+
+        foreach ($setups as $kind => $setup) {
+            $providers = [
+                'gemini' => $setup['systemInstruction']['parts'][0]['text'],
+                'openai' => OpenAiRealtime::session($setup)['instructions'],
+            ];
+
+            foreach ($providers as $provider => $text) {
+                $where = "{$kind} chez {$provider}";
+                $this->assertStringContainsString('You speak and teach AMERICAN English, understood everywhere in the world', $text, $where);
+                $this->assertStringContainsString('apartment, elevator, vacation', $text, $where);
+                $this->assertStringContainsString('(color, center, favorite', $text, $where);
+                $this->assertStringContainsString('A British form is NEVER a mistake', $text, $where);
+                $this->assertStringContainsString('"In American English, we usually say \'…\'."', $text, $where);
+                $this->assertStringContainsString('In the free assessment, a British form never lowers the level.', $text, $where);
+                $this->assertStringContainsString('explain it exactly as it is written, never contradict the school, and only point out the American equivalent when it is different', $text, $where);
+                $this->assertStringContainsString('Never name another country yourself', $text, $where);
+                $this->assertDoesNotMatchRegularExpression('/Ghana|Accra|Aflao|international officiel/i', $text, $where);
+            }
+        }
+    }
+
+    public function test_the_providers_have_no_accent_setting_the_instructions_carry_it(): void
+    {
+        // Gemini Live (audio natif) refuse un code de langue ; OpenAI n'a pas de réglage d'accent :
+        // aucune langue n'est imposée dans la configuration, l'accent vient des consignes.
+        $user = new User(['name' => 'Afi']);
+        $setup = TeacherSetup::lesson($user, 15);
+
+        $this->assertArrayNotHasKey('languageCode', $setup['generationConfig']['speechConfig'] ?? []);
+        $this->assertSame('cedar', OpenAiRealtime::session($setup)['audio']['output']['voice']);
+        $this->assertArrayNotHasKey('language', OpenAiRealtime::session($setup)['audio']['input']['transcription'] ?? []);
     }
 }

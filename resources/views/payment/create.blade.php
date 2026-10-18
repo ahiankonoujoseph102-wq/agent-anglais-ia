@@ -31,7 +31,7 @@
                     <h2 id="pays-titre" tabindex="-1">Dans quel pays payez-vous ?</h2>
                 </div>
                 @if ($country && $countryFromPhone)
-                    <p class="muted small pay-hint">Choisi d'après votre numéro de téléphone. Touchez un autre pays pour changer.</p>
+                    <p class="muted small pay-hint">@if ($countryMatchesPhone)Choisi d'après votre numéro de téléphone.@else Choisi d'après le pays de votre compte.@endif Touchez un autre pays pour changer.</p>
                 @endif
                 <div class="choices">
                     @foreach ($countries as $option)

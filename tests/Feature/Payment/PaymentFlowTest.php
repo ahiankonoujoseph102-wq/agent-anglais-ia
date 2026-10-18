@@ -49,9 +49,19 @@ class PaymentFlowTest extends TestCase
         $this->assertStringContainsString('Par quel moyen voulez-vous payer ?', $html);
     }
 
-    public function test_an_unknown_dial_code_preselects_nothing(): void
+    public function test_the_country_of_the_account_is_preselected_even_with_a_foreign_number(): void
     {
-        $html = $this->page(User::factory()->create(['phone' => '+33612345678']));
+        $html = $this->page(User::factory()->create(['phone' => '+33612345678', 'country' => 'BJ']));
+
+        $this->assertMatchesRegularExpression('/data-pay-country="BJ"\s+class="btn"\s+aria-current="true"/', $html);
+        $this->assertStringContainsString('Choisi d\'après le pays de votre compte.', $html);
+    }
+
+    public function test_without_a_payment_country_nothing_is_preselected(): void
+    {
+        // Compte d'un pays de paiement dont le pays a disparu des moyens proposés (aucun numéro) : rien n'est choisi d'office.
+        config(['payment.countries.BJ.operators' => array_map(fn ($operator) => ['number' => ''] + $operator, config('payment.countries.BJ.operators'))]);
+        $html = $this->page(User::factory()->create(['phone' => '+22997123456', 'country' => 'BJ']));
 
         $this->assertStringNotContainsString('aria-current="true"', $html);
         $this->assertStringContainsString('id="moyen" data-pay-methods  hidden', $html);

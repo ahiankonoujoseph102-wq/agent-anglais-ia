@@ -47,7 +47,9 @@ final class Greeting
      */
     public static function period(User $user, ?CarbonInterface $now = null): string
     {
-        $hour = Carbon::instance($now ?? now())->setTimezone(self::timezone($user->phone))->hour;
+        // Pays choisi à l'inscription (tous les pays), sinon celui de l'indicatif.
+        $zone = $user->country ? Countries::timezone($user->country) : self::timezone($user->phone);
+        $hour = Carbon::instance($now ?? now())->setTimezone($zone)->hour;
 
         return $hour >= (int) config('platform.welcome.morning_from') && $hour < (int) config('platform.welcome.evening_from')
             ? self::MORNING

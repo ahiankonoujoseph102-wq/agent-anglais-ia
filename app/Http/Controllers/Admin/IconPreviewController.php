@@ -18,7 +18,7 @@ class IconPreviewController extends Controller
     private const SAMPLES = [
         'mic' => ['Parler avec le professeur', 'La séance est orale du début à la fin.'],
         'check-circle' => ['Corrections immédiates', 'Vos erreurs corrigées, puis revues.'],
-        'pin' => ['Situations de chez nous', 'Grand Marché, zémidjan, frontière d\'Aflao.'],
+        'pin' => ['Situations de chez nous', 'Grand Marché, zémidjan, port de Lomé.'],
         'calendar' => ['À votre rythme', 'Vous choisissez vos jours de séance.'],
         'user-plus' => ['Créer mon compte', 'Nom et numéro de téléphone.'],
         'wallet' => ['Mobile Money', 'Paiement depuis votre téléphone.'],

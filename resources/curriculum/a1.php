@@ -75,7 +75,7 @@ return [
             ],
             'situations' => [
                 ['title' => 'Premier jour à l\'université de Lomé', 'description' => 'À la rentrée, un enseignant invité anglophone salue les étudiants de votre amphi. Saluez-le et présentez-vous : nom, ville d\'origine, quartier.', 'tags' => ['studies', 'education']],
-                ['title' => 'Un commerçant d\'Accra à la boutique', 'description' => 'Un commerçant venu d\'Accra entre dans votre boutique du quartier Bè. Saluez-le, demandez son nom et d\'où il vient, présentez-vous.', 'tags' => ['business', 'market', 'conversation']],
+                ['title' => 'Un client étranger à la boutique', 'description' => 'Un client anglophone de passage à Lomé entre dans votre boutique du quartier Bè. Saluez-le, demandez son nom et d\'où il vient, présentez-vous.', 'tags' => ['business', 'market', 'conversation']],
                 ['title' => 'Accueil d\'un visiteur à l\'hôtel', 'description' => 'Vous travaillez à la réception d\'un hôtel du boulevard du Mono. Accueillez un visiteur anglophone qui arrive à Lomé et présentez-vous.', 'tags' => ['work', 'travel', 'conversation']],
             ],
         ],
@@ -91,7 +91,7 @@ return [
             'vocabulary' => [
                 'family' => 'famille',
                 'father / dad' => 'père / papa',
-                'mother / mum' => 'mère / maman',
+                'mother / mom' => 'mère / maman',
                 'parents' => 'parents (père et mère)',
                 'brother' => 'frère',
                 'sister' => 'sœur',
@@ -113,29 +113,29 @@ return [
             'grammar' => [
                 "Les adjectifs possessifs : my, your, his, her, our, their (« his sister » = la sœur de lui, « her brother » = le frère d'elle).",
                 "Le génitif 's : « Kossi's wife », « my mother's name ».",
-                "Have got / has got : « I've got two brothers », « She has got three children ».",
+                "Have / has pour la possession : « I have two brothers », « She has three children », « Do you have any children? » (en anglais britannique, on dit aussi « I've got »).",
             ],
             'functions' => [
                 "Présenter sa famille : « This is my sister. Her name is Ama. She's twenty. »",
                 "Dire l'âge : « My son is seven (years old). »",
-                'Poser des questions : « Have you got any children? », « How many brothers have you got? »',
+                'Poser des questions : « Do you have any children? », « How many brothers do you have? »',
             ],
             'pronunciation' => [
                 'Le son « th » de mother, father, brother : la langue entre les dents, sans dire « z » ni « d » (« moder » ✗).',
                 "Le « s » final de brothers, sisters, parents se prononce : c'est la marque du pluriel.",
             ],
             'spoken' => [
-                "« I've got » est très courant à l'oral, plus que « I have » ; au Ghana, on l'entend partout.",
-                '« Mum » (anglais britannique, utilisé au Ghana) et « Mom » (anglais américain) : les deux existent.',
+                "« I have » et « Do you have…? » sont les formes courantes en anglais américain ; « I've got » (anglais britannique) se comprend aussi.",
+                '« Mom » et « Dad » sont les mots de tous les jours (anglais américain) ; en anglais britannique, on dit aussi « Mum ».',
             ],
             'pitfalls' => [
                 "His / her dépend du possesseur, pas de l'objet : « Kofi and his mother » (pas « her mother »).",
                 'Parents veut dire père et mère seulement ; pour toute la famille élargie, dites relatives.',
             ],
             'situations' => [
-                ['title' => 'La photo de famille sur WhatsApp', 'description' => 'Une collègue ghanéenne vous demande de lui montrer les photos de votre famille sur WhatsApp. Présentez chaque personne.', 'tags' => ['family', 'phone', 'conversation']],
+                ['title' => 'La photo de famille sur WhatsApp', 'description' => 'Une collègue anglophone de votre entreprise internationale à Lomé vous demande de lui montrer les photos de votre famille sur WhatsApp. Présentez chaque personne.', 'tags' => ['family', 'phone', 'conversation']],
                 ['title' => 'Famille d\'accueil à Lomé', 'description' => 'Vous accueillez chez vous, à Agoè, un jeune volontaire anglophone. Présentez-lui les membres de la famille.', 'tags' => ['family', 'conversation', 'travel']],
-                ['title' => 'Pause au bureau', 'description' => 'Pendant la pause, un collègue ghanéen de votre entreprise à Lomé vous parle de ses enfants. Posez-lui des questions et parlez des vôtres.', 'tags' => ['work', 'conversation']],
+                ['title' => 'Pause au bureau', 'description' => 'Pendant la pause, un collègue étranger de votre entreprise internationale à Lomé vous parle de ses enfants. Posez-lui des questions et parlez des vôtres.', 'tags' => ['work', 'conversation']],
             ],
         ],
 
@@ -155,7 +155,7 @@ return [
                 'fourteen / forty' => 'quatorze / quarante',
                 'fifteen / fifty' => 'quinze / cinquante',
                 'a hundred' => 'cent',
-                'double (two)' => 'deux fois (deux) — dans un numéro',
+                'double (two)' => 'deux fois (deux) — dans un numéro, surtout en anglais britannique',
                 'age' => 'âge',
                 'how old…?' => 'quel âge… ?',
                 'to spell' => 'épeler',
@@ -172,7 +172,7 @@ return [
                 "L'impératif poli : « Please spell your name », « Can you repeat, please? ».",
             ],
             'functions' => [
-                "Donner son numéro chiffre par chiffre : « It's nine-oh, double four, one-two… »",
+                "Donner son numéro chiffre par chiffre : « It's nine-oh, four-four, one-two… »",
                 'Épeler : « K-O-F-I, Kofi. »',
                 'Demander de répéter : « Sorry, can you say that again, slowly? »',
             ],
@@ -182,14 +182,14 @@ return [
             ],
             'spoken' => [
                 'On dit souvent « oh » au lieu de « zero » dans un numéro de téléphone.',
-                '« Double five » = 55 dans un numéro ; en anglais américain on dit plutôt « five five ».',
+                '« Five five » = 55 dans un numéro (anglais américain) ; en anglais britannique, on dit aussi « double five ».',
             ],
             'pitfalls' => [
                 "« I have 30 years » est une traduction du français : dites « I'm thirty ».",
                 'Les lettres E et I sont inversées par rapport au français : E se dit « i », I se dit « aï ».',
             ],
             'situations' => [
-                ['title' => 'Échanger les numéros au port', 'description' => 'Après une réunion au port autonome de Lomé, un transitaire ghanéen vous demande votre numéro WhatsApp. Dictez-le et notez le sien.', 'tags' => ['phone', 'business', 'work']],
+                ['title' => 'Échanger les numéros au port', 'description' => 'Après une réunion au port autonome de Lomé, le représentant anglophone d\'une compagnie maritime internationale vous demande votre numéro WhatsApp. Dictez-le et notez le sien.', 'tags' => ['phone', 'business', 'work']],
                 ['title' => 'Inscription à l\'école internationale', 'description' => 'À l\'accueil d\'une école bilingue de Lomé, vous épelez votre nom et donnez l\'âge et la classe de votre enfant.', 'tags' => ['education', 'admin', 'family']],
                 ['title' => 'Le standard de la clinique', 'description' => 'Vous appelez une clinique de Lomé où un médecin anglophone consulte : épelez le nom d\'un proche et laissez votre numéro.', 'tags' => ['health', 'phone']],
             ],
@@ -205,7 +205,7 @@ return [
             ],
             'vocabulary' => [
                 'market' => 'marché',
-                'shop' => 'boutique',
+                'store / shop' => 'magasin / boutique',
                 'seller / trader' => 'vendeur / commerçant',
                 'customer' => 'client',
                 'price' => 'prix',
@@ -249,8 +249,8 @@ return [
             ],
             'situations' => [
                 ['title' => 'Au Grand Marché de Lomé', 'description' => 'Une touriste anglophone veut acheter du pagne et des tomates à votre étal du Grand Marché. Donnez les prix et négociez.', 'tags' => ['market', 'business']],
-                ['title' => 'Faire ses courses à Accra', 'description' => 'En voyage à Accra, vous achetez du riz et des oignons au marché de Makola. Demandez les prix en cédis et négociez.', 'tags' => ['travel', 'market']],
-                ['title' => 'Commande au grossiste', 'description' => 'Vous appelez un grossiste d\'Accra pour connaître le prix d\'un sac de riz et d\'un carton d\'huile livrés à Lomé.', 'tags' => ['business', 'phone']],
+                ['title' => 'Au marché, en voyage à l\'étranger', 'description' => 'En voyage à l\'étranger, vous achetez du riz et des oignons dans un grand marché. Demandez les prix dans la monnaie locale et négociez.', 'tags' => ['travel', 'market']],
+                ['title' => 'Commande au grossiste', 'description' => 'Vous appelez un grossiste international anglophone pour connaître le prix d\'un sac de riz et d\'un carton d\'huile livrés au port autonome de Lomé.', 'tags' => ['business', 'phone']],
             ],
         ],
 
@@ -264,15 +264,15 @@ return [
             ],
             'vocabulary' => [
                 'house' => 'maison',
-                'flat / apartment' => 'appartement',
+                'apartment' => 'appartement (en anglais britannique, on dit aussi « flat »)',
                 'room' => 'pièce, chambre',
                 'bedroom' => 'chambre à coucher',
                 'living room' => 'salon',
                 'kitchen' => 'cuisine',
                 'bathroom' => 'salle de bain',
                 'yard / compound' => 'cour / concession',
-                'neighbour' => 'voisin',
-                'neighbourhood' => 'quartier',
+                'neighbor' => 'voisin',
+                'neighborhood' => 'quartier',
                 'church' => 'église',
                 'mosque' => 'mosquée',
                 'pharmacy' => 'pharmacie',
@@ -293,7 +293,7 @@ return [
                 'Demander : « Is there a bank near here? »',
             ],
             'pronunciation' => [
-                "La contraction there's [ðeəz] : « th » doux, langue entre les dents.",
+                "La contraction there's [ðɛrz] : « th » doux, langue entre les dents.",
                 'Voyelle longue / courte : live [ɪ] (habiter) et leave [iː] (partir) ne se prononcent pas pareil.',
             ],
             'spoken' => [
@@ -305,7 +305,7 @@ return [
                 'Room est une pièce en général ; la chambre à coucher se dit bedroom.',
             ],
             'situations' => [
-                ['title' => 'Louer une chambre près du campus', 'description' => 'Un étudiant ghanéen cherche une chambre à louer près de l\'université de Lomé. Décrivez la chambre et le quartier.', 'tags' => ['business', 'studies']],
+                ['title' => 'Louer une chambre près du campus', 'description' => 'Un étudiant anglophone en échange cherche une chambre à louer près de l\'université de Lomé. Décrivez la chambre et le quartier.', 'tags' => ['business', 'studies']],
                 ['title' => 'Accueillir un collègue', 'description' => 'Un collègue anglophone vient dîner chez vous à Hédzranawoé. Expliquez-lui où se trouve la maison à partir du carrefour le plus proche.', 'tags' => ['work', 'conversation', 'family']],
                 ['title' => 'Le quartier de l\'hôtel', 'description' => 'Un client anglophone d\'un hôtel de Lomé vous demande s\'il y a une pharmacie, un distributeur et une église près de l\'hôtel.', 'tags' => ['travel', 'health', 'work']],
             ],
@@ -326,7 +326,7 @@ return [
                 'quarter past / to' => 'et quart / moins le quart',
                 'to wake up' => 'se réveiller',
                 'to get up' => 'se lever',
-                'to have a shower' => 'prendre une douche',
+                'to take a shower' => 'prendre une douche',
                 'to have breakfast' => 'prendre le petit-déjeuner',
                 'to go to work' => 'aller au travail',
                 'to start / to finish' => 'commencer / finir',
@@ -363,8 +363,8 @@ return [
             ],
             'situations' => [
                 ['title' => 'Entretien pour un petit emploi', 'description' => 'Le gérant anglophone d\'un restaurant de Lomé vous demande à quelle heure vous pouvez commencer et comment se passe votre journée.', 'tags' => ['work']],
-                ['title' => 'Emploi du temps à l\'université de Kara', 'description' => 'Un étudiant ghanéen en échange à l\'université de Kara compare sa journée de cours avec la vôtre.', 'tags' => ['studies', 'conversation']],
-                ['title' => 'Rendez-vous téléphonique', 'description' => 'Un client d\'Accra veut passer à votre boutique pendant son séjour à Lomé : fixez une heure qui convient aux deux.', 'tags' => ['business', 'phone']],
+                ['title' => 'Emploi du temps à l\'université de Kara', 'description' => 'Un étudiant étranger en échange à l\'université de Kara compare sa journée de cours avec la vôtre.', 'tags' => ['studies', 'conversation']],
+                ['title' => 'Rendez-vous téléphonique', 'description' => 'Un client étranger veut passer à votre boutique pendant son séjour à Lomé : fixez une heure qui convient aux deux.', 'tags' => ['business', 'phone']],
             ],
         ],
 
@@ -390,7 +390,7 @@ return [
                 'water' => 'eau',
                 'juice' => 'jus',
                 'menu' => 'carte, menu',
-                'the bill' => "l'addition",
+                'the check' => "l'addition (en anglais britannique, on dit aussi « the bill »)",
                 'hungry' => 'avoir faim',
                 'thirsty' => 'avoir soif',
                 'delicious' => 'délicieux',
@@ -404,11 +404,12 @@ return [
             'functions' => [
                 'Commander : « Can I have the grilled fish with plantain, please? »',
                 "Dire ses goûts : « I like spicy food, but I don't like beef. »",
-                "Demander l'addition : « Can we have the bill, please? »",
+                "Demander l'addition : « Can we have the check, please? »",
             ],
             'pronunciation' => [
                 'Voyelles longues de beans [iː] et food [uː] : tenez-les longtemps, et opposez-les aux courtes de bins [ɪ] et good [ʊ].',
                 'Le « h » de hungry ; ne pas confondre hungry (faim) et angry (en colère).',
+                "Water à l'américaine [ˈwɑːɾɚ] : le « t » entre deux voyelles devient un « r » français très bref, et le « r » final se prononce.",
             ],
             'spoken' => [
                 "« I'm starving! » = je meurs de faim (exagération courante).",
@@ -419,8 +420,8 @@ return [
                 "« I would like a coffee » : ne dites pas « I want » au serveur, c'est trop direct.",
             ],
             'situations' => [
-                ['title' => 'Au maquis avec un client', 'description' => 'Vous invitez un client ghanéen dans un maquis de Lomé. Expliquez-lui l\'akoumé, le fufu et le poisson braisé, et commandez pour vous deux.', 'tags' => ['business', 'conversation']],
-                ['title' => 'Restaurant à Accra', 'description' => 'En voyage à Accra, vous lisez la carte, posez des questions sur les plats et commandez.', 'tags' => ['travel']],
+                ['title' => 'Au maquis avec un client', 'description' => 'Vous invitez un client étranger dans un maquis de Lomé. Expliquez-lui l\'akoumé, le fufu et le poisson braisé, et commandez pour vous deux.', 'tags' => ['business', 'conversation']],
+                ['title' => 'Restaurant à l\'étranger', 'description' => 'En voyage à l\'étranger, vous lisez la carte, posez des questions sur les plats et commandez.', 'tags' => ['travel']],
                 ['title' => 'Recevoir à la maison', 'description' => 'Une amie anglophone vient chez vous. Proposez-lui à boire et à manger et parlez de vos plats togolais préférés.', 'tags' => ['family', 'conversation']],
             ],
         ],
@@ -441,19 +442,19 @@ return [
                 'taxi' => 'taxi',
                 'motorbike taxi' => 'taxi-moto (zémidjan)',
                 'turn left / right' => 'tournez à gauche / à droite',
-                'go straight on' => 'allez tout droit',
+                'go straight (ahead)' => 'allez tout droit',
                 'stop here' => 'arrêtez-vous ici',
                 'far' => 'loin',
                 'close / near' => 'proche',
                 'the way to…' => 'le chemin pour…',
                 'fare' => 'prix du trajet',
-                'to drop someone' => "déposer quelqu'un",
+                'to drop someone off' => "déposer quelqu'un",
                 'to get on / off' => "monter / descendre (d'un véhicule)",
                 'traffic jam' => 'embouteillage',
                 'map' => 'plan, carte',
             ],
             'grammar' => [
-                "L'impératif pour donner des directions : « Go straight on, then turn left at the roundabout. »",
+                "L'impératif pour donner des directions : « Go straight, then turn left at the roundabout. »",
                 'Les questions avec how : « How do I get to…? », « How far is it? », « How much is the fare? »',
             ],
             'functions' => [
@@ -462,16 +463,16 @@ return [
                 "Indiquer : « It's the second street on the right. »",
             ],
             'pronunciation' => [
-                'Le « r » anglais (right, road) : la langue ne touche pas le palais, pas de « r » roulé ni de « r » de gorge.',
+                'Le « r » américain (right, road, car) : la langue ne touche pas le palais, pas de « r » roulé ni de « r » de gorge ; il se prononce aussi en fin de mot.',
                 'Straight [streɪt] : le « gh » ne se prononce pas.',
             ],
             'spoken' => [
-                '« Drop me here » / « Drop me at the junction » : très courant au Ghana, et utile avec les visiteurs à Lomé.',
-                "« It's about five minutes' walk » = c'est à environ cinq minutes à pied.",
+                '« Drop me off here » / « Drop me off at the corner » : très courant, et utile avec les visiteurs à Lomé.',
+                "« It's about a five-minute walk » = c'est à environ cinq minutes à pied.",
             ],
             'pitfalls' => [
                 '« Turn on the left » ✗ → « turn left » ✓.',
-                "Faux ami : « car » en anglais = voiture ; l'autocar se dit coach ou bus.",
+                "Faux ami : « car » en anglais = voiture ; l'autocar se dit bus (en anglais britannique, on dit aussi « coach »).",
             ],
             'situations' => [
                 ['title' => 'Un touriste perdu à Lomé', 'description' => 'Un touriste anglophone cherche le marché des féticheurs d\'Akodessewa. Indiquez-lui le chemin depuis le rond-point du port.', 'tags' => ['conversation', 'travel']],
@@ -518,7 +519,7 @@ return [
                 "Demander : « What do you do? — I'm self-employed. I sell phones. »",
             ],
             'pronunciation' => [
-                'Le « or » de work [ɜː] : ni « o » ni « eur » français, une voyelle neutre et longue.',
+                'Le « or » de work [wɝk] : ni « o » ni « eur » français, une voyelle neutre suivie d\'un « r » bien prononcé.',
                 'Accent tonique : acCOUNtant, COLleague, comPAny.',
             ],
             'spoken' => [
@@ -527,10 +528,10 @@ return [
             ],
             'pitfalls' => [
                 "N'oubliez pas a/an : « I am teacher » ✗ → « I'm a teacher » ✓.",
-                'Faux ami : a library est une bibliothèque ; la librairie se dit bookshop.',
+                'Faux ami : a library est une bibliothèque ; la librairie se dit bookstore.',
             ],
             'situations' => [
-                ['title' => 'Salon professionnel à Lomé', 'description' => 'À la Foire internationale de Lomé, présentez votre métier et votre entreprise à un visiteur ghanéen.', 'tags' => ['business', 'work']],
+                ['title' => 'Salon professionnel à Lomé', 'description' => 'À la Foire internationale de Lomé, présentez votre métier et votre entreprise à un visiteur étranger anglophone.', 'tags' => ['business', 'work']],
                 ['title' => 'Le centre de santé', 'description' => 'Un médecin anglophone en mission dans un centre de santé de Kara vous demande quel est votre rôle.', 'tags' => ['health', 'work']],
                 ['title' => 'Conseiller d\'orientation', 'description' => 'Un étudiant de l\'université de Kara parle de ses études et du métier qu\'il veut faire plus tard.', 'tags' => ['studies', 'education']],
             ],
@@ -548,7 +549,7 @@ return [
                 'clothes' => 'vêtements',
                 'shirt' => 'chemise',
                 'dress' => 'robe',
-                'trousers / pants' => 'pantalon (anglais britannique / américain)',
+                'pants' => 'pantalon (en anglais britannique, on dit aussi « trousers »)',
                 'shoes' => 'chaussures',
                 'fabric / wax print' => 'tissu / pagne wax',
                 'size' => 'taille',
@@ -574,7 +575,7 @@ return [
                 "Parler météo : « It's very hot today. — Yes, the rainy season is late this year. »",
             ],
             'pronunciation' => [
-                'Clothes [kləʊðz] : une seule syllabe, le « th » est presque avalé.',
+                'Clothes [kloʊðz] : une seule syllabe, le « th » est presque avalé.',
                 'Le « w » de weather, white, wind : lèvres arrondies comme pour « oui ».',
             ],
             'spoken' => [
@@ -586,8 +587,8 @@ return [
                 'Clothes est toujours pluriel ; un vêtement = a piece of clothing.',
             ],
             'situations' => [
-                ['title' => 'Chez la couturière', 'description' => 'Une cliente ghanéenne veut faire coudre une robe en pagne dans votre atelier de Lomé : couleurs, tissu, taille et date de livraison.', 'tags' => ['business', 'market']],
-                ['title' => 'Valise pour Accra', 'description' => 'Un ami vous demande quels vêtements prendre pour un voyage à Accra en pleine saison des pluies.', 'tags' => ['travel', 'conversation']],
+                ['title' => 'Chez la couturière', 'description' => 'Une cliente anglophone de passage veut faire coudre une robe en pagne dans votre atelier de Lomé : couleurs, tissu, taille et date de livraison.', 'tags' => ['business', 'market']],
+                ['title' => 'Valise pour l\'étranger', 'description' => 'Un ami vous demande quels vêtements prendre pour un voyage à l\'étranger en pleine saison des pluies.', 'tags' => ['travel', 'conversation']],
                 ['title' => 'Tenue pour l\'entretien', 'description' => 'Vous préparez un entretien d\'embauche dans une entreprise du port de Lomé : discutez de la tenue avec un proche.', 'tags' => ['work', 'family']],
             ],
         ],
@@ -621,12 +622,12 @@ return [
                 'pharmacist' => 'pharmacien',
             ],
             'grammar' => [
-                "Have + mal : « I have a headache », « I've got a fever » ; my + partie du corps : « My back hurts ».",
+                'Have + mal : « I have a headache », « I have a fever » ; my + partie du corps : « My back hurts ».',
                 "Should pour un conseil : « You should rest », « You shouldn't eat spicy food ».",
                 "For + durée : « I've had a fever for two days » (expression figée à apprendre telle quelle).",
             ],
             'functions' => [
-                "Expliquer ses symptômes : « I've got a headache and a fever. It started yesterday. »",
+                'Expliquer ses symptômes : « I have a headache and a fever. It started yesterday. »',
                 'À la pharmacie : « Do you have something for a cough? How many times a day? »',
                 "Prendre rendez-vous : « I'd like to make an appointment with the doctor, please. »",
             ],
@@ -663,13 +664,13 @@ return [
                 'to drive' => 'conduire',
                 'to dance' => 'danser',
                 'to sing' => 'chanter',
-                'to play football' => 'jouer au football',
+                'to play soccer' => 'jouer au football',
                 'to use a computer' => 'utiliser un ordinateur',
                 'free time' => 'temps libre',
                 'plan' => 'projet',
                 'tomorrow' => 'demain',
                 'next week' => 'la semaine prochaine',
-                'holiday' => 'vacances',
+                'vacation' => 'vacances (en anglais britannique, on dit aussi « holiday »)',
                 'to visit' => 'rendre visite, visiter',
                 'party' => 'fête',
                 'invitation' => 'invitation',
@@ -696,12 +697,12 @@ return [
             ],
             'pitfalls' => [
                 'Pas de to après can : « I can to drive » ✗ → « I can drive » ✓.',
-                "Faux ami : « to visit » s'utilise pour une ville ou une personne ; « visiter un appartement » = to view a flat.",
+                "Faux ami : « to visit » s'utilise pour une ville ou une personne ; « visiter un appartement » = to look at an apartment.",
             ],
             'situations' => [
                 ['title' => 'Compétences pour un emploi', 'description' => 'Une ONG installée à Lomé vous demande ce que vous savez faire : langues, informatique, permis de conduire.', 'tags' => ['work', 'tech']],
-                ['title' => 'Invitation au mariage', 'description' => 'Invitez un collègue ghanéen au mariage de votre frère à Aného ; il accepte ou s\'excuse.', 'tags' => ['family', 'conversation']],
-                ['title' => 'Projet de voyage à Accra', 'description' => 'Vous racontez à un ami ce que vous allez faire pendant votre week-end à Accra.', 'tags' => ['travel', 'conversation']],
+                ['title' => 'Invitation au mariage', 'description' => 'Invitez un collègue étranger de votre entreprise internationale au mariage de votre frère à Aného ; il accepte ou s\'excuse.', 'tags' => ['family', 'conversation']],
+                ['title' => 'Projet de voyage à l\'étranger', 'description' => 'Vous racontez à un ami ce que vous allez faire pendant votre premier voyage à l\'étranger.', 'tags' => ['travel', 'conversation']],
             ],
         ],
 
