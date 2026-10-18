@@ -40,9 +40,12 @@ class WelcomeController extends Controller
         $pieces = [];
 
         for ($index = 0, $count = WelcomeMessage::count($texts); $index < $count; $index++) {
+            $text = WelcomeMessage::piece($texts, $index);
             $pieces[] = [
-                'text' => WelcomeMessage::piece($texts, $index),
+                'text' => $text,
                 'url' => route('welcome.audio', ['index' => $index, 'salut' => $texts['period']]),
+                // La salutation est générée à l'écoute ; un paragraphe commun pas encore préparé reste en texte.
+                'ready' => $index === 0 || WelcomeMessage::isReady($text),
             ];
         }
 

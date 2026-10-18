@@ -69,9 +69,12 @@ Ouvrez les réglages de l'environnement (**Settings**), section **Deployments** 
 
    ```sh
    php artisan migrate --force
+   php artisan app:prepare-voice
    ```
 
    `--force` évite la question « Voulez-vous vraiment migrer en production ? » : Laravel Cloud ne peut répondre à aucune question. Ne mettez **jamais** `db:seed`, `optimize:clear` ni `storage:link` ici.
+
+   `app:prepare-voice` prépare à l'avance les parties communes des messages vocaux (message de bienvenue, messages du résultat de l'évaluation), pour qu'elles soient prêtes avant la première écoute. Elle prend au plus 2 minutes 30 secondes, ne fait aucune demande à Google quand tout est déjà prêt et **ne fait jamais échouer le déploiement** (en cas de problème chez Google, elle l'écrit dans le journal du déploiement et s'arrête). Ce qui manque encore est complété chaque heure par le planificateur (étape 9), ou à la main dans l'administration (« Diagnostic de la voix », bouton « Préparer le message de bienvenue »).
 
 4. **Push to deploy** : dans **Settings, Deployments**, vérifiez que l'interrupteur est **activé** et que la **branche** de l'environnement est **`main`**. C'est l'option par défaut : à chaque fois que du code arrive sur `main`, Laravel Cloud construit et déploie tout seul, sans coupure.
 5. Touchez **Save** (ne déployez pas encore).
@@ -151,7 +154,8 @@ Dans **Settings, General** (section **Environment variables**), ajoutez les vari
 | `GEMINI_VOICE_NAME` | Voix du professeur par défaut. Facultative : absente, c'est **Achird** (voix masculine). Une voix choisie dans l'administration (« Essai des voix ») la remplace. Si une ancienne variable `GEMINI_VOICE` existe, supprimez-la : elle n'est plus lue. | absente |
 | `GEMINI_VOICE_GAIN` | Volume de la voix du professeur (1 = tel quel ; un limiteur évite toute saturation). Facultative. | absente (2) |
 | `LIVE_ECHO_CANCELLATION` | Annulation d'écho du navigateur. Facultative. Mettre `false` seulement si, après essai sur téléphone, la voix est trop basse et qu'aucun écho ne revient (voir CLAUDE.md). | absente (true) |
-| `GEMINI_TTS_MODEL` | Modèle de synthèse vocale des extraits de la page « Essai des voix ». Facultative. | absente |
+| `GEMINI_TTS_MODEL` | Modèle de synthèse vocale (« Essai des voix », message de bienvenue, message du résultat de l'évaluation). Facultative. Si « Diagnostic de la voix » signale une erreur 404 sur le modèle, mettez ici le nom exact du modèle de synthèse vocale donné par Google AI Studio, puis **Deploy**. | absente |
+| `GEMINI_TTS_TIMEOUT` | Délai d'attente d'une demande de synthèse vocale pendant la préparation, en secondes. Facultative. | absente (60) |
 | `GEMINI_TOKEN_MINUTES` | Durée d'un jeton éphémère, en minutes. | `5` |
 | `AVATAR_3D_ENABLED` | `false` désactive le professeur 3D partout. | `true` |
 | `APP_FORCE_HTTPS` | Redirection vers HTTPS. Active en production si la variable est **absente** : ne la laissez jamais **vide**. | absente |
@@ -197,7 +201,7 @@ Sur un téléphone, on ne peut pas lancer d'ordinateur local : on demande la cl�
 
 ## 9. Activer le planificateur de tâches (Scheduler)
 
-Le projet a trois tâches automatiques : fermeture des séances abandonnées (chaque minute), fin des abonnements (chaque heure) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
+Le projet a quatre tâches automatiques : fermeture des séances abandonnées (chaque minute), fin des abonnements (chaque heure), préparation des messages vocaux qui manquent encore (chaque heure, aucune demande à Google quand tout est prêt) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
 
 1. Sur le canvas, touchez la carte **App** (le cluster de l'application).
 2. Activez l'interrupteur **Scheduler**.
@@ -298,7 +302,8 @@ Pour une attestation : téléchargez-en une depuis le compte d'un apprenant qui 
 | Quand | Où | Commande |
 |---|---|---|
 | Construction (à chaque déploiement) | Settings, Deployments, **Build commands** | `composer install --no-dev --optimize-autoloader` puis `php artisan optimize` |
-| Déploiement (à chaque déploiement) | Settings, Deployments, **Deploy commands** | `php artisan migrate --force` |
+| Déploiement (à chaque déploiement) | Settings, Deployments, **Deploy commands** | `php artisan migrate --force` puis `php artisan app:prepare-voice` |
+| Préparer les messages vocaux à la main | Onglet **Commands** (ou l'administration : « Diagnostic de la voix ») | `php artisan app:prepare-voice` |
 | Générer `APP_KEY` (une seule fois) | Onglet **Commands** | `php artisan key:generate --show` |
 | Créer l'administrateur | Onglet **Commands** | `php artisan app:create-admin --no-interaction` |
 | Contrôler la mise en ligne | Onglet **Commands** | `php artisan app:check-deployment` |
@@ -393,6 +398,7 @@ Pour suivre la consommation : **Organization, Usage** (mise à jour toutes les h
 | Déploiement rouge à l'étape **Build** | `composer install` ou `optimize` en échec | Lisez les dernières lignes du journal |
 | Déploiement rouge à l'étape **Deploy** : « Command cancelled » | `--force` oublié | `php artisan migrate --force` |
 | Les séances abandonnées ne sont jamais fermées | **Scheduler** désactivé | Étape 9 ; contrôlez avec `app:check-deployment` |
+| « Le message vocal n'est pas disponible pour le moment » (bienvenue, résultat) | Synthèse vocale en échec (limite de Google, modèle, stockage) ou parties communes pas encore préparées | Administration, « Diagnostic de la voix » : « Tester la synthèse vocale » donne la cause et le code HTTP ; puis « Préparer le message de bienvenue » jusqu'à « Tout est prêt » |
 | Les captures disparaissent après un déploiement | Le bucket n'est pas le disque par défaut | Étape 6 (case « Set as default disk »), puis `app:check-deployment` |
 | Déconnexion de tous les apprenants à chaque déploiement | Sessions sur le disque du serveur | `SESSION_DRIVER=database` |
 | Le premier chargement, après une longue pause, est un peu lent | L'environnement se réveillait | Normal avec la mise en veille (moins d'une seconde avec les tailles Flex actuelles) |

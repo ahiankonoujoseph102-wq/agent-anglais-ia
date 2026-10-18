@@ -40,7 +40,46 @@ class LevelMessage
     }
 
     /**
-     * Le fichier WAV du message, généré au besoin ; null s'il n'est pas disponible.
+     * Messages à préparer avant toute écoute : un par niveau, avec la voix actuelle.
+     *
+     * @return list<array{level: Level, label: string, text: string}>
+     */
+    public static function all(): array
+    {
+        return array_map(fn (Level $level) => [
+            'level' => $level,
+            'label' => 'Résultat de l\'évaluation, niveau '.$level->value,
+            'text' => self::text($level),
+        ], array_values(array_filter(Level::cases(), fn (Level $level) => self::text($level) !== '')));
+    }
+
+    public static function isReady(Level $level): bool
+    {
+        try {
+            return PrivateStorage::disk()->exists(self::path($level, (string) TeacherVoice::current()));
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Messages prêts sur le total.
+     *
+     * @return array{ready: int, total: int}
+     */
+    public static function status(): array
+    {
+        $all = self::all();
+
+        return [
+            'ready' => count(array_filter($all, fn (array $item) => self::isReady($item['level']))),
+            'total' => count($all),
+        ];
+    }
+
+    /**
+     * Le fichier WAV du message, généré au besoin (normalement déjà préparé à l'avance) ; null s'il n'est
+     * pas disponible : la page affiche alors le texte.
      */
     public function get(Level $level): ?string
     {
@@ -59,31 +98,40 @@ class LevelMessage
         }
 
         // Un seul appel à la fois pour un même message (deux apprenants qui touchent le bouton ensemble).
+        $wait = (int) config('services.gemini.tts_listen_timeout') + 5;
+
         try {
-            return Cache::lock('level-message:'.$path, 40)->block(35, fn () => $this->generate($level, $voice, $path, $failed));
+            return Cache::lock('level-message:'.$path, $wait + 5)->block($wait, function () use ($level, $path, $failed, $disk) {
+                if ($disk->exists($path)) {
+                    return $disk->get($path);
+                }
+
+                try {
+                    return $this->prepare($level, (int) config('services.gemini.tts_listen_timeout'));
+                } catch (GeminiUnavailable) {
+                    // Cause déjà journalisée ; aucune nouvelle demande pendant quelques minutes.
+                    Cache::put($failed, true, self::RETRY_AFTER);
+
+                    return null;
+                }
+            });
         } catch (LockTimeoutException) {
             return null;
         }
     }
 
-    private function generate(Level $level, string $voice, string $path, string $failed): ?string
+    /**
+     * Génère et garde le message d'un niveau. Renvoie le fichier WAV.
+     *
+     * @throws SpeechFailed
+     */
+    public function prepare(Level $level, ?int $timeout = null): string
     {
-        $disk = PrivateStorage::disk();
+        $voice = (string) TeacherVoice::current();
+        $label = 'Résultat de l\'évaluation, niveau '.$level->value;
+        $wav = $this->sampler->synthesize($voice, self::text($level), (string) config('teacher.level_messages.style'), $label, $timeout);
 
-        if ($disk->exists($path)) {
-            return $disk->get($path);
-        }
-
-        try {
-            $wav = $this->sampler->synthesize($voice, self::text($level), (string) config('teacher.level_messages.style'));
-        } catch (GeminiUnavailable $e) {
-            report($e);
-            Cache::put($failed, true, self::RETRY_AFTER);
-
-            return null;
-        }
-
-        $disk->put($path, $wav);
+        VoiceSampler::store(self::path($level, $voice), $wav, $label);
 
         return $wav;
     }

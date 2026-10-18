@@ -71,6 +71,7 @@
                 <x-icon name="info" />
                 <div>Le message vocal n'est pas disponible pour le moment. Vous pouvez lire le message juste en dessous.</div>
             </div>
+            <p id="welcome-partial" class="welcome-status" role="status" hidden>Une partie du message n'est pas encore disponible en voix : elle est écrite juste en dessous.</p>
 
             {{-- Sous-titres : le texte complet, la phrase dite est mise en évidence. --}}
             <div id="welcome-subtitles" class="welcome-subtitles" role="region" tabindex="0" aria-label="Texte du message de {{ $teacher }}">

@@ -5,7 +5,9 @@
  * « Passer ». À la fin, le bouton de la prochaine étape apparaît, la page y descend et lui donne le focus.
  *
  * Les morceaux sont demandés au serveur l'un après l'autre (le suivant se charge pendant que le précédent
- * est dit) : rien n'est lu avant le toucher, et aucun fichier vidéo n'est chargé.
+ * est dit) : rien n'est lu avant le toucher, et aucun fichier vidéo n'est chargé. Un morceau indisponible
+ * (salutation en échec, paragraphe pas encore préparé) est sauté : il reste écrit dans les sous-titres et la
+ * suite est jouée ; le message d'erreur n'apparaît que si rien n'a pu être joué.
  */
 const root = document.getElementById('welcome');
 
@@ -23,7 +25,7 @@ async function run() {
     const ui = {
         start: $('welcome-start'), play: $('welcome-play'), skipStart: $('welcome-skip-start'),
         controls: $('welcome-controls'), pause: $('welcome-pause'), skip: $('welcome-skip'),
-        status: $('welcome-status'), error: $('welcome-error'), subtitles: $('welcome-subtitles'),
+        status: $('welcome-status'), error: $('welcome-error'), partial: $('welcome-partial'), subtitles: $('welcome-subtitles'),
         next: $('welcome-next'), mouth: $('welcome-mouth'),
     };
 
@@ -196,6 +198,7 @@ async function run() {
         // Chaque morceau : demandé au serveur, décodé, puis programmé à la suite du précédent.
         play.cursor = context.currentTime + 0.1;
         let pending = load(0);
+        let missing = 0;
 
         for (let index = 0; index < pieces.length; index++) {
             const buffer = await pending;
@@ -208,21 +211,17 @@ async function run() {
             pending = index + 1 < pieces.length ? load(index + 1) : null;
 
             if (buffer === null) {
-                // Un morceau manque : on s'arrête là, le texte reste lisible.
-                if (index === 0) {
-                    return fail();
-                }
-
-                setTimeout(fail, Math.max(0, play.cursor - context.currentTime) * 1000);
-
-                return;
+                // Morceau indisponible : il reste écrit, la suite est jouée.
+                missing++;
+                sentences[index].paragraph.classList.add('is-text-only');
+                continue;
             }
 
             ui.status.hidden = true;
             // En pause, le temps est figé : le morceau attend la reprise.
             const earliest = play.paused ? play.pausedAt : context.currentTime + 0.05;
             const start = Math.max(play.cursor, earliest);
-            const item = { index, buffer, start, end: start + buffer.duration, last: index === pieces.length - 1, source: null };
+            const item = { index, buffer, start, end: start + buffer.duration, last: false, source: null };
             play.timeline.push(item);
             schedule(index, start, buffer.duration);
             play.cursor = item.end + 0.35;
@@ -231,9 +230,37 @@ async function run() {
                 startItem(item, start, 0);
             }
 
-            if (index === 0) {
+            if (play.timeline.length === 1) {
                 raf = requestAnimationFrame(follow);
             }
+        }
+
+        const lastItem = play.timeline.at(-1);
+
+        // Rien n'a pu être joué : le texte reste lisible, avec le message d'erreur.
+        if (!lastItem) {
+            return fail();
+        }
+
+        if (missing > 0) {
+            ui.partial.hidden = false;
+        }
+
+        // Fin du dernier morceau joué : le bouton de la prochaine étape apparaît.
+        lastItem.last = true;
+
+        if (lastItem.source) {
+            lastItem.source.onended = onLastEnded;
+        }
+
+        if (!play.paused && graph.context.currentTime >= lastItem.end) {
+            finish();
+        }
+    }
+
+    function onLastEnded() {
+        if (!skipped && !play.paused) {
+            finish();
         }
     }
 
@@ -244,7 +271,7 @@ async function run() {
         source.connect(graph.boost);
 
         if (item.last) {
-            source.onended = () => { if (!skipped && !play.paused) { finish(); } };
+            source.onended = onLastEnded;
         }
 
         source.start(when, offset);
@@ -264,6 +291,11 @@ async function run() {
     }
 
     async function load(index) {
+        // Paragraphe pas encore préparé : aucune demande, il reste en texte.
+        if (pieces[index].ready === false) {
+            return null;
+        }
+
         try {
             const response = await fetch(pieces[index].url, { credentials: 'same-origin' });
 

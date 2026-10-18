@@ -50,8 +50,7 @@ class VoiceController extends Controller
             try {
                 $wav = $sampler->generate($voice);
             } catch (GeminiUnavailable $e) {
-                report($e);
-
+                // Cause déjà journalisée par la synthèse vocale (SpeechLog).
                 return response()->json(['message' => $e->quotaExceeded
                     ? 'La limite de Gemini est atteinte pour le moment. Réessayez plus tard.'
                     : 'L\'extrait n\'a pas pu être créé. Réessayez dans quelques instants.'], 503);
