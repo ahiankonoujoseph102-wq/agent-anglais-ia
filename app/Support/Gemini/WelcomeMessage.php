@@ -8,6 +8,10 @@ use App\Support\Duration;
 use App\Support\Greeting;
 use App\Support\Plan;
 use App\Support\PrivateStorage;
+use App\Support\Speech\SpeechFiles;
+use App\Support\Speech\SpeechProvider;
+use App\Support\Speech\SpeechProviders;
+use App\Support\Speech\VoiceMessage;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 
@@ -15,25 +19,27 @@ use Illuminate\Support\Facades\Cache;
  * Message de bienvenue de Teacher Joe (config/teacher.php → welcome), à la première ouverture d'un accès :
  * félicitations pour la formule, questionnaire, règles de la séance orale, « Mes cours ».
  *
- * Chaque morceau (l'ouverture, puis chaque paragraphe) est une synthèse vocale à part, avec la voix
- * de Teacher Joe, gardée sur le disque privé :
- * - les paragraphes sont communs à tous les apprenants d'une même formule : générés UNE seule fois ;
+ * Chaque morceau (l'ouverture, puis chaque paragraphe) est une synthèse vocale à part, gardée sur le disque
+ * privé sous le nom du fournisseur et de la voix qui l'ont produit :
+ * - les paragraphes sont communs à tous les apprenants d'une même formule : préparés à l'avance ;
  * - l'ouverture (salutation et prénom) est la seule partie propre à chaque prénom, gardée elle aussi
  *   (deux Koffi qui reçoivent leur accès le soir partagent le même fichier).
- * Le navigateur lit les morceaux l'un après l'autre : le premier démarre vite, même quand rien n'est
- * encore généré. En cas d'échec, aucune nouvelle demande à Google pendant quelques minutes.
+ * UNE seule voix par message : le fournisseur du message (SpeechProviders::choose) dit aussi la salutation ;
+ * si elle échoue, elle reste en texte et les paragraphes de ce même fournisseur sont joués.
+ * En cas d'échec, aucune nouvelle demande pendant quelques minutes.
  */
 class WelcomeMessage
 {
     public const DIRECTORY = 'welcome-messages';
 
-    /** Début du nom des fichiers d'ouverture (un par prénom), jamais effacés par purgeOutdated(). */
-    public const OPENING_PREFIX = 'opening-';
+    /** Sous-dossier des ouvertures (une par prénom), jamais effacées par purgeOutdated(). */
+    public const OPENINGS = 'openings';
+
+    /** Début du nom des anciennes ouvertures (avant le choix du fournisseur), effacées par purgeOutdated(). */
+    public const LEGACY_OPENING_PREFIX = 'opening-';
 
     /** Pause après un échec, en secondes (aucune nouvelle demande à Google pendant ce temps). */
     public const RETRY_AFTER = 600;
-
-    public function __construct(private VoiceSampler $sampler) {}
 
     /**
      * L'accès dont parle le message : l'accès en cours, sinon le dernier (réécoute après la fin d'un accès).
@@ -112,26 +118,81 @@ class WelcomeMessage
     }
 
     /**
-     * Paragraphes communs à préparer avant toute écoute : chaque formule (la formule recommandée d'abord),
-     * programme à construire ou déjà prêt, sans doublon, dans l'ordre du message. Le nom sert aux journaux.
+     * Les messages communs à préparer : un par formule (la formule recommandée d'abord), programme à
+     * construire puis déjà prêt. Les paragraphes identiques d'un message à l'autre partagent leur fichier.
      *
-     * @return list<array{label: string, text: string}>
+     * @return list<VoiceMessage>
      */
-    public static function commonParagraphs(): array
+    public static function messages(): array
     {
         $plans = Plan::all();
         uasort($plans, fn (Plan $a, Plan $b) => (int) $b->recommended <=> (int) $a->recommended);
-        $pieces = [];
+        $messages = [];
 
         foreach ([false, true] as $programReady) {
             foreach ($plans as $plan) {
+                $pieces = [];
                 $position = 0;
 
                 foreach (self::namedParagraphs($plan->name, $plan->dailyMinutes, $programReady) as $name => $text) {
                     $position++;
                     $name = $programReady && $name === 'questionnaire' ? 'program_ready' : $name;
-                    $pieces[$text] ??= ['label' => "Bienvenue, paragraphe {$position} ({$name}, {$plan->name})", 'text' => $text];
+                    $pieces[] = ['label' => "Bienvenue, paragraphe {$position} ({$name}, {$plan->name})", 'text' => $text];
                 }
+
+                $messages[] = self::voiceMessage(
+                    'welcome:'.$plan->key.($programReady ? ':program' : ''),
+                    'Bienvenue, formule '.$plan->name.($programReady ? ', programme déjà prêt' : ''),
+                    $pieces,
+                );
+            }
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Le message de cet apprenant (ses paragraphes, sans l'ouverture).
+     */
+    public static function message(array $texts): VoiceMessage
+    {
+        $pieces = [];
+
+        foreach ($texts['paragraphs'] as $position => $text) {
+            $pieces[] = ['label' => 'Bienvenue, paragraphe '.($position + 1).' ('.$texts['plan'].')', 'text' => $text];
+        }
+
+        return self::voiceMessage('welcome', 'Bienvenue, formule '.$texts['plan'], $pieces);
+    }
+
+    /**
+     * Le fournisseur qui dit tout le message de cet apprenant, salutation comprise.
+     */
+    public static function providerFor(array $texts): ?SpeechProvider
+    {
+        return self::message($texts)->provider();
+    }
+
+    /**
+     * @param  list<array{label: string, text: string}>  $pieces
+     */
+    private static function voiceMessage(string $key, string $label, array $pieces): VoiceMessage
+    {
+        return new VoiceMessage($key, $label, $pieces, (string) config('teacher.welcome.style'), fn (string $text, SpeechProvider $provider) => self::path($text, $provider));
+    }
+
+    /**
+     * Paragraphes communs, sans doublon, dans l'ordre des messages. Le nom sert aux journaux.
+     *
+     * @return list<array{label: string, text: string}>
+     */
+    public static function commonParagraphs(): array
+    {
+        $pieces = [];
+
+        foreach (self::messages() as $message) {
+            foreach ($message->pieces as $piece) {
+                $pieces[$piece['text']] ??= $piece;
             }
         }
 
@@ -139,49 +200,65 @@ class WelcomeMessage
     }
 
     /**
-     * Chemins des paragraphes valables aujourd'hui (voix actuelle, textes actuels, chaque formule,
-     * programme à construire ou déjà prêt).
+     * Chemins des paragraphes valables aujourd'hui, chez chaque fournisseur connu (sa voix et son modèle
+     * actuels, textes actuels, chaque formule, programme à construire ou déjà prêt).
      *
      * @return list<string>
      */
     public static function currentParagraphPaths(): array
     {
-        $voice = (string) TeacherVoice::current();
+        $paths = [];
 
-        return array_map(fn (array $piece) => self::path($piece['text'], $voice), self::commonParagraphs());
+        foreach (SpeechProviders::all() as $provider) {
+            foreach (self::commonParagraphs() as $piece) {
+                $paths[] = self::path($piece['text'], $provider);
+            }
+        }
+
+        return $paths;
     }
 
     /**
-     * Le paragraphe commun est-il déjà prêt (gardé sur le disque privé) ?
+     * Le paragraphe commun est-il déjà prêt chez ce fournisseur ?
      */
-    public static function isReady(string $text): bool
+    public static function isReady(string $text, SpeechProvider $provider): bool
     {
         try {
-            return PrivateStorage::disk()->exists(self::path($text, (string) TeacherVoice::current()));
+            return PrivateStorage::disk()->exists(self::path($text, $provider));
         } catch (\Throwable) {
             return false;
         }
     }
 
     /**
-     * Partie commune : paragraphes prêts sur le total.
-     *
-     * @return array{ready: int, total: int}
+     * Renomme les paragraphes de Gemini gardés avant le choix du fournisseur (« {voix}-{empreinte}.wav ») :
+     * ce qui a déjà été préparé n'est pas redemandé.
      */
-    public static function status(): array
+    public static function adoptLegacyFiles(): int
     {
-        $pieces = self::commonParagraphs();
+        $disk = PrivateStorage::disk();
+        $gemini = SpeechProviders::find('gemini');
+        $files = SpeechFiles::index([self::DIRECTORY]);
+        $adopted = 0;
 
-        return [
-            'ready' => count(array_filter($pieces, fn (array $piece) => self::isReady($piece['text']))),
-            'total' => count($pieces),
-        ];
+        foreach (self::commonParagraphs() as $piece) {
+            $new = self::path($piece['text'], $gemini);
+            $old = self::DIRECTORY.'/'.substr(basename($new), strlen($gemini->name()) + 1);
+
+            if (isset($files[$old]) && ! isset($files[$new])) {
+                $disk->move($old, $new);
+                $files[$new] = true;
+                $adopted++;
+            }
+        }
+
+        return $adopted;
     }
 
     /**
      * Efface les paragraphes gardés qui ne correspondent plus à aucun texte actuel (phrase corrigée,
      * ancien message, autre voix, autre modèle) : aucune vieille version n'est gardée. Les ouvertures
-     * (une par prénom) ne sont pas concernées.
+     * (une par prénom, dans leur sous-dossier) ne sont pas concernées.
      */
     public static function purgeOutdated(): int
     {
@@ -190,7 +267,7 @@ class WelcomeMessage
         $deleted = 0;
 
         foreach ($disk->files(self::DIRECTORY) as $file) {
-            if (! str_starts_with(basename($file), self::OPENING_PREFIX) && ! isset($current[$file])) {
+            if (! isset($current[$file])) {
                 $disk->delete($file);
                 $deleted++;
             }
@@ -220,34 +297,34 @@ class WelcomeMessage
     }
 
     /**
-     * Chemin du fichier : change si la voix, le modèle, le texte ou le ton changent.
+     * Chemin du fichier : porte le fournisseur et la voix ; change si le fournisseur, la voix, le modèle,
+     * le texte ou le ton changent.
      */
-    public static function path(string $text, string $voice, bool $opening = false): string
+    public static function path(string $text, SpeechProvider $provider, bool $opening = false): string
     {
         $hash = substr(sha1(implode('|', [
-            config('services.gemini.tts_model'), $voice, $text, config('teacher.welcome.style'),
+            $provider->model(), $provider->voice(), $text, config('teacher.welcome.style'),
         ])), 0, 20);
 
-        return self::DIRECTORY.'/'.($opening ? self::OPENING_PREFIX : '').$voice.'-'.$hash.'.wav';
+        return self::DIRECTORY.'/'.($opening ? self::OPENINGS.'/' : '').$provider->name().'-'.$provider->voice().'-'.$hash.'.wav';
     }
 
     /**
-     * Le fichier WAV d'un morceau, ou null s'il n'est pas disponible. Pendant l'écoute, seule l'ouverture
-     * (salutation et prénom, courte) est générée ; les paragraphes communs sont préparés à l'avance
-     * (commande app:prepare-voice, bouton de « Diagnostic de la voix ») : un paragraphe pas encore prêt reste
-     * affiché en texte, sans demande à Google.
+     * Le fichier WAV d'un morceau chez le fournisseur du message, ou null s'il n'est pas disponible. Pendant
+     * l'écoute, seule l'ouverture (salutation et prénom, courte) est générée, par ce même fournisseur ; les
+     * paragraphes communs sont préparés à l'avance (commande app:prepare-voice, bouton de « Diagnostic de la
+     * voix ») : un paragraphe pas encore prêt reste affiché en texte, sans aucune demande.
      */
-    public function get(string $text, bool $opening = false): ?string
+    public function get(string $text, SpeechProvider $provider, bool $opening = false): ?string
     {
-        $voice = (string) TeacherVoice::current();
-        $path = self::path($text, $voice, $opening);
+        $path = self::path($text, $provider, $opening);
         $disk = PrivateStorage::disk();
 
         if ($disk->exists($path)) {
             return $disk->get($path);
         }
 
-        if (! $opening) {
+        if (! $opening || ! $provider->hasKey()) {
             return null;
         }
 
@@ -261,14 +338,14 @@ class WelcomeMessage
         $wait = (int) config('services.gemini.tts_listen_timeout') + 5;
 
         try {
-            return Cache::lock('welcome-message:'.$path, $wait + 5)->block($wait, function () use ($text, $voice, $path, $failed, $disk) {
+            return Cache::lock('welcome-message:'.$path, $wait + 5)->block($wait, function () use ($text, $provider, $path, $failed, $disk) {
                 if ($disk->exists($path)) {
                     return $disk->get($path);
                 }
 
                 try {
-                    $wav = $this->sampler->synthesize($voice, $text, (string) config('teacher.welcome.style'), 'Bienvenue, salutation', (int) config('services.gemini.tts_listen_timeout'));
-                    VoiceSampler::store($path, $wav, 'Bienvenue, salutation');
+                    $wav = $provider->synthesize($text, (string) config('teacher.welcome.style'), 'Bienvenue, salutation', (int) config('services.gemini.tts_listen_timeout'));
+                    VoiceSampler::store($path, $wav, 'Bienvenue, salutation', $provider);
                 } catch (GeminiUnavailable) {
                     // Cause déjà journalisée ; aucune nouvelle demande pendant quelques minutes.
                     Cache::put($failed, true, self::RETRY_AFTER);
@@ -281,18 +358,5 @@ class WelcomeMessage
         } catch (LockTimeoutException) {
             return null;
         }
-    }
-
-    /**
-     * Génère et garde un paragraphe commun (préparation à l'avance).
-     *
-     * @throws SpeechFailed
-     */
-    public function prepare(array $piece, ?int $timeout = null): void
-    {
-        $voice = (string) TeacherVoice::current();
-        $wav = $this->sampler->synthesize($voice, $piece['text'], (string) config('teacher.welcome.style'), $piece['label'], $timeout);
-
-        VoiceSampler::store(self::path($piece['text'], $voice), $wav, $piece['label']);
     }
 }

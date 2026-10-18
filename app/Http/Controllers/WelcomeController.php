@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Support\Avatar;
 use App\Support\Gemini\WelcomeMessage;
 use App\Support\Greeting;
+use App\Support\Speech\SpeechProvider;
+use App\Support\Speech\SpeechProviders;
 use App\Support\WelcomeFlow;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,15 +39,19 @@ class WelcomeController extends Controller
             return to_route('dashboard');
         }
 
+        // UNE seule voix pour tout le message : le fournisseur chez qui il est prêt dit aussi la salutation.
+        $message = WelcomeMessage::message($texts);
+        $files = $message->files();
+        $provider = $message->provider($files);
         $pieces = [];
 
         for ($index = 0, $count = WelcomeMessage::count($texts); $index < $count; $index++) {
             $text = WelcomeMessage::piece($texts, $index);
             $pieces[] = [
                 'text' => $text,
-                'url' => route('welcome.audio', ['index' => $index, 'salut' => $texts['period']]),
-                // La salutation est générée à l'écoute ; un paragraphe commun pas encore préparé reste en texte.
-                'ready' => $index === 0 || WelcomeMessage::isReady($text),
+                'url' => route('welcome.audio', ['index' => $index, 'salut' => $texts['period'], 'voix' => $provider?->name()]),
+                // La salutation est générée à l'écoute ; un paragraphe pas encore préparé chez ce fournisseur reste en texte.
+                'ready' => $provider !== null && ($index === 0 || isset($files[WelcomeMessage::path($text, $provider)])),
             ];
         }
 
@@ -64,8 +70,8 @@ class WelcomeController extends Controller
     }
 
     /**
-     * Un morceau du message (0 : ouverture, 1 et suivants : paragraphes), en WAV. Généré à la demande
-     * la première fois, puis gardé : les paragraphes sont communs à tous, seule l'ouverture est propre au prénom.
+     * Un morceau du message (0 : ouverture, 1 et suivants : paragraphes), en WAV, chez le fournisseur du message.
+     * Seule l'ouverture (propre au prénom) est générée à l'écoute ; les paragraphes communs sont préparés à l'avance.
      */
     public function audio(Request $request, int $index, WelcomeMessage $messages): Response
     {
@@ -77,7 +83,12 @@ class WelcomeController extends Controller
 
         abort_if($text === null, 404);
 
-        $wav = $messages->get($text, $index === 0);
+        // Le fournisseur choisi par la page (toute la page joue la même voix), sinon celui du message.
+        $provider = in_array($request->query('voix'), array_map(fn (SpeechProvider $provider) => $provider->name(), SpeechProviders::configured()), true)
+            ? SpeechProviders::find((string) $request->query('voix'))
+            : WelcomeMessage::providerFor($texts);
+
+        $wav = $provider !== null ? $messages->get($text, $provider, $index === 0) : null;
 
         if ($wav === null) {
             return response('Message vocal indisponible.', 503, ['Retry-After' => WelcomeMessage::RETRY_AFTER]);

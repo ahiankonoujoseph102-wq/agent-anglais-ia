@@ -32,5 +32,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="OPENAI_API_KEY" value=""/>
+        <env name="TTS_PROVIDERS" value="gemini,openai"/>
     </php>
 </phpunit>

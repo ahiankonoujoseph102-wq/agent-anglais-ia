@@ -7,6 +7,7 @@ use App\Enums\Level;
 use App\Models\User;
 use App\Support\Gemini\LevelMessage;
 use App\Support\PrivateStorage;
+use App\Support\Speech\GeminiSpeech;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -90,7 +91,7 @@ class AssessmentResultPageTest extends TestCase
         Http::assertSent(fn (Request $request) => $request['generation_config']['speech_config'][0]['voice'] === config('services.gemini.voice')
             && str_contains($request['input'][0]['content'][0]['text'], 'Votre niveau est B1')
             && $request['store'] === false);
-        $this->assertTrue(PrivateStorage::disk()->exists(LevelMessage::path(Level::B1, config('services.gemini.voice'))));
+        $this->assertTrue(PrivateStorage::disk()->exists(LevelMessage::path(Level::B1, app(GeminiSpeech::class))));
     }
 
     public function test_page_still_works_when_the_voice_message_fails(): void

@@ -82,6 +82,9 @@ return [
         'tts_retry_delays' => [15, 30, 60],
         'tts_prepare_budget' => 150,
         'tts_web_budget' => 25,
+        // Coût estimé d'une minute de voix de synthèse, en dollars US (page « Consommation ») : 0 tant que
+        // le mode gratuit de Google est utilisé.
+        'tts_cost_per_minute' => (float) env('GEMINI_TTS_COST_PER_MINUTE', 0),
         // Durée de vie maximale d'un jeton (et donc d'une connexion), en minutes.
         // Tout le temps de validité d'un jeton est décompté, même si le navigateur
         // disparaît : une valeur courte limite la perte en cas de coupure.
@@ -116,6 +119,28 @@ return [
             'input_per_million' => (float) env('GEMINI_PRICE_INPUT', 3.00),
             'output_per_million' => (float) env('GEMINI_PRICE_OUTPUT', 12.00),
         ],
+    ],
+
+    // Synthèse vocale des messages (bienvenue, résultat de l'évaluation) : ordre des fournisseurs, le premier
+    // d'abord, le suivant en secours (« gemini,openai », ou « openai » seul). Un fournisseur sans clé est
+    // ignoré. Les séances orales en direct ne passent pas par ici (toujours Gemini Live).
+    'tts' => [
+        'providers' => array_values(array_filter(array_map('trim', explode(',', strtolower((string) env('TTS_PROVIDERS', 'gemini,openai')))))),
+    ],
+
+    // OpenAI : secours de la synthèse vocale uniquement (API Audio, « speech »).
+    // Source : platform.openai.com/docs/guides/text-to-speech et /docs/models/gpt-4o-mini-tts (relevé d'octobre 2026).
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+        // Modèle qui suit des consignes de ton (« instructions »).
+        'tts_model' => env('OPENAI_TTS_MODEL') ?: 'gpt-4o-mini-tts',
+        // Cedar : voix masculine, posée et chaleureuse, recommandée par OpenAI pour la meilleure qualité.
+        'tts_voice' => env('OPENAI_TTS_VOICE') ?: 'cedar',
+        // Pause entre deux demandes pendant la préparation, en secondes (limites bien plus larges que Gemini).
+        'tts_spacing_seconds' => 1,
+        // Environ 0,015 $ par minute de voix générée (tarif publié pour gpt-4o-mini-tts).
+        'tts_cost_per_minute' => (float) env('OPENAI_TTS_COST_PER_MINUTE', 0.015),
     ],
 
 ];

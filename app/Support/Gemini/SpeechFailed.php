@@ -44,17 +44,27 @@ class SpeechFailed extends GeminiUnavailable
     }
 
     /**
+     * Inutile de redemander à ce fournisseur aujourd'hui : limite du jour ou crédit épuisé, clé absente,
+     * clé refusée (401, 403). La préparation passe alors au fournisseur suivant.
+     */
+    public function exhaustsProvider(): bool
+    {
+        return in_array($this->kind, [self::QUOTA_DAILY, self::MISSING_KEY], true)
+            || ($this->kind === self::HTTP && in_array($this->status, [401, 403], true));
+    }
+
+    /**
      * Cause en français, pour l'administration.
      */
     public function reason(): string
     {
         return match ($this->kind) {
-            self::MISSING_KEY => 'Clé GEMINI_API_KEY absente',
+            self::MISSING_KEY => 'Clé absente',
             self::QUOTA => 'Limite de demandes par minute atteinte (erreur 429)',
-            self::QUOTA_DAILY => 'Limite de demandes du jour atteinte (erreur 429)',
+            self::QUOTA_DAILY => 'Limite de demandes du jour atteinte ou crédit épuisé (erreur 429)',
             self::TIMEOUT => 'Délai d\'attente dépassé',
-            self::CONNECTION => 'Connexion à Google impossible',
-            self::HTTP => 'Demande refusée par Google',
+            self::CONNECTION => 'Connexion au service impossible',
+            self::HTTP => 'Demande refusée par le service',
             self::NO_AUDIO => 'Réponse sans audio',
             self::UNREADABLE => 'Audio illisible',
             self::STORAGE => 'Écriture impossible dans le stockage privé',

@@ -3,46 +3,47 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Support\Gemini\LevelMessage;
 use App\Support\Gemini\SpeechFailed;
 use App\Support\Gemini\SpeechLog;
 use App\Support\Gemini\SpeechPreparer;
-use App\Support\Gemini\TeacherVoice;
 use App\Support\Gemini\VoiceSampler;
-use App\Support\Gemini\WelcomeMessage;
 use App\Support\PrivateStorage;
+use App\Support\Speech\SpeechProvider;
+use App\Support\Speech\SpeechProviders;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 /**
- * « Diagnostic de la voix » : essai de la synthèse vocale, état des messages communs, préparation à l'avance
- * et derniers échecs. Jamais de clé affichée : seulement si elle est présente.
+ * « Diagnostic de la voix » : chaque fournisseur de synthèse vocale (clé présente ou non, modèle, voix, essai),
+ * état des messages communs chez chacun et fournisseur qui jouera chaque message, préparation à l'avance et
+ * derniers échecs. Jamais de clé affichée : seulement si elle est présente.
  */
 class VoiceDiagnosticController extends Controller
 {
     public function index(): View
     {
+        $configured = array_map(fn (SpeechProvider $provider) => $provider->name(), SpeechProviders::configured());
+
         return view('admin.voice-diagnostic.index', [
-            'model' => (string) config('services.gemini.tts_model'),
-            'voice' => (string) TeacherVoice::current(),
-            'hasKey' => filled(config('services.gemini.key')),
+            'providers' => SpeechProviders::all(),
+            'order' => $configured,
             'disk' => PrivateStorage::name(),
-            'welcome' => WelcomeMessage::status(),
-            'levels' => LevelMessage::status(),
+            'status' => SpeechPreparer::status(),
             'failures' => SpeechLog::recent(),
         ]);
     }
 
     /**
-     * « Tester la synthèse vocale » : une phrase courte, puis l'écriture d'un petit fichier dans le stockage privé.
+     * « Tester » un fournisseur : une phrase courte, puis l'écriture d'un petit fichier dans le stockage privé.
      */
-    public function test(VoiceSampler $sampler): RedirectResponse
+    public function test(string $provider): RedirectResponse
     {
+        $provider = SpeechProviders::find($provider);
+        abort_if($provider === null, 404);
         $started = hrtime(true);
 
         try {
-            $wav = $sampler->synthesize(
-                (string) TeacherVoice::current(),
+            $wav = $provider->synthesize(
                 'Bonjour, je suis '.config('avatar.model.name').'.',
                 (string) config('teacher.welcome.style'),
                 'Diagnostic : phrase d\'essai',
@@ -50,23 +51,23 @@ class VoiceDiagnosticController extends Controller
             );
             $seconds = round((hrtime(true) - $started) / 1e9, 1);
             $path = 'voice-diagnostic/essai.wav';
-            VoiceSampler::store($path, $wav, 'Diagnostic : écriture');
+            VoiceSampler::store($path, $wav, 'Diagnostic : écriture', $provider);
             PrivateStorage::disk()->delete($path);
         } catch (SpeechFailed $e) {
             return back()->with('diagnostic', [
                 'ok' => false,
-                'text' => 'Échec : '.$e->reason().($e->status ? ' (code HTTP '.$e->status.')' : '').'. '.$e->getMessage(),
+                'text' => $provider->label().' : échec : '.$e->reason().($e->status ? ' (code HTTP '.$e->status.')' : '').'. '.$e->getMessage(),
             ]);
         }
 
         return back()->with('diagnostic', [
             'ok' => true,
-            'text' => 'Réussi : la phrase d\'essai a été générée en '.number_format($seconds, 1, ',', ' ').($seconds >= 2 ? ' secondes (' : ' seconde (').number_format(strlen($wav) / 1024, 0, ',', ' ').' Ko) et l\'écriture dans le stockage privé fonctionne.',
+            'text' => $provider->label().' : réussi : la phrase d\'essai a été générée en '.number_format($seconds, 1, ',', ' ').($seconds >= 2 ? ' secondes (' : ' seconde (').number_format(strlen($wav) / 1024, 0, ',', ' ').' Ko) avec la voix « '.$provider->voice().' », et l\'écriture dans le stockage privé fonctionne.',
         ]);
     }
 
     /**
-     * « Préparer le message de bienvenue » : les morceaux communs manquants, dans le temps d'une requête.
+     * « Préparer le message de bienvenue » : les messages communs incomplets, dans le temps d'une requête.
      */
     public function prepare(SpeechPreparer $preparer): RedirectResponse
     {

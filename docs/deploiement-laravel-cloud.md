@@ -74,7 +74,7 @@ Ouvrez les réglages de l'environnement (**Settings**), section **Deployments** 
 
    `--force` évite la question « Voulez-vous vraiment migrer en production ? » : Laravel Cloud ne peut répondre à aucune question. Ne mettez **jamais** `db:seed`, `optimize:clear` ni `storage:link` ici.
 
-   `app:prepare-voice` prépare à l'avance les parties communes des messages vocaux (message de bienvenue, messages du résultat de l'évaluation), pour qu'elles soient prêtes avant la première écoute. Elle prend au plus 2 minutes 30 secondes, ne fait aucune demande à Google quand tout est déjà prêt et **ne fait jamais échouer le déploiement** (en cas de problème chez Google, elle l'écrit dans le journal du déploiement et s'arrête). Ce qui manque encore est complété chaque heure par le planificateur (étape 9), ou à la main dans l'administration (« Diagnostic de la voix », bouton « Préparer le message de bienvenue »).
+   `app:prepare-voice` prépare à l'avance les parties communes des messages vocaux (message de bienvenue, messages du résultat de l'évaluation), pour qu'elles soient prêtes avant la première écoute. Elle prend au plus 2 minutes 30 secondes, ne fait aucune demande quand tout est déjà prêt, passe à OpenAI pour un message que Gemini ne peut pas finir (si `OPENAI_API_KEY` est présente) et **ne fait jamais échouer le déploiement** (en cas de problème chez Google ou OpenAI, elle l'écrit dans le journal du déploiement et s'arrête). Ce qui manque encore est complété chaque heure par le planificateur (étape 9), ou à la main dans l'administration (« Diagnostic de la voix », bouton « Préparer le message de bienvenue »).
 
 4. **Push to deploy** : dans **Settings, Deployments**, vérifiez que l'interrupteur est **activé** et que la **branche** de l'environnement est **`main`**. C'est l'option par défaut : à chaque fois que du code arrive sur `main`, Laravel Cloud construit et déploie tout seul, sans coupure.
 5. Touchez **Save** (ne déployez pas encore).
@@ -156,6 +156,10 @@ Dans **Settings, General** (section **Environment variables**), ajoutez les vari
 | `LIVE_ECHO_CANCELLATION` | Annulation d'écho du navigateur. Facultative. Mettre `false` seulement si, après essai sur téléphone, la voix est trop basse et qu'aucun écho ne revient (voir CLAUDE.md). | absente (true) |
 | `GEMINI_TTS_MODEL` | Modèle de synthèse vocale (« Essai des voix », message de bienvenue, message du résultat de l'évaluation). Facultative. Si « Diagnostic de la voix » signale une erreur 404 sur le modèle, mettez ici le nom exact du modèle de synthèse vocale donné par Google AI Studio, puis **Deploy**. | absente |
 | `GEMINI_TTS_TIMEOUT` | Délai d'attente d'une demande de synthèse vocale pendant la préparation, en secondes. Facultative. | absente (60) |
+| `OPENAI_API_KEY` | Clé OpenAI (compte prépayé) : **secours** de la synthèse vocale des messages (bienvenue, résultat de l'évaluation) quand Gemini atteint sa limite. Facultative : absente, OpenAI est simplement ignoré. Les séances orales en direct restent chez Gemini. À coller seulement dans Laravel Cloud, jamais ailleurs. | absente |
+| `TTS_PROVIDERS` | Ordre des fournisseurs de synthèse vocale, séparés par une virgule : le premier d'abord, le suivant en secours. Facultative. `openai` seul : Gemini n'est plus utilisé pour les messages. | absente (`gemini,openai`) |
+| `OPENAI_TTS_MODEL` | Modèle de synthèse vocale d'OpenAI. Facultative. | absente (`gpt-4o-mini-tts`) |
+| `OPENAI_TTS_VOICE` | Voix d'OpenAI. Facultative (autres voix : marin, ash, onyx, echo…). | absente (`cedar`, voix masculine posée et chaleureuse) |
 | `GEMINI_TOKEN_MINUTES` | Durée d'un jeton éphémère, en minutes. | `5` |
 | `AVATAR_3D_ENABLED` | `false` désactive le professeur 3D partout. | `true` |
 | `APP_FORCE_HTTPS` | Redirection vers HTTPS. Active en production si la variable est **absente** : ne la laissez jamais **vide**. | absente |
@@ -398,7 +402,7 @@ Pour suivre la consommation : **Organization, Usage** (mise à jour toutes les h
 | Déploiement rouge à l'étape **Build** | `composer install` ou `optimize` en échec | Lisez les dernières lignes du journal |
 | Déploiement rouge à l'étape **Deploy** : « Command cancelled » | `--force` oublié | `php artisan migrate --force` |
 | Les séances abandonnées ne sont jamais fermées | **Scheduler** désactivé | Étape 9 ; contrôlez avec `app:check-deployment` |
-| « Le message vocal n'est pas disponible pour le moment » (bienvenue, résultat) | Synthèse vocale en échec (limite de Google, modèle, stockage) ou parties communes pas encore préparées | Administration, « Diagnostic de la voix » : « Tester la synthèse vocale » donne la cause et le code HTTP ; puis « Préparer le message de bienvenue » jusqu'à « Tout est prêt » |
+| « Le message vocal n'est pas disponible pour le moment » (bienvenue, résultat) | Synthèse vocale en échec (limite de Google, crédit OpenAI, modèle, stockage) ou parties communes pas encore préparées | Administration, « Diagnostic de la voix » : « Tester Gemini (Google) » et « Tester OpenAI » donnent la cause et le code HTTP ; puis « Préparer le message de bienvenue » jusqu'à « Tout est prêt ». Avec `OPENAI_API_KEY`, un message que Gemini ne peut pas finir est préparé en entier chez OpenAI (une seule voix par message). |
 | Les captures disparaissent après un déploiement | Le bucket n'est pas le disque par défaut | Étape 6 (case « Set as default disk »), puis `app:check-deployment` |
 | Déconnexion de tous les apprenants à chaque déploiement | Sessions sur le disque du serveur | `SESSION_DRIVER=database` |
 | Le premier chargement, après une longue pause, est un peu lent | L'environnement se réveillait | Normal avec la mise en veille (moins d'une seconde avec les tailles Flex actuelles) |
