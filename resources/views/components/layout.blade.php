@@ -8,9 +8,6 @@
     $isAdminPage = request()->is('admin', 'admin/*');
     // Barre du bas (téléphone) : apprenant connecté, hors écran de conversation (focus).
     $tabbar = $user && ! $isAdminPage && ! $focus && ! $user->must_change_password;
-    // Visiteur (téléphone et tablette) : accueil, formules, évaluation gratuite et WhatsApp en un toucher.
-    $guestTabbar = ! $user && ! $focus;
-    $whatsappNav = \App\Support\WhatsApp::communityUrl();
     $tab = fn (string ...$patterns) => request()->routeIs(...$patterns) ? 'is-active' : null;
     // Référencement : seules les pages publiques (App\Support\Seo::INDEXABLE_ROUTES) sont indexées.
     $indexable ??= Seo::indexable();
@@ -65,7 +62,7 @@
     <script type="module" src="{{ Asset::url('js/app.js') }}" data-sw="{{ asset('sw.js') }}"></script>
     @stack('head')
 </head>
-<body @class(['has-tabbar' => $tabbar || $guestTabbar, 'admin' => $isAdminPage, 'is-admin-user' => $user?->isAdmin()]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
+<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage, 'is-admin-user' => $user?->isAdmin()]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
     <a class="skip-link" href="#contenu">Aller au contenu</a>
 
     <header class="site-header">
@@ -125,13 +122,6 @@
                 </details>
             @else
                 <nav class="nav" aria-label="Navigation principale">
-                    {{-- Ordinateur (1200 pixels et plus) : les liens de la barre du bas des visiteurs, dans l'en-tête. --}}
-                    <a href="{{ route('plans') }}" @class(['nav-wide', $tab('plans')]) @if (request()->routeIs('plans')) aria-current="page" @endif>Formules</a>
-                    <a class="nav-wide" href="{{ route('register') }}">Évaluation gratuite</a>
-                    <a href="{{ route('about') }}" @class(['nav-wide', $tab('about')]) @if (request()->routeIs('about')) aria-current="page" @endif>À propos</a>
-                    @if ($whatsappNav)
-                        <a class="nav-wide" href="{{ $whatsappNav }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> WhatsApp</a>
-                    @endif
                     <a href="{{ route('login') }}" @class([$tab('login')]) @if (request()->routeIs('login')) aria-current="page" @endif>Connexion</a>
                     <a class="nav-cta" href="{{ route('register') }}">Inscription</a>
                 </nav>
@@ -218,14 +208,11 @@
                     @endif
                 </ul>
                 <ul class="footer-links">
-                    <li><a href="{{ route('home') }}">Accueil</a></li>
-                    <li><a href="{{ route('plans') }}">Formules</a></li>
-                    <li><a href="{{ \App\Support\Navigation::assessmentUrl() }}">Évaluation gratuite</a></li>
-                    <li><a href="{{ route('about') }}">À propos</a></li>
-                    @if ($whatsappNav)
-                        <li><a href="{{ $whatsappNav }}" target="_blank" rel="noopener">WhatsApp</a></li>
+                    @if ($contact['whatsapp'])
+                        <li><a href="{{ \App\Support\WhatsApp::url($contact['whatsapp']) }}" target="_blank" rel="noopener">WhatsApp</a></li>
                     @endif
                     <li><a href="{{ route('contact') }}">Contact</a></li>
+                    <li><a href="{{ route('about') }}">À propos</a></li>
                     <li><a href="{{ route('privacy') }}">Confidentialité</a></li>
                     <li><button type="button" class="btn btn-link footer-install" data-install-button hidden>Installer l'application</button></li>
                 </ul>
@@ -246,19 +233,6 @@
             </div>
         </div>
     </footer>
-
-    @if ($guestTabbar)
-        <nav class="tabbar tabbar-guest" aria-label="Navigation rapide">
-            <a href="{{ route('home') }}" @class([$tab('home')]) @if (request()->routeIs('home')) aria-current="page" @endif><x-icon name="home" /> Accueil</a>
-            <a href="{{ route('plans') }}" @class([$tab('plans')]) @if (request()->routeIs('plans')) aria-current="page" @endif><x-icon name="wallet" /> Formules</a>
-            <a href="{{ route('register') }}" @class([$tab('register')]) @if (request()->routeIs('register')) aria-current="page" @endif><x-icon name="mic" /> Évaluation gratuite</a>
-            @if ($whatsappNav)
-                <a href="{{ $whatsappNav }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> WhatsApp</a>
-            @else
-                <a href="{{ route('contact') }}" @class([$tab('contact')])><x-icon name="bubble" /> Contact</a>
-            @endif
-        </nav>
-    @endif
 
     @if ($tabbar)
         <nav class="tabbar" aria-label="Navigation de l'espace apprenant">

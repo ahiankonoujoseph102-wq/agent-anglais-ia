@@ -298,7 +298,7 @@ return [
         'email' => 'ahiankonoujoseph102@gmail.com',
         'whatsapp' => '+228 72 24 02 31',
         // Lien d'invitation du GROUPE WhatsApp (https://chat.whatsapp.com/…), À COMPLÉTER quand il existe.
-        // Vide : le bouton WhatsApp de la navigation ouvre une conversation avec le numéro ci-dessus.
+        // Vide : le bouton WhatsApp de la page 404 ouvre une conversation avec le numéro ci-dessus.
         'whatsapp_group' => env('WHATSAPP_GROUP_URL'),
     ],
 

@@ -172,7 +172,7 @@ Dans **Settings, General** (section **Environment variables**), ajoutez les vari
 | `OPENAI_TTS_VOICE` | Voix d'OpenAI. Facultative (autres voix : marin, ash, onyx, echo…). | absente (`cedar`, voix masculine posée et chaleureuse) |
 | `GOOGLE_SITE_VERIFICATION` | Code de Google Search Console (méthode « Balise HTML » : seulement ce qui est entre les guillemets de `content="…"`). Remplie, la balise est ajoutée en haut de chaque page. Ce n'est pas un secret. | absente |
 | `REDIRECT_FROM_HOSTS` | Changement de domaine : anciennes adresses, sans `https://`, séparées par une virgule (par exemple `talkami.laravel.cloud`). Chaque page ouverte sur l'une d'elles est redirigée (301) vers la même page sur `APP_URL`. Voir l'étape 11 bis. | absente |
-| `WHATSAPP_GROUP_URL` | Lien d'invitation du **groupe** WhatsApp (`https://chat.whatsapp.com/…`). Rempli, le bouton WhatsApp de la navigation ouvre le groupe ; absent, il ouvre une conversation avec le numéro WhatsApp de l'équipe. | absente |
+| `WHATSAPP_GROUP_URL` | Lien d'invitation du **groupe** WhatsApp (`https://chat.whatsapp.com/…`). Rempli, le bouton WhatsApp de la page « introuvable » (404) ouvre le groupe ; absent, il ouvre une conversation avec le numéro WhatsApp de l'équipe. | absente |
 | `GEMINI_TOKEN_MINUTES` | Durée d'un jeton éphémère, en minutes. | `5` |
 | `AVATAR_3D_ENABLED` | `false` désactive le professeur 3D partout. | `true` |
 | `APP_FORCE_HTTPS` | Redirection vers HTTPS. Active en production si la variable est **absente** : ne la laissez jamais **vide**. | absente |

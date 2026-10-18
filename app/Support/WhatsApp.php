@@ -16,7 +16,7 @@ class WhatsApp
     }
 
     /**
-     * Bouton WhatsApp de la navigation : le groupe (platform.contact.whatsapp_group) s'il existe,
+     * Bouton WhatsApp de la page 404 : le groupe (platform.contact.whatsapp_group) s'il existe,
      * sinon une conversation avec le numéro WhatsApp de l'équipe ; null si aucun des deux.
      */
     public static function communityUrl(): ?string

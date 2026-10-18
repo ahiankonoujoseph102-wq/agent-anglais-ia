@@ -96,7 +96,6 @@ code { overflow-wrap: anywhere; font-size: .95em; background: var(--c-bg-warm); 
 
 /* Navigation complète (ordinateur) : cachée sous 1200 pixels, remplacée par le bouton « Menu ». */
 .nav-desktop { display: none; }
-.nav .nav-wide { display: none; }
 
 /* Menu compact (téléphone, tablette) : <details>, sans JavaScript. */
 .menu { position: relative; }
@@ -117,8 +116,6 @@ code { overflow-wrap: anywhere; font-size: .95em; background: var(--c-bg-warm); 
 .tabbar a.is-active { color: var(--c-primary); }
 .tabbar a.is-active .icon { background: var(--ib-bg); color: var(--ib-fg); box-shadow: var(--ib-ring); }
 .tabbar a.is-active .icon .d { fill: var(--ib-fill); }
-/* Visiteurs : « Évaluation gratuite » peut passer sur deux lignes. */
-.tabbar-guest a { text-align: center; line-height: 1.15; padding: 0 2px; }
 
 /* ---------- Pied de page ---------- */
 
@@ -780,7 +777,6 @@ main { overflow-x: clip; }
 /* Ordinateur : navigation complète avec libellés, plus de menu ni de barre du bas. */
 @media (min-width: 1200px) {
     .nav-desktop { display: flex; gap: 2px; }
-    .nav .nav-wide { display: inline-flex; }
     .nav-desktop a, .nav-desktop .btn-link { padding: var(--space-2) 9px; }
     .menu { display: none; }
     .tabbar { display: none; }

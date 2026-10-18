@@ -10,8 +10,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Pages publiques : navigation en un toucher (accueil, formules, évaluation gratuite, WhatsApp), aucun lien
- * interne cassé, pages par pays utiles et différentes, page « À propos », page 404 qui propose la suite.
+ * Pages publiques : navigation d'origine (aucune barre du bas pour un visiteur), aucun lien interne cassé,
+ * pages par pays utiles et différentes, page « À propos », page 404 qui propose la suite.
  */
 class PublicPagesTest extends TestCase
 {
@@ -33,33 +33,28 @@ class PublicPagesTest extends TestCase
         return array_map(fn (string $href) => html_entity_decode($href, ENT_QUOTES), $matches[1]);
     }
 
-    public function test_every_public_page_reaches_home_plans_assessment_and_whatsapp_in_one_tap(): void
+    public function test_the_navigation_of_visitors_is_unchanged_on_every_public_page(): void
     {
-        SiteSettings::save(['contact.whatsapp' => '+228 90 00 00 99']);
-
         foreach (self::PAGES as $path) {
             $html = $this->get($path)->getContent();
 
-            // Barre du bas des visiteurs (téléphone et tablette) : toujours visible, sans menu à ouvrir.
-            $this->assertMatchesRegularExpression('/<nav class="tabbar tabbar-guest"[^>]*>(.*?)<\/nav>/s', $html, $path);
-            preg_match('/<nav class="tabbar tabbar-guest"[^>]*>(.*?)<\/nav>/s', $html, $tabbar);
-            $links = self::links($tabbar[1]);
-
-            $this->assertSame([route('home'), route('plans'), route('register'), 'https://wa.me/22890000099'], $links, $path);
-            $this->assertStringContainsString('Évaluation gratuite', $tabbar[1], $path);
-            $this->assertStringContainsString('has-tabbar', $html, $path);
+            // Aucune barre du bas pour un visiteur : seulement la navigation d'origine de l'en-tête.
+            $this->assertStringNotContainsString('class="tabbar', $html, $path);
+            $this->assertStringNotContainsString('has-tabbar', $html, $path);
+            preg_match('/<header class="site-header">(.*?)<\/header>/s', $html, $header);
+            $this->assertSame([route('home'), route('login'), route('register')], self::links($header[1]), $path);
         }
     }
 
-    public function test_the_whatsapp_group_link_replaces_the_number_when_it_exists(): void
+    public function test_the_whatsapp_group_link_replaces_the_number_on_the_not_found_page(): void
     {
         config(['platform.contact.whatsapp_group' => 'https://chat.whatsapp.com/InvitationDuGroupe']);
 
-        $this->get('/')->assertSee('href="https://chat.whatsapp.com/InvitationDuGroupe"', false);
+        $this->get('/adresse-inconnue')->assertSee('href="https://chat.whatsapp.com/InvitationDuGroupe"', false);
 
         // Une valeur qui n'est pas un lien de groupe WhatsApp n'est jamais affichée.
         config(['platform.contact.whatsapp_group' => 'javascript:alert(1)']);
-        $this->get('/')->assertDontSee('javascript:alert', false);
+        $this->get('/adresse-inconnue')->assertDontSee('javascript:alert', false);
     }
 
     public function test_no_internal_link_of_a_public_page_is_broken(): void
@@ -112,7 +107,7 @@ class PublicPagesTest extends TestCase
         }
 
         preg_match('/<footer class="site-footer">(.*?)<\/footer>/s', $html, $footer);
-        foreach ([route('plans'), route('about'), route('contact'), route('privacy')] as $url) {
+        foreach ([route('about'), route('contact'), route('privacy')] as $url) {
             $this->assertContains($url, self::links($footer[1]));
         }
 
