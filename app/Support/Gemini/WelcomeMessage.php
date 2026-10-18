@@ -110,8 +110,7 @@ class WelcomeMessage
             ':teacher' => (string) config('avatar.model.name'),
             ':plan' => $planName,
             ':daily_duration' => Duration::format($dailyMinutes * 60),
-            ':course_minutes' => (string) config('platform.courses.session_minutes'),
-            ':course_sessions' => (string) config('platform.courses.sessions_per_day'),
+            ':course_minutes' => Duration::format((int) config('platform.courses.max_session_minutes') * 60),
         ];
 
         return array_map(fn (string $text) => strtr($text, $replace), $paragraphs);

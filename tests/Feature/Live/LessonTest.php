@@ -7,6 +7,7 @@ use App\Enums\Level;
 use App\Models\Lesson;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\DailyTime;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -110,7 +111,7 @@ class LessonTest extends TestCase
 
         $this->actingAs($user)->postJson('/seance/connexion')
             ->assertForbidden()
-            ->assertJsonPath('message', 'Votre temps de séance est épuisé pour aujourd\'hui. Revenez demain !');
+            ->assertJsonPath('message', DailyTime::EXHAUSTED);
         $this->actingAs($user)->get('/seance')->assertRedirect('/espace');
 
         Http::assertNothingSent();
@@ -127,7 +128,9 @@ class LessonTest extends TestCase
             ->assertJson(['active' => true, 'remaining_seconds' => 720]);
 
         $this->assertSame(180, $this->lesson($user)->used_seconds);
-        $this->assertSame(720, $user->remainingSecondsToday());
+        // Affichage : le temps réellement restant ; pour ouvrir une autre séance, la séance ouverte garde tout son temps.
+        $this->assertSame(720, $user->remainingSecondsToday(false));
+        $this->assertSame(0, $user->remainingSecondsToday());
 
         // Le navigateur continue d'envoyer des signaux après la limite : la séance est close.
         $this->travel(13)->minutes();

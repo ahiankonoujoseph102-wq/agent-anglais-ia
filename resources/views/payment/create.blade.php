@@ -5,7 +5,7 @@
         <div class="page-head">
             <h1>Formule {{ $plan->name }} : {{ $plan->formattedPrice() }}</h1>
             <p class="muted">
-                {{ $plan->dailyMinutes }} minutes par jour pendant {{ $plan->durationDays }} jours.
+                {{ $plan->dailyMinutes }} minutes par jour, à partager entre la séance orale et « Mes cours », pendant {{ $plan->durationDays }} jours.
                 <a href="{{ route('payment.plans') }}">Changer de formule</a>
             </p>
         </div>

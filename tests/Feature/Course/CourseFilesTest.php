@@ -136,7 +136,8 @@ class CourseFilesTest extends TestCase
         }
 
         $this->assertNull($session->fresh()->course_lesson_id);
-        $this->assertSame(1, $user->courseSessionsToday());
+        // La séance de la leçon supprimée garde son temps : supprimer une leçon ne rend pas de temps du jour.
+        $this->assertSame(300, $user->remainingSecondsToday());
     }
 
     public function test_nobody_else_can_delete_a_lesson(): void

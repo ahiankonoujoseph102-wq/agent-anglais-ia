@@ -59,7 +59,7 @@ class CourseUploadTest extends TestCase
         $this->actingAs($this->provisionalLearner())->get('/mes-cours')
             ->assertOk()
             ->assertSee('Ajouter une leçon')
-            ->assertSeeText('Leçons aujourd\'hui : 0 sur 5');
+            ->assertSeeText('Il vous reste 15 minutes aujourd\'hui.');
     }
 
     public function test_the_upload_page_offers_the_three_choices_and_the_limits(): void
@@ -109,7 +109,7 @@ class CourseUploadTest extends TestCase
         $this->actingAs($user)->get(route('courses.show', $lesson))
             ->assertOk()
             ->assertSee('Parler avec Teacher Joe')
-            ->assertSeeText('Leçons aujourd\'hui : 0 sur 5');
+            ->assertSeeText('Il vous reste 15 minutes aujourd\'hui.');
     }
 
     public function test_the_reading_request_sends_the_images_without_keeping_them_at_google(): void
@@ -230,7 +230,7 @@ class CourseUploadTest extends TestCase
         $response->assertRedirect('/mes-cours/nouvelle');
         $this->assertSame(0, CourseLesson::count());
         $this->assertSame([], Storage::disk('bucket')->allFiles());
-        $this->assertSame(0, $user->courseSessionsToday(), 'Un échec de lecture ne compte pas dans la limite du jour.');
+        $this->assertSame(900, $user->remainingSecondsToday(), 'Un échec de lecture ne prend rien sur le temps du jour.');
 
         $this->actingAs($user)->get('/mes-cours/nouvelle')
             ->assertSeeText('Teacher Joe n\'arrive pas à lire cette page')
@@ -277,7 +277,7 @@ class CourseUploadTest extends TestCase
             ->assertSeeText('La lecture est momentanément indisponible')
             ->assertSeeText('Rien n\'a été compté');
         $this->assertSame(0, CourseLesson::count());
-        $this->assertSame(0, $user->courseSessionsToday());
+        $this->assertSame(900, $user->remainingSecondsToday());
 
         // Le service revient : les pannes n'ont pas épuisé la limite par heure.
         $this->actingAs($user)->post('/mes-cours', ['pages' => [$this->photo()]]);

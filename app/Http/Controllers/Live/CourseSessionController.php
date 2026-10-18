@@ -9,6 +9,7 @@ use App\Http\Requests\Live\SignalRequest;
 use App\Models\CourseLesson;
 use App\Models\CourseSession;
 use App\Models\User;
+use App\Support\DailyTime;
 use App\Support\Duration;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
@@ -21,9 +22,10 @@ use Illuminate\View\View;
 
 /**
  * Séance « Mes cours » : Teacher Joe aide l'apprenant sur une leçon qu'il a apportée, par la voix
- * (même technique que la séance orale du jour). Limites réglables dans config/platform.php (courses) :
- * 5 séances par jour et par apprenant, 10 minutes au plus chacune, coupées par le serveur.
- * Ces séances ne consomment PAS les minutes de la séance orale quotidienne : compteur à part.
+ * (même technique que la séance orale du jour). Elles prennent sur le temps du jour de la formule, partagé
+ * avec la séance orale (User::remainingSecondsToday) : une séance dure au plus courses.max_session_minutes
+ * (10 minutes), jamais plus que le temps restant du jour, et n'est pas ouverte sous
+ * daily_time.min_start_seconds (2 minutes). Le serveur accorde ce temps au début et coupe à la fin.
  */
 class CourseSessionController extends Controller
 {
@@ -40,21 +42,18 @@ class CourseSessionController extends Controller
             return to_route('courses.index');
         }
 
-        if ($open === null && $this->limitReached($user)) {
-            return to_route('courses.show', $course)->with('status', $this->limitMessage());
+        if ($open === null && ! $user->canStartSessionToday()) {
+            return to_route('courses.show', $course)->with('status', DailyTime::EXHAUSTED);
         }
 
-        $minutes = (int) config('platform.courses.session_minutes');
-        $remaining = $open?->remainingSeconds() ?? $minutes * 60;
-        $used = $user->courseSessionsToday();
-        $limit = (int) config('platform.courses.sessions_per_day');
+        $remaining = $open?->remainingSeconds() ?? self::allowedSeconds($user);
 
         return view('live.session', [
             'mode' => 'course',
             'title' => 'Mon cours',
             'intro' => 'Teacher Joe a lu votre leçon « '.$course->title.' ». Il vous demandera ce que vous voulez faire : comprendre toute la leçon, poser une question précise ou travailler un exercice. '
-                .'La séance dure '.Duration::format($minutes * 60).' au plus ; il vous préviendra avant la fin. '
-                .'Cette séance est un complément : elle ne prend rien sur votre séance orale du jour. Leçons aujourd\'hui : '.$used.' sur '.$limit.' ; cette séance compte pour une leçon.',
+                .'Cette séance dure '.Duration::format($remaining).' au plus ; il vous préviendra avant la fin. '
+                .'Elle prend sur votre temps du jour, partagé avec la séance orale. '.DailyTime::remainingSentence((int) $user->remainingSecondsToday(false)),
             'remainingSeconds' => $remaining,
             'urls' => [
                 'connect' => route('courses.connect', $course),
@@ -71,8 +70,8 @@ class CourseSessionController extends Controller
         $user = $request->user();
         abort_unless($course->user_id === $user->id, 404);
 
-        // Deux demandes en même temps ne peuvent pas dépasser la limite du jour.
-        $lock = Cache::lock('course-connect:'.$user->id, 20);
+        // Deux demandes en même temps (même avec la séance orale) ne peuvent pas dépasser le temps du jour.
+        $lock = Cache::lock(LessonController::connectLockKey($user), 20);
 
         if (! $lock->get()) {
             return $this->refuse('Une connexion est déjà en cours. Patientez un instant, puis réessayez.', 429);
@@ -125,15 +124,14 @@ class CourseSessionController extends Controller
                 return $this->refuse(self::NO_ACCESS, 403);
             }
 
-            if ($this->limitReached($user)) {
-                return $this->refuse($this->limitMessage(), 403);
+            if (! $user->canStartSessionToday()) {
+                return $this->refuse(DailyTime::EXHAUSTED, 403);
             }
         } elseif (! $session->canConnectAgain()) {
             return $this->refuse('Trop de reconnexions pour cette séance. Rechargez la page pour en commencer une nouvelle.', 429);
         }
 
-        $minutes = (int) config('platform.courses.session_minutes');
-        $allowedSeconds = $session?->allowed_seconds ?? $minutes * 60;
+        $allowedSeconds = $session?->allowed_seconds ?? self::allowedSeconds($user);
         $deadline = $session?->deadline() ?? now()->addSeconds($allowedSeconds);
         $setup = TeacherSetup::course($user, (int) ceil($allowedSeconds / 60), $course->promptContext(), $request->handle());
 
@@ -142,7 +140,7 @@ class CourseSessionController extends Controller
         } catch (GeminiUnavailable $e) {
             report($e);
 
-            // Pas de séance créée : un jeton refusé ne compte pas dans la limite du jour.
+            // Pas de séance créée : un jeton refusé ne prend rien sur le temps du jour.
             return $this->refuse($e->userMessage(), 503, quota: $e->quotaExceeded);
         }
 
@@ -156,7 +154,8 @@ class CourseSessionController extends Controller
             'status' => LessonStatus::InProgress,
         ]);
 
-        $warning = (int) config('platform.courses.warning_seconds');
+        // Séance raccourcie au temps restant du jour : le préavis ne tombe jamais avant la moitié de la séance.
+        $warning = min((int) config('platform.courses.warning_seconds'), intdiv((int) $session->allowed_seconds, 2));
 
         return response()->json($live->attach($session, $token, $setup, [
             'start' => TeacherSetup::cue('course_start', ['minutes' => (int) ceil($allowedSeconds / 60)]),
@@ -165,14 +164,13 @@ class CourseSessionController extends Controller
         ], $warning, $resumed));
     }
 
-    private function limitReached(User $user): bool
+    /**
+     * Temps accordé à une nouvelle séance : la durée maximale d'une séance « Mes cours », jamais plus
+     * que le temps restant du jour.
+     */
+    private static function allowedSeconds(User $user): int
     {
-        return $user->courseSessionsToday() >= (int) config('platform.courses.sessions_per_day');
-    }
-
-    private function limitMessage(): string
-    {
-        return 'Vous avez fait vos '.(int) config('platform.courses.sessions_per_day').' leçons « Mes cours » du jour. Revenez demain : votre séance orale du jour reste disponible.';
+        return min((int) config('platform.courses.max_session_minutes') * 60, (int) $user->remainingSecondsToday());
     }
 
     /**

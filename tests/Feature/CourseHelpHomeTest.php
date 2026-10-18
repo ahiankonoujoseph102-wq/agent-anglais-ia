@@ -114,11 +114,13 @@ class CourseHelpHomeTest extends TestCase
         }
     }
 
-    public function test_every_plan_includes_the_course_help_with_the_limit_from_the_configuration(): void
+    public function test_every_plan_shares_its_daily_time_with_the_course_help(): void
     {
-        config(['platform.courses.sessions_per_day' => 7]);
-
-        $this->get('/')->assertSee("Aide à vos cours d'anglais (Mes cours) : 7 leçons par jour", false);
+        $this->get('/')
+            ->assertSee("Aide à vos cours d'anglais (Mes cours), comprise dans ce temps", false)
+            ->assertSee('15 minutes par jour, à partager entre la séance orale et « Mes cours »', false)
+            ->assertSee('30 minutes par jour, à partager entre la séance orale et « Mes cours »', false)
+            ->assertDontSee('leçons par jour');
     }
 
     public function test_the_result_page_reminds_that_the_plans_include_the_course_help(): void

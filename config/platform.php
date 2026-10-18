@@ -84,19 +84,34 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Temps du jour, partagé entre la séance quotidienne et « Mes cours »
+    |--------------------------------------------------------------------------
+    |
+    | Chaque formule donne UN temps par jour (plans.*.daily_minutes), à partager librement
+    | entre la séance orale du jour et les séances « Mes cours ». Le décompte repart à zéro
+    | à minuit, heure de l'application (APP_TIMEZONE, Africa/Lome). L'évaluation gratuite et
+    | le bilan de niveau n'y comptent pas. Le serveur accorde le temps au début de chaque
+    | séance et la coupe à la fin, quel que soit le fournisseur (App\Models\User::remainingSecondsToday).
+    |
+    */
+    'daily_time' => [
+        // En dessous de ce temps restant aujourd'hui, aucune nouvelle séance n'est ouverte (2 minutes).
+        'min_start_seconds' => 120,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | « Mes cours » : l'apprenant apporte une leçon d'anglais, Teacher Joe la réexplique
     |--------------------------------------------------------------------------
     |
-    | Séances à part : elles ne consomment PAS les minutes de la séance orale quotidienne.
-    | Fichiers sur le disque privé (App\Support\PrivateStorage). Tout se règle ici.
+    | Ces séances prennent sur le temps du jour de la formule (daily_time ci-dessus), partagé
+    | avec la séance orale quotidienne. Fichiers sur le disque privé (App\Support\PrivateStorage).
     |
     */
     'courses' => [
-        // Séances « Mes cours » par jour et par apprenant (nouvelle leçon ou révision d'une ancienne).
-        // Une conversation qui n'a pas pu démarrer (panne) ne compte pas.
-        'sessions_per_day' => 5,
-        // Durée d'une séance, en minutes (le serveur coupe à la limite).
-        'session_minutes' => 10,
+        // Durée d'une séance au plus, en minutes, et jamais plus que le temps restant du jour
+        // (le serveur coupe à la limite).
+        'max_session_minutes' => 10,
         // Teacher Joe est prévenu ce nombre de secondes avant la fin : il conclut poliment.
         'warning_seconds' => 90,
         // Photos : nombre de pages, poids d'une photo et de l'ensemble (kilooctets). Le navigateur les
@@ -140,7 +155,7 @@ return [
     | Accès offert par l'administrateur (démonstrations dans les écoles, auprès des parents)
     |--------------------------------------------------------------------------
     |
-    | Mêmes droits que la formule choisie (séance orale et « Mes cours » avec leurs limites).
+    | Mêmes droits que la formule choisie (le même temps par jour, séance orale et « Mes cours »).
     | Jamais un paiement ni un revenu. Se règle ici.
     |
     */
@@ -166,8 +181,6 @@ return [
     'live' => [
         'heartbeat_seconds' => 15,
         'stale_after_seconds' => 60,
-        // En dessous de ce temps restant, une nouvelle séance n'est pas ouverte.
-        'min_start_seconds' => 30,
         // Demi-duplex : le micro n'est pas envoyé pendant la voix du professeur, ni
         // pendant ce délai après (sa voix ne doit pas revenir par le haut-parleur).
         'echo_guard_ms' => 400,
@@ -195,7 +208,7 @@ return [
     | Le nom, les minutes, le prix et la durée sont recopiés dans l'abonnement
     | au moment de l'achat : les modifier ici ne touche que les futurs achats.
     |
-    | - daily_minutes : minutes de séance par jour
+    | - daily_minutes : temps par jour, partagé entre la séance orale et « Mes cours »
     | - price         : prix en FCFA
     | - period        : « month » ou « week » (sert au libellé « par mois »)
     | - duration_days : nombre de jours de validité de l'abonnement
@@ -205,7 +218,7 @@ return [
         'essentiel' => [
             'name' => 'Essentiel',
             'daily_minutes' => 15,
-            'price' => 5000,
+            'price' => 7500,
             'period' => 'month',
             'duration_days' => 30,
             // Badge affiché sur la carte de la formule, partout (jamais de statistique).
@@ -216,7 +229,7 @@ return [
         'intensif' => [
             'name' => 'Intensif',
             'daily_minutes' => 30,
-            'price' => 9000,
+            'price' => 14000,
             'period' => 'month',
             'duration_days' => 30,
             'badge' => 'Progrès plus rapides',
@@ -224,7 +237,7 @@ return [
         'semaine' => [
             'name' => 'Semaine',
             'daily_minutes' => 15,
-            'price' => 1500,
+            'price' => 2000,
             'period' => 'week',
             'duration_days' => 7,
             'badge' => 'Pour essayer',

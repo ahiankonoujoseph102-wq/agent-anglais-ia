@@ -85,7 +85,7 @@ class SubmitPaymentTest extends TestCase
 
         $this->actingAs($user)
             ->get('/abonnement/essentiel?pays=TG&operateur=flooz')
-            ->assertSee("5\u{202F}000\u{00A0}FCFA", false)
+            ->assertSee("7\u{202F}500\u{00A0}FCFA", false)
             ->assertSee('+228 90 00 00 22')
             ->assertSee('Titulaire Fictif Flooz')
             ->assertSee('data-copy="90000022"', false)
@@ -140,7 +140,7 @@ class SubmitPaymentTest extends TestCase
         $response->assertRedirect(route('payment.show', $payment));
 
         $this->assertSame(PaymentStatus::Pending, $payment->status);
-        $this->assertSame(5000, $payment->amount);
+        $this->assertSame(7500, $payment->amount);
         $this->assertSame('Flooz', $payment->operator_name);
         $this->assertSame('+228 90 00 00 22', $payment->recipient_number);
         $this->assertNull($payment->reference);
@@ -197,7 +197,7 @@ class SubmitPaymentTest extends TestCase
             // L'apprenant ne voit jamais quelle règle a échoué.
             ->assertDontSee('pas de réponse de l\'IA', false);
 
-        $message = rawurlencode("Nom : Kossi Amegah\nCompte : +22890112233\nFormule : Intensif\nMontant : 9\u{202F}000\u{00A0}FCFA");
+        $message = rawurlencode("Nom : Kossi Amegah\nCompte : +22890112233\nFormule : Intensif\nMontant : 14\u{202F}000\u{00A0}FCFA");
         $this->assertStringContainsString('https://wa.me/22890000099?text=', $page->getContent());
         $this->assertStringContainsString($message, $page->getContent());
     }

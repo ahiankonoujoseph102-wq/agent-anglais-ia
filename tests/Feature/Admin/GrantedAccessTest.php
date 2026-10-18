@@ -85,6 +85,17 @@ class GrantedAccessTest extends TestCase
         $this->assertSame(0, Payment::count());
     }
 
+    public function test_the_offer_form_lists_the_plans_with_their_daily_time_and_price(): void
+    {
+        $learner = $this->learnerWithoutAccess();
+
+        $this->actingAs($this->admin)->get(route('admin.users.show', $learner))
+            ->assertOk()
+            ->assertSee("Semaine (15 minutes par jour, valeur 2\u{202F}000\u{00A0}FCFA par semaine)", false)
+            ->assertSee("Essentiel (15 minutes par jour, valeur 7\u{202F}500\u{00A0}FCFA par mois)", false)
+            ->assertSee("Intensif (30 minutes par jour, valeur 14\u{202F}000\u{00A0}FCFA par mois)", false);
+    }
+
     public function test_only_an_administrator_can_offer_or_withdraw_an_access(): void
     {
         $learner = $this->learnerWithoutAccess();
@@ -191,7 +202,7 @@ class GrantedAccessTest extends TestCase
         $this->actingAs($learner)->postJson(route('courses.connect', $lesson))->assertOk()->assertJsonPath('remaining_seconds', 600);
 
         $dashboard = $this->actingAs($learner)->get('/espace')->assertOk();
-        $dashboard->assertSeeText('Leçons aujourd\'hui : 1 sur 5');
+        $dashboard->assertSeeText('Pris sur votre temps du jour, partagé avec la séance orale.');
     }
 
     public function test_the_access_ends_like_a_paid_access_and_invites_to_choose_a_plan(): void
@@ -268,7 +279,7 @@ class GrantedAccessTest extends TestCase
 
         $this->actingAs($this->admin)->get(route('admin.payments.index'))->assertOk()
             ->assertSee("1\u{202F}500\u{00A0}FCFA", false)
-            ->assertDontSee("9\u{202F}000\u{00A0}FCFA", false);
+            ->assertDontSee("14\u{202F}000\u{00A0}FCFA", false);
         $this->actingAs($this->admin)->get(route('admin.payments.pending'))->assertOk()->assertDontSee('Yao');
     }
 
@@ -368,7 +379,7 @@ class GrantedAccessTest extends TestCase
 
         $payment = Payment::query()->forceCreate([
             'user_id' => $learner->id, 'plan' => 'essentiel', 'plan_name' => 'Essentiel', 'daily_minutes' => 15, 'duration_days' => 30,
-            'amount' => 5000, 'currency' => 'XOF', 'country' => 'TG', 'operator' => 'flooz', 'operator_name' => 'Flooz',
+            'amount' => 7500, 'currency' => 'XOF', 'country' => 'TG', 'operator' => 'flooz', 'operator_name' => 'Flooz',
             'recipient_number' => '+22890000000', 'proof_path' => 'proofs/test.jpg', 'status' => PaymentStatus::Pending,
         ]);
         $payment->approve($this->admin);

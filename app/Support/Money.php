@@ -5,7 +5,7 @@ namespace App\Support;
 class Money
 {
     /**
-     * Formate un montant à la française : « 5 000 FCFA ».
+     * Formate un montant à la française : « 7 500 FCFA ».
      */
     public static function format(int $amount, ?string $currency = null): string
     {

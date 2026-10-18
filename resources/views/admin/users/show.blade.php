@@ -75,7 +75,7 @@
                     <label for="grant-plan">Formule</label>
                     <select id="grant-plan" name="plan" required>
                         @foreach ($plans as $plan)
-                            <option value="{{ $plan->key }}" @selected(old('plan', 'essentiel') === $plan->key)>{{ $plan->name }} ({{ $plan->dailyMinutes }} minutes par jour)</option>
+                            <option value="{{ $plan->key }}" @selected(old('plan', 'essentiel') === $plan->key)>{{ $plan->name }} ({{ $plan->dailyMinutes }} minutes par jour, valeur {{ $plan->formattedPrice() }} {{ $plan->periodLabel() }})</option>
                         @endforeach
                     </select>
                 </div>

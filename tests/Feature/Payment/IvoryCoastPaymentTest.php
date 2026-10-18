@@ -38,7 +38,7 @@ class IvoryCoastPaymentTest extends TestCase
         $checks = PaymentChecks::evaluate($this->proofReading([
             'operator' => $operatorRead,
             'recipient_number' => $read,
-        ]), self::operator($operatorKey), 5000, hash('sha256', (string) $read.$operatorKey));
+        ]), self::operator($operatorKey), 7500, hash('sha256', (string) $read.$operatorKey));
 
         return collect($checks->checks)->firstWhere('key', 'recipient');
     }
@@ -61,7 +61,7 @@ class IvoryCoastPaymentTest extends TestCase
                 ->assertSee($operator->holder)
                 ->assertSee('data-copy="'.$operator->localNumber().'"', false)
                 // Même prix que dans les autres pays.
-                ->assertSee("9\u{202F}000\u{00A0}FCFA", false);
+                ->assertSee("14\u{202F}000\u{00A0}FCFA", false);
         }
 
         $this->get('/')->assertSee('Côte d&#039;Ivoire', false)->assertSee('MTN Mobile Money');
@@ -150,14 +150,14 @@ class IvoryCoastPaymentTest extends TestCase
         $checks = PaymentChecks::evaluate($this->proofReading([
             'operator' => $read,
             'recipient_number' => self::operator($key)->localNumber(),
-        ]), self::operator($key), 5000, hash('sha256', $read));
+        ]), self::operator($key), 7500, hash('sha256', $read));
 
         $this->assertTrue(collect($checks->checks)->firstWhere('key', 'readable')['passed'], $read);
     }
 
     public function test_another_operator_on_the_capture_is_refused(): void
     {
-        $checks = PaymentChecks::evaluate($this->proofReading(['operator' => 'Wave']), self::operator('orange_money'), 5000, hash('sha256', 'x'));
+        $checks = PaymentChecks::evaluate($this->proofReading(['operator' => 'Wave']), self::operator('orange_money'), 7500, hash('sha256', 'x'));
 
         $this->assertFalse(collect($checks->checks)->firstWhere('key', 'readable')['passed']);
     }
@@ -183,7 +183,7 @@ class IvoryCoastPaymentTest extends TestCase
 
         $payment = Payment::query()->sole();
         $this->assertSame('CI', $payment->country);
-        $this->assertSame(5000, $payment->amount);
+        $this->assertSame(7500, $payment->amount);
         $this->assertTrue($payment->checksPassed());
         $this->assertNotNull($user->fresh()->activeSubscription);
     }

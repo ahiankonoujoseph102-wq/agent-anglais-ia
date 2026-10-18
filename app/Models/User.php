@@ -8,6 +8,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Enums\Skill;
 use App\Enums\SubscriptionStatus;
+use App\Support\DailyTime;
 use App\Support\EmailAddress;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -127,15 +128,6 @@ class User extends Authenticatable
     public function courseSessions(): HasMany
     {
         return $this->hasMany(CourseSession::class);
-    }
-
-    /**
-     * Séances « Mes cours » commencées aujourd'hui (compteur « Leçons aujourd'hui »). Une leçon
-     * supprimée ou une séance interrompue compte toujours : le plafond ne se contourne pas.
-     */
-    public function courseSessionsToday(): int
-    {
-        return $this->courseSessions()->whereDate('date', today())->count();
     }
 
     /**
@@ -298,19 +290,35 @@ class User extends Authenticatable
     }
 
     /**
-     * Secondes de séance déjà consommées aujourd'hui.
+     * Secondes du temps du jour déjà prises aujourd'hui : séances orales ET séances « Mes cours »
+     * (un seul temps par jour, partagé ; l'évaluation et le bilan de niveau n'y comptent pas). Le « jour »
+     * suit APP_TIMEZONE (Africa/Lome) : le décompte repart à zéro à minuit, heure de Lomé.
+     *
+     * Une séance encore ouverte compte pour tout le temps qui lui a été accordé ($reserveOpen, pour
+     * ouvrir une nouvelle séance : deux séances en même temps ne dépassent jamais le temps du jour), ou
+     * pour le temps déjà écoulé (affichage). Une séance finie ou abandonnée est d'abord clôturée.
      */
-    public function secondsUsedToday(): int
+    public function secondsUsedToday(bool $reserveOpen = true): int
     {
-        return (int) $this->lessons()
-            ->whereDate('date', today())
-            ->sum('used_seconds');
+        $used = 0;
+
+        foreach ([$this->lessons(), $this->courseSessions()] as $query) {
+            foreach ($query->whereDate('date', today())->get() as $conversation) {
+                if ($conversation->started_at !== null && $conversation->closeIfOver()) {
+                    $used += $reserveOpen ? (int) $conversation->allowed_seconds : $conversation->elapsedUntil(now());
+                } else {
+                    $used += (int) $conversation->used_seconds;
+                }
+            }
+        }
+
+        return $used;
     }
 
     /**
-     * Secondes de séance restantes aujourd'hui, ou null sans abonnement actif.
+     * Secondes du temps du jour restantes (séance orale et « Mes cours »), ou null sans abonnement actif.
      */
-    public function remainingSecondsToday(): ?int
+    public function remainingSecondsToday(bool $reserveOpen = true): ?int
     {
         $subscription = $this->activeSubscription;
 
@@ -318,6 +326,14 @@ class User extends Authenticatable
             return null;
         }
 
-        return max(0, $subscription->dailySeconds() - $this->secondsUsedToday());
+        return max(0, $subscription->dailySeconds() - $this->secondsUsedToday($reserveOpen));
+    }
+
+    /**
+     * Assez de temps aujourd'hui pour ouvrir une NOUVELLE séance (platform.daily_time.min_start_seconds) ?
+     */
+    public function canStartSessionToday(): bool
+    {
+        return (int) $this->remainingSecondsToday() >= DailyTime::minStartSeconds();
     }
 }

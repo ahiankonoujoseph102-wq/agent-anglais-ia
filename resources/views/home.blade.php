@@ -222,7 +222,7 @@
             </details>
             <details>
                 <summary><x-icon name="book" /><span>{{ $teacher }} peut-il m'aider dans mes cours d'anglais ?</span></summary>
-                <p>Oui, avec « Mes cours », pour les élèves qui ont une formule active. Vous photographiez votre leçon ou votre exercice d'anglais, {{ $teacher }} la lit et vous l'explique, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et c'est une aide en plus de votre programme pour parler anglais.</p>
+                <p>Oui, avec « Mes cours », pour les élèves qui ont une formule active. Vous photographiez votre leçon ou votre exercice d'anglais, {{ $teacher }} la lit et vous l'explique, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et c'est une aide en plus de votre programme pour parler anglais. Votre formule donne un temps par jour, que vous partagez librement entre la séance orale et « Mes cours ».</p>
             </details>
             <details>
                 <summary><x-icon name="gift" /><span>L'évaluation est-elle vraiment gratuite ?</span></summary>

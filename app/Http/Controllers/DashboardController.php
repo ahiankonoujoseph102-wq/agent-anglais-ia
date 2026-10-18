@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LessonStatus;
 use App\Enums\PaymentStatus;
 use App\Support\WelcomeFlow;
 use Illuminate\Http\RedirectResponse;
@@ -75,12 +76,14 @@ class DashboardController extends Controller
             'grantEnding' => $grantEnding,
             'pendingPayment' => $latestPayment?->status === PaymentStatus::Pending ? $latestPayment : null,
             'rejectedPayment' => $latestPayment?->status === PaymentStatus::Rejected ? $latestPayment : null,
-            'remainingSeconds' => $user->remainingSecondsToday(),
-            'minStartSeconds' => (int) config('platform.live.min_start_seconds'),
+            // Temps du jour restant, partagé entre la séance orale et « Mes cours » (temps réellement restant).
+            'remainingSeconds' => $user->remainingSecondsToday(false),
+            // Séance orale déjà ouverte (autre onglet) : elle peut être reprise.
+            'canStartToday' => $subscription !== null && ($user->canStartSessionToday() || $user->lessons()->where('status', LessonStatus::InProgress)->exists()),
             'lastLesson' => $user->lessons()->whereNotNull('summary')->latest('id')->first(),
             'journeyStep' => $journeyStep,
             // « Mes cours » : carte secondaire, seulement avec un accès actif.
-            'courseCounter' => $subscription !== null ? ['used' => $user->courseSessionsToday(), 'limit' => (int) config('platform.courses.sessions_per_day')] : null,
+            'showCourses' => $subscription !== null,
             'assessmentMinutes' => (int) config('platform.assessment.max_minutes'),
             // « Réécouter le message de bienvenue » : seulement pour un apprenant qui a eu un accès.
             'welcomeReplay' => $user->subscriptions()->exists(),

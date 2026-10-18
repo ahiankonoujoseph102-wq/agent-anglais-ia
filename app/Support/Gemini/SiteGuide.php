@@ -2,6 +2,7 @@
 
 namespace App\Support\Gemini;
 
+use App\Support\DailyTime;
 use App\Support\Duration;
 use App\Support\PaymentCountry;
 use App\Support\Plan;
@@ -26,9 +27,9 @@ class SiteGuide
             ':platform' => (string) config('platform.name'),
             ':teacher' => (string) config('avatar.model.name'),
             ':assessment' => Duration::format((int) config('platform.assessment.max_minutes') * 60),
-            // « Mes cours » : limites lues dans config/platform.php (courses).
-            ':course_sessions' => (string) (int) config('platform.courses.sessions_per_day'),
-            ':course_minutes' => Duration::format((int) config('platform.courses.session_minutes') * 60),
+            // « Mes cours » et temps du jour : lus dans config/platform.php (courses, daily_time).
+            ':course_minutes' => Duration::format((int) config('platform.courses.max_session_minutes') * 60),
+            ':min_start' => Duration::format(DailyTime::minStartSeconds()),
             ':course_photos' => (string) (int) config('platform.courses.max_photos'),
             ':course_pdf' => (int) (config('platform.courses.pdf_max_kilobytes') / 1024).' mégaoctets et '.(int) config('platform.courses.pdf_max_pages').' pages au plus',
             ':plans' => self::plans(),
@@ -40,7 +41,7 @@ class SiteGuide
     {
         return implode("\n", array_map(
             fn (Plan $plan) => "- {$plan->name} : {$plan->formattedPrice()} {$plan->periodLabel()}, "
-                .Duration::format($plan->dailyMinutes * 60)." de séance par jour, pendant {$plan->durationDays} jours.",
+                .Duration::format($plan->dailyMinutes * 60)." par jour, à partager entre la séance orale et « Mes cours », pendant {$plan->durationDays} jours.",
             array_values(Plan::all()),
         ));
     }
