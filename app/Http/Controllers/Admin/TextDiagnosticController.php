@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\Live\LiveLog;
+use App\Support\Live\LiveProviders;
 use App\Support\Text\TextLog;
 use App\Support\Text\TextProvider;
 use App\Support\Text\TextProviders;
@@ -15,6 +17,7 @@ use Illuminate\View\View;
  * « Diagnostic des fournisseurs » du modèle texte (captures, « Mes cours », estimation, rédactions) : chaque
  * fournisseur (clé présente ou non, modèle, place dans l'ordre, mis de côté après une limite), un bouton
  * « Tester » qui envoie une petite image d'essai, et les derniers échecs. Jamais de clé affichée.
+ * Même page pour les séances en direct (Admin\LiveTrialController : « Tester », essai de 30 secondes).
  */
 class TextDiagnosticController extends Controller
 {
@@ -24,6 +27,8 @@ class TextDiagnosticController extends Controller
             'providers' => TextProviders::all(),
             'order' => array_map(fn (TextProvider $provider) => $provider->name(), TextProviders::configured()),
             'failures' => TextLog::recent(),
+            'liveOrder' => LiveProviders::configured(),
+            'liveFailures' => LiveLog::recent(),
         ]);
     }
 

@@ -5,13 +5,22 @@ namespace App\Support\Gemini;
 use RuntimeException;
 
 /**
- * L'API Gemini n'a pas pu délivrer de jeton (clé absente, quota atteint, panne).
+ * L'API n'a pas pu délivrer de jeton (clé absente, quota atteint, clé refusée, panne, délai dépassé).
  */
 class GeminiUnavailable extends RuntimeException
 {
-    public function __construct(string $message, public readonly bool $quotaExceeded = false)
+    public function __construct(string $message, public readonly bool $quotaExceeded = false, public readonly ?int $httpStatus = null)
     {
         parent::__construct($message);
+    }
+
+    /**
+     * Le fournisseur est inutilisable pendant un moment (limite, clé refusée) : les séances suivantes
+     * commencent directement chez le suivant.
+     */
+    public function pausesProvider(): bool
+    {
+        return $this->quotaExceeded || in_array($this->httpStatus, [401, 403], true);
     }
 
     /**

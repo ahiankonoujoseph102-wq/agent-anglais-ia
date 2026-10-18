@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AssessmentController as AdminAssessmentController
 use App\Http\Controllers\Admin\GrantedAccessController;
 use App\Http\Controllers\Admin\IconPreviewController;
 use App\Http\Controllers\Admin\InactiveLearnerController;
+use App\Http\Controllers\Admin\LiveTrialController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TextDiagnosticController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Live\AssessmentController;
 use App\Http\Controllers\Live\CourseSessionController;
 use App\Http\Controllers\Live\LessonController;
 use App\Http\Controllers\Live\LevelTestController;
+use App\Http\Controllers\Live\RealtimeCallController;
 use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\Program\AttestationController;
 use App\Http\Controllers\Program\LessonHistoryController;
@@ -127,6 +129,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/{course}/seance/connexion', [CourseSessionController::class, 'connect'])->whereNumber('course')->middleware('throttle:10,1')->name('connect');
     });
 
+    // Séances en direct chez OpenAI : ouverture de l'appel WebRTC (adresse à usage unique).
+    Route::post('/en-direct/appel/{ticket}', [RealtimeCallController::class, 'store'])->where('ticket', '[A-Za-z0-9]{40}')->middleware('throttle:10,1')->name('live.call');
+
     // Séance du jour des abonnés.
     Route::prefix('seance')->name('lesson.')->controller(LessonController::class)->group(function () {
         Route::get('/', 'show')->name('show');
@@ -163,6 +168,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/diagnostic-voix/preparer', [VoiceDiagnosticController::class, 'prepare'])->middleware('throttle:6,1')->name('voice-diagnostic.prepare');
     Route::get('/diagnostic-texte', [TextDiagnosticController::class, 'index'])->name('text-diagnostic.index');
     Route::post('/diagnostic-texte/essai/{provider}', [TextDiagnosticController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('text-diagnostic.test');
+    Route::post('/diagnostic-texte/direct/{provider}/essai', [LiveTrialController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.test');
+    Route::get('/diagnostic-texte/direct/{provider}/conversation', [LiveTrialController::class, 'show'])->whereIn('provider', ['gemini', 'openai'])->name('live-trial.show');
+    Route::post('/diagnostic-texte/direct/{provider}/conversation/connexion', [LiveTrialController::class, 'connect'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.connect');
+    Route::post('/diagnostic-texte/direct/{provider}/conversation/signal', [LiveTrialController::class, 'signal'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:30,1')->name('live-trial.signal');
+    Route::post('/diagnostic-texte/direct/{provider}/conversation/fin', [LiveTrialController::class, 'finish'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.finish');
     Route::get('/icones', IconPreviewController::class)->name('icons.index');
     Route::get('/inactifs', [InactiveLearnerController::class, 'index'])->name('inactive.index');
     Route::get('/inactifs/{user}/whatsapp', [InactiveLearnerController::class, 'whatsapp'])->name('inactive.whatsapp');

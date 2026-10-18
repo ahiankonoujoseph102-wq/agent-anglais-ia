@@ -2,6 +2,8 @@
 
 namespace App\Models\Concerns;
 
+use App\Support\Live\LiveProviders;
+use App\Support\Live\OpenAiRealtime;
 use Illuminate\Support\Carbon;
 
 /**
@@ -13,10 +15,45 @@ use Illuminate\Support\Carbon;
  * parler sans être compté en coupant simplement les signaux du navigateur.
  *
  * Colonnes attendues : started_at, ended_at, allowed_seconds, used_seconds,
- * last_seen_at, token_expires_at, connections, input_tokens, output_tokens.
+ * last_seen_at, token_expires_at, connections, input_tokens, output_tokens,
+ * live_provider (gemini ou openai), live_call_id (appel OpenAI en cours).
  */
 trait IsLiveConversation
 {
+    /**
+     * Chez OpenAI, le serveur raccroche lui-même l'appel dès que la conversation est close (limite de
+     * temps, fin, refus du paiement, navigateur disparu) : la coupure ne dépend pas du navigateur.
+     */
+    public static function bootIsLiveConversation(): void
+    {
+        static::updated(function (self $conversation) {
+            $callId = $conversation->getAttributes()['live_call_id'] ?? null;
+
+            if (filled($callId) && $conversation->wasChanged('ended_at') && $conversation->ended_at !== null) {
+                app(OpenAiRealtime::class)->hangup((string) $callId);
+            }
+        });
+    }
+
+    /**
+     * Fournisseur de la conversation (Gemini pour les conversations d'avant le secours).
+     */
+    public function liveProvider(): string
+    {
+        return (string) ($this->getAttributes()['live_provider'] ?? LiveProviders::GEMINI);
+    }
+
+    /**
+     * La conversation peut-elle encore commencer chez un autre fournisseur ? Seulement juste après son début,
+     * quand le navigateur n'a pas pu se connecter (aucune parole échangée) : jamais en cours de séance.
+     */
+    public function canSwitchProvider(): bool
+    {
+        return $this->isInProgress()
+            && $this->connections <= 2
+            && $this->started_at->gt(now()->subSeconds((int) config('services.live.switch_window_seconds')));
+    }
+
     abstract public function isInProgress(): bool;
 
     /**

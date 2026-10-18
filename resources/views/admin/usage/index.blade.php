@@ -8,16 +8,17 @@
 
     <h1>Consommation du professeur IA</h1>
     <p class="muted small">
-        Durée réelle et jetons rapportés par l'API Gemini. Coût estimé au tarif payant
-        ({{ config('services.gemini.pricing.input_per_million') }} $ par million de jetons en entrée,
-        {{ config('services.gemini.pricing.output_per_million') }} $ en sortie) ; il est nul tant que
-        la formule gratuite de Google est utilisée.
+        Durée réelle et jetons rapportés par le fournisseur de chaque séance. Coût estimé au tarif de ce fournisseur,
+        par million de jetons : Gemini au tarif payant ({{ config('services.gemini.pricing.input_per_million') }} $ en entrée,
+        {{ config('services.gemini.pricing.output_per_million') }} $ en sortie ; nul tant que la formule gratuite de Google est utilisée),
+        OpenAI ({{ config('services.openai.realtime_pricing.input_per_million') }} $ en entrée,
+        {{ config('services.openai.realtime_pricing.output_per_million') }} $ en sortie, tarif audio publié).
     </p>
 
     <div class="stats">
         @foreach ($totals as $label => $total)
             @php
-                $cost = UsageCost::usd($total['input'], $total['output']);
+                $cost = $total['cost'];
             @endphp
             <div class="stat">
                 <div class="label">{{ $label }}</div>
@@ -39,7 +40,7 @@
     <div class="stats">
         @foreach ($granted as $label => $total)
             @php
-                $cost = UsageCost::usd($total['input'], $total['output']);
+                $cost = $total['cost'];
             @endphp
             <div class="stat">
                 <div class="label">{{ $label }}</div>
@@ -53,6 +54,28 @@
         @endforeach
     </div>
     <p class="muted small">Ces conversations sont aussi comptées dans les totaux ci-dessus ; elles sont reconnaissables à « Accès offert » dans les listes.</p>
+
+    {{-- Séances en direct par fournisseur : Gemini Live d'abord, OpenAI Realtime en secours. --}}
+    <h2 class="next-step">Séances en direct par fournisseur</h2>
+    <div class="stats">
+        @foreach ($live as $provider => $total)
+            <div class="stat" data-live-usage="{{ $provider }}">
+                <div class="label">{{ \App\Support\Live\LiveProviders::label($provider) }}</div>
+                <div class="value">{{ $total['count'] }}</div>
+                <div class="detail">
+                    {{ $total['count'] > 1 ? 'séances' : 'séance' }} ·
+                    {{ Duration::formatPrecise($total['seconds']) }} ·
+                    {{ UsageCost::format($total['cost']) }}
+                </div>
+            </div>
+        @endforeach
+    </div>
+    <p class="muted small">
+        Évaluations, séances du jour, « Mes cours » et bilans de niveau. Coût estimé par minute de séance :
+        Gemini {{ UsageCost::format(\App\Support\Live\LiveUsage::costPerMinute('gemini')) }} (mode gratuit),
+        OpenAI {{ UsageCost::format(\App\Support\Live\LiveUsage::costPerMinute('openai')) }} (modèle {{ config('services.openai.realtime_model') }}, tarif publié).
+        Les coûts d'après les jetons (en haut, par apprenant et par séance) comptent chaque séance au tarif de son fournisseur.
+    </p>
 
     {{-- Synthèse vocale des messages (bienvenue, résultat de l'évaluation, essais) : jamais mélangée aux conversations. --}}
     <h2 class="next-step">Synthèse vocale des messages</h2>
@@ -149,8 +172,7 @@
                     @php
                         $input = (int) $learner->lessons_sum_input_tokens + (int) $learner->assessment?->input_tokens;
                         $output = (int) $learner->lessons_sum_output_tokens + (int) $learner->assessment?->output_tokens;
-                        $courseInput = (int) $learner->course_sessions_sum_input_tokens;
-                        $courseOutput = (int) $learner->course_sessions_sum_output_tokens;
+                        $learnerCost = $learnerCosts[$learner->id] ?? ['oral' => 0.0, 'course' => 0.0];
                     @endphp
                     <tr>
                         <td data-label="Apprenant">{{ $learner->name }}<br><span class="muted small">{{ $learner->phone }}</span></td>
@@ -170,9 +192,9 @@
                         <td data-label="Séances">{{ $learner->lessons_count }}</td>
                         <td data-label="Durée des séances">{{ Duration::format((int) $learner->lessons_sum_used_seconds) }}</td>
                         <td data-label="Jetons">{{ number_format($input, 0, ',', ' ') }} / {{ number_format($output, 0, ',', ' ') }}</td>
-                        <td data-label="Coût estimé">{{ UsageCost::format(UsageCost::usd($input, $output)) }}</td>
+                        <td data-label="Coût estimé">{{ UsageCost::format($learnerCost['oral']) }}</td>
                         <td data-label="Mes cours">{{ $learner->course_sessions_count }} · {{ Duration::format((int) $learner->course_sessions_sum_used_seconds) }}</td>
-                        <td data-label="Mes cours : coût estimé">{{ UsageCost::format(UsageCost::usd($courseInput, $courseOutput)) }}</td>
+                        <td data-label="Mes cours : coût estimé">{{ UsageCost::format($learnerCost['course']) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -212,7 +234,7 @@
                             <td data-label="Durée réelle">{{ Duration::formatPrecise($conversation->used_seconds) }} / {{ Duration::formatPrecise($conversation->allowed_seconds) }}</td>
                             <td data-label="Connexions">{{ $conversation->connections }}</td>
                             <td data-label="Jetons">{{ number_format($conversation->input_tokens, 0, ',', ' ') }} / {{ number_format($conversation->output_tokens, 0, ',', ' ') }}</td>
-                            <td data-label="Coût estimé">{{ UsageCost::format(UsageCost::usd($conversation->input_tokens, $conversation->output_tokens)) }}</td>
+                            <td data-label="Coût estimé">{{ UsageCost::format(UsageCost::usd($conversation->input_tokens, $conversation->output_tokens, $conversation->liveProvider())) }}<br><span class="muted small">{{ \App\Support\Live\LiveProviders::label($conversation->liveProvider()) }}</span></td>
                         </tr>
                     @endforeach
                 </tbody>

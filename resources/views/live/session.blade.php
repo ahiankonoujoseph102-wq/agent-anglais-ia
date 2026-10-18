@@ -18,6 +18,8 @@
          data-mic-input="{{ \App\Support\Asset::url('js/mic-input.js') }}"
          data-conversation-end="{{ \App\Support\Asset::url('js/conversation-end.js') }}"
          data-teacher-cues="{{ \App\Support\Asset::url('js/teacher-cues.js') }}"
+         data-live-gemini="{{ \App\Support\Asset::url('js/live-gemini.js') }}"
+         data-live-openai="{{ \App\Support\Asset::url('js/live-openai.js') }}"
          data-audio='@json($audio)'
          @if (\App\Support\Avatar::enabled())
              data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"

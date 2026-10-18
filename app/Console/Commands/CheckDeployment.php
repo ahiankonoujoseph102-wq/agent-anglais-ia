@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\Live\LiveProviders;
 use App\Support\PaymentCountry;
 use App\Support\PrivateStorage;
 use App\Support\SiteSettings;
@@ -65,6 +66,10 @@ class CheckDeployment extends Command
 
         $this->section('Professeur IA');
         $this->check('Clé Gemini présente', filled(config('services.gemini.key')), 'GEMINI_API_KEY est vide : les séances vocales ne fonctionneront pas.');
+        // Séances en direct : fournisseurs utilisables dans l'ordre réglé (jamais la clé, seulement sa présence).
+        $live = array_map(fn (string $name) => LiveProviders::label($name), LiveProviders::available());
+        $this->check('Séances en direct : '.($live === [] ? 'aucun fournisseur' : implode(', puis ', $live)), $live !== [], 'Aucun fournisseur de séance en direct n\'a de clé (LIVE_PROVIDERS, GEMINI_API_KEY, OPENAI_API_KEY).');
+        $this->line('    Secours OpenAI : '.(filled(config('services.openai.key')) ? 'clé présente' : 'clé absente (pas de secours)'));
 
         $this->newLine();
 

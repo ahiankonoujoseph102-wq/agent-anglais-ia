@@ -33,6 +33,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Pages privées : jamais dans les moteurs de recherche (X-Robots-Tag).
         $middleware->appendToGroup('web', MarkPrivatePagesNoIndex::class);
 
+        // Description WebRTC (séance en direct chez OpenAI) : transmise telle quelle, fins de ligne comprises.
+        $middleware->trimStrings(except: ['sdp']);
+
         $middleware->redirectUsersTo(
             fn (Request $request) => AuthenticatedSessionController::homeFor($request->user()),
         );

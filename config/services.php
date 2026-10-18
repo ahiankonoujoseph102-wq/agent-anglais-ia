@@ -150,7 +150,21 @@ return [
         ],
     ],
 
-    // OpenAI : secours de la synthèse vocale (API Audio, « speech ») et du modèle texte (API Responses).
+    // Séances orales en direct (évaluation, séance du jour, « Mes cours », bilan de niveau) : ordre des
+    // fournisseurs (« gemini,openai », ou « openai » seul). Le fournisseur est choisi au DÉBUT de la séance
+    // et ne change jamais ensuite ; un fournisseur sans clé est ignoré.
+    'live' => [
+        'providers' => array_values(array_filter(array_map('trim', explode(',', strtolower((string) env('LIVE_PROVIDERS', 'gemini,openai')))))),
+        // Après une limite (429, limite du jour) ou une clé refusée, le fournisseur est mis de côté pendant ce temps.
+        'pause_seconds' => 300,
+        // Une séance peut changer de fournisseur seulement dans ce délai après son début (rien n'a été dit).
+        'switch_window_seconds' => 120,
+        // Coût estimé par minute de séance, pour la page « Consommation » (Gemini : 0 en mode gratuit).
+        'gemini_cost_per_minute' => (float) env('GEMINI_LIVE_COST_PER_MINUTE', 0),
+    ],
+
+    // OpenAI : secours de la synthèse vocale (API Audio, « speech »), du modèle texte (API Responses) et des
+    // séances en direct (API Realtime, WebRTC).
     // Source : platform.openai.com/docs/guides/text-to-speech et /docs/models/gpt-4o-mini-tts (relevé d'octobre 2026).
     'openai' => [
         'key' => env('OPENAI_API_KEY'),
@@ -168,6 +182,30 @@ return [
         'text_model' => env('OPENAI_TEXT_MODEL') ?: 'gpt-6-luna',
         // Réflexion pour les lectures (captures, leçons) : none, low, medium, high.
         'text_reasoning' => env('OPENAI_TEXT_REASONING') ?: 'low',
+        // Séances en direct : modèle de conversation vocale, voix masculine, transcription des deux voix.
+        // Source : developers.openai.com/api/docs/models et /api/docs/guides/realtime-webrtc (octobre 2026).
+        'realtime_model' => env('OPENAI_REALTIME_MODEL') ?: 'gpt-realtime-2.1-mini',
+        'realtime_voice' => env('OPENAI_REALTIME_VOICE') ?: 'cedar',
+        'realtime_transcription_model' => env('OPENAI_REALTIME_TRANSCRIPTION_MODEL') ?: 'gpt-4o-mini-transcribe',
+        // Réflexion du modèle (modèles « 2 » et suivants) : minimal, low, medium ; vide : réglage d'OpenAI.
+        'realtime_reasoning' => env('OPENAI_REALTIME_REASONING', 'low'),
+        // Détection de parole peu sensible, comme chez Gemini : 1,2 seconde de silence avant la réponse.
+        'realtime_vad' => [
+            'threshold' => (float) env('OPENAI_REALTIME_VAD_THRESHOLD', 0.6),
+            'prefix_padding_ms' => (int) env('GEMINI_PREFIX_PADDING_MS', 300),
+            'silence_duration_ms' => (int) env('GEMINI_SILENCE_DURATION_MS', 1200),
+        ],
+        // Environ 0,04 $ par minute de séance avec gpt-realtime-2.1-mini (audio 10 $ / 20 $ le million de
+        // jetons, contexte relu en cache, transcription comprise) : estimation pour « Consommation ».
+        'realtime_cost_per_minute' => (float) env('OPENAI_REALTIME_COST_PER_MINUTE', 0.04),
+        // Tarif par million de jetons (audio) de gpt-realtime-2.1-mini, pour le coût par apprenant et par séance
+        // de « Consommation » (developers.openai.com/api/docs/models/gpt-realtime-2.1-mini, relevé du 18 octobre
+        // 2026 : audio 10 $ en entrée, 20 $ en sortie ; texte 0,60 $ / 2,40 $). Les jetons rapportés mêlant audio
+        // et texte, le tarif audio donne une estimation prudente (un peu haute).
+        'realtime_pricing' => [
+            'input_per_million' => (float) env('OPENAI_REALTIME_INPUT_PRICE', 10.00),
+            'output_per_million' => (float) env('OPENAI_REALTIME_OUTPUT_PRICE', 20.00),
+        ],
     ],
 
 ];

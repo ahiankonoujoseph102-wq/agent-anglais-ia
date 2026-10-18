@@ -14,6 +14,8 @@ use App\Support\WhatsApp;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -77,9 +79,28 @@ class UserController extends Controller
             'subscriptions' => $user->subscriptions()->latest('ends_at')->get(),
             'payments' => $user->payments()->with(['user', 'subscription'])->latest('id')->get(),
             'courseLessons' => $user->courseLessons()->with('pages')->latest('id')->get(),
+            'conversations' => self::conversations($user),
             'temporaryPassword' => $temporaryPassword,
             'whatsappUrl' => $whatsappUrl,
         ]);
+    }
+
+    /**
+     * Dernières séances en direct (séances du jour, « Mes cours », bilans de niveau), avec leur fournisseur.
+     *
+     * @return Collection<int, array{kind: string, started_at: Carbon, seconds: int, provider: string}>
+     */
+    private static function conversations(User $user): Collection
+    {
+        $rows = collect();
+
+        foreach (['Séance du jour' => $user->lessons(), '« Mes cours »' => $user->courseSessions(), 'Bilan de niveau' => $user->levelTests()] as $kind => $query) {
+            foreach ($query->whereNotNull('started_at')->latest('started_at')->limit(15)->get() as $conversation) {
+                $rows->push(['kind' => $kind, 'started_at' => $conversation->started_at, 'seconds' => (int) $conversation->used_seconds, 'provider' => $conversation->liveProvider()]);
+            }
+        }
+
+        return $rows->sortByDesc('started_at')->take(15)->values();
     }
 
     /**
