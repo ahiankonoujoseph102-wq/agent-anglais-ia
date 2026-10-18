@@ -138,7 +138,7 @@ class CourseSessionController extends Controller
         $setup = TeacherSetup::course($user, (int) ceil($allowedSeconds / 60), $course->promptContext(), $request->handle());
 
         try {
-            $token = $live->request($setup, $deadline);
+            $token = $live->request($setup, $deadline, $session, $request->failedProvider());
         } catch (GeminiUnavailable $e) {
             report($e);
 

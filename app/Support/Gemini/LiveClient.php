@@ -49,13 +49,15 @@ class LiveClient
                     'bidiGenerateContentSetup' => $setup,
                 ]);
         } catch (ConnectionException $e) {
-            throw new GeminiUnavailable('Connexion à l\'API Gemini impossible : '.$e->getMessage());
+            $timedOut = str_contains($e->getMessage(), 'cURL error 28') || stripos($e->getMessage(), 'timed out') !== false;
+
+            throw new GeminiUnavailable($timedOut ? 'Pas de réponse de Gemini en 15 secondes.' : 'Connexion à l\'API Gemini impossible.');
         }
 
         if ($response->status() === 429 || $response->json('error.status') === 'RESOURCE_EXHAUSTED') {
             Log::warning('Gemini : quota atteint lors de la création d\'un jeton.', ['body' => $response->json()]);
 
-            throw new GeminiUnavailable('Quota Gemini atteint.', quotaExceeded: true);
+            throw new GeminiUnavailable('Quota Gemini atteint.'.self::detail($response->json('error.message')), quotaExceeded: true, httpStatus: $response->status());
         }
 
         $token = $response->json('name');
@@ -63,7 +65,7 @@ class LiveClient
         if ($response->failed() || ! is_string($token) || $token === '') {
             Log::error('Gemini : création de jeton refusée.', ['status' => $response->status(), 'body' => $response->json()]);
 
-            throw new GeminiUnavailable('Création du jeton refusée (HTTP '.$response->status().').');
+            throw new GeminiUnavailable('Création du jeton refusée (HTTP '.$response->status().')'.self::detail($response->json('error.message')).'.', httpStatus: $response->status());
         }
 
         return [
@@ -72,5 +74,12 @@ class LiveClient
                 ."/ws/google.ai.generativelanguage.{$version}.GenerativeService.BidiGenerateContentConstrained"
                 .'?access_token='.rawurlencode($token),
         ];
+    }
+
+    private static function detail(mixed $message): string
+    {
+        $message = trim(mb_substr(is_string($message) ? $message : '', 0, 200));
+
+        return $message === '' ? '' : ' : '.$message;
     }
 }

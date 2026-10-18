@@ -35,5 +35,6 @@
         <env name="OPENAI_API_KEY" value=""/>
         <env name="TTS_PROVIDERS" value="gemini,openai"/>
         <env name="TEXT_PROVIDERS" value="gemini,openai"/>
+        <env name="LIVE_PROVIDERS" value="gemini,openai"/>
     </php>
 </phpunit>

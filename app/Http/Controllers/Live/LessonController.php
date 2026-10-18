@@ -102,7 +102,7 @@ class LessonController extends Controller
         $setup = TeacherSetup::lesson($user, (int) ceil($allowedSeconds / 60), $request->handle(), $this->context($user, $programLesson));
 
         try {
-            $token = $live->request($setup, $deadline);
+            $token = $live->request($setup, $deadline, $lesson, $request->failedProvider());
         } catch (GeminiUnavailable $e) {
             report($e);
 

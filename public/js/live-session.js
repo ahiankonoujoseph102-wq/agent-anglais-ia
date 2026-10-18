@@ -1,13 +1,16 @@
 /*
  * Conversation vocale avec le professeur (évaluation, séance du jour, bilan de niveau et « Mes cours »).
  *
- * Le navigateur se connecte directement à l'API Gemini Live par WebSocket, avec
- * un jeton éphémère délivré par le serveur (la clé API ne quitte jamais le
- * serveur). Le serveur reste maître du temps : le jeton expire à la limite, et
- * le navigateur envoie un signal régulier qui enregistre le temps consommé.
+ * Deux fournisseurs, choisis par le serveur au DÉBUT de la séance (jamais au milieu) : Gemini Live
+ * (live-gemini.js : WebSocket, jeton éphémère) ou, en secours, OpenAI Realtime (live-openai.js : WebRTC,
+ * appel ouvert par le serveur). Tout ce qui est propre à un fournisseur est dans son adaptateur ; cet écran
+ * reçoit les mêmes événements dans les deux cas. La clé API ne quitte jamais le serveur, qui reste maître
+ * du temps : le jeton Gemini expire à la limite, l'appel OpenAI est raccroché par le serveur, et le
+ * navigateur envoie un signal régulier qui enregistre le temps consommé.
  *
- * Audio : micro en PCM 16 bits 16 kHz vers Gemini, voix du professeur reçue en
- * PCM 16 bits 24 kHz. La bouche du visage suit le volume de cette voix.
+ * Audio : Gemini reçoit le micro en PCM 16 bits 16 kHz et renvoie la voix en PCM 16 bits 24 kHz (tampons
+ * programmés ici) ; OpenAI échange le son par WebRTC (piste branchée sur la même chaîne de lecture). La
+ * bouche du visage suit le volume de cette voix.
  *
  * Le professeur 3D (teacher-view.js, teacher-3d.js) est facultatif : il se
  * charge en arrière-plan et reçoit la voix, le micro et les expressions.
@@ -33,6 +36,9 @@ const audioConfig = JSON.parse(root.dataset.audio);
 // Fin automatique après le verdict ; expressions du professeur 3D d'après ses paroles.
 const { ConversationEnd } = await import(root.dataset.conversationEnd);
 const { CueTracker } = await import(root.dataset.teacherCues);
+// Adaptateurs des fournisseurs (même langage d'événements pour l'écran).
+const { GeminiTransport } = await import(root.dataset.liveGemini);
+const { OpenAiTransport } = await import(root.dataset.liveOpenai);
 // Secondes, pour la fin automatique.
 const clock = () => performance.now() / 1000;
 const MIC_PREFERENCE = 'mic-device';
@@ -76,6 +82,12 @@ const OUTPUT_DELAY = 0.08;
 const THINKING_AFTER_MS = 1300;
 // Sans réponse du professeur pendant ce temps, on rend la parole à l'apprenant.
 const THINKING_MAX_MS = 12000;
+// OpenAI : voix encore dans le tampon de gigue du navigateur après la fin de l'envoi, en secondes.
+const STREAM_TAIL = 0.15;
+// OpenAI : volume au-dessus duquel la voix reçue est « audible » (fin réelle de la lecture).
+const AUDIBLE_LEVEL = 0.01;
+// OpenAI : après un arrêt de la voix, la fin déjà envoyée reste muette ce temps, en secondes.
+const STREAM_MUTE = 0.4;
 
 const TURN_TEXTS = {
     speaking: `${teacherName} parle…`,
@@ -93,13 +105,21 @@ const MESSAGES = {
     micOther: 'Le micro n\'a pas pu être activé. Fermez les autres applications qui l\'utilisent, puis réessayez.',
     network: 'Impossible de joindre le serveur. Vérifiez votre connexion internet, puis réessayez.',
     cut: 'La connexion avec le professeur a été coupée. Vérifiez votre connexion internet, puis appuyez sur « Se reconnecter ».',
+    counted: 'Le temps déjà utilisé est compté. Touchez « Se reconnecter » pour réessayer, ou relancez la séance un peu plus tard.',
     quota: 'Le professeur a atteint sa limite de conversations gratuites pour le moment. Réessayez un peu plus tard : votre temps non utilisé reste disponible.',
     pauseTooLong: 'La pause a duré trop longtemps : la conversation est terminée. Le temps déjà utilisé est décompté.',
 };
 
 const state = {
     config: null,
-    ws: null,
+    // Adaptateur du fournisseur en cours (live-gemini.js ou live-openai.js).
+    transport: null,
+    // Une connexion a été prête au moins une fois (sinon : rien n'a commencé).
+    everReady: false,
+    // Une parole a été échangée : plus jamais de changement de fournisseur.
+    spoke: false,
+    // Changement de fournisseur déjà demandé (une seule fois, avant la première parole).
+    switched: false,
     connected: false,
     ending: false,
     reconnecting: false,
@@ -129,6 +149,13 @@ const state = {
     // Sous-titres de l'évaluation pas encore envoyés au serveur (repli si le temps finit sans verdict).
     transcript: '',
     transcriptSpeaker: null,
+    // Derniers échanges (toutes les conversations) : contexte d'un nouvel appel OpenAI après une coupure.
+    history: '',
+    historySpeaker: null,
+    // OpenAI : phrases de l'apprenant par élément de conversation (la transcription arrive après sa phrase).
+    learnerLines: new Map(),
+    voiceSource: null,
+    lastAudibleAt: 0,
 };
 
 /* ---------- Échanges avec le serveur Laravel ---------- */
@@ -245,23 +272,65 @@ function renderTimer() {
     ui.timer.classList.toggle('timer-low', state.config !== null && seconds <= state.config.warning_seconds);
 }
 
-function subtitle(speaker, text) {
+function makeLine(speaker) {
+    const line = document.createElement('p');
+    line.className = `line line-${speaker}`;
+    line.dataset.speaker = speaker === 'teacher' ? 'Professeur' : 'Vous';
+    ui.subtitles.append(line);
+
+    return line;
+}
+
+/**
+ * Ligne de sous-titre : la réplique en cours, ou (OpenAI) la phrase de l'apprenant identifiée par son élément,
+ * placée avant la réponse du professeur même si sa transcription arrive après.
+ */
+function lineFor(speaker, key = null) {
+    if (speaker === 'learner' && key) {
+        let line = state.learnerLines.get(key);
+
+        if (!line) {
+            line = makeLine('learner');
+            line.hidden = true;
+            state.learnerLines.set(key, line);
+
+            while (state.learnerLines.size > 30) {
+                state.learnerLines.delete(state.learnerLines.keys().next().value);
+            }
+        }
+
+        return line;
+    }
+
+    const name = speaker === 'teacher' ? 'teacherLine' : 'learnerLine';
+
+    if (!state[name]) {
+        state[name] = makeLine(speaker);
+    }
+
+    return state[name];
+}
+
+function recordHistory(speaker, text) {
+    if (state.historySpeaker !== speaker) {
+        state.history += `\n${speaker === 'teacher' ? 'Teacher' : 'Learner'}: `;
+        state.historySpeaker = speaker;
+    }
+
+    state.history = (state.history + text).slice(-4000);
+}
+
+function subtitle(speaker, text, key = null) {
     if (!text) {
         return;
     }
 
-    const key = speaker === 'teacher' ? 'teacherLine' : 'learnerLine';
-
-    if (!state[key]) {
-        state[key] = document.createElement('p');
-        state[key].className = `line line-${speaker}`;
-        state[key].dataset.speaker = speaker === 'teacher' ? 'Professeur' : 'Vous';
-        ui.subtitles.append(state[key]);
-    }
-
-    state[key].textContent += text;
+    const line = lineFor(speaker, key);
+    line.hidden = false;
+    line.textContent += text;
     ui.subtitles.scrollTop = ui.subtitles.scrollHeight;
     recordTranscript(speaker, text);
+    recordHistory(speaker, text);
 
     // Expression du professeur 3D au moment où il dit « Great answer! », « You said… », « Goodbye! »…
     if (speaker === 'teacher') {
@@ -332,6 +401,10 @@ async function setupAudio() {
     limiter.attack.value = 0.002;
     limiter.release.value = 0.15;
     voice.connect(boost).connect(limiter).connect(output);
+    // Volume de la voix reçue (OpenAI) : fin réelle de la lecture, en plus de la fin de l'envoi.
+    const voiceAnalyser = context.createAnalyser();
+    voiceAnalyser.fftSize = 512;
+    voice.connect(voiceAnalyser);
     const delay = context.createDelay(0.5);
     delay.delayTime.value = OUTPUT_DELAY;
     const analyser = context.createAnalyser();
@@ -339,8 +412,9 @@ async function setupAudio() {
     output.connect(delay).connect(analyser).connect(context.destination);
 
     state.audio = {
-        context, stream, source, micBus, micAnalyser, output, voice, analyser,
+        context, stream, source, micBus, micAnalyser, output, voice, analyser, voiceAnalyser,
         micSamples: new Float32Array(micAnalyser.fftSize),
+        voiceSamples: new Float32Array(voiceAnalyser.fftSize),
         silence: new SilenceWatch({ seconds: audioConfig.silent_mic_seconds }),
         scheduler: new VoiceScheduler({ sampleRate: context.sampleRate }),
         // Contexte à une autre fréquence que la voix : rééchantillonnage continu par nos soins.
@@ -484,25 +558,25 @@ function createAudioContext(stream) {
     return { context, source: context.createMediaStreamSource(stream) };
 }
 
-function base64FromBuffer(buffer) {
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-
-    for (let i = 0; i < bytes.length; i += 0x8000) {
-        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-    }
-
-    return btoa(binary);
-}
-
 /**
  * Instant (horloge audio) où le haut-parleur se tait vraiment : fin programmée
  * du dernier tampon de voix, retard ajouté et latence de sortie de l'appareil.
  */
 function voiceEnd() {
     const { context, scheduler } = state.audio;
+    const latency = context.outputLatency || context.baseLatency || 0;
 
-    return voiceEndsAt(scheduler.endTime, OUTPUT_DELAY, context.outputLatency || context.baseLatency || 0);
+    // OpenAI (piste WebRTC) : la voix parle de « started » à « stopped », puis le tampon de gigue du
+    // navigateur se vide ; on prend la plus tardive des deux fins (envoi terminé, dernier son audible).
+    if (state.transport?.streamsAudio) {
+        if (state.transport.speaking) {
+            return context.currentTime + 1;
+        }
+
+        return voiceEndsAt(Math.max(state.transport.stoppedAt + STREAM_TAIL, state.lastAudibleAt), OUTPUT_DELAY, latency);
+    }
+
+    return voiceEndsAt(scheduler.endTime, OUTPUT_DELAY, latency);
 }
 
 /**
@@ -519,19 +593,26 @@ function teacherSpeaking() {
  * « audioStreamEnd », comme le demande Google ; le flux reprend au paquet suivant.
  */
 function sendAudio(buffer) {
-    if (!state.connected || state.ending || !state.audio || !state.gate || state.ws?.readyState !== WebSocket.OPEN) {
+    const transport = state.transport;
+
+    if (!state.connected || state.ending || !state.audio || !state.gate || !transport?.isOpen) {
         return;
     }
 
     // Après le verdict, micro fermé, sauf pendant les questions libres de l'évaluation (jusqu'à la conclusion).
     const action = state.gate.decide(state.audio.context.currentTime, voiceEnd(), state.paused || state.muted || !state.end.micOpen);
 
+    // OpenAI : le son part par la piste WebRTC ; la même porte l'ouvre ou la ferme.
+    if (transport.streamsAudio) {
+        transport.setMicOpen(action === 'send');
+
+        return;
+    }
+
     if (action === 'send' && buffer) {
-        state.ws.send(JSON.stringify({
-            realtimeInput: { audio: { data: base64FromBuffer(buffer), mimeType: `audio/pcm;rate=${INPUT_RATE}` } },
-        }));
+        transport.sendAudio(buffer);
     } else if (action === 'end') {
-        state.ws.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
+        transport.endAudio();
     }
 }
 
@@ -586,6 +667,37 @@ function playAudio(base64) {
     node.onended = () => sources.delete(node);
 }
 
+/**
+ * OpenAI : voix reçue sur une piste WebRTC, branchée sur la même chaîne que Gemini (fondu, volume,
+ * limiteur, retard pour la lecture labiale, professeur 3D).
+ */
+function attachVoiceStream(stream) {
+    if (!state.audio) {
+        return;
+    }
+
+    const { context, voice } = state.audio;
+
+    try { state.voiceSource?.disconnect(); } catch { /* déjà débranché */ }
+
+    state.voiceSource = context.createMediaStreamSource(stream);
+    state.voiceSource.connect(voice);
+}
+
+/** OpenAI : voix de nouveau audible (après une pause ou une interruption). */
+function unmuteVoiceStream() {
+    if (!state.audio || !state.transport?.streamsAudio || state.paused) {
+        return;
+    }
+
+    const { context, voice } = state.audio;
+    const now = context.currentTime;
+
+    voice.gain.cancelScheduledValues(now);
+    voice.gain.setValueAtTime(voice.gain.value, now);
+    voice.gain.linearRampToValueAtTime(1, now + 0.005);
+}
+
 function stopPlayback() {
     if (!state.audio) {
         return;
@@ -599,6 +711,17 @@ function stopPlayback() {
     voice.gain.cancelScheduledValues(now);
     voice.gain.setValueAtTime(voice.gain.value, now);
     voice.gain.linearRampToValueAtTime(0, end);
+
+    // OpenAI : OpenAI efface la voix pas encore envoyée ; ce qui est déjà dans le tampon reste muet un instant
+    // (en pause : jusqu'à la reprise).
+    if (state.transport?.streamsAudio) {
+        if (!state.paused) {
+            voice.gain.setValueAtTime(1, end + STREAM_MUTE);
+        }
+
+        return;
+    }
+
     voice.gain.setValueAtTime(1, end + 0.005);
 
     sources.forEach((node) => {
@@ -629,6 +752,7 @@ function animateMouth() {
         }
 
         const volume = Math.min(1, Math.sqrt(sum / samples.length) * 5);
+        trackAudibleVoice();
         opening = opening * 0.6 + volume * 0.4;
         ui.mouth.setAttribute('ry', (3 + opening * 17).toFixed(1));
         updateMicMeter();
@@ -636,6 +760,23 @@ function animateMouth() {
     };
 
     requestAnimationFrame(frame);
+}
+
+/**
+ * OpenAI : dernier instant où la voix reçue était audible (avant le retard de la lecture labiale).
+ */
+function trackAudibleVoice() {
+    const { voiceAnalyser, voiceSamples, context } = state.audio;
+
+    if (!state.transport?.streamsAudio) {
+        return;
+    }
+
+    voiceAnalyser.getFloatTimeDomainData(voiceSamples);
+
+    if (rms(voiceSamples) > AUDIBLE_LEVEL) {
+        state.lastAudibleAt = context.currentTime;
+    }
 }
 
 /**
@@ -657,12 +798,17 @@ function updateMicMeter() {
     }
 }
 
-/* ---------- Connexion à Gemini Live ---------- */
+/* ---------- Connexion au fournisseur (Gemini ou OpenAI) ---------- */
 
-async function connect({ planned = false } = {}) {
+/**
+ * @param {boolean} planned  renouvellement prévu du jeton (Gemini) : la connexion actuelle continue en attendant
+ * @param {?string} failed   fournisseur auquel on n'a pas pu se connecter avant la première parole : le serveur
+ *                           commence alors la séance chez le suivant (une seule fois)
+ */
+async function connect({ planned = false, failed = null } = {}) {
     setStatus(planned ? 'En conversation' : 'Connexion au professeur…');
 
-    const result = await post(urls.connect, { handle: state.resumeHandle });
+    const result = await post(urls.connect, { handle: state.resumeHandle, failed });
 
     if (!result.ok) {
         if (planned && state.connected) {
@@ -673,23 +819,14 @@ async function connect({ planned = false } = {}) {
 
         if (result.status === 409 || result.status === 403) {
             finish('refused', message);
-        } else if (state.config === null) {
-            // Première connexion impossible : rien n'a commencé, on peut réessayer.
-            setStatus('Indisponible');
-            showError(message);
-            ui.intro.hidden = false;
-            ui.subtitles.hidden = true;
-            ui.start.disabled = false;
         } else {
-            setStatus('Connexion coupée');
-            showError(message);
-            ui.resume.hidden = false;
+            connectionFailed(message);
         }
 
         return;
     }
 
-    const isResume = state.config !== null;
+    const isResume = state.everReady;
     state.config = result.data;
     state.tokenExpiresAt = Date.now() + state.config.token_expires_in * 1000;
 
@@ -708,24 +845,62 @@ async function connect({ planned = false } = {}) {
 
     setRemaining(state.config.remaining_seconds);
 
-    const ws = new WebSocket(state.config.websocket_url);
-    let ready = false;
+    const transport = createTransport(state.config);
+    transport.handlers = handlersFor(transport, { planned, isResume });
 
-    ws.onopen = () => ws.send(JSON.stringify({ setup: state.config.setup }));
+    if (transport.streamsAudio) {
+        try {
+            await transport.connect();
+        } catch (error) {
+            transport.handlers.onClose({ reason: error.message ?? '', ready: false, message: error.serverMessage, quota: error.quota });
+        }
+    } else {
+        transport.connect();
+    }
+}
 
-    ws.onmessage = async (event) => {
-        const text = typeof event.data === 'string' ? event.data : await event.data.text();
-        const message = JSON.parse(text);
+/**
+ * Première connexion impossible : rien n'a commencé, on peut réessayer. En cours de séance : bouton
+ * « Se reconnecter » (même fournisseur), le temps déjà utilisé est compté.
+ */
+function connectionFailed(message) {
+    if (!state.everReady) {
+        setStatus('Indisponible');
+        showError(message);
+        ui.intro.hidden = false;
+        ui.subtitles.hidden = true;
+        ui.start.disabled = false;
+    } else {
+        setStatus('Connexion coupée');
+        showError(`${message} ${MESSAGES.counted}`);
+        ui.resume.hidden = false;
+    }
+}
 
-        if (message.setupComplete && !ready) {
-            ready = true;
-            const previous = state.ws;
-            state.ws = ws;
+function createTransport(config) {
+    if (config.provider === 'openai') {
+        return new OpenAiTransport(config, {}, { post, context: state.audio?.context, micBus: state.audio?.micBus });
+    }
+
+    return new GeminiTransport(config, {}, { inputRate: INPUT_RATE });
+}
+
+/**
+ * Ce que l'écran fait de chaque événement d'un fournisseur. Les événements d'une ancienne connexion
+ * (renouvellement, reconnexion) sont ignorés.
+ */
+function handlersFor(transport, { planned, isResume }) {
+    const current = () => transport === state.transport;
+
+    return {
+        onReady() {
+            const previous = state.transport;
+            state.transport = transport;
             state.connected = true;
             state.reconnecting = false;
+            state.everReady = true;
 
-            if (previous && previous !== ws) {
-                previous.onclose = null;
+            if (previous && previous !== transport) {
                 previous.close();
             }
 
@@ -741,6 +916,12 @@ async function connect({ planned = false } = {}) {
             // Nouvelle connexion : flux du micro remis à zéro.
             state.gate = new MicGate({ guard: (state.config.echo_guard_ms ?? 400) / 1000 });
 
+            // Nouvel appel OpenAI après une coupure : OpenAI ne garde rien, on lui redonne les derniers échanges.
+            if (isResume && !planned && transport.streamsAudio && state.history.trim() !== '') {
+                transport.sendContext('CONVERSATION SO FAR (context only, the connection was cut; do not greet again and do not repeat it):'
+                    + `${state.history}\n${state.end.hasVerdict ? 'The result has ALREADY been saved: never call the function again.' : ''}`);
+            }
+
             // Un seul accueil : à la première connexion. En pause, la reprise
             // de la pause suffira (inutile de faire parler le professeur).
             if (!planned && !(isResume && state.paused)) {
@@ -752,24 +933,189 @@ async function connect({ planned = false } = {}) {
             }
 
             scheduleRenewal();
-        }
+        },
 
-        if (ws === state.ws) {
-            handleMessage(message);
-        }
-    };
+        onAudio(base64) {
+            if (current()) {
+                state.spoke = true;
+                playAudio(base64);
+            }
+        },
 
-    ws.onclose = (event) => {
-        // Échec d'un renouvellement : l'ancienne connexion continue, rien à faire.
-        if (ws === state.ws || (!ready && !(planned && state.connected))) {
-            onClose(event);
-        }
+        onRemoteStream(stream) {
+            attachVoiceStream(stream);
+        },
+
+        onSpeechStarted() {
+            if (!current()) {
+                return;
+            }
+
+            state.spoke = true;
+
+            // En pause ou après « Interrompre » : cette voix n'est pas jouée.
+            if (state.paused || state.discardTurn) {
+                transport.cancel();
+
+                return;
+            }
+
+            state.awaitingSince = 0;
+            state.learnerHeardAt = 0;
+            unmuteVoiceStream();
+            renderTurn();
+        },
+
+        onGenerating() {
+            if (!current()) {
+                return;
+            }
+
+            state.generating = true;
+
+            // OpenAI peut répondre à une phrase coupée par la pause : réponse annulée.
+            if (state.paused) {
+                transport.cancel();
+            }
+        },
+
+        onLearnerStarted() {
+            if (current()) {
+                teacher?.learnerSpoke();
+            }
+        },
+
+        onLearnerStopped(key) {
+            if (!current()) {
+                return;
+            }
+
+            // La phrase de l'apprenant prend sa place avant la réponse du professeur.
+            if (key) {
+                lineFor('learner', key);
+            }
+
+            state.teacherLine = null;
+            state.cues.reset();
+            state.awaitingSince = Date.now();
+            renderTurn();
+        },
+
+        onLearnerText(text, key) {
+            if (!current()) {
+                return;
+            }
+
+            state.spoke = true;
+            teacher?.learnerSpoke();
+            state.teacherLine = null;
+            state.cues.reset();
+            // Sous-titre arrivé en retard, pendant la réponse du professeur : ce n'est plus son tour.
+            state.learnerHeardAt = state.generating || key ? 0 : Date.now();
+            subtitle('learner', text, key);
+            renderTurn();
+        },
+
+        onTeacherText(text) {
+            // Ce qui n'est pas joué (pause, interruption) n'apparaît pas non plus en sous-titre.
+            if (!current() || !text || state.paused || state.discardTurn) {
+                return;
+            }
+
+            state.spoke = true;
+            state.learnerLine = null;
+            subtitle('teacher', text);
+
+            // Phrase fixe de la conclusion : micro fermé, coupure une fois la voix terminée.
+            if (state.end.teacherSaid(text, clock())) {
+                endMicStream();
+            }
+
+            renderTurn();
+        },
+
+        onInterrupted() {
+            if (current()) {
+                stopPlayback();
+                state.generating = false;
+                state.discardTurn = false;
+                renderTurn();
+            }
+        },
+
+        onTurnComplete() {
+            if (!current()) {
+                return;
+            }
+
+            state.end.turnComplete(clock());
+            state.cues.reset();
+            state.teacherLine = null;
+            state.learnerLine = null;
+            state.generating = false;
+            state.discardTurn = false;
+            state.awaitingSince = 0;
+            renderTurn();
+        },
+
+        onFunctionCall(call) {
+            if (current()) {
+                handleFunctionCall(call);
+                state.awaitingSince = Date.now();
+            }
+        },
+
+        onUsage(input, output) {
+            state.tokens.input += input;
+            state.tokens.output += output;
+        },
+
+        onResumeHandle(handle) {
+            state.resumeHandle = handle;
+        },
+
+        onGoAway() {
+            if (current()) {
+                renew();
+            }
+        },
+
+        onClose(info) {
+            if (current()) {
+                onClose(info);
+
+                return;
+            }
+
+            // Échec d'un renouvellement prévu : l'ancienne connexion continue, rien à faire.
+            if (info.ready || (planned && state.connected)) {
+                return;
+            }
+
+            // Connexion impossible avant la première parole : la séance commence chez l'autre fournisseur
+            // (le serveur décide ; une seule fois, jamais en cours de séance).
+            if (!state.spoke && !state.switched && !planned && !state.ending) {
+                state.switched = true;
+                setStatus('Connexion au professeur…');
+                connect({ failed: transport.provider });
+
+                return;
+            }
+
+            if (info.message) {
+                connectionFailed(info.quota ? MESSAGES.quota : info.message);
+
+                return;
+            }
+
+            onClose(info);
+        },
     };
 }
 
 function sendText(text) {
-    if (state.ws?.readyState === WebSocket.OPEN && text) {
-        state.ws.send(JSON.stringify({ realtimeInput: { text } }));
+    if (state.transport?.isOpen && text) {
+        state.transport.sendText(text);
     }
 }
 
@@ -808,79 +1154,6 @@ function renew() {
 
     state.reconnecting = true;
     connect({ planned: true }).finally(() => { state.reconnecting = false; });
-}
-
-function handleMessage(message) {
-    const content = message.serverContent;
-
-    if (content) {
-        if (content.modelTurn) {
-            state.generating = true;
-        }
-
-        for (const part of content.modelTurn?.parts ?? []) {
-            if (part.inlineData?.data) {
-                playAudio(part.inlineData.data);
-            }
-        }
-
-        if (content.inputTranscription?.text) {
-            teacher?.learnerSpoke();
-            state.teacherLine = null;
-            state.cues.reset();
-            // Sous-titre arrivé en retard, pendant la réponse du professeur : ce n'est plus son tour.
-            state.learnerHeardAt = state.generating ? 0 : Date.now();
-            subtitle('learner', content.inputTranscription.text);
-        }
-
-        // Ce qui n'est pas joué (pause, interruption) n'apparaît pas non plus en sous-titre.
-        if (content.outputTranscription?.text && !state.paused && !state.discardTurn) {
-            state.learnerLine = null;
-            subtitle('teacher', content.outputTranscription.text);
-
-            // Phrase fixe de la conclusion : micro fermé, coupure une fois la voix terminée.
-            if (state.end.teacherSaid(content.outputTranscription.text, clock())) {
-                endMicStream();
-            }
-        }
-
-        if (content.interrupted) {
-            stopPlayback();
-            state.generating = false;
-            state.discardTurn = false;
-        }
-
-        if (content.turnComplete) {
-            state.end.turnComplete(clock());
-            state.cues.reset();
-            state.teacherLine = null;
-            state.learnerLine = null;
-            state.generating = false;
-            state.discardTurn = false;
-            state.awaitingSince = 0;
-        }
-
-        renderTurn();
-    }
-
-    if (message.toolCall?.functionCalls) {
-        message.toolCall.functionCalls.forEach(handleFunctionCall);
-        state.awaitingSince = Date.now();
-    }
-
-    if (message.usageMetadata) {
-        state.tokens.input += message.usageMetadata.promptTokenCount ?? 0;
-        state.tokens.output += message.usageMetadata.responseTokenCount ?? message.usageMetadata.candidatesTokenCount ?? 0;
-    }
-
-    if (message.sessionResumptionUpdate?.resumable && message.sessionResumptionUpdate.newHandle) {
-        state.resumeHandle = message.sessionResumptionUpdate.newHandle;
-    }
-
-    if (message.goAway) {
-        // Google va fermer cette connexion : on en ouvre une autre sans attendre.
-        renew();
-    }
 }
 
 // Ce que le professeur doit faire après l'enregistrement du résultat : une seule annonce, puis fin.
@@ -965,10 +1238,8 @@ async function handleFunctionCall(call) {
         response = { result: 'saved', next_step: AFTER_VERDICT[call.name] };
     }
 
-    if (state.ws?.readyState === WebSocket.OPEN) {
-        state.ws.send(JSON.stringify({
-            toolResponse: { functionResponses: [{ id: call.id, name: call.name, response }] },
-        }));
+    if (state.transport?.isOpen) {
+        state.transport.sendFunctionResult(call, response);
     }
 
     if (saved) {
@@ -1168,6 +1439,8 @@ function setPressed(button, pressed) {
  */
 function silenceTeacher() {
     stopPlayback();
+    // OpenAI : réponse annulée et voix pas encore jouée effacée (Gemini : la fin est simplement ignorée).
+    state.transport?.cancel();
 
     if (state.generating) {
         state.discardTurn = true;
@@ -1199,6 +1472,7 @@ function togglePause() {
         setStatus('En pause');
     } else {
         setStatus('En conversation');
+        unmuteVoiceStream();
         // L'apprenant n'a rien entendu pendant la pause : le professeur reprend sa question.
         cue(state.config.cues.pause_resume);
     }
@@ -1236,10 +1510,7 @@ async function finish(reason, message = '') {
     state.timers.forEach(clearInterval);
     clearTimeout(state.renewal);
 
-    if (state.ws) {
-        state.ws.onclose = null;
-        state.ws.close();
-    }
+    state.transport?.close();
 
     stopPlayback();
     teacher?.expression('goodbye');

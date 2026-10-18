@@ -23,6 +23,7 @@ use App\Http\Controllers\Live\AssessmentController;
 use App\Http\Controllers\Live\CourseSessionController;
 use App\Http\Controllers\Live\LessonController;
 use App\Http\Controllers\Live\LevelTestController;
+use App\Http\Controllers\Live\RealtimeCallController;
 use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\Program\AttestationController;
 use App\Http\Controllers\Program\LessonHistoryController;
@@ -126,6 +127,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/{course}/seance', [CourseSessionController::class, 'show'])->whereNumber('course')->name('session');
         Route::post('/{course}/seance/connexion', [CourseSessionController::class, 'connect'])->whereNumber('course')->middleware('throttle:10,1')->name('connect');
     });
+
+    // Séances en direct chez OpenAI : ouverture de l'appel WebRTC (adresse à usage unique).
+    Route::post('/en-direct/appel/{ticket}', [RealtimeCallController::class, 'store'])->where('ticket', '[A-Za-z0-9]{40}')->middleware('throttle:10,1')->name('live.call');
 
     // Séance du jour des abonnés.
     Route::prefix('seance')->name('lesson.')->controller(LessonController::class)->group(function () {
