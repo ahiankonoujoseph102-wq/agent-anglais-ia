@@ -2,9 +2,10 @@
 
 namespace App\Support\Gemini;
 
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use App\Support\Text\TextProvider;
+use App\Support\Text\TextProviders;
+use App\Support\Text\TextRequest;
+use App\Support\Text\TextResult;
 
 /**
  * Lecture d'une capture d'écran de paiement Mobile Money par le modèle texte
@@ -13,7 +14,8 @@ use Illuminate\Support\Facades\Log;
  *
  * Le texte de l'image est une DONNÉE, jamais une consigne. Le modèle ne décide
  * rien : il recopie ce qu'il voit, et ce sont les règles de App\Support\PaymentChecks
- * qui décident. En cas d'échec (clé absente, panne, réponse illisible) : null.
+ * qui décident. Gemini d'abord, OpenAI en secours avec la même demande (App\Support\Text\TextProviders).
+ * Si aucun fournisseur ne répond (clé absente, panne, réponse illisible) : null.
  *
  * Documentation : https://ai.google.dev/gemini-api/docs/image-understanding
  * et https://ai.google.dev/gemini-api/docs/structured-output (API Interactions).
@@ -28,54 +30,34 @@ class ProofReader
         .'Use null for every value you cannot read with certainty.';
 
     /**
-     * @return array{readable: bool, operator: ?string, amount: ?int, currency: ?string, date_time: ?string, transaction_id: ?string, recipient_number: ?string, recipient_name: ?string}|null
+     * @return array{readable: bool, operator: ?string, amount: ?int, currency: ?string, date_time: ?string, transaction_id: ?string, recipient_number: ?string, recipient_name: ?string, provider: string}|null
      */
-    public function read(string $image, string $mimeType): ?array
+    public function read(string $image, string $mimeType, ?TextProvider $only = null): ?array
     {
-        $key = config('services.gemini.key');
+        $result = TextProviders::generate($this->request($image, $mimeType), $only, fn (TextResult $result) => $result->json() !== null);
 
-        if (blank($key)) {
-            return null;
-        }
+        // Lu par un fournisseur (Gemini, ou OpenAI en secours) : la lecture garde son nom pour l'administration.
+        return $result !== null ? self::normalize($result->json()) + ['provider' => $result->provider] : null;
+    }
 
-        try {
-            $response = Http::withHeaders(['x-goog-api-key' => $key])
-                ->acceptJson()
-                ->timeout(30)
-                ->post(rtrim(config('services.gemini.base_url'), '/').'/'.config('services.gemini.text_api_version').'/interactions', [
-                    'model' => config('services.gemini.text_model'),
-                    'system_instruction' => self::INSTRUCTIONS,
-                    'input' => [
-                        ['type' => 'text', 'text' => 'Transcribe the payment details shown in this screenshot.'],
-                        ['type' => 'image', 'data' => base64_encode($image), 'mime_type' => $mimeType],
-                    ],
-                    'response_format' => [
-                        'type' => 'text',
-                        'mime_type' => 'application/json',
-                        'schema' => self::schema(),
-                    ],
-                    'generation_config' => [
-                        'max_output_tokens' => 400,
-                        'thinking_level' => 'low',
-                    ],
-                    // Capture personnelle : rien à conserver chez Google.
-                    'store' => false,
-                ]);
-        } catch (ConnectionException $e) {
-            Log::warning('Lecture de capture : connexion impossible.', ['message' => $e->getMessage()]);
-
-            return null;
-        }
-
-        if ($response->failed()) {
-            Log::warning('Lecture de capture : requête refusée.', ['status' => $response->status()]);
-
-            return null;
-        }
-
-        $data = json_decode(TextClient::outputText($response->json('steps', [])), true);
-
-        return is_array($data) ? self::normalize($data) : null;
+    /**
+     * La même demande pour tous les fournisseurs : mêmes consignes, même image, même schéma.
+     */
+    public function request(string $image, string $mimeType): TextRequest
+    {
+        return new TextRequest(
+            kind: 'proof',
+            instructions: self::INSTRUCTIONS,
+            parts: [
+                TextRequest::text('Transcribe the payment details shown in this screenshot.'),
+                TextRequest::image($image, $mimeType),
+            ],
+            schema: self::schema(),
+            schemaName: 'payment_proof',
+            maxTokens: 400,
+            timeout: 30,
+            effort: 'low',
+        );
     }
 
     /**

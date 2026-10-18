@@ -11,12 +11,14 @@ use App\Models\Subscription;
 use App\Models\User;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\SpeechUsage;
+use App\Support\Text\TextProviders;
+use App\Support\Text\TextUsage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 
 /**
  * Durée réelle et jetons consommés par conversation, pour calculer le coût par apprenant ; synthèse vocale
- * des messages à part, par fournisseur.
+ * des messages et analyse de texte et d'images à part, par fournisseur.
  */
 class UsageController extends Controller
 {
@@ -88,6 +90,9 @@ class UsageController extends Controller
             // Synthèse vocale des messages (bienvenue, résultat, essais) : à part, par fournisseur.
             'speech' => SpeechUsage::totals(),
             'speechProviders' => SpeechProviders::all(),
+            'text' => TextUsage::totals(),
+            'textKinds' => TextUsage::byKind(),
+            'textProviders' => TextProviders::all(),
         ]);
     }
 

@@ -145,6 +145,7 @@ class ProgramBuilder
             .'Ce qu\'il trouve difficile : '.$difficulties."\n"
             .'Jours de travail : '.$program->studyDaysLabel()."\n"
             .'Premières unités : '.implode(' ; ', $units),
+            kind: 'program',
         );
 
         return $written ?? sprintf(

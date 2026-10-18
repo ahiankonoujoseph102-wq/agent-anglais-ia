@@ -10,5 +10,6 @@
     <a href="{{ route('admin.settings.edit') }}" @class(['active' => request()->routeIs('admin.settings.*')]) @if (request()->routeIs('admin.settings.*')) aria-current="page" @endif><x-icon name="settings" /> Réglages</a>
     <a href="{{ route('admin.voices.index') }}" @class(['active' => request()->routeIs('admin.voices.*')]) @if (request()->routeIs('admin.voices.*')) aria-current="page" @endif><x-icon name="headphones" /> Essai des voix</a>
     <a href="{{ route('admin.voice-diagnostic.index') }}" @class(['active' => request()->routeIs('admin.voice-diagnostic.*')]) @if (request()->routeIs('admin.voice-diagnostic.*')) aria-current="page" @endif><x-icon name="mic" /> Diagnostic de la voix</a>
+    <a href="{{ route('admin.text-diagnostic.index') }}" @class(['active' => request()->routeIs('admin.text-diagnostic.*')]) @if (request()->routeIs('admin.text-diagnostic.*')) aria-current="page" @endif><x-icon name="file-text" /> Diagnostic des fournisseurs</a>
     <a href="{{ route('admin.icons.index') }}" @class(['active' => request()->routeIs('admin.icons.*')]) @if (request()->routeIs('admin.icons.*')) aria-current="page" @endif><x-icon name="palette" /> Aperçu des icônes</a>
 </nav>

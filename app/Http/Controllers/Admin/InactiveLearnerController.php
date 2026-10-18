@@ -82,6 +82,7 @@ class InactiveLearnerController extends Controller
             .'Pas de reproche, pas d\'emoji excessif (un seul au maximum), pas de lien.',
             "Encourage {$user->name} à reprendre ses séances d'anglais : aucune séance depuis {$days} jours. {$context}",
             200,
+            'encouragement',
         ) ?? sprintf(
             'Bonjour %s, votre professeur d\'anglais %s vous attend ! Cela fait %d jours que nous ne nous sommes pas parlé : '
             .'une petite séance aujourd\'hui, même courte, et vous gardez votre élan. À tout de suite sur le site !',
