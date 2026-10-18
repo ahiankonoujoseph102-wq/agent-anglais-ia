@@ -25,7 +25,8 @@ return new class extends Migration
             $table->dateTime('spoken_at');
             $table->timestamps();
 
-            $table->unique(['conversation_type', 'conversation_id', 'position']);
+            // Nom court : le nom automatique dépasserait les 64 caractères permis par MySQL.
+            $table->unique(['conversation_type', 'conversation_id', 'position'], 'conversation_lines_position_unique');
             $table->index('created_at');
         });
     }
