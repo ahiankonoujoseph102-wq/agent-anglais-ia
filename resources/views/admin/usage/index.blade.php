@@ -79,6 +79,54 @@
         Les séances orales en direct n'en font pas partie.
     </p>
 
+    {{-- Modèle texte (captures, « Mes cours », estimation, rédactions) : Gemini d'abord, OpenAI en secours. --}}
+    <h2 class="next-step">Analyse de texte et d'images</h2>
+    <div class="stats">
+        @foreach ($textProviders as $provider)
+            @php
+                $total = $text[$provider->name()];
+            @endphp
+            <div class="stat" data-text-usage="{{ $provider->name() }}">
+                <div class="label">{{ $provider->label() }}</div>
+                <div class="value">{{ $total['count'] }}</div>
+                <div class="detail">
+                    {{ $total['count'] > 1 ? 'demandes' : 'demande' }} ·
+                    {{ number_format($total['input_tokens'], 0, ',', ' ') }} / {{ number_format($total['output_tokens'], 0, ',', ' ') }} jetons ·
+                    {{ UsageCost::format($total['cost']) }}
+                </div>
+            </div>
+        @endforeach
+    </div>
+    @if ($textKinds !== [])
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Usage</th>
+                    @foreach ($textProviders as $provider)
+                        <th>{{ $provider->label() }}</th>
+                    @endforeach
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (\App\Support\Text\TextRequest::KINDS as $kind => $label)
+                    @continue(! isset($textKinds[$kind]))
+                    <tr>
+                        <td>{{ $label }}</td>
+                        @foreach ($textProviders as $provider)
+                            <td>{{ $textKinds[$kind][$provider->name()] ?? 0 }}</td>
+                        @endforeach
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+    <p class="muted small">
+        Coût estimé par million de jetons : Gemini {{ UsageCost::format((float) config('services.text.pricing.gemini.input')) }} en entrée
+        et {{ UsageCost::format((float) config('services.text.pricing.gemini.output')) }} en sortie (palier gratuit),
+        OpenAI {{ UsageCost::format((float) config('services.text.pricing.openai.input')) }} en entrée
+        et {{ UsageCost::format((float) config('services.text.pricing.openai.output')) }} en sortie (tarif publié).
+    </p>
+
     <h2 class="next-step">Par apprenant</h2>
     @if ($learners->isEmpty())
         <div class="card empty-state"><span class="icon-bubble"><x-icon name="chart" /></span><p>Aucune conversation pour le moment.</p></div>

@@ -128,7 +128,29 @@ return [
         'providers' => array_values(array_filter(array_map('trim', explode(',', strtolower((string) env('TTS_PROVIDERS', 'gemini,openai')))))),
     ],
 
-    // OpenAI : secours de la synthèse vocale uniquement (API Audio, « speech »).
+    // Modèle texte (captures de paiement, « Mes cours », estimation du niveau, rédactions) : ordre des
+    // fournisseurs, le premier d'abord, le suivant en secours pour LA MÊME demande (« gemini,openai », ou
+    // « openai » seul). Un fournisseur sans clé est ignoré.
+    'text' => [
+        'providers' => array_values(array_filter(array_map('trim', explode(',', strtolower((string) env('TEXT_PROVIDERS', 'gemini,openai')))))),
+        // Après une limite (429) ou une clé refusée, le fournisseur est mis de côté pendant ce temps.
+        'pause_seconds' => 120,
+        // Tarifs en dollars US par million de jetons, pour l'estimation de la page « Consommation ».
+        // Gemini : 0 tant que le palier gratuit est utilisé. OpenAI : tarif publié de gpt-6-luna
+        // (developers.openai.com/api/docs/pricing, relevé du 18 octobre 2026).
+        'pricing' => [
+            'gemini' => [
+                'input' => (float) env('GEMINI_TEXT_INPUT_PRICE', 0),
+                'output' => (float) env('GEMINI_TEXT_OUTPUT_PRICE', 0),
+            ],
+            'openai' => [
+                'input' => (float) env('OPENAI_TEXT_INPUT_PRICE', 0.10),
+                'output' => (float) env('OPENAI_TEXT_OUTPUT_PRICE', 0.50),
+            ],
+        ],
+    ],
+
+    // OpenAI : secours de la synthèse vocale (API Audio, « speech ») et du modèle texte (API Responses).
     // Source : platform.openai.com/docs/guides/text-to-speech et /docs/models/gpt-4o-mini-tts (relevé d'octobre 2026).
     'openai' => [
         'key' => env('OPENAI_API_KEY'),
@@ -141,6 +163,11 @@ return [
         'tts_spacing_seconds' => 1,
         // Environ 0,015 $ par minute de voix générée (tarif publié pour gpt-4o-mini-tts).
         'tts_cost_per_minute' => (float) env('OPENAI_TTS_COST_PER_MINUTE', 0.015),
+        // Modèle texte de secours : le plus économique des modèles actuels qui lisent images et PDF et
+        // respectent un schéma JSON. Source : developers.openai.com/api/docs/models/gpt-6-luna (octobre 2026).
+        'text_model' => env('OPENAI_TEXT_MODEL') ?: 'gpt-6-luna',
+        // Réflexion pour les lectures (captures, leçons) : none, low, medium, high.
+        'text_reasoning' => env('OPENAI_TEXT_REASONING') ?: 'low',
     ],
 
 ];

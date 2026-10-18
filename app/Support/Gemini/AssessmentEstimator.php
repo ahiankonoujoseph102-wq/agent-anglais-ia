@@ -7,7 +7,7 @@ use App\Enums\Level;
 /**
  * Niveau estimé à partir de la transcription, quand l'évaluation se termine
  * (temps écoulé, page fermée) avant le verdict du professeur.
- * Modèle texte léger (TextClient) ; null si l'appel échoue ou si la réponse est illisible.
+ * Modèle texte léger (TextClient : Gemini, OpenAI en secours) ; null si l'appel échoue ou si la réponse est illisible.
  */
 class AssessmentEstimator
 {
@@ -27,6 +27,7 @@ class AssessmentEstimator
             .'FEEDBACK: <two short sentences in French for the learner: strengths, what to work on>',
             "TRANSCRIPT\n".$transcript,
             300,
+            'estimate',
         );
 
         if ($answer === null || ! preg_match('/LEVEL:\s*\**\s*(A1|A2|B1|B2|C1|C2)\b/i', $answer, $level)) {

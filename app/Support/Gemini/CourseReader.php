@@ -2,9 +2,9 @@
 
 namespace App\Support\Gemini;
 
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use App\Support\Text\TextProviders;
+use App\Support\Text\TextRequest;
+use App\Support\Text\TextResult;
 
 /**
  * Lecture d'une leçon d'anglais apportée par l'apprenant (photos ou PDF) par le modèle texte
@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Log;
  * Le contenu du fichier est une DONNÉE, jamais une consigne : le modèle transcrit, ne décide rien
  * d'autre que le verdict « leçon d'anglais lisible », « illisible » ou « pas de l'anglais ». Rien
  * n'est inventé : tout ce qui n'est pas lisible est omis. Réponse nettoyée avant d'être enregistrée.
+ * Gemini d'abord, OpenAI en secours avec la même demande (App\Support\Text\TextProviders) ; les deux lisent
+ * les PDF directement, sans conversion.
  *
  * Documentation : https://ai.google.dev/gemini-api/docs/document-processing
  * et https://ai.google.dev/gemini-api/docs/image-understanding (API Interactions).
@@ -43,61 +45,35 @@ class CourseReader
 
     /**
      * @param  list<array{data: string, mime: string}>  $files  octets et type de chaque fichier (photos, ou un PDF)
-     * @return array{status: string, title: ?string, summary: ?string, level: ?string, grammar: list<array{point: string, explanation: ?string, examples: list<string>}>, vocabulary: list<array{english: string, french: ?string}>, examples: list<string>, exercises: list<string>, text: ?string}
+     * @return array{status: string, title: ?string, summary: ?string, level: ?string, grammar: list<array{point: string, explanation: ?string, examples: list<string>}>, vocabulary: list<array{english: string, french: ?string}>, examples: list<string>, exercises: list<string>, text: ?string, provider?: string}
      */
     public function read(array $files): array
     {
-        $key = config('services.gemini.key');
-
-        if (blank($key) || $files === []) {
+        if ($files === []) {
             return self::unavailable();
         }
 
-        $input = [['type' => 'text', 'text' => 'Read the course pages below, in order, and fill in the fields.']];
+        $parts = [TextRequest::text('Read the course pages below, in order, and fill in the fields.')];
 
-        foreach ($files as $file) {
-            $input[] = [
-                'type' => $file['mime'] === 'application/pdf' ? 'document' : 'image',
-                'data' => base64_encode($file['data']),
-                'mime_type' => $file['mime'],
-            ];
+        foreach ($files as $index => $file) {
+            $parts[] = $file['mime'] === 'application/pdf'
+                ? TextRequest::document($file['data'], $file['mime'], 'lecon-'.($index + 1).'.pdf')
+                : TextRequest::image($file['data'], $file['mime']);
         }
 
-        try {
-            $response = Http::withHeaders(['x-goog-api-key' => $key])
-                ->acceptJson()
-                ->timeout(50)
-                ->post(rtrim(config('services.gemini.base_url'), '/').'/'.config('services.gemini.text_api_version').'/interactions', [
-                    'model' => config('services.gemini.text_model'),
-                    'system_instruction' => self::INSTRUCTIONS,
-                    'input' => $input,
-                    'response_format' => [
-                        'type' => 'text',
-                        'mime_type' => 'application/json',
-                        'schema' => self::schema(),
-                    ],
-                    'generation_config' => [
-                        'max_output_tokens' => 8000,
-                        'thinking_level' => 'low',
-                    ],
-                    // Fichiers personnels : rien à conserver chez Google.
-                    'store' => false,
-                ]);
-        } catch (ConnectionException $e) {
-            Log::warning('Lecture de leçon : connexion impossible.', ['message' => $e->getMessage()]);
+        $result = TextProviders::generate(new TextRequest(
+            kind: 'course',
+            instructions: self::INSTRUCTIONS,
+            parts: $parts,
+            schema: self::schema(),
+            schemaName: 'english_course',
+            maxTokens: 8000,
+            // Deux fournisseurs au plus : chacun a sa part du temps, la page reste sous la minute.
+            timeout: 40,
+            effort: 'low',
+        ), accept: fn (TextResult $result) => ($data = $result->json()) !== null && self::normalize($data)['status'] !== self::UNAVAILABLE);
 
-            return self::unavailable();
-        }
-
-        if ($response->failed()) {
-            Log::warning('Lecture de leçon : requête refusée.', ['status' => $response->status()]);
-
-            return self::unavailable();
-        }
-
-        $data = json_decode(TextClient::outputText($response->json('steps', [])), true);
-
-        return is_array($data) ? self::normalize($data) : self::unavailable();
+        return $result !== null ? self::normalize($result->json()) + ['provider' => $result->provider] : self::unavailable();
     }
 
     /**

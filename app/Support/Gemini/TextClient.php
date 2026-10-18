@@ -2,63 +2,36 @@
 
 namespace App\Support\Gemini;
 
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use App\Support\Text\TextProviders;
+use App\Support\Text\TextRequest;
 
 /**
- * Tâches en texte avec un modèle Gemini léger (config services.gemini.text_model),
- * appelé depuis le serveur via l'API Interactions.
+ * Tâches en texte avec le modèle texte léger (Gemini, services.gemini.text_model ; OpenAI en secours,
+ * App\Support\Text\TextProviders), appelé depuis le serveur.
  *
- * Ces rédactions sont un « plus » : en cas d'échec (clé absente, quota, panne),
+ * Ces rédactions sont un « plus » : si aucun fournisseur ne répond (clé absente, quota, panne),
  * la méthode renvoie null et l'appelant utilise un texte type.
- *
- * Documentation : https://ai.google.dev/gemini-api/docs/interactions
  */
 class TextClient
 {
     /**
-     * Rédige un texte court.
+     * Rédige un texte court. null si aucun fournisseur ne répond : l'appelant utilise son texte type.
+     *
+     * @param  string  $kind  usage (TextRequest::KINDS), pour la page « Consommation »
      */
-    public function write(string $instructions, string $prompt, int $maxTokens = 400): ?string
+    public function write(string $instructions, string $prompt, int $maxTokens = 400, string $kind = 'program'): ?string
     {
-        $key = config('services.gemini.key');
+        $result = TextProviders::generate(new TextRequest(
+            kind: $kind,
+            instructions: $instructions,
+            parts: [TextRequest::text($prompt)],
+            maxTokens: $maxTokens,
+            timeout: 15,
+            // Rédaction simple : réflexion minimale, réponse rapide et peu coûteuse.
+            effort: 'minimal',
+        ));
 
-        if (blank($key)) {
-            return null;
-        }
-
-        try {
-            $response = Http::withHeaders(['x-goog-api-key' => $key])
-                ->acceptJson()
-                ->timeout(15)
-                ->post(rtrim(config('services.gemini.base_url'), '/').'/'.config('services.gemini.text_api_version').'/interactions', [
-                    'model' => config('services.gemini.text_model'),
-                    'system_instruction' => $instructions,
-                    'input' => $prompt,
-                    'generation_config' => [
-                        'max_output_tokens' => $maxTokens,
-                        // Rédaction simple : réflexion minimale, réponse rapide et peu coûteuse.
-                        'thinking_level' => 'minimal',
-                    ],
-                    // Rien à conserver chez Google.
-                    'store' => false,
-                ]);
-        } catch (ConnectionException $e) {
-            Log::warning('Gemini texte : connexion impossible.', ['message' => $e->getMessage()]);
-
-            return null;
-        }
-
-        if ($response->failed()) {
-            Log::warning('Gemini texte : requête refusée.', ['status' => $response->status(), 'body' => $response->json()]);
-
-            return null;
-        }
-
-        $text = self::outputText($response->json('steps', []));
-
-        return $text === '' ? null : $text;
+        return $result?->text;
     }
 
     /**

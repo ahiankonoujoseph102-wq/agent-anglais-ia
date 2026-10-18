@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\IconPreviewController;
 use App\Http\Controllers\Admin\InactiveLearnerController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\TextDiagnosticController;
 use App\Http\Controllers\Admin\UsageController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VoiceController;
@@ -160,6 +161,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/diagnostic-voix', [VoiceDiagnosticController::class, 'index'])->name('voice-diagnostic.index');
     Route::post('/diagnostic-voix/essai/{provider}', [VoiceDiagnosticController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('voice-diagnostic.test');
     Route::post('/diagnostic-voix/preparer', [VoiceDiagnosticController::class, 'prepare'])->middleware('throttle:6,1')->name('voice-diagnostic.prepare');
+    Route::get('/diagnostic-texte', [TextDiagnosticController::class, 'index'])->name('text-diagnostic.index');
+    Route::post('/diagnostic-texte/essai/{provider}', [TextDiagnosticController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('text-diagnostic.test');
     Route::get('/icones', IconPreviewController::class)->name('icons.index');
     Route::get('/inactifs', [InactiveLearnerController::class, 'index'])->name('inactive.index');
     Route::get('/inactifs/{user}/whatsapp', [InactiveLearnerController::class, 'whatsapp'])->name('inactive.whatsapp');

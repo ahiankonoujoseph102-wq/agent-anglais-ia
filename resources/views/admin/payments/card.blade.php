@@ -56,7 +56,13 @@
     </div>
 
     <details class="next-step" @if ($actions) open @endif>
-        <summary><strong>Lecture de la capture par l'IA</strong></summary>
+        <summary>
+            <strong>Lecture de la capture par l'IA</strong>
+            {{-- Avant le secours OpenAI, toutes les lectures étaient faites par Gemini. --}}
+            @if ($analysis !== null)
+                <span class="badge" data-read-by>Lu par {{ \App\Support\Text\TextProviders::find($analysis['provider'] ?? 'gemini')?->label() ?? $analysis['provider'] }}</span>
+            @endif
+        </summary>
         @if ($analysis === null)
             <p class="muted">Aucune lecture : l'IA n'a pas répondu{{ $payment->checks === null ? ' (paiement de l\'ancien parcours)' : '' }}. Vérifiez la capture vous-même.</p>
         @else
