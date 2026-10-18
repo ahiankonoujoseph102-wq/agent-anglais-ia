@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\PushSubscription;
+use App\Support\Alerts\AdminAlerts;
 use App\Support\Live\LiveProviders;
 use App\Support\PaymentCountry;
 use App\Support\PrivateStorage;
@@ -63,6 +65,13 @@ class CheckDeployment extends Command
         $this->check('Numéro WhatsApp de l\'équipe', SiteSettings::whatsapp() !== null, 'Aucun numéro WhatsApp : ajoutez-le dans Administration, « Réglages » (boutons « Prévenir sur WhatsApp », mot de passe oublié).');
         $custom = count(array_filter(array_keys(self::settingKeys()), fn (string $key) => SiteSettings::saved($key) !== null));
         $this->line("    Valeurs saisies dans les Réglages : {$custom} (les autres : valeurs par défaut)");
+
+        // Alertes de paiement : informations seulement (un canal non réglé n'est jamais un échec).
+        $this->section('Alertes de paiement');
+        $alerts = app(AdminAlerts::class);
+        $this->line('    Notifications sur le téléphone : '.($alerts->pushConfigured() ? 'réglées' : 'non réglées (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT)'));
+        $this->line('    Téléphones abonnés : '.PushSubscription::query()->count());
+        $this->line('    E-mail : '.($alerts->mailConfigured() ? 'réglé ('.count((array) config('alerts.emails')).' adresse(s))' : 'non réglé (ADMIN_ALERT_EMAIL, MAIL_FROM_ADDRESS, MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD)'));
 
         // Référencement : informations seulement, jamais un échec (aucune valeur n'est obligatoire).
         $this->section('Référencement');
