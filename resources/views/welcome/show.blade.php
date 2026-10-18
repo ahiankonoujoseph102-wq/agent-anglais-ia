@@ -1,5 +1,5 @@
 {{--
-    Bienvenue de Teacher Joe : message vocal après l'inscription ou à l'ouverture d'un accès.
+    Bienvenue de Teacher Joe : message vocal à la première ouverture d'un accès (formule active).
     Même technique que l'écran de conversation : professeur 3D (repli : visage simple) dont la bouche suit la
     voix (public/js/welcome.js), sous-titres du texte complet, boutons « Pause » et « Passer », puis le bouton
     de la prochaine étape. Sans JavaScript : le texte complet et le bouton sont affichés tout de suite.
@@ -8,11 +8,9 @@
     use App\Support\Asset;
 
     $teacher = config('avatar.model.name');
-    $isPlan = $kind === \App\Support\Gemini\WelcomeMessage::PLAN;
-    $title = $isPlan ? 'Votre formule est active' : 'Bienvenue';
     $audio = ['voice_gain' => (float) config('platform.live.voice_gain')];
 @endphp
-<x-layout :title="$title" focus>
+<x-layout title="Bienvenue" focus>
     <div id="welcome" class="welcome-page"
          data-teacher="svg"
          data-teacher-name="{{ $teacher }}"
@@ -25,13 +23,8 @@
          @endif>
 
         <div class="welcome-head">
-            @if ($isPlan)
-                <h1>Bravo, {{ $firstName }} !</h1>
-                <p class="welcome-lead">Votre formule {{ $planName }} est active.</p>
-            @else
-                <h1>Bienvenue, {{ $firstName }} !</h1>
-                <p class="welcome-lead">Félicitations pour votre inscription sur {{ config('platform.name') }}.</p>
-            @endif
+            <h1>Bienvenue, {{ $firstName }} !</h1>
+            <p class="welcome-lead">Félicitations pour votre formule {{ $planName }} !</p>
         </div>
 
         <div class="welcome-stage">
@@ -61,7 +54,7 @@
         <div class="welcome-panel">
             <div id="welcome-start" class="welcome-start" hidden>
                 <button type="button" id="welcome-play" class="btn btn-accent btn-lg btn-block"><x-icon name="play" /> Toucher pour écouter {{ $teacher }}</button>
-                <p class="welcome-hint">Écoutez bien : il vous explique {{ $isPlan ? 'la prochaine étape' : 'comment tout fonctionne' }}.</p>
+                <p class="welcome-hint">Écoutez bien : il vous explique comment tout fonctionne.</p>
                 <button type="button" id="welcome-skip-start" class="btn btn-link">Passer</button>
             </div>
 

@@ -3,51 +3,44 @@
 namespace App\Support;
 
 use App\Models\User;
-use App\Support\Gemini\WelcomeMessage;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Quand montrer automatiquement la page de bienvenue de Teacher Joe : une seule fois après l'inscription,
- * puis une seule fois quand un accès devient actif (accès provisoire de 24 heures, paiement validé
- * ou accès offert). Les pages concernées appellent redirect() en arrivant.
+ * Quand montrer automatiquement la page de bienvenue de Teacher Joe : une seule fois, à la première
+ * ouverture d'un accès (accès provisoire de 24 heures, paiement validé ou accès offert ; paiement en
+ * attente : à la première visite après la validation). Les pages concernées appellent redirect() en arrivant.
  */
 final class WelcomeFlow
 {
-    /**
-     * Le message à montrer maintenant (WelcomeMessage::SIGNUP ou ::PLAN), ou null.
-     */
-    public static function due(User $user): ?string
+    public static function due(User $user): bool
     {
         // L'administration et les comptes qui doivent d'abord changer leur mot de passe sont laissés tranquilles.
-        if ($user->isAdmin() || $user->must_change_password) {
-            return null;
+        if ($user->isAdmin() || $user->must_change_password || $user->welcomed_at !== null) {
+            return false;
         }
 
-        if ($user->welcomed_at === null) {
-            return WelcomeMessage::SIGNUP;
-        }
-
-        if ($user->access_welcomed_at === null && $user->activeSubscription()->exists()) {
-            return WelcomeMessage::PLAN;
-        }
-
-        return null;
+        return $user->activeSubscription()->exists();
     }
 
     public static function redirect(User $user): ?RedirectResponse
     {
-        return self::due($user) !== null ? to_route('welcome.show') : null;
+        if (! self::due($user)) {
+            return null;
+        }
+
+        // Le message de la page d'origine (« Accès provisoire ouvert… ») reste pour la page suivante.
+        session()->reflash();
+
+        return to_route('welcome.show');
     }
 
     /**
      * Noté « vu » : la page ne se rouvre plus toute seule (elle reste réécoutable depuis « Mon espace »).
      */
-    public static function markSeen(User $user, string $kind): void
+    public static function markSeen(User $user): void
     {
-        $column = $kind === WelcomeMessage::PLAN ? 'access_welcomed_at' : 'welcomed_at';
-
-        if ($user->{$column} === null) {
-            $user->forceFill([$column => now()])->save();
+        if ($user->welcomed_at === null) {
+            $user->forceFill(['welcomed_at' => now()])->save();
         }
     }
 }

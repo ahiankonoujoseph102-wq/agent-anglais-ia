@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // Bienvenue de Teacher Joe : après l'inscription, puis à la première ouverture d'un accès (une seule fois).
+        // Bienvenue de Teacher Joe : à la première ouverture d'un accès (une seule fois).
         if ($welcome = WelcomeFlow::redirect($user)) {
             return $welcome;
         }
@@ -82,8 +82,8 @@ class DashboardController extends Controller
             // « Mes cours » : carte secondaire, seulement avec un accès actif.
             'courseCounter' => $subscription !== null ? ['used' => $user->courseSessionsToday(), 'limit' => (int) config('platform.courses.sessions_per_day')] : null,
             'assessmentMinutes' => (int) config('platform.assessment.max_minutes'),
-            // « Réécouter le message de bienvenue » (et celui de la formule quand un accès existe).
-            'welcomePlan' => $subscription !== null && $user->access_welcomed_at !== null,
+            // « Réécouter le message de bienvenue » : seulement pour un apprenant qui a eu un accès.
+            'welcomeReplay' => $user->subscriptions()->exists(),
         ]);
     }
 }

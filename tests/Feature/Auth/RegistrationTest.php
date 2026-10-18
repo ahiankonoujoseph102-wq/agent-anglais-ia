@@ -37,7 +37,7 @@ class RegistrationTest extends TestCase
     {
         $response = $this->post('/inscription', $this->validData());
 
-        $response->assertRedirect(route('welcome.show'));
+        $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticated();
 
         $user = User::firstOrFail();

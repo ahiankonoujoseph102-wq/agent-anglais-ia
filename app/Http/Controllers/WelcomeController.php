@@ -13,8 +13,9 @@ use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
- * Page de bienvenue de Teacher Joe : message vocal après l'inscription, puis court message
- * à la première ouverture d'un accès. Montrée automatiquement une seule fois, réécoutable depuis « Mon espace ».
+ * Page de bienvenue de Teacher Joe, à la première ouverture d'un accès : message vocal qui explique la
+ * formule, le questionnaire, la séance orale et « Mes cours ». Montrée automatiquement une seule fois,
+ * réécoutable depuis « Mon espace » (?reecouter=1) par un apprenant qui a eu un accès.
  */
 class WelcomeController extends Controller
 {
@@ -22,45 +23,35 @@ class WelcomeController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $requested = (string) $request->query('message');
 
-        if (WelcomeMessage::isKind($requested)) {
-            // Réécoute à la demande : rien n'est marqué « vu ». Le message de la formule demande un accès actif.
-            if ($requested === WelcomeMessage::PLAN && ! $user->activeSubscription()->exists()) {
-                return to_route('dashboard');
-            }
-
-            $kind = $requested;
-        } elseif (($due = WelcomeFlow::due($user)) !== null) {
-            $kind = $due;
-            WelcomeFlow::markSeen($user, $kind);
-        } else {
+        if (WelcomeFlow::due($user)) {
+            WelcomeFlow::markSeen($user);
+        } elseif (! $request->boolean('reecouter')) {
             return to_route('dashboard');
         }
 
-        $texts = WelcomeMessage::texts($user, $kind);
+        // Réécoute : rien n'est marqué « vu » ; sans aucun accès, rien à réécouter.
+        $texts = WelcomeMessage::texts($user);
+
+        if ($texts === null) {
+            return to_route('dashboard');
+        }
+
         $pieces = [];
 
         for ($index = 0, $count = WelcomeMessage::count($texts); $index < $count; $index++) {
             $pieces[] = [
                 'text' => WelcomeMessage::piece($texts, $index),
-                'url' => route('welcome.audio', ['kind' => $kind, 'index' => $index, 'salut' => $texts['period']]),
+                'url' => route('welcome.audio', ['index' => $index, 'salut' => $texts['period']]),
             ];
         }
 
-        // Bouton de fin : la prochaine étape selon l'état du compte.
-        if ($kind === WelcomeMessage::PLAN) {
-            $next = $user->activeProgram()->exists()
-                ? ['label' => 'Parler avec '.config('avatar.model.name'), 'url' => route('lesson.show'), 'icon' => 'mic']
-                : ['label' => 'Construire mon programme', 'url' => route('program.questionnaire', 1), 'icon' => 'arrow-right'];
-        } else {
-            $next = $user->assessment()->exists()
-                ? ['label' => 'Aller à mon espace', 'url' => route('dashboard'), 'icon' => 'home']
-                : ['label' => 'Passer mon évaluation gratuite', 'url' => route('assessment.show'), 'icon' => 'mic'];
-        }
+        // Bouton de fin : le questionnaire, ou la séance si le programme est déjà construit.
+        $next = $user->activeProgram()->exists()
+            ? ['label' => 'Parler avec '.config('avatar.model.name'), 'url' => route('lesson.show'), 'icon' => 'mic']
+            : ['label' => 'Construire mon programme', 'url' => route('program.questionnaire', 1), 'icon' => 'arrow-right'];
 
         return view('welcome.show', [
-            'kind' => $kind,
             'firstName' => $texts['first_name'],
             'planName' => $texts['plan'],
             'pieces' => $pieces,
@@ -73,19 +64,17 @@ class WelcomeController extends Controller
      * Un morceau du message (0 : ouverture, 1 et suivants : paragraphes), en WAV. Généré à la demande
      * la première fois, puis gardé : les paragraphes sont communs à tous, seule l'ouverture est propre au prénom.
      */
-    public function audio(Request $request, string $kind, int $index, WelcomeMessage $messages): Response
+    public function audio(Request $request, int $index, WelcomeMessage $messages): Response
     {
-        abort_unless(WelcomeMessage::isKind($kind), 404);
-
         /** @var User $user */
         $user = $request->user();
         $period = (string) $request->query('salut');
-        $texts = WelcomeMessage::texts($user, $kind, Greeting::isPeriod($period) ? $period : null);
-        $text = WelcomeMessage::piece($texts, $index);
+        $texts = WelcomeMessage::texts($user, Greeting::isPeriod($period) ? $period : null);
+        $text = $texts !== null ? WelcomeMessage::piece($texts, $index) : null;
 
-        abort_if($text === null || ($kind === WelcomeMessage::PLAN && $texts['plan'] === null), 404);
+        abort_if($text === null, 404);
 
-        $wav = $messages->get($text);
+        $wav = $messages->get($text, $index === 0);
 
         if ($wav === null) {
             return response('Message vocal indisponible.', 503, ['Retry-After' => WelcomeMessage::RETRY_AFTER]);

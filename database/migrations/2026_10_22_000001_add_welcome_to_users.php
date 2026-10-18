@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Messages de bienvenue de Teacher Joe, montrés automatiquement une seule fois :
- * après l'inscription (welcomed_at), puis à la première ouverture d'un accès (access_welcomed_at).
+ * Message de bienvenue de Teacher Joe, montré automatiquement une seule fois, à la première ouverture
+ * d'un accès (welcomed_at).
  */
 return new class extends Migration
 {
@@ -15,17 +15,19 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->timestamp('welcomed_at')->nullable()->after('must_change_password');
-            $table->timestamp('access_welcomed_at')->nullable()->after('welcomed_at');
         });
 
-        // Les comptes déjà inscrits n'ont pas à revoir ces pages d'accueil (ils peuvent les réécouter).
-        DB::table('users')->update(['welcomed_at' => now(), 'access_welcomed_at' => now()]);
+        // Les comptes qui ont déjà eu un accès n'ont pas à revoir la page (ils peuvent la réécouter) ;
+        // les autres la verront à l'ouverture de leur premier accès.
+        DB::table('users')
+            ->whereExists(fn ($query) => $query->select(DB::raw(1))->from('subscriptions')->whereColumn('subscriptions.user_id', 'users.id'))
+            ->update(['welcomed_at' => now()]);
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['welcomed_at', 'access_welcomed_at']);
+            $table->dropColumn('welcomed_at');
         });
     }
 };
