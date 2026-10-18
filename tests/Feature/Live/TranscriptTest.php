@@ -207,7 +207,8 @@ class TranscriptTest extends TestCase
         $this->assertTrue($learner->spoken_at->equalTo(now()->subSeconds(40)), 'heure où la parole a commencé, pas celle de l\'affichage');
         $this->assertTrue($learner->ended_at->equalTo(now()->subSeconds(10)));
         $this->assertSame('This morning I cleaned the office.', $learner->text);
-        $this->assertSame(['mic_start' => $ms(40), 'mic_end' => $ms(10), 'turn_end' => $ms(9)], $learner->metrics);
+        // MySQL range les clés du JSON à sa façon : seul le contenu compte.
+        $this->assertEquals(['mic_start' => $ms(40), 'mic_end' => $ms(10), 'turn_end' => $ms(9)], $learner->metrics);
         $this->assertSame(1800, $teacher->delayMs());
         $this->assertNull($learner->delayMs());
         $this->assertSame(['gate_closed', 'no_answer'], Transcripts::events($lesson)->pluck('kind')->all());
