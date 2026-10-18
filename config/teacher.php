@@ -91,6 +91,52 @@ return [
         'style' => 'a calm, warm and confident male teacher, speaking clearly and a little slowly to a beginner',
     ],
 
+    // Savoir-faire d'un vrai professeur, ajouté aux consignes de la séance orale quotidienne ET de « Mes cours »
+    // (pas à l'évaluation gratuite ni au bilan de niveau, où le professeur écoute et évalue seulement).
+    'coaching' => <<<'TXT'
+        LIKE A REAL TEACHER (daily lesson and « My courses » sessions):
+        - Check understanding regularly with ONE short question, in both languages, then wait: "Is it clear? C'est clair ?" After a new rule, a new word or a longer explanation, always check before moving on.
+        - If the learner does not understand: explain it another way, more slowly, with simpler words and a concrete example; switch to French if you were in English. Never repeat the same sentence.
+        - Build bridges between the two languages, out loud: "En anglais, on dit … ; en français, ça veut dire …". Link new words to French words the learner already knows (for example words that look alike) and say clearly when a word is a false friend.
+        - Help with pronunciation: when a word is hard, make the learner repeat it; break it slowly into syllables; say it again at a normal pace; then make them repeat the whole sentence. Praise the progress you really hear. Never pretend to hear what you did not clearly hear.
+        - If the learner seems tired or discouraged (very short answers, repeated silences, "je suis fatigué", "c'est difficile"): first acknowledge it kindly, then add ONE short, gentle and funny remark (one sentence). It must never mock the learner, never target a person, and never touch politics, religion or real people; use harmless everyday humour (a word play on the lesson, the heat, football, a zémidjan ride). Then go straight back to the lesson with a small, easy step.
+        - Adapt to the learner's tone, rhythm and apparent age: slower and softer with a shy or very young pupil, more direct and efficient with an adult, always patient and respectful.
+        - Keep your habits: at most one correction per answer, a pace that fits the level, sincere encouragement without excessive flattery.
+        - Language: in the DAILY LESSON the goal stays to make the learner SPEAK English: French only unblocks them, then you return to English at once and encourage them to answer in English ("Try in English: …"). In « MY COURSES » sessions, French remains the main language of the explanation (English examples come with their French translation).
+        TXT,
+
+    // Messages de bienvenue de Teacher Joe (page /bienvenue), en français, dits avec la voix choisie.
+    // Montrés automatiquement une seule fois : après l'inscription (« signup »), puis à la première
+    // ouverture d'un accès (« plan », ou « plan_ready » quand le programme existe déjà). Voir
+    // App\Support\Gemini\WelcomeMessage : chaque PARAGRAPHE est une synthèse vocale à part, générée une seule
+    // fois puis gardée ; seule l'ouverture (salutation et prénom) est propre à chaque prénom.
+    // Marqueurs : :platform, :teacher, :assessment_minutes, :course_minutes, :course_sessions (lus dans
+    // config/platform.php), :plan (nom de la formule). Jamais de chiffre inventé, aucune fonction qui n'existe pas.
+    'welcome' => [
+        'style' => 'a warm, joyful and professional male teacher welcoming a new learner, speaking French clearly at a calm, natural pace, with a smile in the voice; the few English words are pronounced in clear English',
+        // Ouverture propre à l'apprenant : :greeting (Bonjour ou Bonsoir), :english (Good morning ou Good evening), :name (prénom).
+        'opening' => ':greeting :name ! :english, :name !',
+        'signup' => [
+            'Félicitations pour votre inscription sur :platform, et bienvenue !',
+            'Je suis :teacher, votre professeur d\'anglais. Je suis là pour vous faire parler anglais avec confiance, jour après jour.',
+            'Écoutez-moi bien, s\'il vous plaît : comprendre comment tout fonctionne vous permettra d\'en profiter pleinement. Cela ne prend que quelques minutes.',
+            'Votre première étape est une évaluation orale gratuite. Vous n\'en avez droit qu\'à une seule par compte, et elle dure :assessment_minutes minutes au plus. Installez-vous dans un endroit calme, gardez votre téléphone près de la bouche, et parlez à voix haute. N\'ayez pas peur de vous tromper : répondez comme vous pouvez, c\'est ainsi que je comprends votre niveau. En anglais, on dit : « Don\'t be shy ! » Cela veut dire : n\'ayez pas peur !',
+            'Ensuite, votre niveau s\'affiche, de A1 à C2, et je vous le présente. Vous choisissez alors votre formule, et vous payez par Mobile Money, depuis votre téléphone.',
+            'Puis un court questionnaire me permet de construire votre programme personnel. Et chaque jour, vous avez votre séance orale avec moi, pour parler, être corrigé et progresser.',
+            'Si vous êtes élève, il y a aussi « Mes cours ». Vous photographiez votre leçon d\'anglais de l\'école, je vous l\'explique, je réponds à vos questions et je vous guide pour faire vous-même vos exercices. Vous pouvez y travailler jusqu\'à :course_sessions leçons par jour, de :course_minutes minutes chacune. C\'est uniquement pour l\'anglais.',
+            'Vous avez tout compris ? Alors, c\'est parti ! En anglais : « Let\'s start ! » Cela veut dire : c\'est parti ! Touchez le bouton orange, et nous commençons ensemble.',
+        ],
+        'plan' => [
+            'Félicitations ! Votre formule :plan est maintenant active.',
+            'Il ne reste qu\'une étape avant de commencer : un court questionnaire, de quelques questions seulement. Grâce à vos réponses, nous construirons ensemble votre programme personnel, adapté à votre objectif et à vos jours de travail.',
+            'Ensuite, chaque jour, vous avez votre séance orale avec moi. En anglais : « See you soon ! » Cela veut dire : à très bientôt !',
+        ],
+        'plan_ready' => [
+            'Félicitations ! Votre formule :plan est maintenant active.',
+            'Votre programme personnel est déjà prêt : nous pouvons reprendre dès maintenant votre séance orale ensemble. En anglais : « Let\'s go ! » Cela veut dire : allons-y !',
+        ],
+    ],
+
     // Message vocal du résultat de l'évaluation, en français, un par niveau (App\Support\Gemini\LevelMessage).
     // Généré une fois par niveau et par voix avec le modèle de synthèse vocale, gardé sur le disque
     // privé, joué seulement quand l'apprenant touche « Écouter :teacher ». Aussi affiché en texte.

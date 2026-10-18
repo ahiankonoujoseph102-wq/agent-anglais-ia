@@ -3,14 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentStatus;
+use App\Support\WelcomeFlow;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): View|RedirectResponse
     {
         $user = $request->user();
+
+        // Bienvenue de Teacher Joe : après l'inscription, puis à la première ouverture d'un accès (une seule fois).
+        if ($welcome = WelcomeFlow::redirect($user)) {
+            return $welcome;
+        }
+
         $assessment = $user->assessment;
 
         // Une évaluation encore ouverte peut être reprise tant que son temps n'est pas écoulé.
@@ -74,6 +82,8 @@ class DashboardController extends Controller
             // « Mes cours » : carte secondaire, seulement avec un accès actif.
             'courseCounter' => $subscription !== null ? ['used' => $user->courseSessionsToday(), 'limit' => (int) config('platform.courses.sessions_per_day')] : null,
             'assessmentMinutes' => (int) config('platform.assessment.max_minutes'),
+            // « Réécouter le message de bienvenue » (et celui de la formule quand un accès existe).
+            'welcomePlan' => $subscription !== null && $user->access_welcomed_at !== null,
         ]);
     }
 }

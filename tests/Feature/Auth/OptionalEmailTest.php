@@ -40,14 +40,14 @@ class OptionalEmailTest extends TestCase
 
     public function test_learner_can_register_without_an_email(): void
     {
-        $this->post('/inscription', $this->registration(['email' => '  ']))->assertRedirect(route('dashboard'));
+        $this->post('/inscription', $this->registration(['email' => '  ']))->assertRedirect(route('welcome.show'));
 
         $this->assertNull(User::firstOrFail()->email);
     }
 
     public function test_email_is_stored_in_lowercase(): void
     {
-        $this->post('/inscription', $this->registration(['email' => '  Kossi.Mensah@Exemple.TG ']))->assertRedirect(route('dashboard'));
+        $this->post('/inscription', $this->registration(['email' => '  Kossi.Mensah@Exemple.TG ']))->assertRedirect(route('welcome.show'));
 
         $this->assertSame('kossi.mensah@exemple.tg', User::firstOrFail()->email);
     }

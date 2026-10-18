@@ -301,4 +301,10 @@
     @endif
 
     <p class="center next-step"><a href="{{ route('account.edit') }}"><x-icon name="user" /> Mon compte et mon adresse e-mail</a></p>
+    <p class="center welcome-replay">
+        <a href="{{ route('welcome.show', ['message' => 'signup']) }}"><x-icon name="play" /> Réécouter le message de bienvenue</a>
+        @if ($welcomePlan)
+            <br><a href="{{ route('welcome.show', ['message' => 'plan']) }}"><x-icon name="play" /> Réécouter le message de ma formule</a>
+        @endif
+    </p>
 </x-layout>

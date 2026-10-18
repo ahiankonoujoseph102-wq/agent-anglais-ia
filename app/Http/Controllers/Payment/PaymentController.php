@@ -15,6 +15,7 @@ use App\Support\PaymentCountry;
 use App\Support\PaymentOperator;
 use App\Support\Plan;
 use App\Support\SiteSettings;
+use App\Support\WelcomeFlow;
 use App\Support\WhatsApp;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
@@ -144,9 +145,14 @@ class PaymentController extends Controller
     /**
      * Étape 4 : état du paiement (accès provisoire, vérification en cours, validé ou refusé).
      */
-    public function show(Request $request, Payment $payment): View
+    public function show(Request $request, Payment $payment): View|RedirectResponse
     {
         abort_unless($payment->user_id === $request->user()->id, 404);
+
+        // Premier accès actif (accès provisoire ouvert par la capture) : bienvenue de Teacher Joe, une seule fois.
+        if ($welcome = WelcomeFlow::redirect($request->user())) {
+            return $welcome;
+        }
 
         $user = $request->user();
         $provisional = $payment->isPending() ? $payment->provisionalSubscription() : null;

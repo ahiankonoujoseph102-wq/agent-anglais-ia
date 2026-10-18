@@ -117,6 +117,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Message de bienvenue de Teacher Joe (après l'inscription, puis à l'ouverture d'un accès)
+    |--------------------------------------------------------------------------
+    |
+    | Salutation selon l'heure du pays de l'apprenant (déduit de l'indicatif du téléphone,
+    | fuseaux dans config/payment.php) : « Bonjour » de morning_from à evening_from (exclu),
+    | « Bonsoir » le reste du temps. Les textes sont dans config/teacher.php (welcome).
+    |
+    */
+    'welcome' => [
+        // Heures (0 à 23, heure locale du pays) : bascule du « Bonjour » au « Bonsoir ».
+        'morning_from' => 5,
+        'evening_from' => 15,
+        // Prénom : premier mot du nom saisi, lettres, tirets et apostrophes seulement, longueur au plus.
+        'name_max_length' => 30,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Accès offert par l'administrateur (démonstrations dans les écoles, auprès des parents)
     |--------------------------------------------------------------------------
     |
