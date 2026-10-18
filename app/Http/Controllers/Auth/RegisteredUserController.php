@@ -26,7 +26,7 @@ class RegisteredUserController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard')
-            ->with('status', 'Bienvenue '.$user->name.' ! Votre compte est créé.');
+        // Page de bienvenue de Teacher Joe (message vocal), une seule fois ; « Mon espace » ensuite.
+        return redirect()->route('welcome.show');
     }
 }

@@ -28,6 +28,8 @@ return [
         'TG' => [
             'name' => 'Togo',
             'dial_code' => '228',
+            // Fuseau du pays (salutation « Bonjour » ou « Bonsoir » de Teacher Joe).
+            'timezone' => 'Africa/Lome',
             'operators' => [
                 // « aliases » : mots qui identifient l'opérateur sur une capture (en minuscules).
                 // « number » et « holder » : valeurs par défaut, remplaçables dans les Réglages.
@@ -38,6 +40,8 @@ return [
         'BF' => [
             'name' => 'Burkina Faso',
             'dial_code' => '226',
+            // Fuseau du pays (salutation « Bonjour » ou « Bonsoir » de Teacher Joe).
+            'timezone' => 'Africa/Ouagadougou',
             'operators' => [
                 'orange_money' => ['name' => 'Orange Money', 'aliases' => ['orange'], 'number' => '+226 07 27 63 81', 'holder' => 'Anderson Passoule Oyo'],
                 'wave' => ['name' => 'Wave', 'aliases' => ['wave'], 'number' => '+226 03 53 21 76', 'holder' => 'Anderson Passoule Oyo'],
@@ -46,6 +50,8 @@ return [
         'BJ' => [
             'name' => 'Bénin',
             'dial_code' => '229',
+            // Fuseau du pays (salutation « Bonjour » ou « Bonsoir » de Teacher Joe).
+            'timezone' => 'Africa/Porto-Novo',
             'operators' => [
                 'mtn' => ['name' => 'MTN', 'aliases' => ['mtn', 'momo'], 'number' => '+229 01 51 53 39 35', 'holder' => 'KOUAGOU Noutcha Adam Fernando'],
                 'moov' => ['name' => 'Moov', 'aliases' => ['moov', 'flooz'], 'number' => '+229 01 94 55 59 14', 'holder' => 'KOUAGOU Noutcha Adam Fernando'],
@@ -56,6 +62,8 @@ return [
         'CI' => [
             'name' => 'Côte d\'Ivoire',
             'dial_code' => '225',
+            // Fuseau du pays (salutation « Bonjour » ou « Bonsoir » de Teacher Joe).
+            'timezone' => 'Africa/Abidjan',
             'operators' => [
                 'orange_money' => ['name' => 'Orange Money', 'aliases' => ['orange'], 'number' => '+225 07 09 51 82 85', 'holder' => 'OULOUSSEGUEA CHARLES DANHAN'],
                 'mtn' => ['name' => 'MTN Mobile Money', 'aliases' => ['mtn', 'momo'], 'number' => '+225 05 45 53 11 70', 'holder' => 'OULOUSSEGUEA CHARLES DANHAN'],

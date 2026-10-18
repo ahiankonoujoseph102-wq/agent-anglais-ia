@@ -202,6 +202,8 @@ class TeacherSetup
             trim((string) config('teacher.persona')),
             // L'évaluation gratuite et « Mes cours » ont leurs propres règles de langue.
             in_array($kind, ['assessment', 'course'], true) ? '' : (string) config("teacher.level_guidance.{$level}", ''),
+            // Savoir-faire d'un vrai professeur : séance orale quotidienne et « Mes cours » seulement.
+            in_array($kind, ['lesson', 'course'], true) ? trim((string) config('teacher.coaching')) : '',
             trim((string) config("teacher.{$kind}")),
             trim((string) config('teacher.site_help')),
         ]));

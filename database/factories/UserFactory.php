@@ -33,7 +33,16 @@ class UserFactory extends Factory
             'role' => Role::Learner,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // Messages de bienvenue déjà vus : seuls les tests du parcours d'accueil demandent le contraire.
+            'welcomed_at' => now(),
+            'access_welcomed_at' => now(),
         ];
+    }
+
+    /** Compte qui vient de s'inscrire : aucun message de bienvenue encore vu. */
+    public function unwelcomed(): static
+    {
+        return $this->state(fn (array $attributes) => ['welcomed_at' => null, 'access_welcomed_at' => null]);
     }
 
     public function admin(): static
