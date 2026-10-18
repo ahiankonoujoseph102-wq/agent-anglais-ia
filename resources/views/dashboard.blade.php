@@ -57,7 +57,7 @@
             @endif
         @elseif (! $program && ! $attestations->contains('level', \App\Enums\Level::C2))
             <h2 id="next-step-title">Construisons votre programme</h2>
-            <p>Répondez à 4 petites questions : {{ config('avatar.model.name') }} prépare un programme adapté à votre objectif et à vos jours de travail.</p>
+            <p>Répondez à 4 petites questions : {{ config('avatar.model.name') }} prépare un programme adapté à votre objectif et à votre rythme.</p>
             <a href="{{ route('program.questionnaire', 1) }}" class="btn btn-lg btn-block">Construire mon programme <x-icon name="arrow-right" /></a>
         @elseif ($program?->status === \App\Enums\ProgramStatus::LevelTestDue)
             <h2 id="next-step-title">Bilan de fin de niveau {{ $program->level->value }}</h2>

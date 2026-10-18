@@ -143,6 +143,8 @@ class SiteNavigationTest extends TestCase
         $this->post('/inscription', ['name' => 'Koffi Mensah', 'phone' => '+22890123456', 'password' => 'motdepasse', 'password_confirmation' => 'motdepasse'])
             ->assertRedirect(route('dashboard'));
         $this->get(route('dashboard'))->assertOk()->assertSee('Passez votre évaluation gratuite');
+        $this->assertStringNotContainsString('jours de travail', file_get_contents(resource_path('views/dashboard.blade.php')));
+        $this->assertStringNotContainsString('jours de travail', file_get_contents(resource_path('views/program/show.blade.php')));
         $this->assertSame(['home', 'contact', 'register'], Seo::INDEXABLE_ROUTES);
     }
 }

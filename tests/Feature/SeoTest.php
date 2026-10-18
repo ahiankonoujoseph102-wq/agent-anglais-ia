@@ -56,7 +56,7 @@ class SeoTest extends TestCase
 
         $this->assertCount(3, array_unique($titles), 'Un titre par page.');
         $this->assertCount(3, array_unique($descriptions), 'Une description par page.');
-        $this->assertStringContainsString(config('platform.brand.tagline'), html_entity_decode($titles[0], ENT_QUOTES));
+        $this->assertSame('Talkami · Apprendre à parler anglais depuis votre téléphone', html_entity_decode($titles[0], ENT_QUOTES));
     }
 
     public function test_the_share_image_is_a_1200_by_630_jpeg(): void

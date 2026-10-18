@@ -11,7 +11,7 @@
     $tab = fn (string ...$patterns) => request()->routeIs(...$patterns) ? 'is-active' : null;
     // Référencement : seules les pages publiques (App\Support\Seo::INDEXABLE_ROUTES) sont indexées.
     $indexable ??= Seo::indexable();
-    $pageTitle = $title ? $title.' · '.config('platform.name') : config('platform.name').' · '.config('platform.brand.tagline');
+    $pageTitle = $title ? $title.' · '.config('platform.name') : config('platform.name').' · '.config('platform.brand.home_title');
     $pageDescription = $description ?: config('platform.brand.tagline');
 @endphp
 

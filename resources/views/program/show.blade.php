@@ -30,7 +30,7 @@
             @endif
         </div>
         <div class="stat rise" style="--i: 3">
-            <div class="label"><x-icon name="calendar" /> Mes jours de travail</div>
+            <div class="label"><x-icon name="calendar" /> Mon rythme</div>
             <div class="value small-value">{{ ucfirst($program->studyDaysLabel()) }}</div>
             <div class="detail">{{ $program->study_time ? 'vers '.str_replace(':', ' h ', $program->study_time) : '' }}</div>
         </div>
