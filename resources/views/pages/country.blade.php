@@ -18,6 +18,7 @@
                 <span class="eyebrow"><x-icon name="pin" /> {{ $page->name }}</span>
                 <h1 id="pays-titre">{{ $page->heading }}</h1>
                 <p class="lead">{{ $page->lead }}</p>
+                <p class="muted small">{{ config('platform.name') }} accueille les francophones de tous les pays. Cette page présente les moyens de paiement de ce pays.</p>
                 <div class="actions actions-row">
                     <a class="btn btn-accent btn-lg btn-block" href="{{ Navigation::assessmentUrl() }}"><x-icon name="mic" /> Passer mon évaluation gratuite</a>
                     <a class="btn btn-outline btn-block" href="{{ route('plans') }}">Voir les formules</a>

@@ -9,8 +9,27 @@
         @csrf
 
         <x-input name="name" label="Nom complet" autocomplete="name" required autofocus />
+        {{-- Pays : tous les pays du monde (pays de paiement d'abord, puis pays francophones), ou « Autre pays ». --}}
+        @php($country = old('country', 'TG'))
+        <div class="field">
+            <label for="country">Pays</label>
+            <select id="country" name="country" autocomplete="country" required
+                    aria-describedby="country-hint{{ $errors->has('country') ? ' country-error' : '' }}" @error('country') aria-invalid="true" class="is-invalid" @enderror>
+                @foreach (\App\Support\Countries::choices() as $group => $options)
+                    <optgroup label="{{ $group }}">
+                        @foreach ($options as $code => $name)
+                            <option value="{{ $code }}" @selected($country === $code)>{{ $name }}</option>
+                        @endforeach
+                    </optgroup>
+                @endforeach
+            </select>
+            <p id="country-hint" class="hint">{{ config('platform.name') }} accueille les francophones de tous les pays.</p>
+            @error('country')
+                <p id="country-error" class="error">{{ $message }}</p>
+            @enderror
+        </div>
         <x-input name="phone" label="Numéro de téléphone" type="tel" inputmode="tel" autocomplete="tel" required
-                 hint="Exemple : 90 12 34 56 ou +228 90 12 34 56" />
+                 hint="Exemple : 90 12 34 56 au Togo. Hors du Togo, le numéro reçoit l'indicatif du pays choisi ; vous pouvez aussi l'écrire avec l'indicatif, par exemple +237 6 77 12 34 56." />
         <x-input name="email" label="Adresse e-mail" type="email" inputmode="email" autocomplete="email"
                  :hint="\App\Support\EmailAddress::HINT" />
         <x-input name="password" label="Mot de passe" type="password" autocomplete="new-password" required

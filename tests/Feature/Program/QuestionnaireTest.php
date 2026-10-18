@@ -117,7 +117,7 @@ class QuestionnaireTest extends TestCase
         $first = $program->programLessons()->where('unit_number', 1)->orderBy('lesson_number')->first();
         $first->setRelation('program', $program);
 
-        $this->assertSame('Un commerçant d\'Accra à la boutique', $first->situation()->title);
+        $this->assertSame('Un client étranger à la boutique', $first->situation()->title);
         $this->assertTrue($first->highlighted);
 
         // Chaque unité garde ses 3 situations, chacune une fois.

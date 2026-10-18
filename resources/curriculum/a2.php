@@ -61,7 +61,7 @@ return [
                 'Bought, brought, thought se prononcent [ɔːt] : le « gh » est muet.',
             ],
             'spoken' => [
-                "« What did you get up to yesterday? » = qu'est-ce que tu as fait hier ? (familier).",
+                "« What were you up to yesterday? » = qu'est-ce que tu as fait hier ? (familier).",
                 '« Nothing much » = pas grand-chose.',
             ],
             'pitfalls' => [
@@ -70,7 +70,7 @@ return [
             ],
             'situations' => [
                 ['title' => 'Rapport au chef', 'description' => 'Votre responsable anglophone vous demande ce que vous avez fait hier pendant votre journée au port de Lomé.', 'tags' => ['work']],
-                ['title' => 'Retour d\'Accra', 'description' => 'Vous racontez à un ami votre journée d\'achats au marché de Makola, à Accra.', 'tags' => ['travel', 'market', 'conversation']],
+                ['title' => 'Retour de voyage', 'description' => 'Vous racontez à un ami votre journée d\'achats dans un grand marché, pendant un voyage à l\'étranger.', 'tags' => ['travel', 'market', 'conversation']],
                 ['title' => 'Absent au cours', 'description' => 'Un camarade de l\'université de Lomé vous demande pourquoi vous étiez absent hier ; expliquez ce qui s\'est passé.', 'tags' => ['studies', 'education']],
             ],
         ],
@@ -109,11 +109,11 @@ return [
             ],
             'functions' => [
                 'Décrire une fête : « There were hundreds of guests. People danced all night. »',
-                'Expliquer une tradition : « During Tabaski, families share meat with their neighbours. »',
+                'Expliquer une tradition : « During Tabaski, families share meat with their neighbors. »',
                 "Féliciter et compatir : « Congratulations on your wedding! », « I'm so sorry for your loss. »",
             ],
             'pronunciation' => [
-                'Was et were sont faibles dans la phrase ([wəz], [wə]) mais forts en réponse courte : « Yes, it was! ».',
+                'Was et were sont faibles dans la phrase ([wəz], [wɚ]) mais forts en réponse courte : « Yes, it was! ».',
                 'Accent tonique : CELebrate, celeBRAtion, traDItional (et non « TRAditional » à la française).',
             ],
             'spoken' => [
@@ -125,9 +125,9 @@ return [
                 '« I was very amused » ✗ (amusé par une blague) → « I had a lot of fun » ✓.',
             ],
             'situations' => [
-                ['title' => 'Raconter un mariage traditionnel', 'description' => 'Vous racontez à une collègue ghanéenne le mariage traditionnel auquel vous êtes allé le week-end dernier à Kpalimé.', 'tags' => ['family', 'conversation', 'work']],
+                ['title' => 'Raconter un mariage traditionnel', 'description' => 'Vous racontez à une collègue anglophone de votre entreprise internationale le mariage traditionnel auquel vous êtes allé le week-end dernier à Kpalimé.', 'tags' => ['family', 'conversation', 'work']],
                 ['title' => 'Présenter une fête togolaise', 'description' => 'Un visiteur anglophone vous demande comment on fête l\'Indépendance du 27 avril ou une fête religieuse au Togo.', 'tags' => ['conversation', 'travel']],
-                ['title' => 'Message de félicitations', 'description' => 'Vous laissez un message vocal WhatsApp à un partenaire d\'affaires d\'Accra pour féliciter sa famille d\'une naissance.', 'tags' => ['phone', 'business']],
+                ['title' => 'Message de félicitations', 'description' => 'Vous laissez un message vocal WhatsApp à un partenaire d\'affaires étranger anglophone pour féliciter sa famille d\'une naissance.', 'tags' => ['phone', 'business']],
             ],
         ],
 
@@ -170,7 +170,7 @@ return [
             ],
             'pronunciation' => [
                 "Than est faible [ðən] : « cheaper than » se dit presque « cheaper-th'n ».",
-                'Le schwa [ə] final de better, cheaper : pas de « r » roulé ni de « eur » appuyé.',
+                "Better [ˈbɛɾɚ] et cheaper [ˈtʃiːpɚ] à l'américaine : le « r » final se prononce légèrement, sans « r » roulé, et le « t » de better devient un « r » français très bref.",
             ],
             'spoken' => [
                 "« It's a bit pricey » = c'est un peu cher.",
@@ -182,8 +182,8 @@ return [
             ],
             'situations' => [
                 ['title' => 'Acheter un téléphone', 'description' => 'Dans une boutique de téléphones du Grand Marché, comparez deux modèles avec le vendeur et choisissez.', 'tags' => ['market', 'phone', 'tech']],
-                ['title' => 'Comparer deux fournisseurs', 'description' => 'Vous comparez au téléphone les prix et la qualité de deux fournisseurs de tissu, l\'un à Lomé, l\'autre à Accra.', 'tags' => ['business', 'phone']],
-                ['title' => 'Choisir son université', 'description' => 'Avec un conseiller, comparez l\'université de Lomé et celle de Kara pour un programme en anglais : coût, distance, cours.', 'tags' => ['studies', 'education']],
+                ['title' => 'Comparer deux fournisseurs', 'description' => 'Vous comparez au téléphone les prix et la qualité de deux fournisseurs de tissu, l\'un à Lomé, l\'autre à l\'étranger.', 'tags' => ['business', 'phone']],
+                ['title' => 'Choisir son université', 'description' => 'Avec un conseiller, comparez l\'université de Lomé et celle de Kara pour un cursus en anglais : coût, distance, cours.', 'tags' => ['studies', 'education']],
             ],
         ],
 
@@ -196,10 +196,10 @@ return [
                 'comprendre et envoyer un message vocal court',
             ],
             'vocabulary' => [
-                'to call / to ring' => 'appeler',
+                'to call / to phone' => 'appeler',
                 'to call back' => 'rappeler',
                 'missed call' => 'appel manqué',
-                'voice note' => 'message vocal',
+                'voice message' => 'message vocal',
                 'to text' => 'envoyer un SMS / un message',
                 'to hang up' => 'raccrocher',
                 'to hold on' => 'patienter (au téléphone)',
@@ -219,7 +219,7 @@ return [
                 'Could / can pour demander poliment : « Could you speak louder, please? ».',
             ],
             'functions' => [
-                'Ouvrir un appel : « Hello, this is Mawuli from Lomé Transit. Can I speak to Mr Adeyemi? »',
+                'Ouvrir un appel : « Hello, this is Mawuli from Lomé Transit. Can I speak to Mr. Johnson? »',
                 "Prendre un message : « He's not here. Can I take a message? »",
                 "Gérer la mauvaise connexion : « Sorry, the network is bad. I'll call you back. »",
             ],
@@ -233,31 +233,34 @@ return [
             ],
             'pitfalls' => [
                 'Au téléphone on dit « This is Kossi », pas « I am Kossi ».',
-                'Faux ami : « un portable » = a mobile phone / cell phone ; « a portable » est un adjectif (transportable).',
+                'Faux ami : « un portable » = a cell phone (en anglais britannique, on dit aussi a mobile phone) ; « a portable » est un adjectif (transportable).',
             ],
             'situations' => [
-                ['title' => 'Appeler un client à Accra', 'description' => 'Vous appelez un client d\'Accra pour confirmer une livraison ; sa secrétaire prend un message.', 'tags' => ['business', 'phone', 'work']],
-                ['title' => 'Message vocal WhatsApp', 'description' => 'Vous laissez un message vocal à un ami ghanéen pour fixer un rendez-vous à Lomé.', 'tags' => ['phone', 'conversation']],
-                ['title' => 'Service client', 'description' => 'Votre forfait internet ne marche pas pendant un séjour à Accra : vous expliquez le problème à un conseiller du service client.', 'tags' => ['phone', 'tech']],
+                ['title' => 'Appeler un client à l\'étranger', 'description' => 'Vous appelez un client étranger anglophone pour confirmer une livraison partie du port autonome de Lomé ; sa secrétaire prend un message.', 'tags' => ['business', 'phone', 'work']],
+                ['title' => 'Message vocal WhatsApp', 'description' => 'Vous laissez un message vocal à un ami anglophone rencontré en ligne, de passage à Lomé, pour fixer un rendez-vous.', 'tags' => ['phone', 'conversation']],
+                ['title' => 'Service client', 'description' => 'Votre forfait internet ne marche pas pendant un séjour à l\'étranger : vous expliquez le problème à un conseiller du service client.', 'tags' => ['phone', 'tech']],
             ],
         ],
 
         // 5
         [
-            'title' => 'En route pour le Ghana',
+            'title' => "Voyager à l'étranger",
             'objectives' => [
-                'acheter un billet de bus et comprendre les horaires',
-                'répondre aux questions simples à la frontière',
-                'demander des informations pendant un voyage',
+                'acheter un billet et comprendre les horaires de départ',
+                'répondre aux questions simples au contrôle des passeports',
+                "changer de l'argent et demander des informations pendant un voyage",
             ],
             'vocabulary' => [
                 'ticket' => 'billet',
-                'single / return' => 'aller simple / aller-retour',
+                'one-way / round-trip' => 'aller simple / aller-retour',
+                'flight' => 'vol',
+                'boarding pass' => "carte d'embarquement",
+                'gate' => "porte d'embarquement",
                 'departure' => 'départ',
                 'arrival' => 'arrivée',
                 'to leave' => 'partir',
                 'to arrive' => 'arriver',
-                'border' => 'frontière',
+                'passport control' => 'contrôle des passeports',
                 'passport' => 'passeport',
                 'ID card' => "carte d'identité",
                 'customs' => 'douane',
@@ -265,36 +268,36 @@ return [
                 'to declare' => 'déclarer',
                 'purpose of visit' => 'motif du séjour',
                 'on business' => 'pour affaires',
-                'on holiday' => 'en vacances',
+                'on vacation' => 'en vacances',
                 'delay' => 'retard',
                 'to exchange money' => "changer de l'argent",
-                'cedis' => 'cédis (monnaie du Ghana)',
+                'exchange rate' => 'taux de change',
             ],
             'grammar' => [
                 "Prépositions de temps : at 6 o'clock, on Monday, in the morning, in March.",
                 'Questions sur les horaires : « What time does the bus leave? », « How long does it take? ».',
             ],
             'functions' => [
-                'Acheter un billet : « A return ticket to Accra, please. What time is the next bus? »',
-                "À la frontière : « I'm here on business. I'm staying for three days at a hotel in Osu. »",
-                "Changer de l'argent : « What's the rate today for CFA to cedis? »",
+                'Acheter un billet : « A round-trip ticket, please. What time is the next flight? »',
+                "Au contrôle des passeports : « I'm here on business. I'm staying for three days at a hotel downtown. »",
+                "Changer de l'argent : « What's the exchange rate today for CFA francs? »",
             ],
             'pronunciation' => [
-                "Accra se prononce avec l'accent sur la 2e syllabe : [əˈkrɑː].",
+                "Passport [ˈpæspɔːrt] à l'américaine : « a » court comme dans cat, et le « r » se prononce.",
                 'Le « s » sonore de business [ˈbɪznəs] et de visit.',
             ],
             'spoken' => [
-                "« How long's the journey? » = combien de temps dure le trajet ?",
-                'Au Ghana, « chale » = mon ami (très familier, on l\'entend à Accra).',
+                "« How long's the trip? » = combien de temps dure le trajet ?",
+                '« Where are you headed? » = où allez-vous ? (question fréquente des agents et des autres voyageurs).',
             ],
             'pitfalls' => [
                 'Luggage est indénombrable : « my luggage is heavy », jamais « luggages ».',
                 'Faux ami : « journey » = trajet, voyage ; « journée » = day.',
             ],
             'situations' => [
-                ['title' => 'À la gare routière de Lomé', 'description' => 'Achetez un billet pour Accra, demandez l\'heure de départ, la durée et le prix des bagages.', 'tags' => ['travel', 'transport']],
-                ['title' => 'Poste frontière d\'Aflao', 'description' => 'L\'agent ghanéen de la frontière d\'Aflao vous demande le motif de votre séjour, votre adresse et ce que vous transportez.', 'tags' => ['travel', 'admin', 'business']],
-                ['title' => 'Bureau de change', 'description' => 'Avant de passer à Aflao, vous changez des francs CFA en cédis et vérifiez le taux et la somme reçue.', 'tags' => ['travel', 'business']],
+                ['title' => 'Au guichet de la compagnie aérienne', 'description' => 'À l\'aéroport de Lomé, achetez un billet pour un voyage à l\'étranger : demandez l\'heure de départ, la durée du vol et le prix des bagages.', 'tags' => ['travel', 'transport']],
+                ['title' => 'Contrôle des passeports', 'description' => 'En arrivant à l\'aéroport, à l\'étranger, l\'agent anglophone du contrôle des passeports vous demande le motif de votre séjour, votre adresse et ce que vous transportez.', 'tags' => ['travel', 'admin', 'business']],
+                ['title' => 'Bureau de change', 'description' => 'À l\'aéroport, en arrivant à l\'étranger, vous changez des francs CFA dans la monnaie locale et vérifiez le taux et la somme reçue.', 'tags' => ['travel', 'business']],
             ],
         ],
 
@@ -307,7 +310,7 @@ return [
                 'commander un repas et réagir à un problème',
             ],
             'vocabulary' => [
-                'booking / reservation' => 'réservation',
+                'reservation' => 'réservation (en anglais britannique, on dit aussi « booking »)',
                 'single room / double room' => 'chambre simple / double',
                 'check-in / check-out' => 'arrivée / départ (hôtel)',
                 'reception' => 'réception',
@@ -321,7 +324,7 @@ return [
                 "it doesn't work" => 'ça ne marche pas',
                 'noisy' => 'bruyant',
                 'waiter / waitress' => 'serveur / serveuse',
-                'starter / main course' => 'entrée / plat principal',
+                'appetizer / main course' => 'entrée / plat principal',
                 'dessert' => 'dessert',
                 'receipt' => 'reçu',
             ],
@@ -344,12 +347,12 @@ return [
             ],
             'pitfalls' => [
                 "Faux ami : « la réception » d'un hôtel = reception, mais « recevoir un client » = to welcome / to receive a guest.",
-                'Faux ami : « a starter » = une entrée ; « an entry » = une inscription, un accès.',
+                "Faux ami : en anglais américain, « an entrée » est le plat principal ; l'entrée se dit an appetizer.",
             ],
             'situations' => [
-                ['title' => 'Arrivée à l\'hôtel à Accra', 'description' => 'Vous faites le check-in à Accra pour un séminaire et demandez le code Wi-Fi et l\'heure du petit-déjeuner.', 'tags' => ['travel', 'work']],
+                ['title' => 'Arrivée à l\'hôtel à l\'étranger', 'description' => 'Vous faites le check-in dans un hôtel à l\'étranger pour un séminaire international et demandez le code Wi-Fi et l\'heure du petit-déjeuner.', 'tags' => ['travel', 'work']],
                 ['title' => 'Réclamation d\'un client à Lomé', 'description' => 'Vous êtes réceptionniste à Lomé : un client anglophone se plaint que la climatisation ne marche pas.', 'tags' => ['work', 'travel']],
-                ['title' => 'Dîner d\'affaires', 'description' => 'Dans un restaurant de Lomé avec un partenaire ghanéen, commandez, réglez une erreur de commande et demandez l\'addition.', 'tags' => ['business']],
+                ['title' => 'Dîner d\'affaires', 'description' => 'Dans un restaurant de Lomé avec un partenaire étranger anglophone, commandez, réglez une erreur de commande et demandez l\'addition.', 'tags' => ['business']],
             ],
         ],
 
@@ -365,7 +368,7 @@ return [
                 'symptom' => 'symptôme',
                 'to feel dizzy' => 'avoir des vertiges',
                 'to vomit / to throw up' => 'vomir',
-                'diarrhoea' => 'diarrhée',
+                'diarrhea' => 'diarrhée',
                 'rash' => 'éruption, boutons',
                 'blood pressure' => 'tension artérielle',
                 'blood test' => 'prise de sang',
@@ -392,7 +395,7 @@ return [
             ],
             'pronunciation' => [
                 'Le « h » de health et de have (à bien souffler).',
-                "Diarrhoea [ˌdaɪəˈrɪə], allergic [əˈlɜːdʒɪk] : l'accent tonique n'est pas sur la même syllabe qu'en français.",
+                "Diarrhea [ˌdaɪəˈriːə], allergic [əˈlɝdʒɪk] : l'accent tonique n'est pas sur la même syllabe qu'en français.",
             ],
             'spoken' => [
                 "« I'm feeling under the weather » = je ne suis pas en forme.",
@@ -403,7 +406,7 @@ return [
                 'Faux ami : « une ordonnance » = a prescription ; « an ordinance » est un règlement municipal.',
             ],
             'situations' => [
-                ['title' => 'Consultation à Accra', 'description' => 'En voyage à Accra, vous expliquez vos symptômes de paludisme à un médecin et comprenez son traitement.', 'tags' => ['health', 'travel']],
+                ['title' => 'Consultation à l\'étranger', 'description' => 'En voyage à l\'étranger, vous expliquez vos symptômes de paludisme à un médecin et comprenez son traitement.', 'tags' => ['health', 'travel']],
                 ['title' => 'Infirmier et patient', 'description' => 'Vous êtes infirmier au CHU Sylvanus Olympio : interrogez un patient anglophone sur ses symptômes et ses allergies.', 'tags' => ['health', 'work']],
                 ['title' => 'Déplacer un rendez-vous', 'description' => 'Appelez une clinique de Lomé pour reporter le rendez-vous de votre mère avec un médecin anglophone.', 'tags' => ['health', 'phone', 'family']],
             ],
@@ -423,18 +426,18 @@ return [
                 'university' => 'université',
                 'degree' => 'diplôme universitaire (licence…)',
                 'subject' => 'matière',
-                'maths / science' => 'maths / sciences',
-                'timetable' => 'emploi du temps',
+                'math / science' => 'maths / sciences',
+                'schedule' => 'emploi du temps',
                 'lecture' => 'cours magistral',
                 'exam / test' => 'examen / contrôle',
                 'to pass / to fail' => 'réussir / échouer (examen)',
-                'to revise' => 'réviser',
+                'to review / to study' => 'réviser',
                 'fees' => 'frais de scolarité',
                 'uniform' => 'uniforme',
-                'headteacher' => "directeur d'école",
-                'lecturer' => "enseignant à l'université",
+                'principal' => "directeur d'école",
+                'professor' => "enseignant à l'université",
                 'assignment' => 'devoir, travail à rendre',
-                'to enrol' => "s'inscrire",
+                'to enroll' => "s'inscrire",
                 'scholarship' => "bourse d'études",
             ],
             'grammar' => [
@@ -444,18 +447,18 @@ return [
             'functions' => [
                 "Parler de ses études : « I'm studying accounting at the University of Lomé. I'm in my second year. »",
                 'Expliquer les règles : « You have to pay the fees before the exams. »',
-                'Demander : « When is the deadline to enrol? »',
+                'Demander : « When is the deadline to enroll? »',
             ],
             'pronunciation' => [
                 'Subject : nom [ˈsʌbdʒɪkt] (accent au début).',
-                'University [ˌjuːnɪˈvɜːsəti] commence par le son « you ».',
+                'University [ˌjuːnɪˈvɝsəɾi] commence par le son « you ».',
             ],
             'spoken' => [
-                "« I'm doing a degree in law » = je fais une licence de droit.",
-                "« I've got exams coming up » = j'ai bientôt des examens.",
+                "« I'm majoring in law » = je fais des études de droit (ma matière principale).",
+                "« I have exams coming up » = j'ai bientôt des examens.",
             ],
             'pitfalls' => [
-                'Faux ami : « passer un examen » = to take / sit an exam ; « to pass an exam » = le réussir !',
+                'Faux ami : « passer un examen » = to take an exam (en anglais britannique, on dit aussi to sit an exam) ; « to pass an exam » = le réussir !',
                 'Faux ami : « a lecture » est un cours magistral ; « la lecture » = reading.',
             ],
             'situations' => [
@@ -474,11 +477,11 @@ return [
                 "répondre aux questions courantes d'un premier entretien",
             ],
             'vocabulary' => [
-                'job advert' => "offre d'emploi",
-                'position / post' => 'poste',
+                'job ad / job posting' => "offre d'emploi",
+                'position / opening' => 'poste',
                 'to apply for' => 'postuler à',
                 'application' => 'candidature',
-                'CV / résumé' => 'CV',
+                'résumé' => 'CV, curriculum vitae (en anglais britannique, on dit aussi « CV »)',
                 'experience' => 'expérience',
                 'skills' => 'compétences',
                 'qualifications' => 'diplômes, qualifications',
@@ -497,12 +500,12 @@ return [
                 "Present perfect pour l'expérience jusqu'à aujourd'hui : « I have worked in sales since 2020 ».",
             ],
             'functions' => [
-                "Se présenter : « I have a degree in marketing and three years' experience in sales. »",
+                'Se présenter : « I have a degree in marketing and three years of experience in sales. »',
                 "Parler de ses qualités : « I'm reliable and I work well in a team. »",
                 'Poser une question au recruteur : « What are the working hours? »',
             ],
             'pronunciation' => [
-                'Experience [ɪkˈspɪəriəns] : accent sur « pe ».',
+                'Experience [ɪkˈspɪriəns] : accent sur « pe ».',
                 'Le son [dʒ] de job et de manager : « dj », pas « j » français.',
             ],
             'spoken' => [
@@ -516,7 +519,7 @@ return [
             'situations' => [
                 ['title' => 'Premier entretien', 'description' => 'Le recruteur d\'une ONG installée à Lomé vous pose les questions classiques d\'un premier entretien.', 'tags' => ['work', 'exam']],
                 ['title' => 'Appeler pour une annonce', 'description' => 'Vous appelez pour vous renseigner sur une offre de chauffeur-livreur à temps partiel dans une entreprise de Lomé.', 'tags' => ['work', 'phone', 'transport']],
-                ['title' => 'Stage à Accra', 'description' => 'Vous présentez votre parcours d\'étudiant pour obtenir un stage dans une entreprise d\'Accra.', 'tags' => ['studies', 'work']],
+                ['title' => 'Stage dans une entreprise internationale', 'description' => 'Vous présentez votre parcours d\'étudiant pour obtenir un stage dans une entreprise internationale installée à Lomé.', 'tags' => ['studies', 'work']],
             ],
         ],
 
@@ -554,10 +557,10 @@ return [
             'functions' => [
                 "Décrire : « She's tall and slim, in her twenties, with long braids. »",
                 "Parler du caractère : « He's very friendly but a bit lazy. »",
-                "Identifier quelqu'un : « Look for a short man with a grey beard and a blue shirt. »",
+                "Identifier quelqu'un : « Look for a short man with a gray beard and a blue shirt. »",
             ],
             'pronunciation' => [
-                "Le « h » d'honest est muet [ˈɒnɪst], comme en français, mais celui de happy se prononce.",
+                "Le « h » d'honest est muet [ˈɑːnɪst], comme en français, mais celui de happy se prononce.",
                 'Les mots en -y final (funny, lazy) : [i] bref, pas de « aï ».',
             ],
             'spoken' => [
@@ -569,8 +572,8 @@ return [
                 '« He is like his father » (caractère) vs « He looks like his father » (physique).',
             ],
             'situations' => [
-                ['title' => 'Accueillir à l\'aéroport de Lomé', 'description' => 'Vous devez accueillir à l\'aéroport un collègue d\'Accra que vous n\'avez jamais vu : décrivez-vous au téléphone pour vous reconnaître.', 'tags' => ['travel', 'work', 'phone']],
-                ['title' => 'Recommander un employé', 'description' => 'Votre partenaire ghanéen cherche un vendeur pour sa boutique de Lomé : décrivez le caractère d\'une personne que vous recommandez.', 'tags' => ['business', 'work']],
+                ['title' => 'Accueillir à l\'aéroport de Lomé', 'description' => 'Vous devez accueillir à l\'aéroport un collègue étranger que vous n\'avez jamais vu : décrivez-vous au téléphone pour vous reconnaître.', 'tags' => ['travel', 'work', 'phone']],
+                ['title' => 'Recommander un employé', 'description' => 'Votre partenaire étranger, qui ouvre une boutique à Lomé, cherche un vendeur : décrivez le caractère d\'une personne que vous recommandez.', 'tags' => ['business', 'work']],
                 ['title' => 'Parler de ses proches', 'description' => 'Vous décrivez vos frères et sœurs, restés à Kara, à un ami anglophone : physique et caractère, en les comparant.', 'tags' => ['family', 'conversation']],
             ],
         ],
@@ -587,19 +590,19 @@ return [
                 'bank account' => 'compte bancaire',
                 'to deposit' => 'déposer',
                 'to withdraw' => 'retirer',
-                'cash machine / ATM' => 'distributeur',
+                'ATM' => 'distributeur',
                 'transfer' => 'virement, transfert',
                 'mobile money' => 'mobile money',
                 'fee / charge' => 'frais',
                 'balance' => 'solde',
                 'form' => 'formulaire',
-                'to fill in' => 'remplir',
+                'to fill out' => 'remplir',
                 'to sign' => 'signer',
                 'signature' => 'signature',
                 'date of birth' => 'date de naissance',
                 'proof of address' => 'justificatif de domicile',
                 'copy' => 'photocopie',
-                'queue' => "file d'attente",
+                'line' => "file d'attente (en anglais britannique, on dit aussi « queue »)",
                 'counter' => 'guichet',
                 'deadline' => 'date limite',
             ],
@@ -608,13 +611,13 @@ return [
                 "Need to / don't need to : « You need to bring a copy of your ID ».",
             ],
             'functions' => [
-                "Au guichet : « I'd like to send 50,000 francs to my brother in Ghana. What's the fee? »",
-                "Remplir un formulaire : « What's your date of birth? — The twelfth of March, 1990. »",
+                "Au guichet : « I'd like to send 50,000 francs to my brother in Kara. What's the fee? »",
+                "Remplir un formulaire : « What's your date of birth? — March twelfth, 1990. »",
                 'Vérifier : « Do I need to sign here? »',
             ],
             'pronunciation' => [
-                'Les dates : « the twelfth of March » [twelfθ] ; th final à bien marquer.',
-                'Withdraw [wɪðˈdrɔː] : « th » doux.',
+                'Les dates à l\'américaine : « March twelfth » [twelfθ] ; th final à bien marquer.',
+                'Withdraw [wɪðˈdrɑː] : « th » doux.',
             ],
             'spoken' => [
                 '« Hold on, let me check » = attendez, je vérifie.',
@@ -625,9 +628,9 @@ return [
                 "Faux ami : « a formulary » n'existe pas au sens de formulaire : dites a form.",
             ],
             'situations' => [
-                ['title' => 'Envoyer de l\'argent', 'description' => 'Dans une agence de transfert de Lomé, envoyez de l\'argent à un proche à Accra et demandez les frais.', 'tags' => ['admin', 'family', 'business']],
+                ['title' => 'Envoyer de l\'argent', 'description' => 'Dans une agence de transfert de Lomé, envoyez de l\'argent à un proche qui étudie à l\'étranger et demandez les frais.', 'tags' => ['admin', 'family', 'business']],
                 ['title' => 'Ouvrir un compte professionnel', 'description' => 'Vous ouvrez un compte pour votre entreprise dans une banque de Lomé qui travaille en anglais : documents à fournir.', 'tags' => ['business', 'admin']],
-                ['title' => 'Permis de séjour d\'un collègue', 'description' => 'Vous aidez un collègue ghanéen à comprendre les documents à fournir pour sa carte de séjour au Togo.', 'tags' => ['admin', 'work']],
+                ['title' => 'Permis de séjour d\'un collègue', 'description' => 'Vous aidez un collègue étranger anglophone à comprendre les documents à fournir pour sa carte de séjour au Togo.', 'tags' => ['admin', 'work']],
             ],
         ],
 
@@ -646,7 +649,7 @@ return [
                 'dream' => 'rêve',
                 'to hope' => 'espérer',
                 'to save money' => 'économiser',
-                'to open a shop' => 'ouvrir une boutique',
+                'to open a store' => 'ouvrir une boutique, un magasin',
                 'to get married' => 'se marier',
                 'to move' => 'déménager',
                 'abroad' => "à l'étranger",
@@ -663,13 +666,13 @@ return [
                 "Hope + présent ou will : « I hope I'll pass », « I hope it doesn't rain ».",
             ],
             'functions' => [
-                "Parler d'un projet : « I'm going to open a second shop in Kara next year. »",
-                'Prévoir : « Prices will probably go up after the holidays. »',
+                "Parler d'un projet : « I'm going to open a second store in Kara next year. »",
+                'Prévoir : « Prices will probably go up next month. »',
                 "Promettre / proposer : « I'll send you the documents tonight, I promise. »",
             ],
             'pronunciation' => [
                 "La contraction I'll [aɪl] : « I will » sonne insistant ou solennel.",
-                "Won't [wəʊnt] ≠ want [wɒnt] : attention, sens opposés !",
+                "Won't [woʊnt] ≠ want [wɑːnt] : attention, sens opposés !",
             ],
             'spoken' => [
                 "« I'm planning to… » = je compte…",
@@ -682,7 +685,7 @@ return [
             'situations' => [
                 ['title' => 'Projet d\'entreprise', 'description' => 'Vous présentez à un investisseur anglophone vos projets pour votre commerce à Lomé dans les cinq prochaines années.', 'tags' => ['business', 'work']],
                 ['title' => 'Après la licence à Kara', 'description' => 'Un ami vous demande ce que vous allez faire après vos études à l\'université de Kara : travail, voyage, master.', 'tags' => ['studies', 'conversation']],
-                ['title' => 'Promesse à un client', 'description' => 'Un client d\'Accra attend sa commande : rassurez-le et promettez une date de livraison.', 'tags' => ['business', 'phone']],
+                ['title' => 'Promesse à un client', 'description' => 'Un client étranger attend sa commande, expédiée du port autonome de Lomé : rassurez-le et promettez une date de livraison.', 'tags' => ['business', 'phone']],
             ],
         ],
 

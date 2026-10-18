@@ -29,6 +29,10 @@ class LearnerSituation
             'Étape actuelle : '.self::step($user, $kind),
         ];
 
+        if ($user->exists && ! $user->canPayOnline()) {
+            $lines[] = 'Pays : '.$user->countryName().' (paiement en ligne indisponible dans ce pays : pour s\'abonner, il écrit à l\'équipe sur WhatsApp depuis la page de la formule choisie ; ne cite pas ce pays toi-même).';
+        }
+
         if ($user->level !== null) {
             $lines[] = 'Niveau : '.$user->level->value.' ('.$user->level->label().')';
         }

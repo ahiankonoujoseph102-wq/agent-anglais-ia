@@ -8,7 +8,8 @@
     <form method="POST" action="{{ route('login') }}" class="card form-card rise" style="--i: 1" novalidate>
         @csrf
 
-        <x-input name="phone" label="Numéro de téléphone" type="tel" inputmode="tel" autocomplete="tel" required autofocus />
+        <x-input name="phone" label="Numéro de téléphone" type="tel" inputmode="tel" autocomplete="tel" required autofocus
+                 hint="Hors du Togo : avec l'indicatif de votre pays, par exemple +237 6 77 12 34 56." />
         <x-input name="password" label="Mot de passe" type="password" autocomplete="current-password" required />
 
         <div class="field">

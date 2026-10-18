@@ -21,7 +21,7 @@
         <h2 id="privacy-collected">Les informations que nous gardons</h2>
         <ul>
             <li><strong>Votre compte</strong> : votre nom, votre numéro de téléphone (il sert à vous connecter) et, si vous la donnez, votre adresse e-mail. Votre mot de passe est enregistré sous une forme protégée que personne ne peut relire.</li>
-            <li><strong>Votre pays</strong> : il est déduit de l'indicatif de votre numéro de téléphone, ou choisi par vous au moment du paiement.</li>
+            <li><strong>Votre pays</strong> : celui que vous choisissez à l'inscription (pour les comptes plus anciens, il est déduit de l'indicatif de votre numéro de téléphone) ; il sert à vous proposer les bons moyens de paiement et à vous saluer à l'heure de votre pays.</li>
             <li><strong>Votre apprentissage</strong> : le niveau trouvé lors de l'évaluation, vos réponses au questionnaire (objectif, métier, jours de travail, difficultés), votre programme, les résumés et devoirs de vos séances, vos erreurs à revoir, vos notes et vos attestations de niveau.</li>
             <li><strong>Vos paiements</strong> : la formule choisie, le pays, le moyen de paiement, le montant, et la capture d'écran de confirmation que vous envoyez, avec ce que le site y a lu (montant, date, numéro de transaction, numéro qui a reçu l'argent).</li>
             <li><strong>« Mes cours »</strong> : les photos ou le PDF des leçons d'anglais que vous envoyez, et le texte que {{ $teacher }} en a lu.</li>

@@ -29,6 +29,7 @@
             <p class="lead">
                 {{ $teacher }} vous fait parler, vous corrige et vous fait progresser à votre rythme, depuis votre téléphone.
                 Commencez par une évaluation orale gratuite de {{ $minutes }} minutes.
+                Vous apprenez l'anglais américain, compris partout dans le monde.
             </p>
             <p class="hero-also">Vous êtes élève ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école.</p>
             <div class="actions actions-row">
@@ -108,7 +109,7 @@
                 <span class="icon-bubble"><x-icon name="pin" /></span>
                 <div>
                     <h3>Des situations de chez nous</h3>
-                    <p>Au Grand Marché de Lomé, en zémidjan, au port autonome, à la frontière d'Aflao ou pour accueillir un visiteur venu du Ghana.</p>
+                    <p>Au Grand Marché de Lomé, en zémidjan, au port autonome, mais aussi au travail, en voyage, pour vos études, au téléphone et sur internet.</p>
                 </div>
             </article>
             <article class="card feature reveal" style="--i: 3">
@@ -182,7 +183,7 @@
             <div>
                 <span class="eyebrow">Vous travaillez ?</span>
                 <h2 id="pros">Réunions, clients, visiteurs : parlez anglais dans votre métier</h2>
-                <p>Quand vous construisez votre programme, vous indiquez votre métier et votre objectif. Les situations qui vous concernent passent en premier : accueillir un partenaire venu du Ghana, présenter votre activité, négocier, voyager.</p>
+                <p>Quand vous construisez votre programme, vous indiquez votre métier et votre objectif. Les situations qui vous concernent passent en premier : accueillir un client étranger, présenter votre activité, négocier, voyager.</p>
                 <a class="btn btn-accent btn-lg" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
             </div>
         </div>
@@ -193,6 +194,7 @@
             <span class="eyebrow">Dans votre pays</span>
             <h2 id="pays">Apprendre l'anglais au Togo, au Bénin, au Burkina Faso et en Côte d'Ivoire</h2>
             <p class="muted">Mêmes formules et mêmes prix partout, avec les moyens de paiement de votre pays. <a href="{{ route('about') }}">Qui sommes-nous ?</a></p>
+            <p class="muted">Vous habitez ailleurs ? {{ $platform }} accueille les francophones du monde entier : inscription et évaluation gratuite depuis tous les pays, abonnement avec notre équipe sur WhatsApp.</p>
         </div>
         <x-country-links :pages="$countryPages" />
     </section>
@@ -213,6 +215,14 @@
                         <li><strong>{{ $paymentCountry['name'] }}</strong> : {{ implode(', ', $paymentCountry['operators']) }}</li>
                     @endforeach
                 </ul>
+            </details>
+            <details>
+                <summary><x-icon name="globe" /><span>Je n'habite pas dans un de ces pays : puis-je m'inscrire ?</span></summary>
+                <p>Oui. {{ $platform }} accueille les francophones de tous les pays : l'inscription et l'évaluation gratuite fonctionnent partout. Le paiement en ligne n'est pas encore disponible hors de ces pays : notre équipe vous explique sur WhatsApp comment vous abonner. Les prix restent en francs CFA.</p>
+            </details>
+            <details>
+                <summary><x-icon name="languages" /><span>Quel anglais vais-je apprendre ?</span></summary>
+                <p>L'anglais américain, compris partout dans le monde : sa prononciation, son vocabulaire et son orthographe. Si vous avez appris des mots britanniques à l'école, ils ne sont jamais comptés comme des fautes : {{ $teacher }} vous donne simplement l'équivalent américain quand c'est utile.</p>
             </details>
             <details>
                 <summary><x-icon name="hourglass" /><span>Qu'est-ce que l'accès provisoire ?</span></summary>

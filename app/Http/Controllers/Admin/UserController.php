@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OfferAccessRequest;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Countries;
 use App\Support\Live\Transcripts;
 use App\Support\PhoneNumber;
 use App\Support\Plan;
@@ -23,6 +24,10 @@ class UserController extends Controller
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('q'));
+        // Filtre par pays : un pays de paiement, ou « autres » (tous les pays sans paiement Mobile Money, inconnus compris).
+        $paymentCountries = array_keys((array) config('payment.countries'));
+        $country = (string) $request->query('pays');
+        $country = $country === 'autres' || in_array($country, $paymentCountries, true) ? $country : '';
 
         $users = User::query()
             ->with('activeSubscription')
@@ -37,6 +42,9 @@ class UserController extends Controller
                     }
                 });
             })
+            ->when($country === 'autres', fn (Builder $query) => $query->where(fn (Builder $query) => $query
+                ->whereNull('country')->orWhereNotIn('country', $paymentCountries)))
+            ->when($country !== '' && $country !== 'autres', fn (Builder $query) => $query->where('country', $country))
             ->latest()
             ->paginate(25)
             ->withQueryString();
@@ -44,6 +52,8 @@ class UserController extends Controller
         return view('admin.users.index', [
             'users' => $users,
             'search' => $search,
+            'country' => $country,
+            'paymentCountries' => array_combine($paymentCountries, array_map(fn (string $code) => Countries::name($code), $paymentCountries)),
             'total' => User::count(),
         ]);
     }
