@@ -107,7 +107,9 @@ return [
         // Source : ai.google.dev/api/live (relevé du 17 octobre 2026).
         'activity_detection' => [
             'start_sensitivity' => 'START_SENSITIVITY_LOW',
-            'end_sensitivity' => 'END_SENSITIVITY_LOW',
+            // Fin de parole : HIGH, la valeur par défaut de Google (« ends speech more often »). Avec LOW, un bruit de
+            // fond continu pouvait empêcher la fin du tour ; les hésitations restent protégées par silence_duration_ms.
+            'end_sensitivity' => env('GEMINI_END_OF_SPEECH_SENSITIVITY', 'END_SENSITIVITY_HIGH'),
             // Son gardé avant le début détecté de la parole, en millisecondes.
             'prefix_padding_ms' => (int) env('GEMINI_PREFIX_PADDING_MS', 300),
             // Silence nécessaire pour considérer que l'apprenant a fini de parler.

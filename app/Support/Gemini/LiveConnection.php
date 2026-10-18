@@ -148,7 +148,7 @@ class LiveConnection
             'remaining_seconds' => $conversation->remainingSeconds(),
             'warning_seconds' => $warningSeconds,
             'heartbeat_seconds' => (int) config('platform.live.heartbeat_seconds'),
-            'cues' => $cues + ['pause_resume' => TeacherSetup::cue('pause_resume')],
+            'cues' => $cues + ['pause_resume' => TeacherSetup::cue('pause_resume'), 'nudge' => TeacherSetup::cue('nudge')],
             // Micro coupé pendant la voix du professeur, et encore ce délai après (anti-écho).
             'echo_guard_ms' => (int) config('platform.live.echo_guard_ms'),
             // Au-delà de cette durée de pause, la conversation se termine (le temps continue en pause).

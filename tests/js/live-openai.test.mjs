@@ -318,3 +318,21 @@ test('coupure en cours de séance (raccrochage du serveur à la limite) : signal
     assert.deepEqual(second.events.calls, []);
     assert.equal(second.peer.closed, true);
 });
+
+test('fin de voix perdue : l\'écran peut la déclarer finie ; une erreur d\'OpenAI est signalée pour le journal', async () => {
+    const { events, transport, channel, audio } = await connected();
+    events.calls.length = 0;
+
+    audio.context.currentTime = 3;
+    channel.emit({ type: 'output_audio_buffer.started' });
+    assert.equal(transport.speaking, true);
+    assert.equal(transport.speakingSince, 3);
+
+    // output_audio_buffer.stopped n'arrive jamais : la sécurité de l'écran (voiceLooksOver) déclare la voix finie.
+    transport.voiceEnded(4.2);
+    assert.equal(transport.speaking, false);
+    assert.equal(transport.stoppedAt, 4.2);
+
+    channel.emit({ type: 'error', error: { type: 'invalid_request_error', code: 'session_expired', message: '…' } });
+    assert.deepEqual(events.calls.at(-1), ['onProviderError', 'session_expired']);
+});

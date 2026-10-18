@@ -109,3 +109,27 @@ test('fermeture : signalée avec « prêt » ou non (connexion impossible avant 
 
     assert.deepEqual(events.calls, [['onClose', { reason: '', code: 1006, ready: false }]]);
 });
+
+test('début et fin de la parole vus par Google (voiceActivity) : transmis à l\'écran pour mesurer le tour', async () => {
+    const events = recorder();
+    const transport = new GeminiTransport({ websocket_url: 'wss://x', setup: {} }, events.handlers, { WebSocketImpl: FakeSocket });
+    transport.connect();
+    const ws = FakeSocket.last;
+    ws.open();
+
+    await ws.emit({ voiceActivity: { type: 'ACTIVITY_START' } });
+    await ws.emit({ voiceActivity: { type: 'ACTIVITY_END' } });
+    await ws.emit({ voiceActivity: { type: 'TYPE_UNSPECIFIED' } });
+
+    assert.deepEqual(events.calls, [['onVoiceActivity', true], ['onVoiceActivity', false]]);
+});
+
+test('micro fermé pour signaler la fin du tour : « audioStreamEnd », le moyen prévu par Google', () => {
+    const transport = new GeminiTransport({ websocket_url: 'wss://x', setup: {} }, {}, { WebSocketImpl: FakeSocket });
+    transport.connect();
+    const ws = FakeSocket.last;
+    ws.open();
+    transport.endAudio();
+
+    assert.deepEqual(ws.sent.at(-1), { realtimeInput: { audioStreamEnd: true } });
+});

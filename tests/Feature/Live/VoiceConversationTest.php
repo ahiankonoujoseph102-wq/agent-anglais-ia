@@ -35,7 +35,7 @@ class VoiceConversationTest extends TestCase
                 'automaticActivityDetection' => [
                     'disabled' => false,
                     'startOfSpeechSensitivity' => 'START_SENSITIVITY_LOW',
-                    'endOfSpeechSensitivity' => 'END_SENSITIVITY_LOW',
+                    'endOfSpeechSensitivity' => 'END_SENSITIVITY_HIGH',
                     'prefixPaddingMs' => 300,
                     'silenceDurationMs' => 1200,
                 ],
@@ -56,6 +56,8 @@ class VoiceConversationTest extends TestCase
 
         $this->assertStringContainsString('Do not greet them again', $response->json('cues.pause_resume'));
         $this->assertStringContainsString('Do not greet the learner again', $response->json('cues.resume'));
+        // Bouton « Relancer Teacher Joe » : l'apprenant a fini de parler et attend la réponse.
+        $this->assertStringContainsString('has been waiting for your answer', $response->json('cues.nudge'));
     }
 
     public function test_conversation_screen_has_large_pause_mute_and_interrupt_buttons(): void
@@ -86,7 +88,7 @@ class VoiceConversationTest extends TestCase
         $this->assertStringContainsString('id="mic-select"', $html);
         $this->assertStringContainsString('Nous ne vous entendons pas. Vérifiez votre micro. Si des écouteurs ou une enceinte Bluetooth sont connectés, portez-les ou déconnectez-les.', $html);
         $this->assertStringContainsString('js/mic-input.js', $html);
-        $this->assertStringContainsString("data-audio='{\"echo_cancellation\":false,\"voice_gain\":2.5,\"silent_mic_seconds\":8}'", $html);
+        $this->assertStringContainsString("data-audio='{\"echo_cancellation\":false,\"voice_gain\":2.5,\"silent_mic_seconds\":8,\"end_of_turn_seconds\":3,\"no_answer_seconds\":8,\"stuck_seconds\":20,\"voice_stuck_seconds\":4}'", $html);
     }
 
     public function test_voice_gain_and_echo_cancellation_defaults(): void

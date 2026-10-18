@@ -953,6 +953,15 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .chat-teacher .chat-meta strong { color: var(--c-primary-strong); }
 .chat-learner .chat-meta strong { color: var(--c-accent-ink); }
 .chat-text { white-space: pre-line; overflow-wrap: anywhere; color: var(--c-text); }
+/* Délai de réponse de Teacher Joe (orange au-delà de platform.transcripts.slow_reply_seconds) et événements gris. */
+.chat-delay { margin-top: var(--space-1) !important; font-size: var(--fs-xs); color: var(--c-muted); }
+.chat-delay-slow { color: var(--c-accent-strong); font-weight: var(--fw-bold); }
+.chat-event { justify-self: center; font-size: var(--fs-xs); color: var(--c-muted); text-align: center; }
+.chat-event time { margin-right: var(--space-1); font-variant-numeric: tabular-nums; }
+.conversation-delays { margin: var(--space-3) 0 var(--space-2); }
+/* Écran de séance : aucune réponse du professeur (« réfléchit, un instant… », « Relancer »). */
+.live-wait p { margin: 0; }
+.live-wait .btn { margin-top: var(--space-2); }
 
 /* Page « Confidentialité » et lien du gabarit simple. */
 .privacy h2 { margin-top: 0; }

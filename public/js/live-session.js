@@ -26,7 +26,7 @@
 
 const root = document.getElementById('live');
 // Porte du micro (URL versionnée par la page, comme les autres fichiers).
-const { MicGate, voiceEndsAt } = await import(root.dataset.micGate);
+const { MicGate, voiceEndsAt, voiceLooksOver } = await import(root.dataset.micGate);
 // Lecture propre de la voix (décodage, programmation bout à bout, rééchantillonnage continu).
 const { VOICE_RATE, decodePcm16, StreamResampler, VoiceScheduler, fadeIn } = await import(root.dataset.pcmAudio);
 // Micro : liste « Micro utilisé », témoin de niveau, alerte de silence.
@@ -41,6 +41,8 @@ const { GeminiTransport } = await import(root.dataset.liveGemini);
 const { OpenAiTransport } = await import(root.dataset.liveOpenai);
 // Texte de la conversation (jamais l'audio), envoyé au serveur par petits lots.
 const { TranscriptRecorder } = await import(root.dataset.transcript);
+// Mesure des tours de parole (délai de réponse), fin de tour de secours, attente d'une réponse.
+const { VoiceActivity, TurnWatch, learnerMetrics, teacherMetrics } = await import(root.dataset.turnWatch);
 // Secondes, pour la fin automatique.
 const clock = () => performance.now() / 1000;
 const MIC_PREFERENCE = 'mic-device';
@@ -55,6 +57,7 @@ const ui = {
     subtitles: $('subtitles'), outcome: $('outcome'), mouth: $('mouth'),
     turn: $('turn'), turnText: $('turn-text'), controls: $('controls'), plans: $('plans-offer'),
     micPanel: $('mic-panel'), micLevel: $('mic-level'), micChoice: $('mic-choice'), micSelect: $('mic-select'), micWarning: $('mic-warning'),
+    waitNote: $('wait-note'), waitText: $('wait-text'), nudge: $('nudge'),
     interrupt: $('interrupt'), pause: $('pause'), mute: $('mute'), pauseNote: $('pause-note'),
 };
 const teacherName = root.dataset.teacherName || 'Le professeur';
@@ -110,6 +113,9 @@ const MESSAGES = {
     counted: 'Le temps déjà utilisé est compté. Touchez « Se reconnecter » pour réessayer, ou relancez la séance un peu plus tard.',
     quota: 'Le professeur a atteint sa limite de conversations gratuites pour le moment. Réessayez un peu plus tard : votre temps non utilisé reste disponible.',
     pauseTooLong: 'La pause a duré trop longtemps : la conversation est terminée. Le temps déjà utilisé est décompté.',
+    thinking: `${teacherName} réfléchit, un instant…`,
+    stuck: `${teacherName} ne répond pas. Touchez « Relancer ${teacherName} », ou répétez votre dernière phrase.`,
+    nudged: `${teacherName} va vous répondre…`,
 };
 
 const state = {
@@ -162,6 +168,22 @@ const state = {
     recorder: new TranscriptRecorder(),
     utterances: new WeakMap(),
     sendingTranscript: false,
+    // Tours de parole : voix de l'apprenant mesurée par le niveau du micro (aucun audio gardé), délai de réponse.
+    vad: new VoiceActivity(),
+    turns: new TurnWatch({
+        endOfTurnMs: (audioConfig.end_of_turn_seconds ?? 3) * 1000,
+        noAnswerMs: (audioConfig.no_answer_seconds ?? 8) * 1000,
+        stuckMs: (audioConfig.stuck_seconds ?? 20) * 1000,
+    }),
+    // Répliques de l'apprenant par tour (heure réelle et mesures connues à la réponse du professeur).
+    turnLines: new Map(),
+    // Voix du professeur en cours (premier son déjà mesuré) et réplique de cette réponse.
+    teacherSounding: false,
+    teacherSound: null,
+    teacherUtterance: null,
+    // Porte du micro : dernier état connu (événements ouvert / fermé).
+    gateOpen: null,
+    nudgedAt: 0,
 };
 
 /* ---------- Échanges avec le serveur Laravel ---------- */
@@ -367,9 +389,102 @@ function recordUtterance(line, speaker, text) {
     if (!utterance) {
         utterance = state.recorder.start(speaker, Number(line.dataset.startedAt) || Date.now());
         state.utterances.set(line, utterance);
+        placeUtterance(utterance, speaker);
     }
 
     state.recorder.append(utterance, text);
+}
+
+/**
+ * Heure réelle d'une nouvelle réplique : début de la parole de l'apprenant (micro, sinon fournisseur), ou premier
+ * son de la réponse du professeur ; les mesures du tour suivent quand elles sont connues.
+ */
+function placeUtterance(utterance, speaker) {
+    if (speaker === 'learner') {
+        const turn = state.turns.turnFor(Date.now());
+
+        if (!turn) {
+            return;
+        }
+
+        if (turn.start) {
+            utterance.at = Math.min(utterance.at, turn.start);
+        }
+
+        if (turn.record) {
+            applyLearnerRecord(utterance, turn.record);
+        } else {
+            state.turnLines.set(turn.id, [...(state.turnLines.get(turn.id) ?? []), utterance]);
+
+            while (state.turnLines.size > 20) {
+                state.turnLines.delete(state.turnLines.keys().next().value);
+            }
+        }
+
+        return;
+    }
+
+    state.teacherUtterance = utterance;
+
+    if (state.teacherSound) {
+        utterance.sounded = true;
+        state.recorder.update(utterance, state.teacherSound);
+        state.teacherSound = null;
+    }
+}
+
+function applyLearnerRecord(utterance, record) {
+    const start = record.mic_start ?? record.provider_start;
+
+    state.recorder.update(utterance, {
+        at: start ? Math.min(utterance.at, start) : null,
+        end: record.mic_end ?? record.provider_end,
+        metrics: learnerMetrics(record),
+    });
+}
+
+/**
+ * Premier son d'une réponse de Teacher Joe (heure où il sort du haut-parleur) : le tour de l'apprenant se ferme,
+ * son délai de réponse est calculé et rangé avec les deux répliques. Jamais bloquant.
+ */
+function teacherSoundStarted(at, audioAt = Date.now()) {
+    if (state.teacherSounding) {
+        return;
+    }
+
+    state.teacherSounding = true;
+    hideWaitNote();
+    state.nudgedAt = 0;
+    const record = state.turns.teacherSound(at);
+
+    if (record) {
+        for (const utterance of state.turnLines.get(record.id) ?? []) {
+            applyLearnerRecord(utterance, record);
+        }
+
+        state.turnLines.delete(record.id);
+    }
+
+    const sound = { at, metrics: teacherMetrics(record, audioAt) };
+
+    // Le sous-titre est déjà là : il reçoit l'heure du son ; sinon, la prochaine réplique du professeur.
+    if (state.teacherUtterance && !state.teacherUtterance.sounded) {
+        state.teacherUtterance.sounded = true;
+        state.recorder.update(state.teacherUtterance, sound);
+    } else {
+        state.teacherSound = sound;
+    }
+}
+
+/** Fin de la réponse (tour fini, interruption, pause) : la prochaine voix sera une nouvelle réponse. */
+function teacherResponseOver() {
+    state.teacherSounding = false;
+    state.teacherUtterance = null;
+    state.teacherSound = null;
+}
+
+function logEvent(kind, detail = '') {
+    state.recorder.event(kind, detail);
 }
 
 /**
@@ -379,15 +494,26 @@ function recordUtterance(line, speaker, text) {
 async function sendTranscript() {
     const url = state.config?.transcript_url;
     const batch = url ? state.recorder.takeBatch() : [];
+    const events = url ? state.recorder.takeEvents() : [];
 
-    if (batch.length === 0) {
+    if (batch.length === 0 && events.length === 0) {
         return false;
     }
 
-    const result = await post(url, { lines: TranscriptRecorder.payload(batch) });
+    const body = {};
+
+    if (batch.length > 0) {
+        body.lines = TranscriptRecorder.payload(batch);
+    }
+
+    if (events.length > 0) {
+        body.events = TranscriptRecorder.eventsPayload(events);
+    }
+
+    const result = await post(url, body);
 
     if (!result.ok && (result.status === 0 || result.status === 429 || result.status >= 500)) {
-        state.recorder.restore(batch);
+        state.recorder.restore(batch, events);
 
         return false;
     }
@@ -636,6 +762,18 @@ function voiceEnd() {
     // OpenAI (piste WebRTC) : la voix parle de « started » à « stopped », puis le tampon de gigue du
     // navigateur se vide ; on prend la plus tardive des deux fins (envoi terminé, dernier son audible).
     if (state.transport?.streamsAudio) {
+        // Sécurité : fin de voix annoncée mais perdue (plus rien d'audible depuis quelques secondes) : la porte
+        // du micro se rouvre quand même, l'apprenant ne parle jamais dans le vide.
+        if (state.transport.speaking && voiceLooksOver({
+            now: context.currentTime,
+            speakingSince: state.transport.speakingSince,
+            lastAudibleAt: state.lastAudibleAt,
+            after: audioConfig.voice_stuck_seconds ?? 4,
+        })) {
+            state.transport.voiceEnded(Math.max(state.lastAudibleAt, state.transport.speakingSince));
+            logEvent('gate_safety', 'fin de la voix non reçue');
+        }
+
         if (state.transport.speaking) {
             return context.currentTime + 1;
         }
@@ -667,7 +805,10 @@ function sendAudio(buffer) {
     }
 
     // Après le verdict, micro fermé, sauf pendant les questions libres de l'évaluation (jusqu'à la conclusion).
-    const action = state.gate.decide(state.audio.context.currentTime, voiceEnd(), state.paused || state.muted || !state.end.micOpen);
+    // Fin de tour signalée par le navigateur : micro fermé tant que l'apprenant ne reparle pas.
+    const endingTurn = state.turns.endingTurn;
+    const action = state.gate.decide(state.audio.context.currentTime, voiceEnd(), state.paused || state.muted || !state.end.micOpen || endingTurn);
+    noteGate(action === 'send', endingTurn);
 
     // OpenAI : le son part par la piste WebRTC ; la même porte l'ouvre ou la ferme.
     if (transport.streamsAudio) {
@@ -681,6 +822,27 @@ function sendAudio(buffer) {
     } else if (action === 'end') {
         transport.endAudio();
     }
+}
+
+/**
+ * Ouverture et fermeture de la porte du micro, gardées comme événements de la séance (avec la raison).
+ */
+function noteGate(open, endingTurn) {
+    if (state.gateOpen === open) {
+        return;
+    }
+
+    state.gateOpen = open;
+
+    if (open) {
+        logEvent('gate_opened');
+
+        return;
+    }
+
+    const reason = state.paused ? 'pause' : state.muted ? 'micro coupé'
+        : !state.end.micOpen ? 'fin de la conversation' : endingTurn ? 'fin de tour' : 'voix du professeur';
+    logEvent('gate_closed', reason);
 }
 
 /**
@@ -730,6 +892,12 @@ function playAudio(base64) {
 
     const { time } = scheduler.schedule(context.currentTime, samples.length, continuing && gap);
     node.start(time);
+
+    // Premier son de la réponse : heure où il sortira du haut-parleur (programmation, retard, latence).
+    if (!state.teacherSounding) {
+        const latency = context.outputLatency || context.baseLatency || 0;
+        teacherSoundStarted(Date.now() + (time - context.currentTime + OUTPUT_DELAY + latency) * 1000);
+    }
     sources.add(node);
     node.onended = () => sources.delete(node);
 }
@@ -862,7 +1030,89 @@ function updateMicMeter() {
 
     if (ui.micWarning.hidden === warn) {
         ui.micWarning.hidden = !warn;
+
+        if (warn) {
+            logEvent('mic_silent');
+        }
     }
+
+    trackLearnerVoice(level);
+}
+
+/**
+ * Voix de l'apprenant mesurée dans le navigateur (niveau du micro seulement), quand c'est à lui de parler :
+ * jamais pendant la voix du professeur (elle revient par le haut-parleur), en pause ou micro coupé.
+ */
+function trackLearnerVoice(level) {
+    const now = Date.now();
+    const canSpeak = state.connected && !state.ending && !state.paused && !state.muted && state.end.micOpen && !teacherSpeaking();
+    const change = canSpeak ? state.vad.update(now, level) : state.vad.reset(now);
+
+    if (!change) {
+        return;
+    }
+
+    if (change.type === 'start') {
+        state.turns.micVoice(true, change.at);
+        // L'apprenant parle : la réponse précédente du professeur est finie.
+        teacherResponseOver();
+        hideWaitNote();
+    } else {
+        state.turns.micVoice(false, change.at);
+    }
+}
+
+/**
+ * Fin de tour de secours et attente d'une réponse (appelé chaque quart de seconde).
+ */
+function watchTurn() {
+    if (!state.connected || state.ending || state.paused) {
+        return;
+    }
+
+    const now = Date.now();
+
+    // Le fournisseur n'a pas vu la fin de la parole (bruit de fond, longue réponse) : le navigateur la signale.
+    if (state.turns.shouldEndTurn(now)) {
+        state.turns.markEndOfTurn(now);
+        logEvent('end_of_turn');
+        endMicStream();
+    }
+
+    const waiting = state.turns.waiting(now);
+
+    if (waiting === 'thinking' && state.turns.warnOnce('thinking')) {
+        showWaitNote(MESSAGES.thinking, false);
+        logEvent('no_answer', `${audioConfig.no_answer_seconds ?? 8} secondes`);
+    } else if (waiting === 'stuck' && !state.nudgedAt && state.turns.warnOnce('stuck')) {
+        showWaitNote(MESSAGES.stuck, true);
+        logEvent('no_answer', `${audioConfig.stuck_seconds ?? 20} secondes`);
+    } else if (state.nudgedAt && now - state.nudgedAt > (audioConfig.stuck_seconds ?? 20) * 1000) {
+        // Relancé, toujours rien : le bouton revient.
+        state.nudgedAt = 0;
+        showWaitNote(MESSAGES.stuck, true);
+    }
+}
+
+function showWaitNote(text, withButton) {
+    ui.waitText.textContent = text;
+    ui.nudge.hidden = !withButton;
+    ui.waitNote.hidden = false;
+}
+
+function hideWaitNote() {
+    if (ui.waitNote && !ui.waitNote.hidden) {
+        ui.waitNote.hidden = true;
+        ui.nudge.hidden = true;
+    }
+}
+
+/** « Relancer Teacher Joe » : il reçoit l'indication de répondre à ce que l'apprenant vient de dire. */
+function nudgeTeacher() {
+    state.nudgedAt = Date.now();
+    showWaitNote(MESSAGES.nudged, false);
+    logEvent('nudge');
+    sendText(state.config?.cues?.nudge);
 }
 
 /* ---------- Connexion au fournisseur (Gemini ou OpenAI) ---------- */
@@ -962,6 +1212,7 @@ function handlersFor(transport, { planned, isResume }) {
 
     return {
         onReady() {
+            logEvent('connected', `${transport.provider}${isResume ? (planned ? ', renouvellement' : ', reprise') : ''}`);
             const previous = state.transport;
             state.transport = transport;
             state.connected = true;
@@ -1031,6 +1282,10 @@ function handlersFor(transport, { planned, isResume }) {
             state.awaitingSince = 0;
             state.learnerHeardAt = 0;
             unmuteVoiceStream();
+            // Premier son : début de l'envoi par OpenAI, plus le retard et la latence de sortie.
+            const context = state.audio?.context;
+            const latency = context ? (context.outputLatency || context.baseLatency || 0) : 0;
+            teacherSoundStarted(Date.now() + (OUTPUT_DELAY + latency) * 1000);
             renderTurn();
         },
 
@@ -1040,6 +1295,7 @@ function handlersFor(transport, { planned, isResume }) {
             }
 
             state.generating = true;
+            state.turns.providerResponding(Date.now());
 
             // OpenAI peut répondre à une phrase coupée par la pause : réponse annulée.
             if (state.paused) {
@@ -1049,7 +1305,26 @@ function handlersFor(transport, { planned, isResume }) {
 
         onLearnerStarted() {
             if (current()) {
+                state.turns.providerStart(Date.now());
                 teacher?.learnerSpoke();
+            }
+        },
+
+        onVoiceActivity(started) {
+            if (!current()) {
+                return;
+            }
+
+            if (started) {
+                state.turns.providerStart(Date.now());
+            } else {
+                state.turns.providerEnd(Date.now());
+            }
+        },
+
+        onProviderError(detail) {
+            if (current()) {
+                logEvent('provider_error', `${transport.provider} : ${detail}`);
             }
         },
 
@@ -1058,12 +1333,15 @@ function handlersFor(transport, { planned, isResume }) {
                 return;
             }
 
+            state.turns.providerEnd(Date.now());
+
             // La phrase de l'apprenant prend sa place avant la réponse du professeur.
             if (key) {
                 lineFor('learner', key);
             }
 
             state.teacherLine = null;
+            teacherResponseOver();
             state.cues.reset();
             state.awaitingSince = Date.now();
             renderTurn();
@@ -1077,6 +1355,7 @@ function handlersFor(transport, { planned, isResume }) {
             state.spoke = true;
             teacher?.learnerSpoke();
             state.teacherLine = null;
+            state.teacherUtterance = null;
             state.cues.reset();
             // Sous-titre arrivé en retard, pendant la réponse du professeur : ce n'est plus son tour.
             state.learnerHeardAt = state.generating || key ? 0 : Date.now();
@@ -1104,6 +1383,7 @@ function handlersFor(transport, { planned, isResume }) {
 
         onInterrupted() {
             if (current()) {
+                teacherResponseOver();
                 stopPlayback();
                 state.generating = false;
                 state.discardTurn = false;
@@ -1119,6 +1399,7 @@ function handlersFor(transport, { planned, isResume }) {
             state.end.turnComplete(clock());
             state.cues.reset();
             state.teacherLine = null;
+            teacherResponseOver();
             state.learnerLine = null;
             state.generating = false;
             state.discardTurn = false;
@@ -1343,6 +1624,8 @@ function onClose(event) {
         return;
     }
 
+    logEvent('provider_error', `${state.transport?.provider ?? ''} : connexion fermée${event.code ? ` (${event.code})` : ''}${event.reason ? `, ${event.reason}` : ''}`.slice(0, 200));
+
     if (/quota|exhausted|rate limit/i.test(event.reason ?? '')) {
         fail(MESSAGES.quota);
 
@@ -1353,6 +1636,8 @@ function onClose(event) {
 
     if (state.autoReconnects < MAX_AUTO_RECONNECTS) {
         state.autoReconnects++;
+        state.turns.reset();
+        logEvent('reconnect', 'automatique');
         setStatus('Connexion perdue, reconnexion…');
         setTimeout(() => connect(), 1500);
 
@@ -1409,6 +1694,7 @@ async function start() {
 
 function tick() {
     renderTimer();
+    watchTurn();
     renderTurn();
 
     const seconds = remainingSeconds();
@@ -1474,7 +1760,7 @@ function currentTurn() {
         state.awaitingSince = 0;
     }
 
-    if (state.awaitingSince) {
+    if (state.awaitingSince || state.turns.endingTurn || state.turns.waiting(now)) {
         return 'thinking';
     }
 
@@ -1518,6 +1804,9 @@ function silenceTeacher() {
 }
 
 function interruptTeacher() {
+    logEvent('interrupt');
+    state.turns.reset();
+    teacherResponseOver();
     silenceTeacher();
     teacher?.expression('attentive');
     renderTurn();
@@ -1532,9 +1821,14 @@ function togglePause() {
     setPressed(ui.pause, state.paused);
     ui.pauseNote.hidden = !state.paused;
 
+    logEvent(state.paused ? 'pause' : 'resume');
+
     if (state.paused) {
         state.pausedAt = Date.now();
         state.learnerHeardAt = 0;
+        state.turns.reset();
+        teacherResponseOver();
+        hideWaitNote();
         silenceTeacher();
         endMicStream();
         setStatus('En pause');
@@ -1596,6 +1890,7 @@ async function finish(reason, message = '') {
     ui.pauseNote.hidden = true;
     ui.micPanel.hidden = true;
     ui.micWarning.hidden = true;
+    ui.waitNote.hidden = true;
     navigator.mediaDevices?.removeEventListener?.('devicechange', refreshMicrophones);
     ui.back.hidden = false;
     setStatus(reason === 'time' ? 'Temps écoulé' : 'Terminé');
@@ -1634,6 +1929,7 @@ ui.start.addEventListener('click', start);
 ui.interrupt.addEventListener('click', interruptTeacher);
 ui.pause.addEventListener('click', togglePause);
 ui.mute.addEventListener('click', toggleMute);
+ui.nudge.addEventListener('click', nudgeTeacher);
 ui.micSelect.addEventListener('change', () => switchMicrophone(ui.micSelect.value));
 // « Terminer » avant la fin : fenêtre de confirmation intégrée (public/js/app.js), jamais de fenêtre du navigateur.
 ui.stop.addEventListener('click', async () => {
@@ -1646,6 +1942,8 @@ ui.stop.addEventListener('click', async () => {
 ui.resume.addEventListener('click', () => {
     ui.resume.hidden = true;
     state.autoReconnects = 0;
+    state.turns.reset();
+    logEvent('reconnect', 'bouton « Se reconnecter »');
     connect();
 });
 
@@ -1666,13 +1964,14 @@ window.addEventListener('pagehide', () => {
 
         navigator.sendBeacon(urls.finish, form);
 
-        // Répliques pas encore envoyées : un dernier lot, sans attendre de réponse.
+        // Répliques et événements pas encore envoyés : un dernier lot, sans attendre de réponse.
         const lines = state.config.transcript_url ? TranscriptRecorder.payload(state.recorder.takeBatch()) : [];
+        const events = state.config.transcript_url ? TranscriptRecorder.eventsPayload(state.recorder.takeEvents()) : [];
 
-        if (lines.length > 0) {
+        if (lines.length > 0 || events.length > 0) {
             const text = new FormData();
             text.append('_token', csrf);
-            lines.forEach((line, index) => Object.entries(line).forEach(([key, value]) => text.append(`lines[${index}][${key}]`, value)));
+            TranscriptRecorder.formFields(lines, events).forEach(([name, value]) => text.append(name, value));
             navigator.sendBeacon(state.config.transcript_url, text);
         }
     }

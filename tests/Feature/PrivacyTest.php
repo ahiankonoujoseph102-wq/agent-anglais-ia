@@ -29,7 +29,7 @@ class PrivacyTest extends TestCase
             ->assertSeeText('Votre voix n\'est jamais enregistrée.')
             ->assertSeeText('Google (Gemini)')
             ->assertSeeText('OpenAI')
-            ->assertSeeText('90 jours, puis il est effacé automatiquement')
+            ->assertSeeText('90 jours, puis ils sont effacés automatiquement')
             ->assertSeeText('jusqu\'à la suppression de votre compte')
             ->assertSeeText('Seul l\'administrateur de Talkami')
             ->assertSeeText('Pour les parents des élèves mineurs')
@@ -43,7 +43,7 @@ class PrivacyTest extends TestCase
     {
         config(['platform.transcripts.keep_days' => 30]);
 
-        $this->get('/confidentialite')->assertSeeText('30 jours, puis il est effacé automatiquement');
+        $this->get('/confidentialite')->assertSeeText('30 jours, puis ils sont effacés automatiquement')->assertSeeText('sans rien enregistrer du son');
     }
 
     public function test_the_link_is_in_the_footer_of_every_page_and_on_the_sign_up_form(): void

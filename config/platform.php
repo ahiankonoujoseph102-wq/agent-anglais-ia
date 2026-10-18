@@ -119,6 +119,11 @@ return [
         'max_lines_per_request' => 50,
         'max_line_characters' => 4000,
         'max_lines_per_conversation' => 3000,
+        // Événements de la séance (reconnexion, micro fermé, pause…) : par envoi et par séance.
+        'max_events_per_request' => 50,
+        'max_events_per_conversation' => 2000,
+        // Délai de réponse affiché en orange au-delà de cette durée (« Lire la conversation »).
+        'slow_reply_seconds' => 5,
     ],
 
     /*
@@ -232,6 +237,16 @@ return [
         'echo_cancellation' => ! in_array(env('LIVE_ECHO_CANCELLATION'), [false, '0', 'off', 'no'], true),
         // Sans aucun son capté pendant ce temps alors que c'est à l'apprenant de parler : message.
         'silent_mic_seconds' => 8,
+        // Fin de tour (public/js/turn-watch.js) : la voix de l'apprenant, mesurée dans le navigateur, est finie
+        // depuis ce temps et le fournisseur n'a ni clos le tour ni commencé à répondre (bruit de fond, longue
+        // réponse) : le navigateur signale lui-même la fin du tour (Gemini : audioStreamEnd ; OpenAI : silence).
+        'end_of_turn_seconds' => 3,
+        // Aucune voix du professeur ce temps après la fin de la parole : « Teacher Joe réfléchit, un instant… ».
+        'no_answer_seconds' => 8,
+        // Toujours rien : message et bouton « Relancer Teacher Joe ».
+        'stuck_seconds' => 20,
+        // OpenAI : voix annoncée mais plus rien d'audible depuis ce temps (fin de voix perdue) : micro rouvert.
+        'voice_stuck_seconds' => 4,
     ],
 
     /*

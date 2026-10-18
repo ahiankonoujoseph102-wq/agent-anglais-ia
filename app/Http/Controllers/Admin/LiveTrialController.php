@@ -124,6 +124,7 @@ class LiveTrialController extends Controller
                 'resume' => TeacherSetup::cue('resume'),
                 'warning' => TeacherSetup::cue('trial_warning'),
                 'pause_resume' => TeacherSetup::cue('pause_resume'),
+                'nudge' => TeacherSetup::cue('nudge'),
             ],
             'echo_guard_ms' => (int) config('platform.live.echo_guard_ms'),
             'pause_max_seconds' => self::SECONDS,

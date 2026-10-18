@@ -26,6 +26,7 @@
             <li><strong>Vos paiements</strong> : la formule choisie, le pays, le moyen de paiement, le montant, et la capture d'écran de confirmation que vous envoyez, avec ce que le site y a lu (montant, date, numéro de transaction, numéro qui a reçu l'argent).</li>
             <li><strong>« Mes cours »</strong> : les photos ou le PDF des leçons d'anglais que vous envoyez, et le texte que {{ $teacher }} en a lu.</li>
             <li><strong>Le texte de vos conversations</strong> avec {{ $teacher }} : ce que vous dites et ce qu'il répond, mot à mot, avec l'heure de chaque réplique, pour l'évaluation gratuite, les séances du jour, « Mes cours » et les bilans de niveau.</li>
+            <li><strong>Des mesures techniques de ces conversations</strong> : l'heure où chacun a commencé et fini de parler (mesurée à partir du niveau sonore du micro, sans rien enregistrer du son), le temps de réponse de {{ $teacher }}, et les incidents (reconnexion, coupure, micro fermé, pause). Elles servent à repérer et corriger les lenteurs.</li>
         </ul>
         <p><strong>Votre voix n'est jamais enregistrée.</strong> Seul le texte de la conversation est gardé.</p>
     </section>
@@ -51,7 +52,7 @@
     <section class="card privacy rise" aria-labelledby="privacy-duration" style="--i: 4">
         <h2 id="privacy-duration">Combien de temps nous les gardons</h2>
         <ul>
-            <li><strong>Le texte des conversations</strong> : {{ $keepDays }} jours, puis il est effacé automatiquement chaque nuit.</li>
+            <li><strong>Le texte des conversations et ses mesures techniques</strong> : {{ $keepDays }} jours, puis ils sont effacés automatiquement chaque nuit.</li>
             <li><strong>Les leçons de « Mes cours »</strong> : jusqu'à ce que vous les supprimiez (bouton « Supprimer » de chaque leçon, fichiers compris), ou jusqu'à la suppression de votre compte.</li>
             <li><strong>Tout le reste</strong> (compte, apprentissage, paiements et captures, attestations) : jusqu'à la suppression de votre compte, que vous pouvez demander à tout moment.</li>
             <li>Votre connexion au site est gardée par un petit fichier de votre navigateur (cookie de session). Le navigateur se souvient aussi de quelques choix faits sur votre téléphone : le micro utilisé, l'affichage de {{ $teacher }} en 3D ou en visage simple, et le bandeau d'installation fermé.</li>
