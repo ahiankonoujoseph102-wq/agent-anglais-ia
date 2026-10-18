@@ -54,6 +54,28 @@
     </div>
     <p class="muted small">Ces conversations sont aussi comptées dans les totaux ci-dessus ; elles sont reconnaissables à « Accès offert » dans les listes.</p>
 
+    {{-- Séances en direct par fournisseur : Gemini Live d'abord, OpenAI Realtime en secours. --}}
+    <h2 class="next-step">Séances en direct par fournisseur</h2>
+    <div class="stats">
+        @foreach ($live as $provider => $total)
+            <div class="stat" data-live-usage="{{ $provider }}">
+                <div class="label">{{ \App\Support\Live\LiveProviders::label($provider) }}</div>
+                <div class="value">{{ $total['count'] }}</div>
+                <div class="detail">
+                    {{ $total['count'] > 1 ? 'séances' : 'séance' }} ·
+                    {{ Duration::formatPrecise($total['seconds']) }} ·
+                    {{ UsageCost::format($total['cost']) }}
+                </div>
+            </div>
+        @endforeach
+    </div>
+    <p class="muted small">
+        Évaluations, séances du jour, « Mes cours » et bilans de niveau. Coût estimé par minute de séance :
+        Gemini {{ UsageCost::format(\App\Support\Live\LiveUsage::costPerMinute('gemini')) }} (mode gratuit),
+        OpenAI {{ UsageCost::format(\App\Support\Live\LiveUsage::costPerMinute('openai')) }} (modèle {{ config('services.openai.realtime_model') }}, tarif publié).
+        Les coûts par apprenant ci-dessous restent calculés au tarif payant de Gemini.
+    </p>
+
     {{-- Synthèse vocale des messages (bienvenue, résultat de l'évaluation, essais) : jamais mélangée aux conversations. --}}
     <h2 class="next-step">Synthèse vocale des messages</h2>
     <div class="stats">

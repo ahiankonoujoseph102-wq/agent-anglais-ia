@@ -144,6 +144,16 @@ class TeacherSetup
     }
 
     /**
+     * Essai de 30 secondes de l'administrateur (diagnostic) : même personnage, aucune fonction.
+     *
+     * @return array<string, mixed>
+     */
+    public static function trial(User $user): array
+    {
+        return self::setup(self::instructions('trial', $user, 1), [], null);
+    }
+
+    /**
      * Bilan oral de fin de niveau.
      *
      * @return array<string, mixed>

@@ -1552,6 +1552,7 @@ async function finish(reason, message = '') {
             assessment: '<h2>Évaluation terminée</h2><p>Votre résultat apparaît dans votre espace s\'il a été enregistré.</p>',
             level_test: '<h2>Bilan terminé</h2><p>Le résultat apparaît dans votre espace s\'il a été enregistré.</p>',
             course: '<h2>Séance terminée</h2><p>Bravo ! Vous pouvez revenir sur cette leçon quand vous voulez.</p>',
+            trial: '<h2>Essai terminé</h2><p>Rien n\'a été compté comme une séance.</p>',
         }[mode] ?? '<h2>Séance terminée</h2><p>Merci et à demain !</p>');
     }
 

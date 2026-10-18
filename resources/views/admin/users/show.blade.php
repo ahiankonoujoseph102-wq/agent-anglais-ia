@@ -137,6 +137,7 @@
                 @if ($user->assessment->level)
                     — niveau <span class="badge">{{ $user->assessment->level->value }}</span>
                 @endif
+                <span class="badge badge-muted" data-live-provider>{{ \App\Support\Live\LiveProviders::label($user->assessment->liveProvider()) }}</span>
             </p>
             @if ($user->assessment->feedback)
                 <p class="muted">{{ $user->assessment->feedback }}</p>
@@ -148,6 +149,29 @@
             </form>
         @else
             <p class="muted">Pas encore passée.</p>
+        @endif
+    </section>
+
+    <section class="card">
+        <h2>Séances en direct</h2>
+        @if ($conversations->isEmpty())
+            <p class="muted">Aucune séance pour le moment.</p>
+        @else
+            <table class="table">
+                <thead>
+                    <tr><th>Date</th><th>Séance</th><th>Durée</th><th>Fournisseur</th></tr>
+                </thead>
+                <tbody>
+                    @foreach ($conversations as $conversation)
+                        <tr>
+                            <td data-label="Date">{{ $conversation['started_at']->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
+                            <td data-label="Séance">{{ $conversation['kind'] }}</td>
+                            <td data-label="Durée">{{ Duration::formatPrecise($conversation['seconds']) }}</td>
+                            <td data-label="Fournisseur" data-live-provider>{{ \App\Support\Live\LiveProviders::label($conversation['provider']) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         @endif
     </section>
 

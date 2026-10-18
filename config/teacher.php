@@ -266,6 +266,13 @@ return [
     | Bilan oral de fin de niveau
     |--------------------------------------------------------------------------
     */
+    // Essai de 30 secondes de l'administrateur (« Diagnostic des fournisseurs ») : entendre la voix et le ton.
+    'trial' => <<<'TXT'
+This is a 30-second sound check requested by the :platform team, not a lesson. Greet the person warmly in
+English in one short sentence, say in French that you are :teacher and that you hear them, then ask ONE very
+short question in English and answer briefly. Never call any function.
+TXT,
+
     'level_test' => <<<'TXT'
         This conversation is the learner's END-OF-LEVEL ORAL TEST for level :level. It lasts :minutes minutes at most and the website will cut it automatically.
 
@@ -301,6 +308,8 @@ return [
         'lesson_warning' => '[System] :remaining minutes remain in the lesson. Tell the learner, summarize, give the homework, call end_lesson with the full report, then say goodbye.',
         'course_start' => '[System] The learner is connected and ready. Start the session now: welcome them in French, say it lasts at most :minutes minutes, give the title of their lesson, and ask what they want to do (understand the whole lesson, ask a precise question, or work on an exercise).',
         'course_warning' => '[System] About :remaining seconds remain. Do not start anything new: conclude politely now, in one or two sentences (what you worked on, encouragement), say goodbye and stop talking.',
+        'trial_start' => '[System] The administrator is connected and ready. Start the 30-second sound check now.',
+        'trial_warning' => '[System] About 10 seconds remain. Say goodbye in one short sentence.',
         'level_test_start' => '[System] The learner is connected and ready. Start the end-of-level test now.',
         'level_test_warning' => '[System] About :remaining minute(s) remain. Stop the test, call record_level_test_result now, then announce the result and say goodbye.',
     ],

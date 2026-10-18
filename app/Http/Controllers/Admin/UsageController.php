@@ -9,6 +9,7 @@ use App\Models\Lesson;
 use App\Models\LevelTest;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Live\LiveUsage;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\SpeechUsage;
 use App\Support\Text\TextProviders;
@@ -91,6 +92,7 @@ class UsageController extends Controller
             'speech' => SpeechUsage::totals(),
             'speechProviders' => SpeechProviders::all(),
             'text' => TextUsage::totals(),
+            'live' => LiveUsage::totals(),
             'textKinds' => TextUsage::byKind(),
             'textProviders' => TextProviders::all(),
         ]);

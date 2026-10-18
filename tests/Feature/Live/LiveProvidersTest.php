@@ -379,4 +379,87 @@ class LiveProvidersTest extends TestCase
             $this->assertStringNotContainsString('ek_', $line);
         }
     }
+
+    // Administration : fiche, consommation, diagnostic et essai de 30 secondes.
+
+    public function test_the_provider_of_each_session_is_shown_on_the_learner_page_and_in_the_consumption(): void
+    {
+        $this->gemini = 429;
+        $user = $this->subscriber();
+        $url = $this->actingAs($user)->postJson('/seance/connexion')->json('call_url');
+        $this->actingAs($user)->postJson($url, ['sdp' => 'v=0']);
+        $this->travel(10)->minutes();
+        $this->actingAs($user)->postJson('/seance/fin');
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->get(route('admin.users.show', $user))
+            ->assertOk()
+            ->assertSeeText('Séances en direct')
+            ->assertSeeInOrder(['Séance du jour', '10 minutes', 'OpenAI']);
+
+        $this->actingAs($admin)->get('/admin/consommation')
+            ->assertOk()
+            ->assertSeeText('Séances en direct par fournisseur')
+            // 10 minutes à 0,04 $ la minute.
+            ->assertSee("0,4000\u{00A0}$", false);
+    }
+
+    public function test_the_diagnostic_tests_the_token_of_each_provider_without_ever_showing_it(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->get('/admin/diagnostic-texte')
+            ->assertOk()
+            ->assertSeeText('Séances en direct')
+            ->assertSeeText('gpt-realtime-2.1-mini')
+            ->assertSeeText('cedar')
+            ->assertSeeText('Essayer une conversation de 30 secondes')
+            ->assertDontSee(self::GEMINI_KEY)
+            ->assertDontSee(self::OPENAI_KEY);
+
+        $this->actingAs($admin)->from('/admin/diagnostic-texte')->post('/admin/diagnostic-texte/direct/openai/essai')
+            ->assertRedirect('/admin/diagnostic-texte#direct')
+            ->assertSessionHas('diagnostic', fn (array $result) => $result['ok'] && str_contains($result['text'], 'OpenAI (séances en direct) : réussi') && ! str_contains($result['text'], 'ek_'));
+        Http::assertSent(fn (Request $request) => str_ends_with($request->url(), '/realtime/client_secrets')
+            && $request['expires_after'] === ['anchor' => 'created_at', 'seconds' => 10]);
+
+        $this->gemini = 429;
+        $this->actingAs($admin)->post('/admin/diagnostic-texte/direct/gemini/essai')
+            ->assertSessionHas('diagnostic', fn (array $result) => ! $result['ok'] && str_contains($result['text'], 'Quota Gemini atteint'));
+
+        $this->actingAs($admin)->get('/admin/diagnostic-texte')->assertSeeText('Diagnostic : jeton');
+        $this->actingAs($this->subscriber())->post('/admin/diagnostic-texte/direct/openai/essai')->assertForbidden();
+    }
+
+    public function test_the_30_second_trial_runs_at_the_chosen_provider_only_and_is_hung_up_by_the_server(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->get('/admin/diagnostic-texte/direct/openai/conversation')
+            ->assertOk()
+            ->assertSee('data-mode="trial"', false)
+            ->assertSeeText('Essai de conversation (OpenAI)');
+
+        // Gemini disponible : l'essai OpenAI se fait quand même chez OpenAI (aucun secours).
+        $url = $this->actingAs($admin)->postJson('/admin/diagnostic-texte/direct/openai/conversation/connexion')
+            ->assertOk()
+            ->assertJsonPath('provider', 'openai')
+            ->assertJsonPath('remaining_seconds', 30)
+            ->json('call_url');
+        $this->actingAs($admin)->postJson($url, ['sdp' => 'v=0'])->assertOk();
+        $this->assertSame(0, $this->sentToGemini());
+
+        $this->travel(31)->seconds();
+        $this->actingAs($admin)->postJson('/admin/diagnostic-texte/direct/openai/conversation/signal')->assertJsonPath('active', false);
+        Http::assertSent(fn (Request $request) => str_ends_with($request->url(), '/realtime/calls/rtc_1/hangup'));
+
+        // Gemini : le jeton expire à la fin des 30 secondes.
+        $this->actingAs($admin)->postJson('/admin/diagnostic-texte/direct/gemini/conversation/connexion')
+            ->assertOk()
+            ->assertJsonPath('provider', 'gemini')
+            ->assertJsonPath('token_expires_in', 30);
+        Http::assertSent(fn (Request $request) => str_ends_with($request->url(), '/auth_tokens')
+            && $request['expireTime'] === now()->addSeconds(30)->utc()->toIso8601ZuluString()
+            && ! isset($request['bidiGenerateContentSetup']['tools']));
+    }
 }

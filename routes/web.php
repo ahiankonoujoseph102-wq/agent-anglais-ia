@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AssessmentController as AdminAssessmentController
 use App\Http\Controllers\Admin\GrantedAccessController;
 use App\Http\Controllers\Admin\IconPreviewController;
 use App\Http\Controllers\Admin\InactiveLearnerController;
+use App\Http\Controllers\Admin\LiveTrialController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TextDiagnosticController;
@@ -167,6 +168,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/diagnostic-voix/preparer', [VoiceDiagnosticController::class, 'prepare'])->middleware('throttle:6,1')->name('voice-diagnostic.prepare');
     Route::get('/diagnostic-texte', [TextDiagnosticController::class, 'index'])->name('text-diagnostic.index');
     Route::post('/diagnostic-texte/essai/{provider}', [TextDiagnosticController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('text-diagnostic.test');
+    Route::post('/diagnostic-texte/direct/{provider}/essai', [LiveTrialController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.test');
+    Route::get('/diagnostic-texte/direct/{provider}/conversation', [LiveTrialController::class, 'show'])->whereIn('provider', ['gemini', 'openai'])->name('live-trial.show');
+    Route::post('/diagnostic-texte/direct/{provider}/conversation/connexion', [LiveTrialController::class, 'connect'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.connect');
+    Route::post('/diagnostic-texte/direct/{provider}/conversation/signal', [LiveTrialController::class, 'signal'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:30,1')->name('live-trial.signal');
+    Route::post('/diagnostic-texte/direct/{provider}/conversation/fin', [LiveTrialController::class, 'finish'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.finish');
     Route::get('/icones', IconPreviewController::class)->name('icons.index');
     Route::get('/inactifs', [InactiveLearnerController::class, 'index'])->name('inactive.index');
     Route::get('/inactifs/{user}/whatsapp', [InactiveLearnerController::class, 'whatsapp'])->name('inactive.whatsapp');
