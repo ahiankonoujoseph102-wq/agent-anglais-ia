@@ -134,6 +134,8 @@ if (typeof document !== 'undefined' && document.querySelector('[data-course-form
         input.files = transfer.files;
     };
 
+    let shown = 0;
+
     const render = () => {
         list.replaceChildren();
         const items = state.pdf ? [{ file: state.pdf, pdf: true }] : state.photos.map((photo) => ({ file: photo.file, url: photo.url }));
@@ -177,6 +179,14 @@ if (typeof document !== 'undefined' && document.querySelector('[data-course-form
 
         list.hidden = items.length === 0;
         form.toggleAttribute('data-has-files', items.length > 0);
+
+        // Une page de plus : la page descend jusqu'aux aperçus (puis le titre et « Envoyer ma leçon »).
+        if (items.length > shown) {
+            const reduce = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+            list.scrollIntoView?.({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        }
+
+        shown = items.length;
     };
 
     const sync = () => {

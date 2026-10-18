@@ -30,7 +30,7 @@
             @endif
         </div>
         <div class="stat rise" style="--i: 3">
-            <div class="label"><x-icon name="calendar" /> Mes jours de travail</div>
+            <div class="label"><x-icon name="calendar" /> Mon rythme</div>
             <div class="value small-value">{{ ucfirst($program->studyDaysLabel()) }}</div>
             <div class="detail">{{ $program->study_time ? 'vers '.str_replace(':', ' h ', $program->study_time) : '' }}</div>
         </div>
@@ -57,7 +57,10 @@
 
     <h2 class="next-step reveal">Mon calendrier</h2>
     @if ($upcoming->isEmpty())
-        <div class="card">Aucune leçon à venir.</div>
+        <div class="card empty-state">
+            <span class="icon-bubble"><x-icon name="calendar" /></span>
+            <p>Aucune leçon à venir.</p>
+        </div>
     @else
         <ul class="calendar card reveal">
             @foreach ($upcoming as $lesson)

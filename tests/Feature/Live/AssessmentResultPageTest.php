@@ -124,7 +124,7 @@ class AssessmentResultPageTest extends TestCase
         $user = $this->assessed(Level::A2);
 
         $this->actingAs($user)->put('/evaluation/niveau', ['level' => 'B1'])
-            ->assertRedirect('/evaluation')
+            ->assertRedirect('/evaluation#formules')
             ->assertSessionHas('status', fn (string $status) => str_contains($status, 'Niveau choisi : B1') && str_contains($status, 'plus élevé'));
 
         $this->assertSame(Level::B1, $user->fresh()->level);

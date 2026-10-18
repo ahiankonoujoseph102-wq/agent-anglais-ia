@@ -192,6 +192,8 @@
             <span class="eyebrow">Vos questions</span>
             <h2 id="questions">Questions fréquentes</h2>
         </div>
+        {{-- Questions fréquentes : le même HTML donne les données structurées FAQPage (App\Support\Seo::faq). --}}
+        @php(ob_start())
         <div class="faq reveal">
             <details>
                 <summary><x-icon name="wallet" /><span>Comment payer mon abonnement ?</span></summary>
@@ -227,6 +229,12 @@
                 <p>Oui. Une évaluation orale de {{ $minutes }} minutes au maximum par compte, sans paiement ni engagement. Vous découvrez votre niveau, puis vous décidez.</p>
             </details>
         </div>
+        @php($faqHtml = ob_get_clean())
+        {!! $faqHtml !!}
+        @push('head')
+            {!! \App\Support\Seo::jsonLd(\App\Support\Seo::organization()) !!}
+            {!! \App\Support\Seo::jsonLd(\App\Support\Seo::faq($faqHtml)) !!}
+        @endpush
     </section>
 
     <section class="section">

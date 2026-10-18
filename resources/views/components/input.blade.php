@@ -7,6 +7,17 @@
 
 @php
     $describedBy = trim(($hint ? $name.'-hint ' : '').($errors->has($name) ? $name.'-error' : ''));
+    // Premier champ en erreur de la page : il reçoit le focus, même sans JavaScript.
+    $autofocus = $errors->has($name) && ! request()->attributes->get('first-error-focused');
+
+    if ($autofocus) {
+        request()->attributes->set('first-error-focused', true);
+    }
+
+    // Formulaire revenu avec des erreurs : seul le premier champ en erreur garde le focus automatique.
+    if ($errors->any()) {
+        $attributes = $attributes->except('autofocus');
+    }
 @endphp
 
 <div class="field">
@@ -20,6 +31,7 @@
         type="{{ $type }}"
         @if ($type !== 'password') value="{{ old($name, $value) }}" @endif
         @error($name) aria-invalid="true" @enderror
+        @if ($autofocus) autofocus @endif
         @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
         {{ $attributes->class(['is-invalid' => $errors->has($name)]) }}
     >

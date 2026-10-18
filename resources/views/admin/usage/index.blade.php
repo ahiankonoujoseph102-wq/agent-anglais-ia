@@ -56,7 +56,7 @@
 
     <h2 class="next-step">Par apprenant</h2>
     @if ($learners->isEmpty())
-        <div class="card">Aucune conversation pour le moment.</div>
+        <div class="card empty-state"><span class="icon-bubble"><x-icon name="chart" /></span><p>Aucune conversation pour le moment.</p></div>
     @else
         <table class="table">
             <thead>
@@ -111,7 +111,7 @@
     @foreach (['Dernières séances' => $recentLessons, 'Dernières séances « Mes cours »' => $recentCourseSessions, 'Dernières évaluations' => $recentAssessments] as $heading => $conversations)
         <h2 class="next-step">{{ $heading }}</h2>
         @if ($conversations->isEmpty())
-            <div class="card">Aucune pour le moment.</div>
+            <div class="card empty-state"><span class="icon-bubble"><x-icon name="chart" /></span><p>Aucune pour le moment.</p></div>
         @else
             <table class="table">
                 <thead>

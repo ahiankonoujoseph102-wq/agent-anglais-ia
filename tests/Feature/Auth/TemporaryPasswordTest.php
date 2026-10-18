@@ -38,7 +38,7 @@ class TemporaryPasswordTest extends TestCase
             ->assertSee('Générer un mot de passe provisoire');
 
         $response = $this->actingAs($admin)->post(route('admin.users.password', $learner), ['confirmed' => 1]);
-        $response->assertRedirect(route('admin.users.show', $learner));
+        $response->assertRedirect(route('admin.users.show', $learner).'#mot-de-passe-provisoire');
         $password = session('temporary_password');
 
         $this->assertMatchesRegularExpression('/^[a-z2-9]{10}$/', $password);

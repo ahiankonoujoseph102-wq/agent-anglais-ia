@@ -16,10 +16,10 @@
         </p>
     </div>
 
-    <section class="card card-accent rise" style="--i: 1">
+    <section class="card card-accent rise" style="--i: 1" id="travailler" aria-labelledby="travailler-titre">
         <div class="card-title">
             <span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span>
-            <h2>Travailler cette leçon avec {{ $teacher }}</h2>
+            <h2 id="travailler-titre">Travailler cette leçon avec {{ $teacher }}</h2>
         </div>
         <p>Il vous demande ce que vous voulez : comprendre toute la leçon, poser une question précise ou travailler un exercice. Il vous guide, vous répond en français simple et vous fait pratiquer l'anglais à l'oral.</p>
 

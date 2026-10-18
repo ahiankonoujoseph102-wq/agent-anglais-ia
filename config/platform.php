@@ -27,6 +27,8 @@ return [
     'brand' => [
         'short_name' => env('PLATFORM_SHORT_NAME', 'Talkami'),
         'tagline' => 'Votre professeur d\'anglais à l\'oral',
+        // Titre de l'accueil pour les moteurs de recherche et le partage : « {nom} · {home_title} ».
+        'home_title' => 'Apprendre à parler anglais depuis votre téléphone',
         'logo' => [
             'header' => 'brand/logo-horizontal-320.webp',  // fond clair (320 pixels : affiché à environ 130 pixels)
             'footer' => 'brand/logo-blanc-320.webp',       // fond bleu nuit

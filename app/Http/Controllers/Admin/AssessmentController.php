@@ -23,6 +23,6 @@ class AssessmentController extends Controller
             $user->save();
         });
 
-        return back()->with('status', "L'évaluation de {$user->name} a été réinitialisée : son espace lui propose de la repasser.");
+        return redirect()->to(route('admin.users.show', $user).'#evaluation')->with('status', "L'évaluation de {$user->name} a été réinitialisée : son espace lui propose de la repasser.");
     }
 }

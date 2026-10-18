@@ -104,7 +104,7 @@ class CourseController extends Controller
 
         $lesson = $this->save($user, $request, $reading, $uploads, $pdf !== null ? PdfPages::count($files[0]['data']) : count($uploads));
 
-        return to_route('courses.show', $lesson)->with('status', 'Votre leçon est prête. Teacher Joe l\'a lue : vous pouvez lui parler.');
+        return redirect()->to(route('courses.show', $lesson).'#travailler')->with('status', 'Votre leçon est prête. Teacher Joe l\'a lue : vous pouvez lui parler.');
     }
 
     public function show(Request $request, CourseLesson $course): View|RedirectResponse

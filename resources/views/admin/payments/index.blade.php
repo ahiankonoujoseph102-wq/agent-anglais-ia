@@ -42,7 +42,7 @@
     </form>
 
     @if ($payments->isEmpty())
-        <div class="card">Aucun paiement ne correspond à ces critères.</div>
+        <div class="card empty-state"><span class="icon-bubble"><x-icon name="history" /></span><p>Aucun paiement ne correspond à ces critères.</p></div>
     @else
         <table class="table">
             <thead>

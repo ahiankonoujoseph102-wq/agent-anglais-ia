@@ -67,7 +67,7 @@ class AssessmentResetTest extends TestCase
         $this->actingAs(User::factory()->admin()->create())
             ->from(route('admin.users.show', $user))
             ->delete(route('admin.assessments.destroy', $user), ['confirmed' => 1])
-            ->assertRedirect(route('admin.users.show', $user))
+            ->assertRedirect(route('admin.users.show', $user).'#evaluation')
             ->assertSessionHas('status', 'L\'évaluation de Kossi a été réinitialisée : son espace lui propose de la repasser.');
 
         $user->refresh();

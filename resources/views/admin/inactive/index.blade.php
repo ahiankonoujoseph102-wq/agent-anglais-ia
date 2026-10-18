@@ -5,7 +5,7 @@
     <p class="muted">Abonnés sans séance depuis {{ $days }} jours ou plus. Le bouton ouvre WhatsApp avec un message d'encouragement déjà rédigé.</p>
 
     @if ($learners->isEmpty())
-        <div class="card">Aucun apprenant inactif. Tout le monde travaille !</div>
+        <div class="card empty-state"><span class="icon-bubble"><x-icon name="users" /></span><p>Aucun apprenant inactif. Tout le monde travaille !</p></div>
     @else
         <table class="table">
             <thead>

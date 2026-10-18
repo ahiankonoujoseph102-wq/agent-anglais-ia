@@ -253,7 +253,7 @@ Le numéro utilisé sert aussi à vérifier les captures : la règle « Bon dest
 3. Laravel Cloud affiche des **enregistrements DNS** (type, nom, valeur). Allez chez le fournisseur qui gère le DNS de votre domaine (pas toujours celui où vous l'avez acheté), et recopiez-les **exactement** : champ « nom » = seulement la partie avant le domaine (`www`, `@` pour la racine). Ajoutez ceux de `www` aussi.
 4. Retournez sur Laravel Cloud, touchez **Refresh** jusqu'à ce que le domaine affiche **Connected** (le plus souvent moins de 15 minutes ; jusqu'à 12 heures).
 5. Le certificat HTTPS est créé et renouvelé automatiquement.
-6. Changez `APP_URL` avec votre domaine (`https://exemple-talkami.com`), **Save**, **Deploy**.
+6. Changez `APP_URL` avec votre domaine (`https://exemple-talkami.com`), **Save**, **Deploy**. C'est `APP_URL` qui donne les adresses du référencement (adresse canonique, image et lien de partage sur WhatsApp et Facebook, `sitemap.xml`, `robots.txt`) : après ce déploiement, ouvrez `https://votre-domaine/robots.txt` et vérifiez que la ligne `Sitemap:` montre bien votre domaine.
 7. Facultatif, après avoir vérifié que le site s'ouvre bien en https : dans **Settings, Network**, activez **HSTS** (le navigateur n'ouvrira plus jamais le site en http).
 
 L'offre Starter inclut 10 domaines personnalisés par organisation.

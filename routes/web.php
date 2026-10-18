@@ -26,6 +26,7 @@ use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\Program\AttestationController;
 use App\Http\Controllers\Program\LessonHistoryController;
 use App\Http\Controllers\Program\ProgramController;
+use App\Http\Controllers\SeoController;
 use App\Http\Controllers\WebAppController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Middleware\EnsurePasswordIsChanged;
@@ -43,6 +44,9 @@ Route::permanentRedirect('/credits', '/');
 Route::withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, EnsurePasswordIsChanged::class])->group(function () {
     Route::get('/manifest.webmanifest', [WebAppController::class, 'manifest'])->name('manifest');
     Route::get('/hors-connexion', [WebAppController::class, 'offline'])->name('offline');
+    // Référencement : écrits à partir de APP_URL (App\Support\Seo).
+    Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
+    Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
 });
 Route::get('/attestation/verifier/{code}', [AttestationController::class, 'verify'])->name('attestation.verify');
 

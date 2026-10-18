@@ -1,13 +1,18 @@
-@props(['title' => null, 'description' => null, 'narrow' => false, 'install' => false, 'focus' => false])
+@props(['title' => null, 'description' => null, 'narrow' => false, 'install' => false, 'focus' => false, 'indexable' => null])
 
 @php
     use App\Support\Asset;
+    use App\Support\Seo;
 
     $user = auth()->user();
     $isAdminPage = request()->is('admin', 'admin/*');
     // Barre du bas (téléphone) : apprenant connecté, hors écran de conversation (focus).
     $tabbar = $user && ! $isAdminPage && ! $focus && ! $user->must_change_password;
     $tab = fn (string ...$patterns) => request()->routeIs(...$patterns) ? 'is-active' : null;
+    // Référencement : seules les pages publiques (App\Support\Seo::INDEXABLE_ROUTES) sont indexées.
+    $indexable ??= Seo::indexable();
+    $pageTitle = $title ? $title.' · '.config('platform.name') : config('platform.name').' · '.config('platform.brand.home_title');
+    $pageDescription = $description ?: config('platform.brand.tagline');
 @endphp
 
 <!DOCTYPE html>
@@ -17,9 +22,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="{{ config('platform.brand.theme_color') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ? $title.' · ' : '' }}{{ config('platform.name') }}</title>
-    @if ($description)
-        <meta name="description" content="{{ $description }}">
+    <title>{{ $pageTitle }}</title>
+    <meta name="description" content="{{ $pageDescription }}">
+    @if ($indexable)
+        <meta name="robots" content="index, follow">
+        <link rel="canonical" href="{{ Seo::canonical() }}">
+        {{-- Partage (WhatsApp, Facebook, X) : titre, description et image aux couleurs de la marque. --}}
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="{{ config('platform.name') }}">
+        <meta property="og:locale" content="fr_FR">
+        <meta property="og:title" content="{{ $pageTitle }}">
+        <meta property="og:description" content="{{ $pageDescription }}">
+        <meta property="og:url" content="{{ Seo::canonical() }}">
+        <meta property="og:image" content="{{ Seo::url(Seo::SHARE_IMAGE) }}">
+        <meta property="og:image:type" content="image/jpeg">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="{{ config('platform.name') }} : {{ config('platform.brand.tagline') }}">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $pageTitle }}">
+        <meta name="twitter:description" content="{{ $pageDescription }}">
+        <meta name="twitter:image" content="{{ Seo::url(Seo::SHARE_IMAGE) }}">
+    @else
+        <meta name="robots" content="noindex, nofollow">
     @endif
     <link rel="manifest" href="{{ route('manifest') }}">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
@@ -32,8 +57,9 @@
     <link rel="stylesheet" href="{{ Asset::url('css/app.css') }}">
     <script>document.documentElement.classList.add('js');</script>
     <script type="module" src="{{ Asset::url('js/app.js') }}" data-sw="{{ asset('sw.js') }}"></script>
+    @stack('head')
 </head>
-<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
+<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage, 'is-admin-user' => $user?->isAdmin()]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
     <a class="skip-link" href="#contenu">Aller au contenu</a>
 
     <header class="site-header">
@@ -109,6 +135,23 @@
                      style="--toast-delay: {{ min(10, 4 + intdiv(mb_strlen((string) session('status')), 25)) }}s">
                     <x-icon name="check-circle" />
                     <div>{{ session('status') }}</div>
+                    <button type="button" class="toast-close" data-toast-close aria-label="Fermer le message" hidden><x-icon name="close" /></button>
+                </div>
+            @endif
+
+            @if (isset($errors) && $errors->any())
+                {{-- Formulaire renvoyé avec des erreurs : le premier point à corriger, en haut de l'écran ;
+                     le focus va sur le premier champ en erreur (autofocus de <x-input>, public/js/app.js). --}}
+                <div class="toast toast-error" role="alert" data-toast style="--toast-delay: 10s">
+                    <x-icon name="alert" />
+                    <div>
+                        @if ($errors->count() > 1)
+                            {{ $errors->count() }} points à corriger :
+                        @else
+                            À corriger :
+                        @endif
+                        {{ $errors->first() }}
+                    </div>
                     <button type="button" class="toast-close" data-toast-close aria-label="Fermer le message" hidden><x-icon name="close" /></button>
                 </div>
             @endif

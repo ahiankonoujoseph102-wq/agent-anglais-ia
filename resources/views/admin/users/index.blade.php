@@ -10,7 +10,7 @@
     </form>
 
     @if ($users->isEmpty())
-        <div class="card">Aucun inscrit{{ $search !== '' ? ' ne correspond à cette recherche' : ' pour le moment' }}.</div>
+        <div class="card empty-state"><span class="icon-bubble"><x-icon name="users" /></span><p>Aucun inscrit{{ $search !== '' ? ' ne correspond à cette recherche' : ' pour le moment' }}.</p></div>
     @else
         <table class="table">
             <thead>

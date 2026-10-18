@@ -9,14 +9,14 @@
     <h1>{{ $user->name }}</h1>
 
     @if ($temporaryPassword)
-        <div class="alert alert-success" role="alert">
+        <div class="alert alert-success" role="alert" id="mot-de-passe-provisoire" tabindex="-1">
             <strong>Mot de passe provisoire : <code class="secret">{{ $temporaryPassword }}</code></strong><br>
             Notez-le maintenant : il ne sera plus jamais affiché. L'apprenant devra en choisir un nouveau à sa prochaine connexion.
             <a class="btn btn-whatsapp btn-block next-step" href="{{ $whatsappUrl }}" target="_blank" rel="noopener">Envoyer à l'apprenant sur WhatsApp</a>
         </div>
     @endif
 
-    <section class="card">
+    <section class="card" id="compte">
         <dl class="summary">
             <dt>Téléphone</dt><dd><a href="tel:{{ $user->phone }}">{{ $user->phone }}</a></dd>
             @if ($user->email)
@@ -85,7 +85,7 @@
                     @foreach (config('platform.granted_access.presets') as $days)
                         <label><input type="radio" name="duration" value="{{ $days }}" @checked(old('duration', (string) config('platform.granted_access.presets')[0]) === (string) $days)> {{ $days }} {{ $days > 1 ? 'jours' : 'jour' }}</label>
                     @endforeach
-                    <label><input type="radio" name="duration" value="custom" @checked(old('duration') === 'custom')> Autre durée</label>
+                    <label><input type="radio" name="duration" value="custom" data-then="grant-days" @checked(old('duration') === 'custom')> Autre durée</label>
                     @error('duration')<div class="error">{{ $message }}</div>@enderror
                 </fieldset>
 
@@ -128,8 +128,8 @@
         @endforelse
     </section>
 
-    <section class="card">
-        <h2>Évaluation</h2>
+    <section class="card" id="evaluation" aria-labelledby="evaluation-title">
+        <h2 id="evaluation-title">Évaluation</h2>
         @if ($user->assessment)
             <p>
                 {{ $user->assessment->status->label() }}

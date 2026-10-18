@@ -1,4 +1,4 @@
-<x-layout title="Page expirée" narrow>
+<x-layout :indexable="false" title="Page expirée" narrow>
     <section class="empty-state">
         <span class="icon-bubble"><x-icon name="clock" /></span>
         <h1>Page expirée</h1>
