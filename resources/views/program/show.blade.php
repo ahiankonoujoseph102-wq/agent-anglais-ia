@@ -57,7 +57,10 @@
 
     <h2 class="next-step reveal">Mon calendrier</h2>
     @if ($upcoming->isEmpty())
-        <div class="card">Aucune leçon à venir.</div>
+        <div class="card empty-state">
+            <span class="icon-bubble"><x-icon name="calendar" /></span>
+            <p>Aucune leçon à venir.</p>
+        </div>
     @else
         <ul class="calendar card reveal">
             @foreach ($upcoming as $lesson)

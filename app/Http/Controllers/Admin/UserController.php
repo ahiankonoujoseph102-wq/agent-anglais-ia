@@ -101,6 +101,6 @@ class UserController extends Controller
         }
 
         // Donnée « flash » : disparaît après le prochain affichage de la fiche.
-        return to_route('admin.users.show', $user)->with('temporary_password', $password);
+        return redirect()->to(route('admin.users.show', $user).'#mot-de-passe-provisoire')->with('temporary_password', $password);
     }
 }

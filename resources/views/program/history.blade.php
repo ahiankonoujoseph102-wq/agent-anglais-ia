@@ -62,6 +62,13 @@
         <div class="card empty-state">
             <span class="icon-bubble"><x-icon name="mic" /></span>
             <p>Aucune séance pour le moment.</p>
+            <div class="actions">
+                @if (auth()->user()->activeSubscription && auth()->user()->activeProgram)
+                    <a href="{{ route('lesson.show') }}" class="btn btn-accent btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
+                @else
+                    <a href="{{ route('dashboard') }}" class="btn btn-accent btn-block"><x-icon name="arrow-right" /> Aller à mon espace</a>
+                @endif
+            </div>
         </div>
     @endforelse
 

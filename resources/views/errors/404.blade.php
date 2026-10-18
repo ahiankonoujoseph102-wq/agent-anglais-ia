@@ -1,4 +1,4 @@
-<x-layout title="Page introuvable" narrow>
+<x-layout :indexable="false" title="Page introuvable" narrow>
     <section class="empty-state">
         <div class="code" aria-hidden="true">404</div>
         <h1>Page introuvable</h1>

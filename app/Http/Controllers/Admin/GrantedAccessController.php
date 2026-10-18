@@ -25,13 +25,13 @@ class GrantedAccessController extends Controller
             $request->validated('note'),
         );
 
-        return to_route('admin.users.show', $user)->with('status', 'Accès offert : formule '.$subscription->plan_name.' jusqu\'au '.$subscription->ends_at->translatedFormat('j F Y \à H:i').'.');
+        return redirect()->to(route('admin.users.show', $user).'#acces-offert')->with('status', 'Accès offert : formule '.$subscription->plan_name.' jusqu\'au '.$subscription->ends_at->translatedFormat('j F Y \à H:i').'.');
     }
 
     public function destroy(Request $request, User $user): RedirectResponse
     {
         $revoked = AccessGrant::revoke($user);
 
-        return to_route('admin.users.show', $user)->with('status', $revoked ? 'L\'accès offert est retiré.' : 'Aucun accès offert n\'était en cours.');
+        return redirect()->to(route('admin.users.show', $user).'#acces-offert')->with('status', $revoked ? 'L\'accès offert est retiré.' : 'Aucun accès offert n\'était en cours.');
     }
 }

@@ -55,6 +55,9 @@
                 <span class="icon-bubble"><x-icon name="book" /></span>
                 <p><strong>Vous n'avez pas encore ajouté de leçon.</strong></p>
                 <p class="muted">Prenez votre cahier ou votre livre d'anglais : une photo suffit.</p>
+                <div class="actions">
+                    <a href="{{ route('courses.create') }}" class="btn btn-accent btn-block"><x-icon name="plus" /> Ajouter une leçon</a>
+                </div>
             </div>
         @endforelse
 

@@ -100,7 +100,8 @@ class AssessmentController extends Controller
             $message .= ' Ce niveau est plus élevé que celui de votre évaluation : vous pourrez revenir au niveau recommandé tant que votre programme n\'est pas construit.';
         }
 
-        return to_route('assessment.show')->with('status', $message);
+        // Étape suivante : les formules, au niveau choisi.
+        return redirect()->to(route('assessment.show').'#formules')->with('status', $message);
     }
 
     public function connect(ConnectRequest $request, LiveConnection $live): JsonResponse

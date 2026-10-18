@@ -784,6 +784,12 @@ main { overflow-x: clip; }
     .has-tabbar .site-footer { padding-bottom: var(--space-6); }
 }
 
+/* Administrateur : un lien et une pastille de plus, la navigation complète ne tient qu'à partir de 1440 pixels. */
+@media (min-width: 1200px) and (max-width: 1439px) {
+    .is-admin-user .nav-desktop { display: none; }
+    .is-admin-user .menu { display: block; }
+}
+
 /* ---------- Réduire les animations (réglage du téléphone) ---------- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -916,3 +922,21 @@ main { overflow-x: clip; }
     .welcome-page .teacher-3d .teacher3d-stage { height: clamp(360px, 60dvh, 560px); }
 }
 @media (prefers-reduced-motion: reduce) { .js .welcome-next.is-shown { animation: none; } }
+
+/* ---------- Navigation automatique ---------- */
+
+/* Une partie visée par un lien (#…) s'arrête sous l'en-tête collant, jamais dessous. */
+main [id], main h1, main h2 { scroll-margin-top: 84px; }
+/* Titre qui reçoit le focus après un lien vers sa partie : pas de cadre au clic, un cadre au clavier. */
+[tabindex="-1"]:focus { outline: none; }
+[tabindex="-1"]:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 4px; border-radius: var(--radius-sm); }
+
+/* Message d'erreur d'un formulaire, en haut de l'écran comme le message de réussite. */
+.toast-error { border-left-color: var(--c-danger); }
+.toast-error > .icon { color: var(--c-on-dark); }
+
+/* Bouton d'envoi pendant l'envoi : « Envoi en cours… », un second toucher est ignoré (public/js/app.js). */
+.is-busy { cursor: progress; opacity: .8; pointer-events: none; }
+.busy-spinner { display: inline-block; width: 1em; height: 1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -.15em; animation: busy-spin .8s linear infinite; }
+@keyframes busy-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .busy-spinner { animation: none; border-right-color: currentColor; opacity: .6; } }

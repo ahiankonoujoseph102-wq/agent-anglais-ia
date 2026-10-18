@@ -118,6 +118,9 @@ if (typeof document !== 'undefined') {
 
             preview.src = URL.createObjectURL(ready);
             preview.hidden = false;
+            // Capture prête : la page descend jusqu'à l'aperçu et « Envoyer ma capture ».
+            const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+            requestAnimationFrame(() => submit.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }));
         } catch {
             // Format que le navigateur ne sait pas lire : le serveur vérifiera l'image telle quelle.
             say('');

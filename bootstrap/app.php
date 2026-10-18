@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\MarkPrivatePagesNoIndex;
 use App\Http\Middleware\RedirectToHttps;
 use App\Http\Middleware\RequireConfirmation;
 use Illuminate\Foundation\Application;
@@ -28,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Mot de passe provisoire : changement obligatoire avant tout le reste.
         $middleware->appendToGroup('web', EnsurePasswordIsChanged::class);
+
+        // Pages privées : jamais dans les moteurs de recherche (X-Robots-Tag).
+        $middleware->appendToGroup('web', MarkPrivatePagesNoIndex::class);
 
         $middleware->redirectUsersTo(
             fn (Request $request) => AuthenticatedSessionController::homeFor($request->user()),

@@ -67,6 +67,8 @@ Formules de départ (dans `config/platform.php`) :
 
 - **Bienvenue de Teacher Joe et pédagogie (faite)** : page de bienvenue à la première ouverture d'un accès (message vocal : formule, questionnaire, règles de la séance orale, « Mes cours »), réécoute dans « Mon espace » ; consignes `teacher.coaching` (vérifier la compréhension, réexpliquer autrement, ponts entre les langues, prononciation, humour bienveillant) pour la séance orale et « Mes cours ». Voir la section « Bienvenue de Teacher Joe ».
 
+- **Site qui se conduit tout seul, finition et référencement (faite)** : navigation automatique (ancres avec focus sur le titre, erreurs en haut et focus sur le premier champ, redirections vers la bonne partie, « Envoi en cours… » sans double envoi), états vides avec l'action à faire, page 429, référencement (titres, descriptions, canonique, Open Graph, JSON-LD, sitemap, robots, noindex). Voir « Navigation automatique » et « Référencement ».
+
 (L'ordre 2/3/4/5 est indicatif ; voir le compte rendu de chaque phase.)
 
 ## Architecture
@@ -86,7 +88,8 @@ app/
   Http/Controllers/Admin/SettingsController          « Réglages » : numéros Mobile Money par opérateur, titulaires, coordonnées et WhatsApp de l'équipe
   Http/Controllers/Payment/ PaymentController (parcours de paiement de l'apprenant)
   Http/Controllers/WelcomeController    page de bienvenue (/bienvenue) et morceaux du message vocal
-  Http/Middleware/       EnsureUserIsAdmin (alias « admin »), EnsurePasswordIsChanged, RedirectToHttps (groupe web), RequireConfirmation (alias « confirm:action », actions graves)
+  Http/Controllers/SeoController        robots.txt et sitemap.xml (adresses tirées de APP_URL)
+  Http/Middleware/       EnsureUserIsAdmin (alias « admin »), EnsurePasswordIsChanged, RedirectToHttps (groupe web), RequireConfirmation (alias « confirm:action », actions graves), MarkPrivatePagesNoIndex (groupe web : X-Robots-Tag sur les pages non publiques)
   Http/Requests/Auth/    RegisterRequest, LoginRequest (normalisation du téléphone + limitation des essais)
   Http/Requests/Payment/ StorePaymentRequest ; Http/Requests/Admin/ RejectPaymentRequest
   Http/Requests/Live/    ConnectRequest, SignalRequest, AssessmentResultRequest, LessonReportRequest, LevelTestResultRequest, ChooseLevelRequest (« Choisir un autre niveau »)
@@ -96,7 +99,7 @@ app/
   Enums/ (phase 4)       Goal, Difficulty, Skill, ProgramStatus, ProgramLessonStatus, LevelTestStatus, ErrorStatus
   Support/               PrivateStorage (disque privé : captures, attestations), PhoneNumber (normalisation E.164), Plan (formules depuis la config), Money, Duration,
                          PaymentCountry / PaymentOperator (config/payment.php + numéros des Réglages), SiteSettings (Réglages de l'administration), PaymentChecks (six règles de l'accès provisoire), WhatsApp (liens wa.me), TemporaryPassword,
-                         Greeting (Bonjour / Bonsoir à l'heure du pays, prénom), WelcomeFlow (message de bienvenue dû), IconStyle (style des pastilles d'icône), Avatar (réglages du professeur 3D pour le navigateur, URL versionnées par empreinte), Confirmation (textes des confirmations des actions graves)
+                         Seo (référencement : adresse du site, pages indexables, canonique, Organization, FAQPage), Greeting (Bonjour / Bonsoir à l'heure du pays, prénom), WelcomeFlow (message de bienvenue dû), IconStyle (style des pastilles d'icône), Avatar (réglages du professeur 3D pour le navigateur, URL versionnées par empreinte), Confirmation (textes des confirmations des actions graves)
   Support/Gemini/        LiveClient (jeton éphémère), LiveConnection, TeacherSetup (consignes + config Live), UsageCost, AssessmentEstimator (niveau sans verdict),
                          TextClient (modèle texte léger, API Interactions, renvoie null en cas d'échec), ProofReader (lecture d'une capture de paiement : image + sortie JSON structurée),
                          VoiceSampler (extraits d'« Essai des voix » ; synthesize() : synthèse vocale réutilisable), LevelMessage (message vocal du résultat, un par niveau), WelcomeMessage (message de bienvenue, par morceaux),
@@ -126,7 +129,7 @@ public/fonts/            sora-2.000-latin.woff2 (seule police), OFL-Sora.txt (li
 public/brand/            les quatre logos (horizontal, vertical, icone, blanc) en PNG transparent, WebP, WebP 640 et 320 pixels (le site affiche les 320)
 docs/brand/reference/    originaux des logos (PNG fournis, fond non transparent)
 tools/icons/             build-icons.py (EN LOCAL, Python) : génère components/icon.blade.php depuis les SVG Lucide 1.49.0 ; licence dans resources/icons/LICENSE-lucide.txt
-tools/brand/             prepare-logos.py (EN LOCAL, Python + Pillow) : détourage, marges, WebP, favicon et icônes
+tools/brand/             prepare-logos.py (EN LOCAL, Python + Pillow) : détourage, marges, WebP, favicon et icônes ; share-image.html + share-image.mjs (EN LOCAL, Chromium) : image de partage public/images/partage-talkami.jpg
 public/icons/            icônes de l'application (192, 512, adaptative 512, iPhone 180, favicon 96) ; public/favicon.ico (16, 32, 48)
 public/images/           teacher-joe.webp (Teacher Joe, accueil et page de résultat) ; photos/{nom}-480.webp (téléphone) et -960.webp (ordinateur)
 tools/teacher3d/         outils LOCAUX (Node) : génération du modèle, regroupement de three.js (voir son README)
@@ -135,7 +138,7 @@ public/css/tokens.css    IDENTITÉ VISUELLE : seul fichier des couleurs, police,
 public/css/app.css       styles des pages (n'utilise que les variables de tokens.css), écrit à la main, sans compilation
 resources/views/
   components/layout.blade.php   gabarit commun (<x-layout>) : en-tête, barre du bas (téléphone), pied de page, manifeste ;
-                                props : title, description, narrow, install (bandeau d'installation), focus (écran de séance)
+                                props : title, description, narrow, install (bandeau d'installation), focus (écran de séance), indexable (sinon : App\Support\Seo::indexable()) ; @stack('head') (données structurées)
   components/simple-layout.blade.php  gabarit sans session ni compte (page hors connexion, erreurs 500 et 503)
   components/input.blade.php    champ de formulaire avec erreurs (<x-input>) ; type="password" : bouton « œil » afficher / masquer (app.js)
   components/icon.blade.php     icônes SVG intégrées (<x-icon name="mic" />), famille Lucide, FICHIER GÉNÉRÉ par tools/icons/build-icons.py
@@ -144,7 +147,8 @@ resources/views/
   components/plan-card.blade.php  carte d'une formule (<x-plan-card :plan :href>) : bouton orange « Choisir … », badge de la formule
   components/photo.blade.php    photo de config/photos.php (<x-photo name="…" />) : <picture>, 480 pixels sur téléphone, 960 dès 900 pixels, chargement différé
   assessment/result.blade.php   page de résultat de l'évaluation ; assessment/plans.blade.php : formules « Je commence maintenant » (aussi sous le verdict)
-  errors/                       404, 403, 419 (page expirée), 500, 503
+  errors/                       404, 403, 419 (page expirée), 429 (trop de demandes), 500, 503 : aux couleurs de la marque, bouton de retour utile, noindex
+  seo/sitemap.blade.php         sitemap.xml
   offline.blade.php             « Vous êtes hors connexion »
   confirm/page.blade.php        page de confirmation d'une action grave quand le JavaScript ne s'est pas chargé
 ```
@@ -316,6 +320,27 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
   - `tests/Feature/WebAppTest.php` vérifie qu'aucune route réservée aux comptes ne tombe dans un dossier mis en cache.
 - **Installation** : bouton « Installer l'application » (Android, événement `beforeinstallprompt`) dans le pied de page et un bandeau discret sur l'accueil et l'espace apprenant ; sur iPhone, explication « Partager », puis « Sur l'écran d'accueil ». Fermeture mémorisée dans le navigateur.
 
+### Navigation automatique (le site se conduit tout seul)
+
+Principe : l'apprenant (souvent un élève) ne cherche jamais la suite ; chaque toucher l'amène là où il doit agir. Tout fonctionne aussi sans JavaScript (ancres, `autofocus`). `tests/Feature/SiteNavigationTest.php`.
+- **Liens vers une partie de page** (`public/js/app.js`, `goTo()`, aussi `window.goTo`) : défilement doux, ou saut direct avec « réduire les animations » ; les blocs repliés (`<details>`) qui la contiennent s'ouvrent ; le focus va sur son titre (la cible si c'est un titre, sinon le titre de `aria-labelledby`, sinon son premier `h1`–`h3`, `tabindex="-1"` posé au besoin). Même traitement à l'arrivée sur une adresse avec ancre (saut direct `instant`) et au changement d'ancre (`hashchange`) ; les blocs du paiement (`payment-flow.js`) gardent leur propre logique. `main [id], h1, h2` ont `scroll-margin-top` (sous l'en-tête collant).
+- **Redirections vers l'étape suivante et la bonne partie** : niveau choisi → `/evaluation#formules` ; nouvelle leçon « Mes cours » → `/mes-cours/{id}#travailler` ; administration : mot de passe provisoire → `#mot-de-passe-provisoire`, accès offert (offrir, retirer) → `#acces-offert`, évaluation réinitialisée → `#evaluation` (fiche d'un inscrit). Toute nouvelle redirection vers une partie de page passe par `redirect()->to(route(…).'#ancre')` et l'ancre doit exister (`test_every_anchor_used_by_a_redirection_exists_on_its_page`).
+- **Messages** : réussite (`session('status')`) et erreurs de formulaire (`$errors`, sac par défaut : « À corriger : … » ou « N points à corriger : … », `.toast-error`, `role="alert"`) en haut de l'écran (`.toast`, position fixe : visibles sans défiler, même après un saut vers une ancre). Focus sur le premier champ en erreur : `<x-input>` pose `autofocus` sur le premier champ en erreur de la page (et retire tout autre `autofocus` dès qu'une erreur existe), `app.js` place aussi le focus sur le premier `[aria-invalid="true"]`, `.is-invalid` ou champ voisin d'un `.error`, en ouvrant les `<details>` et en centrant le champ.
+- **Choix qui révèlent une suite** : paiement (pays, moyen, voir « Paiement manuel ») ; capture choisie → descente jusqu'à « Envoyer ma capture » (`proof-upload.js`) ; page ajoutée dans « Mes cours » → descente jusqu'aux aperçus (`course-upload.js`) ; attribut générique `data-then="id"` sur une case ou un bouton radio : une fois coché, le curseur va dans le champ indiqué (« Autre durée » de l'accès offert).
+- **Boutons d'envoi** : tout formulaire `POST` marque son bouton « Envoi en cours… » (`.is-busy`, petit cercle qui tourne, immobile avec « réduire les animations », `aria-disabled`, jamais `disabled` pour garder la valeur du bouton) et ignore tout nouvel envoi (`form.dataset.busy`) ; le libellé se règle par `data-busy-label`. Un envoi déjà pris en charge par un autre script (confirmation, compression d'une photo) est ignoré ici ; après « Confirmer » d'une action grave, le bouton passe aussi en « en cours ». Retour arrière (page gardée en mémoire) ou 30 secondes sans changement de page : bouton de nouveau utilisable.
+- **États vides** (`.empty-state`, pastille d'icône, phrase, bouton de l'action) : « Mes cours » sans leçon (« Ajouter une leçon »), « Mes séances » sans séance (« Parler avec Teacher Joe » si une formule et un programme existent, sinon « Aller à mon espace »), calendrier vide, listes vides de l'administration.
+- **Administrateur entre 1200 et 1439 pixels** : bouton « Menu » au lieu de la navigation complète (un lien et une pastille de plus : elle ne tient qu'à partir de 1440 pixels, `body.is-admin-user`).
+
+### Référencement
+
+- **Adresse du site** : TOUJOURS `APP_URL` (`App\Support\Seo::url()`), jamais l'adresse de la requête : canonique, Open Graph, sitemap, robots, données structurées restent justes au passage à talkami.net (il suffit de changer `APP_URL`).
+- **Pages indexées** : `Seo::INDEXABLE_ROUTES` = accueil, Contact, Inscription (requête GET). Chacune a un titre et une description uniques en français (accueil : « Talkami · Votre professeur d'anglais à l'oral », accroche de la configuration), `lang="fr"`, `<meta name="robots" content="index, follow">`, `rel="canonical"`, Open Graph (`og:type`, `og:site_name`, `og:locale` `fr_FR`, titre, description, adresse, image 1200 × 630 avec texte de remplacement) et Twitter (`summary_large_image`).
+- **Image de partage** : `public/images/partage-talkami.jpg` (84 Ko, bleu nuit et orange, logo blanc, Teacher Joe, titre de l'accueil, « Évaluation orale gratuite » : uniquement des textes déjà sur le site), produite EN LOCAL par `tools/brand/share-image.mjs` à partir de `share-image.html` (police Sora).
+- **Données structurées** (accueil, `@stack('head')`, `Seo::jsonLd()` sûr contre `</script>`) : `Organization` (nom, adresse, logo `brand/logo-vertical.png`, accroche, e-mail, adresse et premier téléphone de `SiteSettings::contact()`, pays desservis = pays de paiement) et `FAQPage` tirée du HTML même des questions fréquentes (`Seo::faq()` lit les `<details>` capturés par `ob_start()` dans `home.blade.php`) : jamais une copie à tenir à jour.
+- **sitemap.xml** et **robots.txt** : routes `seo.sitemap` et `seo.robots` (`SeoController`, sans session). Sitemap = pages indexées. robots.txt en production : `Disallow` des pages privées (`Seo::PRIVATE_PATHS`), `Allow: /`, `Sitemap:` ; hors production : `Disallow: /`. AUCUN fichier `public/robots.txt` ni `public/sitemap.xml` (sur Laravel Cloud, un fichier de `public/` passerait avant la route).
+- **noindex partout ailleurs** : `<meta name="robots" content="noindex, nofollow">` (gabarit, pages d'erreur `:indexable="false"`, gabarit simple) et en-tête `X-Robots-Tag: noindex, nofollow` (`MarkPrivatePagesNoIndex`) : administration, « Mon espace », séances, programme, paiement, « Mes cours », bienvenue, compte, connexion, mot de passe oublié, vérification d'attestation.
+- **Poids** : l'accueil reste sous 150 Ko au premier affichage (données structurées comprises, `tests/Feature/CourseHelpHomeTest.php`). Tests : `tests/Feature/SeoTest.php`.
+
 ### Confirmations et messages (aucune fenêtre du navigateur)
 
 - **Interdit sur tout le site** : `confirm()`, `alert()`, `prompt()` (fenêtres « … indique »). `tests/Feature/ConfirmationTest.php` cherche ces appels dans toutes les vues et tout `public/js/` (seul `deferredPrompt.prompt()`, l'installation de l'application, est autorisé).
@@ -331,6 +356,7 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ lessons.used_se
 | `/credits` | — | ancienne page « Crédits », supprimée : redirection permanente (301) vers l'accueil |
 | `/manifest.webmanifest` | `manifest` | public, sans session : manifeste de l'application installable |
 | `/hors-connexion` | `offline` | public, sans session : page affichée par le service worker sans réseau |
+| `/robots.txt`, `/sitemap.xml` | `seo.robots`, `seo.sitemap` | public, sans session : écrits à partir de APP_URL |
 | `/mot-de-passe-oublie` | `password.forgot` | invités |
 | `/mot-de-passe/nouveau` (GET, PUT) | `password.change`, `password.update` | connectés (après mot de passe provisoire) |
 | `/inscription` | `register` | invités |

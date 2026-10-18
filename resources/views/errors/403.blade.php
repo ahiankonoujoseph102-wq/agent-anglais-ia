@@ -1,4 +1,4 @@
-<x-layout title="Accès refusé" narrow>
+<x-layout :indexable="false" title="Accès refusé" narrow>
     <section class="empty-state">
         <div class="code" aria-hidden="true">403</div>
         <h1>Accès refusé</h1>

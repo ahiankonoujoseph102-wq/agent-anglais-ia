@@ -10,6 +10,6 @@
     @forelse ($payments as $payment)
         @include('admin.payments.card', ['payment' => $payment, 'actions' => true])
     @empty
-        <div class="card">Aucun paiement en attente.</div>
+        <div class="card empty-state"><span class="icon-bubble"><x-icon name="check-circle" /></span><p>Aucun paiement en attente.</p></div>
     @endforelse
 </x-layout>

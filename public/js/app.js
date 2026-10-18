@@ -5,7 +5,10 @@
  *   - bouton « Installer l'application » (Android) et explication pour iPhone ;
  *   - bouton « œil » des champs mot de passe (afficher / masquer) ;
  *   - message de confirmation en haut de la page (bouton « Fermer ») ;
- *   - fenêtre de confirmation intégrée des actions graves (jamais de fenêtre du navigateur).
+ *   - fenêtre de confirmation intégrée des actions graves (jamais de fenêtre du navigateur) ;
+ *   - navigation automatique : un lien vers une partie de la page y descend et met le focus sur son titre,
+ *     une page revenue avec des erreurs met le focus sur le premier champ à corriger, un bouton d'envoi
+ *     passe à « Envoi en cours… » et un second toucher est ignoré.
  */
 
 const script = document.querySelector('script[data-sw]');
@@ -275,6 +278,7 @@ document.addEventListener('submit', async (event) => {
     }
 
     form.dataset.confirmed = '1';
+    markBusy(form, form.querySelector('button[type="submit"], button:not([type])'));
     form.submit();
 });
 
@@ -305,3 +309,192 @@ if (menu) {
         }
     });
 }
+
+/* ---------- Navigation automatique ---------- */
+
+const reduceMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+// Ouvre les blocs repliés (<details>) qui contiennent l'élément : sinon il resterait invisible.
+function reveal(element) {
+    for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+        if (parent.tagName === 'DETAILS' && !parent.open) {
+            parent.open = true;
+        }
+    }
+}
+
+// Le titre d'une partie : la cible si c'est un titre, sinon le titre qui la nomme (aria-labelledby), sinon son premier titre.
+function headingOf(target) {
+    if (/^H[1-6]$/.test(target.tagName)) {
+        return target;
+    }
+
+    const labelledBy = target.getAttribute('aria-labelledby')?.split(' ')[0];
+
+    return (labelledBy && document.getElementById(labelledBy)) || target.querySelector('h1, h2, h3') || target;
+}
+
+function focusWithoutScroll(element) {
+    if (!element.matches('a[href], button, input, select, textarea, summary, [tabindex]')) {
+        element.setAttribute('tabindex', '-1');
+    }
+
+    element.focus({ preventScroll: true });
+}
+
+/**
+ * Descend jusqu'à une partie de la page (doucement, ou d'un saut si le téléphone demande moins
+ * d'animations) et met le focus sur son titre.
+ */
+export function goTo(target) {
+    if (!target) {
+        return;
+    }
+
+    reveal(target);
+
+    if (target.tagName === 'DETAILS') {
+        target.open = true;
+    }
+
+    target.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+    focusWithoutScroll(headingOf(target));
+}
+
+window.goTo = goTo;
+
+// Lien vers une partie de la même page (sans JavaScript, le navigateur suit l'ancre de lui-même).
+document.addEventListener('click', (event) => {
+    const link = event.target.closest?.('a[href*="#"]');
+
+    if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target) {
+        return;
+    }
+
+    const url = new URL(link.href, location.href);
+
+    if (url.origin !== location.origin || url.pathname !== location.pathname || url.search !== location.search || url.hash.length < 2) {
+        return;
+    }
+
+    const target = document.getElementById(decodeURIComponent(url.hash.slice(1)));
+
+    if (!target) {
+        return;
+    }
+
+    event.preventDefault();
+    history.pushState(null, '', url.hash);
+    goTo(target);
+});
+
+// L'ancre change sans recharger la page (lien d'une autre partie du site, retour arrière) : même traitement.
+window.addEventListener('hashchange', () => {
+    const target = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+
+    if (target && !target.matches('[data-pay-methods-for], [data-pay-block], .pay-section')) {
+        goTo(target);
+    }
+});
+
+// À l'arrivée : d'abord le premier champ à corriger, sinon la partie demandée par l'adresse (#…).
+function firstInvalidField() {
+    const main = document.getElementById('contenu') || document.body;
+    const marked = main.querySelector('[aria-invalid="true"], .is-invalid');
+
+    if (marked) {
+        return marked;
+    }
+
+    const message = main.querySelector('.error');
+
+    return message?.closest('.field, fieldset, .option-group, form')?.querySelector('input:not([type="hidden"]), select, textarea') ?? null;
+}
+
+const invalid = firstInvalidField();
+
+if (invalid) {
+    reveal(invalid);
+    invalid.focus({ preventScroll: true });
+    // Page qui vient de s'ouvrir : saut direct (« instant » passe avant le défilement doux de la feuille de style).
+    invalid.scrollIntoView({ behavior: 'instant', block: 'center' });
+} else if (location.hash.length > 1) {
+    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+
+    if (target && !target.matches('[data-pay-methods-for], [data-pay-block], .pay-section')) {
+        // Le navigateur a déjà fait descendre la page : on ouvre ce qui est replié et on donne le focus au titre.
+        reveal(target);
+        target.scrollIntoView({ behavior: 'instant', block: 'start' });
+        focusWithoutScroll(headingOf(target));
+    }
+}
+
+// Un choix qui demande une suite (data-then="id") : le curseur va directement dans le champ suivant.
+document.addEventListener('change', (event) => {
+    const choice = event.target;
+    const next = choice.dataset?.then && choice.checked ? document.getElementById(choice.dataset.then) : null;
+
+    if (next) {
+        next.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
+        next.focus({ preventScroll: true });
+    }
+});
+
+/* ---------- Boutons d'envoi : « Envoi en cours… » et aucun double envoi ---------- */
+
+const BUSY_TIMEOUT = 30000;
+
+function markBusy(form, button) {
+    form.dataset.busy = '1';
+
+    if (button && !button.classList.contains('is-busy')) {
+        button.dataset.idleHtml = button.innerHTML;
+        button.classList.add('is-busy');
+        button.setAttribute('aria-disabled', 'true');
+        button.innerHTML = '<span class="busy-spinner" aria-hidden="true"></span> ' + (button.dataset.busyLabel || 'Envoi en cours…');
+    }
+
+    // Si la page ne change pas (réseau coupé), le bouton redevient utilisable.
+    setTimeout(() => unmarkBusy(form), BUSY_TIMEOUT);
+}
+
+function unmarkBusy(form) {
+    delete form.dataset.busy;
+    form.querySelectorAll('.is-busy').forEach((button) => {
+        button.classList.remove('is-busy');
+        button.removeAttribute('aria-disabled');
+
+        if (button.dataset.idleHtml !== undefined) {
+            button.innerHTML = button.dataset.idleHtml;
+            delete button.dataset.idleHtml;
+        }
+    });
+}
+
+// Écouté en dernier : un envoi déjà pris en charge (confirmation, compression d'une photo) est ignoré ici.
+document.addEventListener('submit', (event) => {
+    const form = event.target;
+
+    if (!(form instanceof HTMLFormElement) || (form.getAttribute('method') || 'get').toLowerCase() !== 'post') {
+        return;
+    }
+
+    if (form.dataset.busy) {
+        event.preventDefault();
+
+        return;
+    }
+
+    if (event.defaultPrevented) {
+        return;
+    }
+
+    markBusy(form, event.submitter ?? form.querySelector('button[type="submit"], button:not([type])'));
+});
+
+// Retour arrière vers une page gardée en mémoire : les boutons sont de nouveau utilisables.
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        document.querySelectorAll('form[data-busy]').forEach(unmarkBusy);
+    }
+});

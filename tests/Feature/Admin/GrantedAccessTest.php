@@ -68,7 +68,7 @@ class GrantedAccessTest extends TestCase
         $learner = $this->learnerWithoutAccess();
 
         $this->offer($learner, ['plan' => 'intensif', 'duration' => '7', 'note' => 'Visite au Collège X'])
-            ->assertRedirect(route('admin.users.show', $learner))
+            ->assertRedirect(route('admin.users.show', $learner).'#acces-offert')
             ->assertSessionHas('status');
 
         $subscription = $learner->subscriptions()->sole();
@@ -220,7 +220,7 @@ class GrantedAccessTest extends TestCase
         $this->granted($learner, 'essentiel', 7);
 
         $this->actingAs($this->admin)->delete(route('admin.users.revoke', $learner), ['confirmed' => 1])
-            ->assertRedirect(route('admin.users.show', $learner));
+            ->assertRedirect(route('admin.users.show', $learner).'#acces-offert');
 
         $subscription = $learner->subscriptions()->sole();
         $this->assertSame(SubscriptionStatus::Cancelled, $subscription->status);
