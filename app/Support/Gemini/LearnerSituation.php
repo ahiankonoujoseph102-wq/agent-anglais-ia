@@ -6,6 +6,7 @@ use App\Enums\AssessmentStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\User;
+use Illuminate\Support\Str;
 
 /**
  * Situation de l'apprenant sur le site, donnée au professeur à chaque jeton :
@@ -35,6 +36,13 @@ class LearnerSituation
 
         if ($user->level !== null) {
             $lines[] = 'Niveau : '.$user->level->value.' ('.$user->level->label().')';
+        }
+
+        // Réponses ACTUELLES au questionnaire (« Modifier mes objectifs » les change pour la séance suivante).
+        if ($user->exists && $program = $user->activeProgram()->first()) {
+            $lines[] = 'Objectif du programme : '.Str::lcfirst($program->goal->label())
+                .($program->profile ? ' ; profil : '.Str::lcfirst($program->profile->label()) : '')
+                .' ; métier ou situation : '.$program->occupation.'.';
         }
 
         if ($user->exists && $subscription = $user->activeSubscription()->first()) {

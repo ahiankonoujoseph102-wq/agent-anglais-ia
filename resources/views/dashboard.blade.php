@@ -228,6 +228,13 @@
         </div>
     </div>
 
+    {{-- Changer d'objectif, de profil ou de rythme sans perdre sa progression (ProgramAnswersController). --}}
+    @if ($program)
+        <p class="edit-goals reveal">
+            <a class="btn btn-outline btn-block" href="{{ route('program.answers.edit', [$program, 1]) }}"><x-icon name="target" /> Modifier mes objectifs</a>
+        </p>
+    @endif
+
     @if ($assessment?->feedback)
         <section class="card next-step reveal">
             <div class="card-title"><span class="icon-bubble icon-bubble-accent"><x-icon name="badge-check" /></span><h2>Votre évaluation</h2></div>

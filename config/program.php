@@ -21,6 +21,9 @@ return [
     // Nombre maximal d'erreurs rappelées au professeur à chaque séance.
     'errors_per_lesson' => 6,
 
+    // « Modifier mes objectifs » : modifications enregistrées au plus par jour et par compte (minuit, heure de Lomé).
+    'answer_edits_per_day' => 3,
+
     // Un apprenant abonné sans séance depuis ce nombre de jours est « inactif » (administration).
     'inactive_after_days' => 3,
 
