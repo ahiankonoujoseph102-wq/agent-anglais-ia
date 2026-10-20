@@ -8,6 +8,7 @@ use App\Models\CourseSession;
 use App\Support\Gemini\CourseReviewWriter;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -89,27 +90,35 @@ class CourseReviews
             $session = $review->session()->with(['lesson', 'part'])->first();
             $review->attempts++;
 
-            try {
-                $written = $session?->lesson !== null
-                    ? ($writer ?? new CourseReviewWriter)->write($session, (int) self::setting('timeout_seconds'))
-                    : null;
-            } catch (Throwable $e) {
-                report($e);
-                $written = null;
+            // Texte déjà rédigé lors d'un essai précédent (seul le PDF avait échoué) : aucune nouvelle demande.
+            if ($review->content === null) {
+                try {
+                    $written = $session?->lesson !== null
+                        ? ($writer ?? new CourseReviewWriter)->write($session, (int) self::setting('timeout_seconds'))
+                        : null;
+                } catch (Throwable $e) {
+                    report($e);
+                    $written = null;
+                }
+
+                if ($written === null) {
+                    return self::failed($review);
+                }
+
+                $review->fill(['content' => $written['content'], 'provider' => $written['provider']]);
             }
 
-            if ($written === null) {
-                $failed = $review->attempts >= (int) self::setting('max_attempts');
-                $review->status = $failed ? CourseReview::FAILED : CourseReview::PENDING;
-                $review->next_attempt_at = $failed ? null : now()->addMinutes((int) self::setting('retry_minutes'));
-                $review->save();
+            try {
+                $path = trim((string) self::setting('directory'), '/').'/'.$review->user_id.'/'.$review->course_session_id.'-'.Str::random(16).'.pdf';
+                PrivateStorage::disk()->put($path, CourseReviewPdf::render($review));
+            } catch (Throwable $e) {
+                report($e);
 
-                return false;
+                return self::failed($review);
             }
 
             $review->fill([
-                'content' => $written['content'],
-                'provider' => $written['provider'],
+                'path' => $path,
                 'status' => CourseReview::READY,
                 'prepared_at' => now(),
                 'next_attempt_at' => null,
@@ -119,6 +128,39 @@ class CourseReviews
         } finally {
             $lock->release();
         }
+    }
+
+    /**
+     * Essai raté : nouvel essai après retry_minutes, ou échec définitif après max_attempts essais.
+     */
+    private static function failed(CourseReview $review): bool
+    {
+        $failed = $review->attempts >= (int) self::setting('max_attempts');
+        $review->status = $failed ? CourseReview::FAILED : CourseReview::PENDING;
+        $review->next_attempt_at = $failed ? null : now()->addMinutes((int) self::setting('retry_minutes'));
+        $review->save();
+
+        return false;
+    }
+
+    /**
+     * Contenu du PDF d'un document prêt (disque privé), ou null s'il manque.
+     */
+    public static function file(CourseReview $review): ?string
+    {
+        if (! $review->isReady() || $review->path === null || ! PrivateStorage::disk()->exists($review->path)) {
+            return null;
+        }
+
+        return PrivateStorage::disk()->get($review->path);
+    }
+
+    /**
+     * Nom du fichier téléchargé : « document-de-revision-le-present-simple-2026-10-20.pdf ».
+     */
+    public static function filename(CourseReview $review): string
+    {
+        return 'document-de-revision-'.Str::slug((string) ($review->lesson?->title ?? 'lecon')).'-'.($review->prepared_at ?? now())->timezone(config('app.timezone'))->format('Y-m-d').'.pdf';
     }
 
     /**
