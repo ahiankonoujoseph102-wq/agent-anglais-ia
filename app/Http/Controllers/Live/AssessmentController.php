@@ -276,6 +276,15 @@ class AssessmentController extends Controller
     private function resultPage(Request $request, Assessment $assessment): View
     {
         $user = $request->user();
+        $hasSubscription = $user->activeSubscription()->exists();
+        // « Voici votre première leçon » (sans abonnement) : tableau de l'unité 1, leçon 1 du niveau de l'apprenant,
+        // déjà préparé ou de secours ; s'il manque, préparé après la réponse pour les prochains (jamais pendant l'affichage).
+        $lessonLevel = $user->level ?? $assessment->level;
+        $firstLesson = ! $hasSubscription && $lessonLevel !== null ? LessonBoards::firstLesson($lessonLevel) : null;
+
+        if ($firstLesson !== null && $firstLesson['source'] === 'programme') {
+            LessonBoards::queueFirstLesson($lessonLevel);
+        }
 
         return view('assessment.result', [
             'assessment' => $assessment,
@@ -285,7 +294,9 @@ class AssessmentController extends Controller
             'rank' => array_flip(array_map(fn (Level $level) => $level->value, Level::cases())),
             'canChoose' => ! $user->programs()->exists(),
             'plans' => Plan::all(),
-            'hasSubscription' => $user->activeSubscription()->exists(),
+            'hasSubscription' => $hasSubscription,
+            'firstLesson' => $firstLesson,
+            'lessonLevel' => $lessonLevel,
             'messageText' => $assessment->level ? LevelMessage::text($assessment->level) : null,
         ]);
     }

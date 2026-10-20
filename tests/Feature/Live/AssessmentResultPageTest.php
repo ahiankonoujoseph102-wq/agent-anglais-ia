@@ -4,7 +4,11 @@ namespace Tests\Feature\Live;
 
 use App\Enums\AssessmentStatus;
 use App\Enums\Level;
+use App\Models\LessonBoard;
+use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Curriculum\Curriculum;
+use App\Support\Curriculum\LessonBoards;
 use App\Support\Gemini\LevelMessage;
 use App\Support\PrivateStorage;
 use App\Support\Speech\GeminiSpeech;
@@ -13,6 +17,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\BuildsPrograms;
+use Tests\Feature\Program\LessonBoardTest;
 use Tests\TestCase;
 
 /**
@@ -73,8 +78,47 @@ class AssessmentResultPageTest extends TestCase
             ->assertSee('Recommandé')
             ->assertDontSee('alert-error', false);
 
-        // Rien n'est demandé à Google à l'affichage : le message n'est généré qu'au toucher.
+        // Rien n'est demandé à Google pour la voix : le message n'est généré qu'au toucher. Seule demande possible,
+        // APRÈS la réponse : la préparation du tableau de la première leçon du niveau, qui n'existe pas encore.
+        Http::assertNotSent(fn ($request) => ! str_contains(json_encode($request->data()), 'You prepare the BOARD'));
+    }
+
+    public function test_learner_without_subscription_sees_the_first_lesson_board_above_the_plans(): void
+    {
+        Http::fake();
+        config(['services.text.providers' => []]);
+
+        $html = $this->actingAs($this->assessed(Level::A2))->get('/evaluation')
+            ->assertOk()
+            ->assertSee('Voici votre première leçon avec Teacher Joe')
+            ->assertSee('Niveau A2')
+            ->assertSee(Curriculum::unit(Level::A2, 1)->title)
+            ->getContent();
+
+        // Juste au-dessus des formules, avec les phrases de la première leçon (tableau de secours ici).
+        $this->assertLessThan(strpos($html, 'id="formules"'), strpos($html, 'id="premiere-lecon"'));
+        $board = LessonBoards::firstLesson(Level::A2);
+        $this->assertStringContainsString(e($board['phrases'][0]['en']), $html);
         Http::assertNothingSent();
+    }
+
+    public function test_the_first_lesson_shows_the_shared_board_when_ready_and_is_hidden_with_an_access(): void
+    {
+        Http::fake();
+        LessonBoard::query()->create([
+            'key' => LessonBoards::VERSION.':B1-01-L1-S1-conversation',
+            'level' => 'B1', 'unit_number' => 1, 'lesson_number' => 1, 'situation_index' => 1, 'goal' => 'conversation',
+            'content' => LessonBoardTest::board('Talking about your weekend'), 'provider' => 'openai',
+        ]);
+        $user = $this->assessed(Level::B1);
+
+        $this->actingAs($user)->get('/evaluation')
+            ->assertSee('Talking about your weekend')
+            ->assertSee('Voici ma sœur.');
+        Http::assertNothingSent();
+
+        Subscription::factory()->for($user)->create();
+        $this->actingAs($user->fresh())->get('/evaluation')->assertOk()->assertDontSee('Voici votre première leçon');
     }
 
     public function test_voice_message_is_generated_once_with_the_chosen_voice_then_cached(): void

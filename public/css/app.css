@@ -1270,3 +1270,6 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
     .course-grid .course-steps { grid-column: 1; grid-row: 2; }
     .course-grid .board-preview { grid-column: 2; grid-row: 1 / 3; }
 }
+
+/* Page de résultat : « Voici votre première leçon » (tableau de l'unité 1, leçon 1, au-dessus des formules). */
+.first-lesson .board-preview { max-width: 560px; margin-top: var(--space-4); justify-self: start; }
