@@ -92,7 +92,7 @@ class TeacherSetup
                         ],
                         'summary' => [
                             'type' => 'STRING',
-                            'description' => 'Short summary of the lesson in French (what was learned, key phrases, and the sentence to remember).',
+                            'description' => 'Short summary of the lesson in French. Start with the sentence to remember, in English between double quotes, with its meaning in French; then what the learner can now do and the key phrases. It is used for the warm-up of the next lesson.',
                         ],
                         'homework' => [
                             'type' => 'STRING',

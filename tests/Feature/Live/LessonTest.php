@@ -63,7 +63,7 @@ class LessonTest extends TestCase
             // Un jeton dure au plus 5 minutes : le navigateur doit en redemander un.
             ->assertJsonPath('token_expires_in', 300)
             ->assertJsonPath('warning_seconds', 120)
-            ->assertJsonPath('cues.start', '[System] The learner is connected and ready. Start STEP 1 now: greet the learner, announce that the lesson lasts 30 minutes and today\'s topic, then teach the first item of the board.');
+            ->assertJsonPath('cues.start', '[System] The learner is connected and ready. Start STEP 1 now: greet the learner, announce that the lesson lasts 30 minutes, follow HOW TO WORK WITH ME, do the WARM-UP if there was a previous lesson, announce today\'s topic, then teach the first item of the board.');
 
         Http::assertSent(function (Request $request) {
             $instructions = $request['bidiGenerateContentSetup']['systemInstruction']['parts'][0]['text'];
