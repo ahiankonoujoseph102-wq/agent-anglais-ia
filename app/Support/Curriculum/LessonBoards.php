@@ -2,6 +2,8 @@
 
 namespace App\Support\Curriculum;
 
+use App\Enums\Goal;
+use App\Enums\Level;
 use App\Models\LessonBoard;
 use App\Models\Program;
 use App\Models\ProgramLesson;
@@ -70,6 +72,57 @@ class LessonBoards
         }
 
         return self::fallback($lesson, $program);
+    }
+
+    /**
+     * Tableau de la PREMIÈRE leçon d'un niveau (unité 1, leçon 1), sans programme : mini-leçon de l'évaluation et
+     * « Voici votre première leçon » de la page de résultat. Un tableau déjà préparé pour cette leçon (objectif
+     * « conversation » d'abord, sinon un autre objectif), sinon le tableau de secours. Jamais d'appel ici.
+     *
+     * @return array{title: string, phrases: list<array{en: string, fr: ?string, use?: ?string}>, vocabulary: list<array{en: string, fr: ?string}>, verbs: list<array{base: string, forms: string, fr: ?string}>, rule: array{en: ?string, fr: ?string}, source: string}
+     */
+    public static function firstLesson(Level $level): array
+    {
+        $board = LessonBoard::query()
+            ->where('key', 'like', self::VERSION.':%')
+            ->where('level', $level->value)
+            ->where('unit_number', 1)
+            ->where('lesson_number', 1)
+            ->orderByRaw('case when goal = ? then 0 else 1 end', [Goal::Conversation->value])
+            ->orderBy('situation_index')
+            ->orderBy('id')
+            ->first();
+
+        if ($board !== null && ($content = self::normalize((array) $board->content)) !== null) {
+            return $content + ['source' => $board->provider];
+        }
+
+        return self::fallback(...self::firstLessonOf($level));
+    }
+
+    /**
+     * Fait préparer (après la réponse) le tableau de la première leçon d'un niveau s'il n'en existe aucun :
+     * au plus une demande par niveau (verrou et pause après un échec dans prepare()).
+     */
+    public static function queueFirstLesson(Level $level): void
+    {
+        if (self::firstLesson($level)['source'] === 'programme') {
+            self::queue(...self::firstLessonOf($level));
+        }
+    }
+
+    /**
+     * Leçon 1 de l'unité 1 d'un niveau, objectif « conversation », sans rien enregistrer.
+     *
+     * @return array{0: ProgramLesson, 1: Program}
+     */
+    private static function firstLessonOf(Level $level): array
+    {
+        $program = new Program(['level' => $level, 'goal' => Goal::Conversation]);
+        $lesson = new ProgramLesson(['unit_number' => 1, 'lesson_number' => 1, 'situation_index' => 0]);
+        $lesson->setRelation('program', $program);
+
+        return [$lesson, $program];
     }
 
     public static function ready(ProgramLesson $lesson, Program $program): bool

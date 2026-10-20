@@ -182,7 +182,7 @@ class TeacherSetupTest extends TestCase
         $user->level = Level::A1;
         $text = TeacherSetup::instructions('assessment', $user, 5);
 
-        $this->assertStringContainsString('STRICT ORDER: 1) the greeting; 2) questions adapted to the learner; 3) ONE announcement of the level; 4) the learner\'s questions, in French; 5) ONE conclusion, in French.', $text);
+        $this->assertStringContainsString('STRICT ORDER: 1) the greeting; 2) questions adapted to the learner; 3) ONE announcement of the level; 4) ONE discovery mini-lesson (one phrase); 5) the learner\'s questions, in French; 6) ONE conclusion, in French.', $text);
         $this->assertStringContainsString('Never announce the level a second time, never give the conclusion a second time', $text);
         $this->assertStringContainsString('FIRST call the function "record_assessment_result"', $text);
         $this->assertStringContainsString('BEFORE saying anything about the level. Call it only once.', $text);
@@ -202,7 +202,12 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('« Je serai avec vous chaque jour, je corrigerai vos erreurs et vous gagnerez en assurance. »', $text);
         $this->assertStringContainsString('end with this exact sentence, word for word: « On se retrouve de l\'autre côté ! »', $text);
         $this->assertStringContainsString('Never say this sentence at any other moment', $text);
-        $this->assertStringContainsString('(2 minutes at most)', $text);
+        $this->assertStringContainsString('(3 minutes at most)', $text);
+        // Mini-leçon découverte : une seule phrase, ouverte par la phrase fixe, sans nouvel appel de fonction.
+        $this->assertStringContainsString('DISCOVERY MINI-LESSON (about one minute)', $text);
+        $this->assertStringContainsString('word for word: « Laissez-moi vous montrer comment nous allons travailler ensemble. »', $text);
+        $this->assertStringContainsString('("Repeat after me: …")', $text);
+        $this->assertStringContainsString('Teach only this phrase.', $text);
         $this->assertStringContainsString('Never say "on the website"', $text);
         $this->assertStringContainsString('the website ends the conversation automatically', $text);
         $this->assertStringContainsString('Never repeat a sentence or a question you have already said', $text);

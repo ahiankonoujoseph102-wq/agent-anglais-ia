@@ -58,10 +58,14 @@ return [
         'max_minutes' => 5,
         // Le professeur est prévenu ce nombre de minutes avant la fin pour conclure.
         'warning_minutes_before_end' => 1,
-        // Après l'annonce du niveau : questions libres puis conclusion, en français.
-        // Ce temps s'ajoute à partir du verdict (durée totale coupée par le serveur :
-        // max_minutes + questions_seconds au plus).
+        // Après l'annonce du niveau : mini-leçon découverte (une phrase du niveau trouvé), questions libres puis
+        // conclusion, en français. Ces temps s'ajoutent à partir du verdict (durée totale coupée par le serveur :
+        // max_minutes + discovery_seconds + questions_seconds au plus, soit 8 minutes).
         'questions_seconds' => 120,
+        'discovery_seconds' => 60,
+        // Mini-leçon : phrase dite mot pour mot pour l'ouvrir, et nombre de phrases montrées au tableau.
+        'discovery_intro' => 'Laissez-moi vous montrer comment nous allons travailler ensemble.',
+        'discovery_phrases' => 3,
         // Nombre de questions auxquelles le professeur répond.
         'questions_max' => 3,
         // UNE indication « passez à la conclusion » ce nombre de secondes avant la fin.

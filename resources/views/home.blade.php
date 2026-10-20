@@ -98,7 +98,7 @@
             <li class="card reveal" style="--i: 1">
                 <div class="how-head"><span class="how-num">2</span><span class="icon-bubble"><x-icon name="mic" /></span></div>
                 <h3>Passez l'évaluation gratuite</h3>
-                <p>{{ $minutes }} minutes à l'oral avec {{ $teacher }}, qui vous annonce votre niveau et répond à vos questions.</p>
+                <p>{{ $minutes }} minutes à l'oral avec {{ $teacher }} pour trouver votre niveau, puis une mini-leçon et vos questions.</p>
             </li>
             <li class="card reveal" style="--i: 2">
                 <div class="how-head"><span class="how-num">3</span><span class="icon-bubble"><x-icon name="mobile" /></span></div>
@@ -139,10 +139,10 @@
                 </div>
             </figure>
             <ol class="card course-steps reveal">
-                <li><span class="how-num">1</span><p><strong>La leçon :</strong> {{ $teacher }} vous enseigne les phrases, les mots et les verbes du jour, affichés au tableau, en anglais simple, avec une explication en français si vous ne comprenez pas.</p></li>
-                <li><span class="how-num">2</span><p><strong>La pratique :</strong> vous répétez et vous construisez vos phrases, guidé par {{ $teacher }}.</p></li>
-                <li><span class="how-num">3</span><p><strong>La conversation :</strong> vous utilisez la leçon dans une vraie situation (travail, marché, entretien…), il vous corrige avec douceur.</p></li>
-                <li><span class="how-num">4</span><p><strong>Le bilan :</strong> ce que vous avez appris, et une phrase à retenir.</p></li>
+                <li><span class="how-num course-num">1</span><p><strong>La leçon :</strong> {{ $teacher }} vous enseigne les phrases, les mots et les verbes du jour, affichés au tableau, en anglais simple, avec une explication en français si vous ne comprenez pas.</p></li>
+                <li><span class="how-num course-num">2</span><p><strong>La pratique :</strong> vous répétez et vous construisez vos phrases, guidé par {{ $teacher }}.</p></li>
+                <li><span class="how-num course-num">3</span><p><strong>La conversation :</strong> vous utilisez la leçon dans une vraie situation (travail, marché, entretien…), il vous corrige avec douceur.</p></li>
+                <li><span class="how-num course-num">4</span><p><strong>Le bilan :</strong> ce que vous avez appris, et une phrase à retenir.</p></li>
             </ol>
         </div>
         <ul class="course-plus reveal">
@@ -331,7 +331,7 @@
             </details>
             <details>
                 <summary><x-icon name="gift" /><span>L'évaluation est-elle vraiment gratuite ?</span></summary>
-                <p>Oui. Une évaluation orale de {{ $minutes }} minutes au maximum par compte, sans paiement ni engagement. Vous découvrez votre niveau, puis vous décidez.</p>
+                <p>Oui. Une évaluation orale par compte, sans paiement ni engagement : {{ $minutes }} minutes pour trouver votre niveau, puis une mini-leçon pour découvrir comment se passe un cours, et vos questions ({{ \App\Models\Assessment::totalMinutes() }} minutes au plus en tout). Ensuite, vous décidez.</p>
             </details>
         </div>
         @php($faqHtml = ob_get_clean())
@@ -347,7 +347,7 @@
     <section class="section band">
         <div class="cta-band reveal">
             <h2>Votre anglais oral commence aujourd'hui</h2>
-            <p>{{ $minutes }} minutes gratuites avec {{ $teacher }} pour connaître votre niveau et poser vos questions.</p>
+            <p>Une évaluation orale gratuite avec {{ $teacher }} : votre niveau, une première phrase apprise et vos questions.</p>
             <div class="cta-actions">
                 <a class="btn btn-accent btn-lg" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
                 @if ($whatsappUrl)

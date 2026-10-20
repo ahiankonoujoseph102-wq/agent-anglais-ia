@@ -108,10 +108,10 @@ class Assessment extends Model
     }
 
     /**
-     * Après le verdict, pendant l'évaluation : moment des questions libres et conclusion.
-     * La fin autorisée devient « maintenant + platform.assessment.questions_seconds » : le
-     * temps s'ajoute à partir du verdict (au plus 5 + 2 minutes au total ; plus court si le
-     * verdict arrive tôt). Le serveur coupe toujours à cette nouvelle limite.
+     * Après le verdict, pendant l'évaluation : mini-leçon découverte, questions libres et conclusion.
+     * La fin autorisée devient « maintenant + afterVerdictSeconds() » : le temps s'ajoute à partir du
+     * verdict (au plus 5 + 1 + 2 minutes au total ; plus court si le verdict arrive tôt). Le serveur
+     * coupe toujours à cette nouvelle limite.
      */
     public function startQuestions(): void
     {
@@ -119,8 +119,25 @@ class Assessment extends Model
             return;
         }
 
-        $this->allowed_seconds = $this->elapsedUntil(now()) + (int) config('platform.assessment.questions_seconds');
+        $this->allowed_seconds = $this->elapsedUntil(now()) + self::afterVerdictSeconds();
         $this->save();
+    }
+
+    /**
+     * Temps accordé après le verdict : mini-leçon découverte, questions libres et conclusion.
+     */
+    public static function afterVerdictSeconds(): int
+    {
+        return (int) config('platform.assessment.discovery_seconds') + (int) config('platform.assessment.questions_seconds');
+    }
+
+    /**
+     * Durée la plus longue d'une évaluation, en minutes : l'évaluation elle-même (max_minutes), puis la mini-leçon,
+     * les questions et la conclusion. Pour les textes du site qui donnent une durée totale.
+     */
+    public static function totalMinutes(): int
+    {
+        return (int) config('platform.assessment.max_minutes') + (int) ceil(self::afterVerdictSeconds() / 60);
     }
 
     /**

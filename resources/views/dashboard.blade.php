@@ -17,8 +17,8 @@
         @if ($needsAssessment && ! $subscription)
             <h2 id="next-step-title">Passez votre évaluation gratuite</h2>
             <p>
-                Parlez {{ $assessmentMinutes }} minutes au maximum avec {{ config('avatar.model.name') }}
-                pour connaître votre niveau d'anglais. C'est gratuit et sans engagement.
+                Parlez {{ $assessmentMinutes }} minutes avec {{ config('avatar.model.name') }} pour connaître votre niveau
+                d'anglais, puis découvrez une première leçon et posez vos questions. C'est gratuit et sans engagement.
             </p>
             <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-lg btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
         @elseif ($pendingPayment && ! $subscription)
@@ -112,7 +112,7 @@
     @if ($needsAssessment && $subscription)
         <section class="card next-step rise" aria-labelledby="assessment-invite">
             <div class="card-title"><span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span><h2 id="assessment-invite">Passez votre évaluation gratuite</h2></div>
-            <p>{{ $assessmentMinutes }} minutes au maximum avec {{ config('avatar.model.name') }} pour mesurer votre niveau.</p>
+            <p>{{ $assessmentMinutes }} minutes avec {{ config('avatar.model.name') }} pour mesurer votre niveau, puis une mini-leçon et vos questions.</p>
             <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
         </section>
     @endif

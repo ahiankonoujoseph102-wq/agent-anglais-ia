@@ -171,7 +171,7 @@ return [
         'faq' => [
             [
                 'question' => 'Comment mon niveau est-il trouvé ?',
-                'answer' => 'Pendant une conversation de :minutes minutes au plus, :teacher vous pose des questions adaptées à vos réponses, puis vous annonce votre niveau, de A1 à C2. Il répond ensuite à vos questions en français.',
+                'answer' => 'Pendant une conversation de :minutes minutes au plus, :teacher vous pose des questions adaptées à vos réponses, puis vous annonce votre niveau, de A1 à C2. Il vous montre ensuite comment se passe une leçon avec une première phrase, puis répond à vos questions en français.',
             ],
             [
                 'question' => 'Mon attestation peut-elle être vérifiée ?',

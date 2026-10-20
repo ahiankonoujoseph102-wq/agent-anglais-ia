@@ -10,6 +10,7 @@ use App\Http\Requests\Live\ChooseLevelRequest;
 use App\Http\Requests\Live\ConnectRequest;
 use App\Http\Requests\Live\SignalRequest;
 use App\Models\Assessment;
+use App\Support\Curriculum\LessonBoards;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LevelMessage;
 use App\Support\Gemini\LiveConnection;
@@ -43,7 +44,7 @@ class AssessmentController extends Controller
         return view('live.session', [
             'mode' => 'assessment',
             'title' => 'Évaluation gratuite',
-            'intro' => "Parlez avec votre professeur pendant {$minutes} minutes au maximum. Il vous posera des questions de plus en plus difficiles, puis vous annoncera votre niveau.",
+            'intro' => "Parlez avec votre professeur pendant {$minutes} minutes au maximum. Il vous posera des questions de plus en plus difficiles, puis vous annoncera votre niveau, vous montrera comment se passe une leçon et répondra à vos questions.",
             'remainingSeconds' => $assessment?->remainingSeconds() ?? $minutes * 60,
             'urls' => [
                 'connect' => route('assessment.connect'),
@@ -198,7 +199,7 @@ class AssessmentController extends Controller
             'level' => $assessment->level->value,
             'label' => $assessment->level->label(),
             'remaining_seconds' => $assessment->remainingSeconds(),
-        ] + self::ending($assessment));
+        ] + self::ending($assessment) + self::discovery($assessment));
     }
 
     public function finish(SignalRequest $request): JsonResponse
@@ -234,6 +235,41 @@ class AssessmentController extends Controller
             'conclusion_cue_seconds' => (int) config('platform.assessment.conclusion_cue_seconds'),
             'closing_phrase' => (string) config('platform.assessment.closing_phrase'),
             'closing_grace_seconds' => (int) config('platform.assessment.closing_grace_seconds'),
+        ];
+    }
+
+    /**
+     * Mini-leçon découverte (seulement si la conversation continue après le verdict) : quelques phrases de la
+     * première leçon du niveau trouvé, montrées au tableau, et la suite donnée au professeur avec la phrase à
+     * enseigner (réponse de la fonction : aucun nouvel appel, mêmes consignes chez Gemini et chez OpenAI).
+     *
+     * @return array<string, mixed>
+     */
+    private static function discovery(Assessment $assessment): array
+    {
+        if (! $assessment->inQuestions()) {
+            return [];
+        }
+
+        $board = LessonBoards::firstLesson($assessment->level);
+        $phrases = array_slice($board['phrases'], 0, max(1, (int) config('platform.assessment.discovery_phrases')));
+
+        if ($phrases === []) {
+            return [];
+        }
+
+        $phrases = array_map(fn (array $phrase) => ['en' => $phrase['en'], 'fr' => $phrase['fr'] ?? null, 'note' => $phrase['use'] ?? null], $phrases);
+        // En une minute : la phrase la plus courte est enseignée, et vient en premier au tableau.
+        usort($phrases, fn (array $a, array $b) => mb_strlen($a['en']) <=> mb_strlen($b['en']));
+        $first = $phrases[0];
+
+        return [
+            'discovery' => ['title' => $board['title'], 'phrases' => $phrases],
+            'next_step' => strtr((string) config('teacher.assessment_next_step'), [
+                ':intro' => (string) config('platform.assessment.discovery_intro'),
+                ':phrase' => $first['en'],
+                ':meaning' => $first['fr'] ? ' (in French: "'.$first['fr'].'")' : '',
+            ]),
         ];
     }
 

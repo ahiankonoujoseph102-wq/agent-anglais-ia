@@ -89,8 +89,8 @@ placeSubtitles();
 wideScreen?.addEventListener?.('change', placeSubtitles);
 
 // Tableau (séance du jour) : sous Teacher Joe et replié sur téléphone ; à droite et ouvert sur grand écran et téléphone couché.
-const boardEl = $('board');
-const board = boardEl && BoardView ? { view: new BoardView(boardEl), tracker: null, nudged: false } : null;
+let boardEl = $('board');
+let board = boardEl && BoardView ? { view: new BoardView(boardEl), tracker: null, nudged: false } : null;
 const wideBoard = window.matchMedia?.('(min-width: 900px), (orientation: landscape) and (max-height: 560px)');
 
 function placeBoard() {
@@ -115,6 +115,44 @@ wideBoard?.addEventListener?.('change', placeBoard);
 boardEl?.querySelector('[data-board-translations]')?.addEventListener('change', (event) => {
     boardEl.classList.toggle('show-translations', event.target.checked);
 });
+
+/**
+ * Évaluation : après le verdict, le tableau de la mini-leçon découverte (quelques phrases de la première leçon du
+ * niveau trouvé, envoyées par /resultat). Jamais avant le verdict : il trahirait le niveau. Même suivi que la séance
+ * du jour (la phrase dite par le professeur s'allume), sans étapes.
+ */
+function showDiscoveryBoard(discovery) {
+    if (board || !BoardView || !discovery?.phrases?.length) {
+        return;
+    }
+
+    const items = discovery.phrases.map((phrase, i) => {
+        const meaning = phrase.fr ?? phrase.note;
+
+        return `<li class="board-item" data-board-item="p${i}" data-kind="phrase" data-say="${escapeHtml(phrase.en)}">`
+            + `<span class="board-en" lang="en">${escapeHtml(phrase.en)}</span>`
+            + (meaning ? `<span class="board-fr">${escapeHtml(meaning)}</span>` : '')
+            + '</li>';
+    }).join('');
+
+    boardEl = document.createElement('details');
+    boardEl.id = 'board';
+    boardEl.className = 'board board-discovery';
+    boardEl.open = true;
+    boardEl.dataset.translations = 'show';
+    boardEl.innerHTML = '<summary class="board-head"><span class="board-label">Tableau</span>'
+        + '<span class="board-phase" data-board-phase>Découverte</span><span class="board-now" data-board-now aria-live="polite"></span></summary>'
+        + `<div class="board-body"><p class="board-title">${escapeHtml(discovery.title ?? '')}</p>`
+        + `<p class="board-heading">Votre première phrase</p><ul class="board-list">${items}</ul></div>`;
+
+    board = { view: new BoardView(boardEl), tracker: null, nudged: false };
+    board.tracker = new BoardTracker(board.view.items());
+    placeBoard();
+
+    if (!boardEl.isConnected) {
+        $('controls')?.before(boardEl);
+    }
+}
 
 /** Secondes écoulées depuis le début de la séance (temps du serveur). */
 function lessonElapsed() {
@@ -1604,7 +1642,8 @@ function renew() {
 
 // Ce que le professeur doit faire après l'enregistrement du résultat : une seule annonce, puis fin.
 const AFTER_VERDICT = {
-    record_assessment_result: 'Saved. Now, if you have not announced it yet, make the ONE announcement of the level in simple English, then invite questions in French: « Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français. » and wait. Then follow steps 5 and 6 of your instructions (questions in French, then ONE conclusion ending with the exact closing sentence). Never announce the level again and never call this function again.',
+    // Sans mini-leçon (le serveur envoie la sienne, avec la phrase à enseigner, quand il en accorde le temps).
+    record_assessment_result: 'Saved. Now, if you have not announced it yet, make the ONE announcement of the level in simple English, then skip the mini-lesson and invite questions in French: « Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français. » and wait. Then follow steps 6 and 7 of your instructions (questions in French, then ONE conclusion ending with the exact closing sentence). Never announce the level again and never call this function again.',
     end_lesson: 'Saved. Now say goodbye warmly in one or two short sentences. Do not start anything new: the lesson ends after this turn.',
     record_level_test_result: 'Saved. Now, if you have not announced it yet, announce the result once, kindly, then say goodbye. Do not ask another question: the test ends after this turn.',
 };
@@ -1621,6 +1660,7 @@ async function handleFunctionCall(call) {
     const args = call.args ?? {};
     let response = { result: 'ok' };
     let questions = false;
+    let nextStep = null;
     const isVerdict = call.name in AFTER_VERDICT;
 
     if (isVerdict && state.end.hasVerdict) {
@@ -1641,6 +1681,9 @@ async function handleFunctionCall(call) {
 
             if (questions) {
                 setRemaining(result.data.remaining_seconds);
+                // Mini-leçon découverte : son tableau, et la suite à donner au professeur (phrase à enseigner).
+                showDiscoveryBoard(result.data.discovery);
+                nextStep = result.data.next_step ?? null;
             }
         } else {
             response = { result: 'error', message: result.data.message ?? 'not saved' };
@@ -1681,7 +1724,7 @@ async function handleFunctionCall(call) {
     const saved = isVerdict && response.result === 'ok';
 
     if (saved) {
-        response = { result: 'saved', next_step: AFTER_VERDICT[call.name] };
+        response = { result: 'saved', next_step: nextStep ?? AFTER_VERDICT[call.name] };
     }
 
     if (state.transport?.isOpen) {
@@ -1802,7 +1845,7 @@ function tick() {
     }
 
     // Séance du jour : étape affichée sur le tableau, et UNE relance douce vers la conversation si elle tarde.
-    if (board?.tracker) {
+    if (board?.tracker && state.config.phases) {
         const elapsed = lessonElapsed();
         board.view.setPhase(board.tracker.phase(elapsed), state.config.phases?.merged);
 
