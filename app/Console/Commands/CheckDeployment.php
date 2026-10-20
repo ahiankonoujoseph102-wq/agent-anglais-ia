@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\PushSubscription;
 use App\Support\Alerts\AdminAlerts;
+use App\Support\Founder;
 use App\Support\Live\LiveProviders;
 use App\Support\PaymentCountry;
 use App\Support\PrivateStorage;
@@ -80,7 +81,7 @@ class CheckDeployment extends Command
         $redirects = (array) config('app.redirect_from_hosts');
         $this->line('    Anciennes adresses redirigées en 301 : '.($redirects === [] ? 'aucune' : implode(', ', $redirects)));
         $this->line('    Groupe WhatsApp : '.(filled(config('platform.contact.whatsapp_group')) ? 'lien présent' : 'à compléter (WHATSAPP_GROUP_URL ; sinon le numéro WhatsApp)'));
-        $this->line('    Présentation du fondateur (page « À propos ») : '.(filled(config('platform.founder.bio')) ? 'présente' : 'à compléter (config/platform.php, founder.bio)'));
+        $this->line('    Présentation du fondateur (page « À propos ») : '.(filled(Founder::bio()) ? 'présente' : 'à compléter (config/platform.php, founder.bio)'));
 
         $this->section('Professeur IA');
         $this->check('Clé Gemini présente', filled(config('services.gemini.key')), 'GEMINI_API_KEY est vide : les séances vocales ne fonctionneront pas.');

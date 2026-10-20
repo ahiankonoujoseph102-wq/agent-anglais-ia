@@ -55,6 +55,34 @@
         </figure>
     </section>
 
+    {{--
+        « Vous vous reconnaissez ? » et « Vous avez déjà essayé ? » : des situations que l'on vit, jamais des
+        témoignages (aucun nom, aucune photo, aucune citation attribuée). Deux cartes, côte à côte sur ordinateur.
+    --}}
+    <div class="section band persuade">
+        <section class="card persuade-card reveal" aria-labelledby="reconnaissez">
+            <h2 id="reconnaissez">Vous vous reconnaissez ?</h2>
+            <ul class="situations">
+                <li><span class="icon-bubble"><x-icon name="mic-off" /></span> <span>Je comprends un peu l'anglais, mais quand il faut parler, je bloque.</span></li>
+                <li><span class="icon-bubble"><x-icon name="messages" /></span> <span>Je cherche mes mots, et ça ne sort pas.</span></li>
+                <li><span class="icon-bubble"><x-icon name="alert" /></span> <span>J'ai peur de faire des fautes et qu'on se moque de moi.</span></li>
+                <li><span class="icon-bubble"><x-icon name="user-off" /></span> <span>Je n'ai personne avec qui pratiquer.</span></li>
+            </ul>
+            <p class="persuade-answer"><strong>Ce n'est pas un manque d'intelligence : c'est un manque de pratique.</strong> {{ $teacher }} est là pour ça.</p>
+            <a class="btn btn-accent btn-block" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
+        </section>
+
+        <section class="card persuade-card reveal" style="--i: 1" aria-labelledby="deja-essaye">
+            <h2 id="deja-essaye">Vous avez déjà essayé ?</h2>
+            <ul class="tried">
+                <li><x-icon name="close-circle" /> <span>Des applications où l'on clique sur des réponses, sans jamais parler.</span></li>
+                <li><x-icon name="close-circle" /> <span>Des vidéos regardées… puis oubliées.</span></li>
+                <li><x-icon name="close-circle" /> <span>Des cours de grammaire, sans personne pour vous écouter.</span></li>
+            </ul>
+            <p class="tried-yes"><x-icon name="check-circle" /> <span>Avec {{ $platform }}, vous parlez chaque jour, et {{ $teacher }} vous écoute et vous corrige.</span></p>
+        </section>
+    </div>
+
     {{-- Sections alternées : bleu très clair, bleu nuit (une seule), blanc… (.band, fond sur toute la largeur). --}}
     <section class="section band band-soft" aria-labelledby="etapes">
         <div class="section-head reveal">
@@ -234,6 +262,23 @@
         </div>
         <x-country-links :pages="$countryPages" />
     </section>
+
+    {{-- « Qui est derrière … ? » : le fondateur, sobrement (config/platform.php → founder ; photo chargée à la demande). --}}
+    @if (\App\Support\Founder::bio())
+        <section class="section band founder-section" aria-labelledby="fondateur-accueil">
+            <div class="card founder-card reveal">
+                @if (\App\Support\Founder::photoUrl())
+                    <img class="founder-photo" src="{{ \App\Support\Founder::photoUrl() }}" width="320" height="320" alt="{{ \App\Support\Founder::photoAlt() }}" loading="lazy" decoding="async">
+                @endif
+                <div>
+                    <h2 id="fondateur-accueil">Qui est derrière {{ $platform }} ?</h2>
+                    <p class="founder-name"><strong>{{ config('platform.founder.name') }}</strong>, {{ config('platform.founder.headline') }}</p>
+                    <p class="founder-bio">{{ \App\Support\Founder::bio() }}</p>
+                    <a href="{{ route('about') }}" class="founder-more">En savoir plus <x-icon name="arrow-right" /></a>
+                </div>
+            </div>
+        </section>
+    @endif
 
     <section class="section band band-soft faq-section" aria-labelledby="questions">
         <div class="section-head reveal">

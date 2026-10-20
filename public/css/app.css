@@ -1172,3 +1172,38 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
         .live-stage-notes .subtitles, .live[data-teacher="3d"] .live-stage-notes .subtitles { max-height: max(120px, calc(100dvh - var(--stage-height) - 150px)); }
     }
 }
+
+/* Accueil, juste après le haut de page : « Vous vous reconnaissez ? » et « Vous avez déjà essayé ? »
+   (situations vécues, jamais des témoignages). L'une sous l'autre, côte à côte à partir de 900 pixels. */
+.persuade { display: grid; gap: var(--space-4); }
+.persuade-card { margin: 0; display: flex; flex-direction: column; }
+.persuade-card h2 { margin-bottom: var(--space-4); }
+.situations, .tried { list-style: none; padding: 0; margin: 0 0 var(--space-4); display: grid; gap: var(--space-3); }
+.situations li { display: flex; align-items: center; gap: var(--space-3); font-weight: var(--fw-bold); color: var(--c-heading); }
+.situations .icon-bubble { flex: none; width: 44px; height: 44px; border-radius: 13px; }
+.situations .icon-bubble .icon { width: 22px; height: 22px; }
+.persuade-answer { margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4); border-left: 4px solid var(--c-accent); border-radius: var(--radius-sm); background: var(--c-accent-soft); color: var(--c-text); }
+.persuade-answer strong { color: var(--c-heading); }
+.persuade-card > .btn { margin-top: auto; }
+.tried li { display: flex; align-items: flex-start; gap: var(--space-3); color: var(--c-muted); }
+.tried .icon { flex: none; margin-top: 2px; color: var(--c-muted); }
+.tried-yes { display: flex; align-items: flex-start; gap: var(--space-3); margin: auto 0 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius); background: var(--c-primary-soft); color: var(--c-heading); font-weight: var(--fw-bold); }
+.tried-yes .icon { flex: none; margin-top: 2px; color: var(--c-accent-strong); }
+@media (min-width: 640px) { .persuade-card > .btn-block { width: auto; align-self: flex-start; } }
+@media (min-width: 900px) { .persuade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); align-items: stretch; } }
+
+/* « Qui est derrière … ? » (accueil, avant les questions fréquentes) et « À propos » : photo ronde du fondateur. */
+.founder-section { padding-top: 0; }
+.founder-card { display: grid; gap: var(--space-4); justify-items: center; text-align: center; max-width: 760px; margin: 0 auto; }
+.founder-card h2 { font-size: var(--fs-lg); margin-bottom: var(--space-2); }
+.founder-photo { display: block; flex: none; width: 96px; height: 96px; border-radius: 50%; object-fit: cover; background: var(--c-bg-warm); box-shadow: 0 0 0 4px var(--c-surface), 0 0 0 6px var(--c-primary-line); }
+.founder-name { margin: 0 0 var(--space-2); color: var(--c-muted); }
+.founder-name strong { color: var(--c-heading); }
+.founder-bio { margin: 0 0 var(--space-3); color: var(--c-text); }
+.founder-more { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: var(--fw-bold); }
+.about-card .founder-photo { width: 112px; height: 112px; }
+@media (min-width: 640px) {
+    .founder-card { grid-template-columns: auto 1fr; justify-items: start; align-items: center; text-align: left; gap: var(--space-5); }
+    .founder-photo { width: 112px; height: 112px; }
+}
+@media (max-width: 639px) { .about-card:has(.founder-photo) { flex-direction: column; } }

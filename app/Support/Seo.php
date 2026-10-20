@@ -145,7 +145,8 @@ final class Seo
             'url' => self::url('a-propos'),
             'worksFor' => ['@type' => 'Organization', '@id' => self::url().'#organisation', 'name' => config('platform.name'), 'url' => self::url()],
             'address' => ['@type' => 'PostalAddress', 'addressLocality' => $founder['city'] ?? null, 'addressCountry' => $founder['country_code'] ?? null],
-            'description' => ($founder['bio'] ?? null) ?: null,
+            'description' => Founder::bio(),
+            'image' => ! empty($founder['photo']) && is_file(public_path($founder['photo'])) ? self::url($founder['photo']) : null,
         ]);
     }
 

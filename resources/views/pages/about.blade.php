@@ -1,9 +1,10 @@
 {{--
     « À propos » : uniquement des faits vérifiés (config/platform.php → founder, fonctionnement du site).
-    La présentation personnelle du fondateur (founder.bio) est À COMPLÉTER : non affichée tant qu'elle est vide.
+    Présentation du fondateur (founder.bio, écrite par lui) et sa photo : non affichées si elles manquent.
 --}}
 @php
     use App\Support\Asset;
+    use App\Support\Founder;
     use App\Support\Navigation;
     use App\Support\Seo;
 
@@ -24,12 +25,16 @@
 
     <section class="section" aria-labelledby="apropos-fondateur" id="fondateur">
         <div class="card about-card reveal">
-            <span class="icon-bubble"><x-icon name="user" /></span>
+            @if (Founder::photoUrl())
+                <img class="founder-photo" src="{{ Founder::photoUrl() }}" width="320" height="320" alt="{{ Founder::photoAlt() }}" loading="lazy" decoding="async">
+            @else
+                <span class="icon-bubble"><x-icon name="user" /></span>
+            @endif
             <div>
                 <h2 id="apropos-fondateur">{{ $founder['name'] }}, {{ mb_strtolower($founder['role']) }}</h2>
                 <p>{{ $platform }} a été fondé par {{ $founder['name'] }}, à {{ $founder['city'] }}, au {{ $founder['country'] }}, qui en a aussi conçu et développé le site.</p>
-                @if ($founder['bio'])
-                    <p>{{ $founder['bio'] }}</p>
+                @if (Founder::bio())
+                    <p class="founder-bio">{{ Founder::bio() }}</p>
                 @endif
             </div>
         </div>
