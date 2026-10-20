@@ -102,6 +102,8 @@ Formules et **prix définitifs** (dans `config/platform.php`), affichés sur les
 
 - **Cours montré, mini-leçon et PDF longs (faite)** : accueil « Comment se passe votre cours avec Teacher Joe ? » (quatre temps et aperçu du Tableau, à la place de « Ce qui rend … différent », accueil plus court qu'avant) ; mini-leçon découverte d'une phrase dans l'évaluation (8 minutes au plus) ; « Voici votre première leçon » sur la page de résultat ; « Mes cours » : PDF jusqu'à 50 pages et 20 mégaoctets, sommaire puis partie choisie (10 pages au plus), messages clairs si une limite bloque, essais des limites dans l'administration. Voir « Cours montré, mini-leçon et PDF longs ».
 
+- **Sans marques et finition (faite)** : aucune marque d'intelligence artificielle (Google, Gemini, OpenAI, ChatGPT) hors administration, y compris sur « Confidentialité » (« prestataires techniques d'intelligence artificielle et d'hébergement ») ; Teacher Joe « conçu et programmé par » le fondateur, réponse à « Qui t'a créé ? » (`teacher.persona`, marqueur `:founder`) ; « À propos » corrigée ; audit de toutes les pages aux 4 largeurs et en paysage (horaires sans abréviation, pied de page sans « professeur IA », cartes « Mes leçons », chiffres de « Mon espace », vocabulaire, recherche de l'administration, champ de fichier qui débordait). `tests/Feature/NoProviderNamesTest.php`.
+
 (L'ordre 2/3/4/5 est indicatif ; voir le compte rendu de chaque phase.)
 
 ## Architecture

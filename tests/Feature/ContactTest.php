@@ -26,7 +26,7 @@ class ContactTest extends TestCase
         $this->get('/contact')
             ->assertOk()
             ->assertSee('Rue Fictive, Lomé, Togo')
-            ->assertSee('Du lundi au samedi, de 8 h à 20 h')
+            ->assertSee('Du lundi au samedi, de 8 heures à 20 heures')
             ->assertSee('+228 90 00 00 01')
             ->assertSee('+228 90 00 00 02')
             ->assertSee('contact@example.test')
@@ -57,7 +57,7 @@ class ContactTest extends TestCase
 
         $this->get('/contact')
             ->assertOk()
-            ->assertSee('Du lundi au samedi, de 8 h à 20 h')
+            ->assertSee('Du lundi au samedi, de 8 heures à 20 heures')
             ->assertDontSee('Bureau')
             ->assertDontSee('Écrire sur WhatsApp')
             ->assertDontSee('https://wa.me/', false);
