@@ -253,6 +253,7 @@ class TeacherSetup
         $text = self::fill($text, $extra + [
             'platform' => config('platform.name'),
             'teacher' => config('avatar.model.name'),
+            'founder' => (string) config('platform.founder.name'),
             'name' => $user->name,
             'level' => $level,
             'minutes' => $minutes,

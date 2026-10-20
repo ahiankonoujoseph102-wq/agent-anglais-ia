@@ -8,7 +8,7 @@
     <div class="card form-card rise" style="--i: 1">
         <ol class="steps">
             <li>Indiquez ci-dessous le numéro de téléphone de votre compte.</li>
-            <li>Appuyez sur « Demander sur WhatsApp » : un message déjà rédigé s'ouvre, envoyez-le.</li>
+            <li>Appuyez sur « Préparer le message », puis sur « Demander sur WhatsApp » : un message déjà rédigé s'ouvre, envoyez-le.</li>
             <li>Nous vous répondons avec un mot de passe provisoire ({{ \Illuminate\Support\Str::lcfirst(config('platform.contact.hours')) }}).</li>
             <li>Connectez-vous avec : le site vous demandera aussitôt d'en choisir un nouveau.</li>
         </ol>

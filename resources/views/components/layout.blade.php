@@ -186,7 +186,7 @@
                 <div>
                     <x-logo variant="footer" />
                     <p class="footer-tagline">{{ config('platform.brand.tagline') }}</p>
-                    <p class="next-step">Apprenez l'anglais à l'oral avec votre professeur IA, depuis votre téléphone.</p>
+                    <p class="next-step">Apprenez l'anglais à l'oral avec {{ config('avatar.model.name') }}, depuis votre téléphone.</p>
                 </div>
                 @php($contact = \App\Support\SiteSettings::contact())
                 <ul class="footer-list">
@@ -226,7 +226,7 @@
                 @endguest
             </div>
             <div class="footer-bottom">
-                <p>&copy; {{ date('Y') }} {{ config('platform.name') }} — Apprenez l'anglais avec votre professeur IA.</p>
+                <p>&copy; {{ date('Y') }} {{ config('platform.name') }} — Apprenez l'anglais à l'oral, depuis votre téléphone.</p>
                 @if (config('platform.brand.developer'))
                     <p class="footer-signature">Développé par <strong>{{ config('platform.brand.developer') }}</strong></p>
                 @endif
