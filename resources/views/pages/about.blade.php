@@ -45,7 +45,7 @@
                 <span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span>
                 <div>
                     <h3>Pour les francophones d'Afrique</h3>
-                    <p>{{ $platform }} enseigne l'anglais oral aux francophones de tous les pays, en commençant par le Togo. Les leçons partent de situations d'ici (le marché, le transport, l'administration) et vous préparent aux échanges internationaux : travail, voyage, études, téléphone et internet. On y apprend l'anglais américain, compris partout dans le monde.</p>
+                    <p>{{ $platform }} enseigne l'anglais oral aux francophones de tous les pays, en commençant par le Togo. Les leçons partent de situations d'ici (le marché, le transport, l'administration) et vous préparent aux échanges internationaux : travail, voyage, études, téléphone et internet. On y apprend l'anglais américain, compris partout dans le monde. Étudiants, élèves, parents, enseignants ou professionnels : chacun choisit son objectif, par exemple oser parler, étudier ou voyager à l'étranger, préparer un entretien ou parler avec des clients.</p>
                 </div>
             </article>
             <article class="card feature reveal" style="--i: 1">

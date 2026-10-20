@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Program;
 use App\Enums\Difficulty;
 use App\Enums\Goal;
 use App\Enums\Level;
+use App\Enums\Profile;
 use App\Enums\ProgramLessonStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Program\QuestionnaireRequest;
@@ -81,6 +82,7 @@ class ProgramController extends Controller
             'steps' => self::STEPS,
             'answers' => array_merge(...array_values($answers ?: [[]])),
             'goals' => Goal::cases(),
+            'profiles' => Profile::cases(),
             'difficulties' => Difficulty::cases(),
             'days' => [1 => 'Lundi', 2 => 'Mardi', 3 => 'Mercredi', 4 => 'Jeudi', 5 => 'Vendredi', 6 => 'Samedi', 7 => 'Dimanche'],
             'level' => $request->user()->level ?? Level::A1,

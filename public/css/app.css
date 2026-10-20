@@ -983,3 +983,22 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .students h1 { margin-top: 0; }
 @media (min-width: 640px) { .footer-countries { grid-column: 1 / -1; margin-top: 0; } }
 @media (min-width: 640px) { .country-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Accueil : quatre cartes compactes (.students.audience) : étudiants, élèves, parents, professionnels.
+   Même carte que .students, en plus court : photo 16:9 en haut, titre, une phrase, trois points, bouton.
+   Téléphone : l'une sous l'autre ; à partir de 720 pixels : grille 2 × 2. */
+.audiences { display: grid; gap: var(--space-5); }
+.students.audience { align-items: start; align-content: start; gap: var(--space-4); padding: var(--space-4) var(--space-4) var(--space-5); }
+.audience .photo-frame { aspect-ratio: 16 / 9; box-shadow: none; border-radius: var(--radius); }
+.audience h2 { margin: 0 0 var(--space-2); font-size: 1.3rem; }
+.audience-body > p { margin: 0 0 var(--space-3); }
+.audience-points { list-style: none; padding: 0; margin: 0 0 var(--space-4); display: grid; gap: var(--space-2); }
+.audience-points li { display: flex; gap: var(--space-2); align-items: flex-start; line-height: 1.4; }
+.audience-points .icon { flex: none; margin-top: 2px; color: var(--c-accent-strong); }
+.audience .help-only { font-size: .92rem; align-items: flex-start; }
+@media (min-width: 720px) {
+    .audiences { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .students.audience { grid-template-columns: 1fr; padding: var(--space-5); }
+    .audience-body { display: flex; flex-direction: column; height: 100%; }
+    .audience-body .btn { margin-top: auto; align-self: flex-start; }
+}

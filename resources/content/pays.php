@@ -62,13 +62,13 @@ return [
         'title' => 'Apprendre l\'anglais au Bénin, depuis le téléphone',
         'description' => 'Au Bénin, :teacher fait parler anglais les adultes et aide les élèves en cours d\'anglais. Évaluation gratuite, paiement par :operators.',
         'heading' => 'Apprendre l\'anglais au Bénin',
-        'lead' => 'Que vous soyez à Cotonou, à Porto-Novo ou à Parakou, :teacher vous donne chaque jour une séance d\'anglais à l\'oral sur votre téléphone. Pour les élèves, il explique aussi les leçons d\'anglais de l\'école.',
+        'lead' => 'Que vous soyez à Cotonou, à Porto-Novo ou à Parakou, :teacher vous donne chaque jour une séance d\'anglais à l\'oral sur votre téléphone. Pour les élèves et les étudiants, il explique aussi les leçons d\'anglais de l\'école, de l\'université ou de la formation.',
         'photo' => 'parent-enfant-lecture',
         'sections' => [
             [
                 'icon' => 'book',
                 'title' => 'Aide aux devoirs d\'anglais pour les élèves',
-                'text' => 'Avec « Mes cours », l\'élève photographie sa leçon ou son exercice d\'anglais. :teacher la lit, l\'explique en français et le guide pour faire l\'exercice lui-même : il ne fait pas les devoirs à sa place. C\'est uniquement pour les cours d\'anglais, et c\'est compris dans le temps de la formule.',
+                'text' => 'Avec « Mes cours », l\'élève photographie sa leçon ou son exercice d\'anglais. :teacher la lit, l\'explique en français et le guide pour faire l\'exercice lui-même : il ne fait pas les devoirs à sa place. Les étudiants (lycée, université, formation) s\'en servent aussi pour leurs cours d\'anglais. C\'est uniquement pour les cours d\'anglais, et c\'est compris dans le temps de la formule.',
             ],
             [
                 'icon' => 'clock',

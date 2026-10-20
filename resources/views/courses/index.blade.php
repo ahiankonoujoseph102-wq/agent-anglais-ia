@@ -5,7 +5,7 @@
             <h1>Mes cours</h1>
         </div>
         <p class="muted">
-            Un complément facultatif : apportez une leçon d'anglais de votre école, et {{ config('avatar.model.name') }}
+            Un complément facultatif : apportez une leçon d'anglais de votre école, de votre université ou de votre formation, et {{ config('avatar.model.name') }}
             vous aide à la comprendre, répond à vos questions et vous guide sur ses exercices.
             Votre programme et votre séance orale du jour restent l'essentiel.
         </p>

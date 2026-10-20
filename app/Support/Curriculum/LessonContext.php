@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Le contexte de la séance du jour, inséré dans les consignes du professeur
- * (marqueur :context de config/teacher.php) : profil, unité et leçon du jour,
+ * (marqueur :context de config/teacher.php) : profil, objectif (et sa façon d'adapter la pratique), unité et leçon du jour,
  * séance précédente, erreurs à revoir.
  */
 class LessonContext
@@ -30,6 +30,11 @@ class LessonContext
         $lines[] = '- First name: '.$user->name;
         $lines[] = '- Level: '.$program->level->value.' ('.$program->level->label().')';
         $lines[] = '- Main goal: '.$program->goal->value.' ('.$program->goal->label().')';
+
+        if ($program->profile) {
+            $lines[] = '- Profile: '.$program->profile->value.' ('.$program->profile->label().')';
+        }
+
         $lines[] = '- Occupation / situation: '.$program->occupation;
 
         if ($program->interests) {
@@ -60,6 +65,11 @@ class LessonContext
 
         $lines[] = sprintf('- Conversation situation for today: "%s" — %s%s',
             $situation->title, $situation->description, $current->highlighted ? ' (chosen because it matches the learner\'s goal or job)' : '');
+
+        // Objectif particulier (config/teacher.php → goal_focus) : comment adapter la situation du jour.
+        if (filled($focus = config('teacher.goal_focus.'.$program->goal->value))) {
+            $lines[] = '- How to adapt today\'s practice to the learner\'s goal: '.trim((string) $focus);
+        }
 
         if ($current->attempts > 0) {
             $lines[] = '- This lesson was already started '.$current->attempts.' time(s) and must be finished: consolidate before moving on.';

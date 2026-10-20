@@ -5,8 +5,8 @@
 | Photos du site
 |--------------------------------------------------------------------------
 |
-| Vraies photos libres de droit (licence Unsplash : usage commercial permis,
-| sans obligation de citer ; auteurs et liens gardés ici et dans LICENCES-TIERS.md,
+| Vraies photos libres de droit (licences Unsplash et Pexels : usage commercial
+| permis, sans obligation de citer ; auteurs et liens gardés ici et dans LICENCES-TIERS.md,
 | à la racine du dépôt, sans aucune page visible sur le site).
 | Licence vérifiée sur la page de chaque photo le 17 octobre 2026.
 | Fichiers dans public/images/photos/ : {nom}-480.webp (téléphone) et
@@ -22,6 +22,14 @@
 */
 
 return [
+
+    // Pexels, licence gratuite vérifiée sur la page le 20 octobre 2026.
+    'etudiants-bibliotheque' => [
+        'alt' => 'Des étudiantes et des étudiants travaillent ensemble dans une bibliothèque universitaire',
+        'author' => 'Peter Chikubula',
+        'author_url' => 'https://www.pexels.com/@peter-chikubula-157991289/',
+        'source_url' => 'https://www.pexels.com/photo/people-on-the-table-reading-books-10744384/',
+    ],
 
     'eleve-ecouteurs' => [
         'alt' => 'Une élève souriante, avec un casque audio, regarde son téléphone',

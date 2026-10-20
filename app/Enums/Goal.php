@@ -13,6 +13,11 @@ enum Goal: string
     case Business = 'business';
     case Exam = 'exam';
     case Conversation = 'conversation';
+    case StudyAbroad = 'study_abroad';
+    case Interview = 'interview';
+    case Presentation = 'presentation';
+    case Clients = 'clients';
+    case Confidence = 'confidence';
 
     public function label(): string
     {
@@ -23,6 +28,11 @@ enum Goal: string
             self::Business => 'Les affaires',
             self::Exam => 'Un examen',
             self::Conversation => 'La conversation courante',
+            self::StudyAbroad => 'Étudier ou voyager à l\'étranger',
+            self::Interview => 'Préparer un entretien (bourse, admission, visa, stage, embauche)',
+            self::Presentation => 'Faire un exposé ou une soutenance en anglais',
+            self::Clients => 'Parler avec des clients ou partenaires',
+            self::Confidence => 'Avoir confiance et oser parler',
         };
     }
 
@@ -40,6 +50,11 @@ enum Goal: string
             self::Business => ['business', 'market'],
             self::Exam => ['exam', 'studies'],
             self::Conversation => ['conversation', 'family'],
+            self::StudyAbroad => ['studies', 'travel'],
+            self::Interview => ['exam', 'work'],
+            self::Presentation => ['studies', 'education'],
+            self::Clients => ['business', 'phone'],
+            self::Confidence => ['conversation', 'family'],
         };
     }
 }

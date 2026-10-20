@@ -25,8 +25,20 @@
                 @error('goal') <div class="error">{{ $message }}</div> @enderror
             </fieldset>
         @elseif ($step === 2)
+            <fieldset class="field">
+                <legend>Vous êtes… (facultatif)</legend>
+                <div class="days">
+                    @foreach ($profiles as $profile)
+                        <label class="checkbox option">
+                            <input type="radio" name="profile" value="{{ $profile->value }}" @checked(old('profile', $answers['profile'] ?? null) === $profile->value)>
+                            {{ $profile->label() }}
+                        </label>
+                    @endforeach
+                </div>
+                @error('profile') <div class="error">{{ $message }}</div> @enderror
+            </fieldset>
             <x-input name="occupation" label="Votre métier ou votre situation" :value="$answers['occupation'] ?? null"
-                     hint="Par exemple : commerçante au marché, étudiant en droit, infirmier, chauffeur, comptable…" required autofocus />
+                     hint="Par exemple : commerçante au marché, étudiant en droit, enseignante d'anglais, infirmier, chauffeur, comptable…" required />
             <x-input name="interests" label="Vos centres d'intérêt (facultatif)" :value="$answers['interests'] ?? null"
                      hint="Par exemple : football, musique, cuisine, informatique, religion, voyages." />
         @elseif ($step === 3)
