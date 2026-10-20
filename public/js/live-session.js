@@ -59,8 +59,32 @@ const ui = {
     micPanel: $('mic-panel'), micLevel: $('mic-level'), micChoice: $('mic-choice'), micSelect: $('mic-select'), micWarning: $('mic-warning'),
     waitNote: $('wait-note'), waitText: $('wait-text'), nudge: $('nudge'),
     interrupt: $('interrupt'), pause: $('pause'), mute: $('mute'), pauseNote: $('pause-note'),
+    stageNotes: $('stage-notes'), subtitlesHome: $('subtitles-home'),
 };
 const teacherName = root.dataset.teacherName || 'Le professeur';
+
+/**
+ * Étape de l'écran (attribut data-phase, lu par le CSS) : intro (avant « Commencer »), connecting
+ * (« Teacher Joe arrive… », conseils visibles), live, done.
+ */
+function setPhase(phase) {
+    root.dataset.phase = phase;
+}
+
+// Ordinateur (900 pixels de large et plus, hors téléphone couché) : la transcription passe sous Teacher Joe ; téléphone : à sa place d'origine.
+const wideScreen = window.matchMedia?.('(min-width: 900px) and (min-height: 561px)');
+
+function placeSubtitles() {
+    const target = wideScreen?.matches && ui.stageNotes ? ui.stageNotes : ui.subtitlesHome;
+
+    if (target && ui.subtitles.parentElement !== target) {
+        target.append(ui.subtitles);
+        ui.subtitles.scrollTop = ui.subtitles.scrollHeight;
+    }
+}
+
+placeSubtitles();
+wideScreen?.addEventListener?.('change', placeSubtitles);
 
 // Professeur 3D, chargé en arrière-plan ; le visage SVG reste affiché en attendant.
 let teacher = null;
@@ -1185,6 +1209,7 @@ function connectionFailed(message) {
     if (!state.everReady) {
         setStatus('Indisponible');
         showError(message);
+        setPhase('intro');
         ui.intro.hidden = false;
         ui.subtitles.hidden = true;
         ui.start.disabled = false;
@@ -1225,6 +1250,9 @@ function handlersFor(transport, { planned, isResume }) {
 
             setStatus('En conversation');
             showError('');
+            setPhase('live');
+            ui.intro.hidden = true;
+            ui.subtitles.hidden = false;
             ui.resume.hidden = true;
             ui.stop.hidden = false;
             ui.controls.hidden = false;
@@ -1673,8 +1701,8 @@ async function start() {
         return;
     }
 
-    ui.intro.hidden = true;
-    ui.subtitles.hidden = false;
+    // Connexion : la carte d'accueil reste, avec « Teacher Joe arrive… » et les conseils, jusqu'à la première réponse.
+    setPhase('connecting');
 
     try {
         state.wakeLock = await navigator.wakeLock?.request('screen');
@@ -1882,6 +1910,7 @@ async function finish(reason, message = '') {
     state.audio = null;
     state.wakeLock?.release?.();
 
+    setPhase('done');
     ui.stop.hidden = true;
     ui.resume.hidden = true;
     ui.intro.hidden = true;

@@ -32,6 +32,7 @@
              data-teacher3d='@json(\App\Support\Avatar::clientConfig())'
          @endif
          data-teacher="svg"
+         data-phase="intro"
          data-teacher-name="{{ config('avatar.model.name') }}">
 
         <div class="live-head">
@@ -63,6 +64,12 @@
                 </div>
             </div>
             <button type="button" id="teacher3d-toggle" class="btn btn-link teacher3d-toggle" hidden></button>
+
+            {{-- Ordinateur (900 pixels et plus) : sous Teacher Joe, les conseils avant le début, puis la transcription
+                 (live-session.js y déplace #subtitles). Caché sur téléphone et en paysage : rien n'y change. --}}
+            <div id="stage-notes" class="live-stage-notes">
+                <ul class="intro-tips stage-tips">@include('live.tips')</ul>
+            </div>
         </div>
 
         {{-- Colonne des commandes. Avant le début : « Commencer » tout de suite sous le professeur. --}}
@@ -72,12 +79,9 @@
             <div id="intro" class="card">
                 <p class="intro-text">{{ $intro }}</p>
                 <button type="button" id="start" class="btn btn-accent btn-block btn-lg"><x-icon name="play" /> Commencer</button>
-                <ul class="intro-tips">
-                    <li><x-icon name="pin" /> Installez-vous dans un endroit calme.</li>
-                    <li><x-icon name="headphones" /> Avec des écouteurs, le professeur vous entendra mieux.</li>
-                    <li><x-icon name="bubble" /> Quand {{ config('avatar.model.name') }} parle, votre micro est coupé : attendez « À vous de parler » pour répondre.</li>
-                    <li><x-icon name="mic" /> Votre navigateur va vous demander l'accès au micro : acceptez-le.</li>
-                </ul>
+                {{-- Pendant la connexion : « Teacher Joe arrive… », indicateur discret, conseils toujours visibles. --}}
+                <p id="arriving" class="live-arriving" role="status"><span class="live-arriving-dots" aria-hidden="true"><span></span><span></span><span></span></span> {{ config('avatar.model.name') }} arrive…</p>
+                <ul class="intro-tips">@include('live.tips')</ul>
             </div>
 
             <div class="live-bar">
@@ -141,7 +145,7 @@
             </div>
 
 
-            <div id="subtitles" class="subtitles" aria-live="polite" hidden></div>
+            <div id="subtitles-home"><div id="subtitles" class="subtitles" aria-live="polite" hidden></div></div>
 
             <div id="outcome" class="card" hidden></div>
 

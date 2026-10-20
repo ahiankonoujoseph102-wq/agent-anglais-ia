@@ -1126,3 +1126,32 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .plans-fold > summary { list-style: none; }
 .plans-fold > summary::-webkit-details-marker { display: none; }
 @media (min-width: 640px) { .plans-fold > summary.btn-block { width: auto; } }
+
+/* Séance et évaluation : pendant la connexion, « Teacher Joe arrive… » (indicateur discret), conseils visibles. */
+.live-arriving { display: none; align-items: center; gap: var(--space-3); margin: 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius); background: var(--c-primary-soft); color: var(--c-primary-strong); font-weight: var(--fw-bold); }
+.live[data-phase="connecting"] .live-arriving { display: flex; }
+.live[data-phase="connecting"] .intro-text, .live[data-phase="connecting"] #start { display: none; }
+.live-arriving-dots { display: inline-flex; gap: 4px; flex: none; }
+.live-arriving-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--c-primary); opacity: .35; animation: arriving 1.2s ease-in-out infinite; }
+.live-arriving-dots span:nth-child(2) { animation-delay: .2s; }
+.live-arriving-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes arriving { 0%, 100% { opacity: .35; transform: none; } 50% { opacity: 1; transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) { .live-arriving-dots span { animation: none; opacity: .7; } }
+
+/* Ordinateur : sous Teacher Joe, les conseils avant le début puis la transcription ; cadre limité en hauteur
+   pour que le professeur et le texte tiennent dans l'écran. Téléphone et paysage : rien ne change. */
+.live-stage-notes { display: none; }
+@media (min-width: 900px) and (min-height: 561px) {
+    .live { --stage-height: clamp(220px, calc(100vh - 420px), 440px); }
+    .live-stage-notes { display: block; }
+    .live-panel .intro-tips { display: none; }
+    .live:not([data-phase="intro"]):not([data-phase="connecting"]) .stage-tips { display: none; }
+    .stage-tips { margin: 0; padding: var(--space-3) var(--space-4); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-lg); }
+    .live-stage-notes .subtitles, .live[data-teacher="3d"] .live-stage-notes .subtitles { height: auto; min-height: 120px; max-height: max(120px, calc(100vh - var(--stage-height) - 150px)); margin: 0; }
+}
+@supports (height: 1dvh) {
+    @media (min-width: 900px) and (min-height: 561px) {
+        .live { --stage-height: clamp(220px, calc(100dvh - 420px), 440px); }
+        .live-stage-notes .subtitles, .live[data-teacher="3d"] .live-stage-notes .subtitles { max-height: max(120px, calc(100dvh - var(--stage-height) - 150px)); }
+    }
+}
