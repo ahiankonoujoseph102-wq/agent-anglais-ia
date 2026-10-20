@@ -1273,3 +1273,12 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 
 /* Page de résultat : « Voici votre première leçon » (tableau de l'unité 1, leçon 1, au-dessus des formules). */
 .first-lesson .board-preview { max-width: 560px; margin-top: var(--space-4); justify-self: start; }
+
+/* « Mes cours » : partie d'un PDF à travailler (pages côte à côte, sommaire, parties déjà travaillées). */
+.course-part-pages { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.course-part-form { margin-top: var(--space-4); }
+.course-outline { list-style: none; padding: 0; margin: var(--space-2) 0 0; display: grid; gap: var(--space-1); max-height: 320px; overflow-y: auto; }
+.course-outline strong { margin-right: var(--space-2); color: var(--c-primary); }
+.course-parts { list-style: none; padding: 0; margin: var(--space-2) 0 0; display: grid; gap: var(--space-2); }
+.course-parts li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.course-parts form { margin: 0; flex: none; }

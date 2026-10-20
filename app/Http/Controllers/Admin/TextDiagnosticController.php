@@ -10,6 +10,7 @@ use App\Support\Text\TextProvider;
 use App\Support\Text\TextProviders;
 use App\Support\Text\TextRequest;
 use App\Support\Text\TextResult;
+use App\Support\UploadLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -29,6 +30,7 @@ class TextDiagnosticController extends Controller
             'failures' => TextLog::recent(),
             'liveOrder' => LiveProviders::configured(),
             'liveFailures' => LiveLog::recent(),
+            'uploadLimits' => UploadLimits::report(),
         ]);
     }
 

@@ -71,8 +71,9 @@ class CourseUploadTest extends TestCase
             ->assertSee('Ajouter un PDF')
             ->assertSee('capture="environment"', false)
             ->assertSee('Envoyer ma leçon')
-            ->assertSeeText('Jusqu\'à 4 photos')
-            ->assertSeeText('10 mégaoctets et 10 pages au plus');
+            ->assertSeeText('Ajoutez jusqu\'à 4 photos de votre cahier ou de votre livre')
+            ->assertSeeText('votre cours en PDF (jusqu\'à 50 pages et 20 mégaoctets)')
+            ->assertSeeText('10 pages au plus à la fois');
     }
 
     public function test_photos_are_read_then_stored_on_the_private_disk(): void
@@ -155,25 +156,25 @@ class CourseUploadTest extends TestCase
         $this->assertSame(10, CourseLesson::sole()->page_count);
     }
 
-    public function test_a_pdf_with_more_than_ten_pages_is_refused_clearly(): void
+    public function test_a_pdf_with_more_than_fifty_pages_is_refused_clearly(): void
     {
         $this->fakeGemini();
 
-        $this->send($this->learner(), ['pdf' => $this->pdfFile(11, objectStream: true)])
-            ->assertSessionHasErrors(['pdf' => 'Ce PDF a 11 pages : 10 pages au plus. Envoyez seulement la partie de la leçon dont vous avez besoin.']);
+        $this->send($this->learner(), ['pdf' => $this->pdfFile(51, objectStream: true)])
+            ->assertSessionHasErrors(['pdf' => 'Votre PDF a 51 pages : 50 pages au plus. Envoyez seulement les pages utiles.']);
 
-        $this->send($this->learner(), ['pdf' => $this->pdfFile(12)])->assertSessionHasErrors('pdf');
+        $this->send($this->learner(), ['pdf' => $this->pdfFile(52)])->assertSessionHasErrors('pdf');
         Http::assertNothingSent();
         $this->assertSame(0, CourseLesson::count());
     }
 
-    public function test_a_pdf_heavier_than_ten_megabytes_is_refused(): void
+    public function test_a_pdf_heavier_than_twenty_megabytes_is_refused(): void
     {
         $this->fakeGemini();
-        $big = UploadedFile::fake()->createWithContent('gros.pdf', $this->pdfBytes(1).str_repeat('0', 10 * 1024 * 1024 + 10));
+        $big = UploadedFile::fake()->createWithContent('gros.pdf', $this->pdfBytes(1).str_repeat('0', 20 * 1024 * 1024 + 10));
 
         $this->send($this->learner(), ['pdf' => $big])
-            ->assertSessionHasErrors(['pdf' => 'Ce PDF est trop lourd : 10 mégaoctets au plus.']);
+            ->assertSessionHasErrors(['pdf' => 'Votre fichier dépasse 20 mégaoctets : envoyez seulement les pages utiles.']);
         Http::assertNothingSent();
     }
 

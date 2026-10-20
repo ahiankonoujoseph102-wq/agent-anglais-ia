@@ -104,6 +104,26 @@
         @endif
     </section>
 
+    {{-- « Mes cours » : le site accepte-t-il un PDF de 20 mégaoctets et une lecture d'une minute ? Valeurs de PHP pour
+         le site, puis deux essais réels (public/js/upload-check.js, Admin\UploadCheckController). --}}
+    <section class="card" id="envoi" aria-labelledby="envoi-title" data-upload-check
+             data-size-url="{{ route('admin.upload-check.size') }}" data-wait-url="{{ route('admin.upload-check.wait') }}"
+             data-bytes="{{ (int) config('platform.courses.pdf_max_kilobytes') * 1024 }}">
+        <h2 id="envoi-title">Limites d'envoi (« Mes cours »)</h2>
+        <p class="muted">Un PDF peut peser {{ \App\Support\UploadLimits::label((int) config('platform.courses.pdf_max_kilobytes') * 1024) }} et sa lecture durer jusqu'à {{ \App\Support\UploadLimits::readingSeconds() }} secondes. Si une limite bloque, l'élève voit un message clair (« Votre fichier est trop lourd pour être envoyé… »), jamais une page d'erreur.</p>
+        <ul class="check-list">
+            <li><x-icon :name="$uploadLimits['file']['ok'] ? 'check' : 'alert'" /> Taille d'un fichier : {{ \App\Support\UploadLimits::label($uploadLimits['file']['value']) }} ({{ $uploadLimits['file']['ok'] ? 'suffisant' : 'il faut au moins '.\App\Support\UploadLimits::label($uploadLimits['file']['needed']) }})</li>
+            <li><x-icon :name="$uploadLimits['post']['ok'] ? 'check' : 'alert'" /> Taille d'un envoi : {{ \App\Support\UploadLimits::label($uploadLimits['post']['value']) }} ({{ $uploadLimits['post']['ok'] ? 'suffisant' : 'il faut au moins '.\App\Support\UploadLimits::label($uploadLimits['post']['needed']) }})</li>
+            <li><x-icon :name="$uploadLimits['time']['ok'] ? 'check' : 'alert'" /> Durée d'une page : {{ $uploadLimits['time']['value'] === 0 ? 'aucune limite' : $uploadLimits['time']['value'].' secondes' }} ({{ $uploadLimits['time']['ok'] ? 'suffisant' : 'il faut au moins '.$uploadLimits['time']['needed'].' secondes' }})</li>
+        </ul>
+        <div class="actions actions-row">
+            <button type="button" class="btn" data-upload-check-size><x-icon name="file-text" /> Essayer un envoi de {{ \App\Support\UploadLimits::label((int) config('platform.courses.pdf_max_kilobytes') * 1024) }}</button>
+            <button type="button" class="btn btn-light" data-upload-check-wait><x-icon name="clock" /> Essayer une attente de {{ (int) config('platform.courses.check_wait_seconds') }} secondes</button>
+        </div>
+        <p class="hint" data-upload-check-result role="status" hidden></p>
+        <p class="muted small">Les essais passent par le vrai chemin du site (proxy compris). Rien n'est gardé, aucun fournisseur n'est appelé.</p>
+    </section>
+
     <section class="card">
         <h2>Dernières erreurs de l'analyse de texte et d'images</h2>
         @if ($failures === [])
@@ -137,4 +157,5 @@
             </table>
         @endif
     </section>
+    <script type="module" src="{{ \App\Support\Asset::url('js/upload-check.js') }}"></script>
 </x-layout>
