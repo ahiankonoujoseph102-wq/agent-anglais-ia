@@ -17,6 +17,7 @@ final class TextRequest
         'program' => 'Présentation du programme',
         'encouragement' => 'Message aux apprenants inactifs',
         'board' => 'Tableaux des séances',
+        'review' => 'Documents de révision (Mes cours)',
         'diagnostic' => 'Essai du diagnostic',
     ];
 

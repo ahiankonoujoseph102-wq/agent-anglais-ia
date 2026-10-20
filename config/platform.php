@@ -194,6 +194,24 @@ return [
         'directory' => 'courses',
         // Texte de la leçon transmis à Teacher Joe, en caractères au plus.
         'text_limit' => 12000,
+        // Document personnel de révision après une séance (App\Support\CourseReviews) : préparé par la tâche
+        // du planificateur « courses:prepare-reviews » (chaque minute, jamais deux fois en même temps), au plus
+        // batch séances par passage, delay_seconds après la fin de la séance (le texte de la séance a le temps
+        // d'arriver). Séance trop courte (min_seconds, min_learner_words mots dits par l'élève) : pas de document.
+        // Échec : nouvel essai après retry_minutes, max_attempts essais au plus, puis « Réessayer » (retries_per_hour).
+        'review' => [
+            'delay_seconds' => 120,
+            'batch' => 3,
+            'lookback_days' => 7,
+            'min_seconds' => 120,
+            'min_learner_words' => 15,
+            'max_attempts' => 3,
+            'retry_minutes' => 10,
+            'retries_per_hour' => 3,
+            'timeout_seconds' => 45,
+            'transcript_limit' => 12000,
+            'directory' => 'course-reviews',
+        ],
     ],
 
     /*

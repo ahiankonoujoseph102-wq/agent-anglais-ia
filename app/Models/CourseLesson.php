@@ -50,6 +50,16 @@ class CourseLesson extends Model
     }
 
     /**
+     * Documents de révision des séances de cette leçon.
+     *
+     * @return HasMany<CourseReview, $this>
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(CourseReview::class);
+    }
+
+    /**
      * @return HasMany<CourseSession, $this>
      */
     public function sessions(): HasMany
@@ -116,6 +126,11 @@ class CourseLesson extends Model
             $disk->delete($page->path);
         }
 
+        // Documents de révision des séances de cette leçon : le PDF d'abord, la ligne part avec la leçon.
+        foreach ($this->reviews()->whereNotNull('path')->pluck('path') as $path) {
+            $disk->delete($path);
+        }
+
         DB::transaction(fn () => $this->delete());
     }
 
@@ -125,7 +140,14 @@ class CourseLesson extends Model
      */
     public function promptContext(): string
     {
-        $part = $this->currentPart;
+        return $this->contextFor($this->currentPart);
+    }
+
+    /**
+     * Même contenu pour une partie donnée (document de révision : la partie travaillée pendant la séance).
+     */
+    public function contextFor(?CoursePart $part): string
+    {
         // Long PDF : le contenu lu de la partie choisie ; sinon la leçon entière (avec la partie à travailler en premier).
         $content = $part?->content ?? $this->content;
         $lines = [
