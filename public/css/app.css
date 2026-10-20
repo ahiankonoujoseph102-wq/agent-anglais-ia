@@ -269,9 +269,13 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 .steps li:not(:last-child)::after { content: ""; position: absolute; left: 19px; top: 44px; bottom: calc(-1 * var(--space-4) + 4px); width: 2px; background: var(--c-primary-line); }
 .steps strong { font-weight: var(--fw-heavy); }
 
-.levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); list-style: none; padding: 0; margin: 0; }
-.levels li { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius); padding: var(--space-3) var(--space-1); text-align: center; }
-.levels strong { display: block; font-size: var(--fs-xl); color: var(--c-primary); }
+/* Niveaux A1 → C2 : échelle reliée par un trait, noms dessous ; deux lignes de trois sur téléphone, une ligne de six ensuite. */
+.levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5) 0; list-style: none; padding: 0; margin: 0; }
+.levels li { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: 0 var(--space-1); text-align: center; }
+.levels li::before { content: ""; position: absolute; top: 24px; left: 0; right: 0; height: 3px; margin-top: -1px; background: var(--c-primary-line); }
+.levels li:nth-child(3n + 1)::before { left: 50%; }
+.levels li:nth-child(3n)::before { right: 50%; }
+.levels .level-dot { position: relative; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--c-surface); color: var(--c-primary); font-size: var(--fs-lg); font-weight: var(--fw-heavy); box-shadow: 0 0 0 3px var(--c-accent); }
 .levels span { font-size: var(--fs-xs); color: var(--c-muted); hyphens: auto; overflow-wrap: break-word; }
 
 .plans { display: grid; gap: var(--space-4); }
@@ -318,8 +322,10 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 /* Fonds animés : formes douces aux couleurs de la marque, en CSS seulement. Seuls transform et
    opacity bougent (aucun recalcul de mise en page) ; coupés si l'appareil demande moins d'animations. */
 .hero::before, .hero::after, .students::before, .cta-band::before { content: ""; position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; will-change: transform; }
-.hero::before { width: 420px; height: 420px; top: -140px; right: -160px; background: radial-gradient(circle at 35% 35%, var(--c-accent-soft), transparent 68%); animation: drift 22s ease-in-out infinite alternate; }
-.hero::after { width: 360px; height: 360px; bottom: -120px; left: -180px; background: radial-gradient(circle at 60% 40%, var(--c-primary-soft), transparent 70%); animation: drift 26s ease-in-out -8s infinite alternate-reverse; }
+.hero::before { width: 420px; height: 420px; top: -140px; right: -160px; background: radial-gradient(circle at 35% 35%, var(--c-accent-soft), transparent 68%); }
+.hero::after { width: 360px; height: 360px; bottom: -120px; left: -180px; background: radial-gradient(circle at 60% 40%, var(--c-primary-soft), transparent 70%); }
+/* Troisième forme floue de l'accueil (téléphone : immobile ; ordinateur : lente, voir plus bas). */
+.hero-blob { position: absolute; z-index: -1; width: 300px; height: 300px; top: 34%; left: 38%; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, var(--c-accent-soft), transparent 70%); opacity: .7; }
 .students { isolation: isolate; }
 .students::before { width: 320px; height: 320px; right: -120px; bottom: -140px; background: radial-gradient(circle, var(--c-accent-soft), transparent 70%); animation: drift 24s ease-in-out infinite alternate; }
 .cta-band::before { z-index: 0; width: 260px; height: 260px; left: -90px; bottom: -110px; background: radial-gradient(circle, var(--c-on-dark-glow), transparent 70%); animation: drift 20s ease-in-out infinite alternate; }
@@ -338,7 +344,6 @@ main { overflow-x: clip; }
 .how li { position: relative; margin: 0; }
 .how-head { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
 .how-num { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--ib-strong-bg); color: var(--ib-strong-fg); box-shadow: var(--ib-strong-ring); font-size: var(--fs-2xl); font-weight: var(--fw-heavy); line-height: 1; flex: none; }
-.how-head::after { content: ""; flex: 1; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--c-accent-line), transparent); }
 .how h3 { margin-bottom: var(--space-1); }
 .how p { margin: 0; color: var(--c-muted); }
 .features + .levels { margin-top: var(--space-6); }
@@ -730,7 +735,7 @@ main { overflow-x: clip; }
 /* ---------- Apparition des blocs (seulement si JavaScript est actif) ---------- */
 
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
-.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease); transition-delay: calc(var(--i, 0) * 70ms); }
+.js .reveal { opacity: 0; transform: translateY(10px); transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); transition-delay: calc(var(--i, 0) * 50ms); }
 .js .reveal.is-visible { opacity: 1; transform: none; }
 .rise { animation: rise var(--dur-slow) var(--ease) both; animation-delay: calc(var(--i, 0) * 80ms); }
 
@@ -748,7 +753,10 @@ main { overflow-x: clip; }
     .plans { grid-template-columns: repeat(3, 1fr); }
     .stats { grid-template-columns: repeat(3, 1fr); }
     .features { grid-template-columns: repeat(2, 1fr); gap: var(--space-5); }
-    .levels { grid-template-columns: repeat(6, 1fr); }
+    .levels { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .levels li:nth-child(n)::before { left: 0; right: 0; }
+    .levels li:first-child::before { left: 50%; }
+    .levels li:last-child::before { right: 50%; }
     .choices { grid-template-columns: repeat(3, 1fr); }
     .days { grid-template-columns: repeat(4, 1fr); }
     .footer-grid { grid-template-columns: 1.3fr 1fr 1fr; }
@@ -794,7 +802,7 @@ main { overflow-x: clip; }
 /* ---------- Réduire les animations (réglage du téléphone) ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-    .hero::before, .hero::after, .students::before, .cta-band::before, .cta-band::after, .result-hero::before { animation: none !important; }
+    .hero::before, .hero::after, .hero-blob, .hero-bubble, .students::before, .cta-band::before, .cta-band::after, .result-hero::before { animation: none !important; }
     *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
     .js .reveal { opacity: 1; transform: none; }
     .face-eyes { animation: none; }
@@ -1011,3 +1019,78 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
    deux colonnes qui ne dépassent jamais la carte ensuite. */
 .profiles { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 var(--space-2); }
 @media (min-width: 400px) { .profiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---------- Accueil : finition ----------
+   Sections alternées sur toute la largeur (.band : blanc ; .band-soft : bleu très clair ; .band-dark : bleu nuit,
+   une seule section). Fond peint par une ombre portée et coupé en hauteur : aucun changement de structure.
+   Une .band passe au-dessus des formes floues du haut de page (elles ne voilent plus « Quatre étapes simples »). */
+.band { --band: var(--c-surface); position: relative; background: var(--band); box-shadow: 0 0 0 100vmax var(--band); clip-path: inset(0 -100vmax); }
+.band-soft { --band: var(--c-primary-soft); }
+.band-dark { --band: var(--c-primary); color: var(--c-on-dark); }
+.band-dark .section-head h2 { color: var(--c-on-dark); }
+.band-dark .section-head .eyebrow { color: var(--c-accent); }
+.band-dark .section-head .muted, .band-dark > .muted { color: var(--c-on-dark-muted); }
+.band-dark .card { color: var(--c-text); }
+.band-dark .levels li::before { background: var(--c-on-dark-line); background: rgba(255, 255, 255, .35); }
+.band-dark .levels span { color: var(--c-on-dark-muted); }
+.band-dark .photo-frame { box-shadow: none; }
+
+/* Étapes : sur ordinateur, une ligne relie les quatre numéros posés sur le haut des cartes. */
+@media (min-width: 900px) {
+    .how { position: relative; padding-top: 26px; }
+    .how::before { content: ""; position: absolute; z-index: 1; top: 25px; height: 3px; left: calc((100% - 3 * var(--space-4)) / 8); right: calc((100% - 3 * var(--space-4)) / 8); border-radius: 2px; background: var(--c-accent); }
+    .how li { padding-top: calc(26px + var(--space-4)); }
+    .how .how-num { position: absolute; z-index: 2; top: -26px; left: 50%; transform: translateX(-50%); box-shadow: var(--ib-strong-ring), 0 0 0 5px var(--band, var(--c-surface)); }
+}
+
+/* « Ce qui rend … différent » : la photo prend la hauteur du texte (moins haute qu'avant). */
+.section-split .photo-frame { aspect-ratio: 16 / 9; }
+.section-split .photo-frame picture, .section-split .photo-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (min-width: 640px) {
+    .section-split { align-items: stretch; }
+    .section-split .section-head { align-self: center; }
+    .section-split .photo-frame { aspect-ratio: auto; contain: size; min-height: 180px; }
+}
+
+/* Moyens de paiement sous les formules, groupés par pays. */
+.pay-methods { margin-top: var(--space-6); }
+.pay-methods > p { margin: 0 0 var(--space-3); }
+.pay-countries { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-3); }
+.pay-countries li { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); align-items: baseline; gap: var(--space-2); }
+.pay-country { font-weight: var(--fw-bold); color: var(--c-heading); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { display: inline-block; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--c-primary-soft); border: 1px solid var(--c-primary-line); color: var(--c-primary); font-size: var(--fs-xs); font-weight: var(--fw-bold); white-space: nowrap; }
+@media (min-width: 900px) { .pay-countries { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Cartes Étudiants, Élèves, Parents, « Vous travaillez ? » : boutons alignés en bas, note discrète. */
+.audience .help-only { font-size: var(--fs-xs); font-weight: var(--fw-normal); color: var(--c-muted); align-items: flex-start; }
+.audience .help-only .icon { width: 16px; height: 16px; margin-top: 2px; color: var(--c-muted); }
+@media (min-width: 720px) {
+    .students.audience { grid-template-rows: auto 1fr; align-items: stretch; align-content: stretch; }
+    .audience-body { height: auto; }
+}
+
+/* Questions fréquentes : centrées, environ 760 pixels de large. */
+.faq-section .section-head { margin-inline: auto; text-align: center; }
+.faq-section .faq { margin-inline: auto; max-width: 760px; }
+
+/* Haut de l'accueil : bulles près de Teacher Joe (deux, immobiles, sur téléphone), troisième bulle et
+   animations lentes sur ordinateur seulement ; tout est coupé par « réduire les animations ». */
+.hero-bubble.third { display: none; }
+@media (min-width: 900px) {
+    .hero-media { max-width: 460px; }
+    .hero::before { animation: drift 22s ease-in-out infinite alternate; }
+    .hero::after { animation: drift 26s ease-in-out -8s infinite alternate-reverse; }
+    .hero-blob { animation: drift 30s ease-in-out -4s infinite alternate; }
+    .hero-bubble { animation: bob 6s ease-in-out infinite; }
+    .hero-bubble.right { animation-delay: -2s; }
+    .hero-bubble.third { display: block; left: auto; right: -18px; bottom: 34%; border-radius: var(--radius) var(--radius) 4px var(--radius); color: var(--c-accent-strong); animation-delay: -4s; }
+}
+@media (min-width: 1200px) {
+    .hero { grid-template-columns: 1fr 1fr; }
+    .hero-media { max-width: 520px; }
+}
+@keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}

@@ -15,22 +15,12 @@ class HomeController extends Controller
     {
         // Pays et opérateurs réellement proposés (numéro par défaut ou saisi dans les Réglages).
         $countries = PaymentCountry::available();
-        $operators = [];
-
-        foreach ($countries as $country) {
-            foreach ($country->operators as $operator) {
-                $operators[] = $operator->name;
-            }
-        }
-
         $whatsapp = SiteSettings::whatsapp();
 
         return view('home', [
             'plans' => Plan::all(),
             'countryPages' => CountryPage::all(),
-            'operators' => array_values(array_unique($operators)),
-            'countries' => array_map(fn (PaymentCountry $country) => $country->name, array_values($countries)),
-            // Opérateurs pays par pays (question fréquente sur le paiement).
+            // Opérateurs pays par pays (étiquettes sous les formules, question fréquente sur le paiement).
             'paymentCountries' => array_map(fn (PaymentCountry $country) => [
                 'name' => $country->name,
                 'operators' => array_map(fn ($operator) => $operator->name, array_values($country->operators)),
