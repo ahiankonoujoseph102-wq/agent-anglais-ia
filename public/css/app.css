@@ -237,7 +237,7 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 .hero h1 .accent { color: var(--c-accent-strong); }
 .hero-teacher { display: flex; align-items: center; gap: var(--space-3); margin: 0 0 var(--space-3); font-size: var(--fs-sm); color: var(--c-muted); }
 .hero-teacher-face { flex: none; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; background: var(--c-bg-warm); box-shadow: 0 0 0 3px var(--c-surface), 0 0 0 5px var(--c-accent); }
-.hero-teacher-face img { display: block; width: 100%; height: 100%; transform: scale(2.1) translate(1%, 14%); }
+.hero-teacher-face img { display: block; width: 100%; height: 100%; transform: scale(2.6) translate(0, 20%); }
 .hero-teacher strong { display: block; color: var(--c-heading); font-size: var(--fs-md); }
 .hero-eyebrow { display: none; }
 .hero .lead { margin-bottom: var(--space-3); }
