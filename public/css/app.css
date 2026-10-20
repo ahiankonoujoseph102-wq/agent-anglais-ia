@@ -1002,3 +1002,12 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
     .audience-body { display: flex; flex-direction: column; height: 100%; }
     .audience-body .btn { margin-top: auto; align-self: flex-start; }
 }
+
+/* « Mon espace » : bouton « Modifier mes objectifs », sous les chiffres. */
+.edit-goals { margin: var(--space-4) 0 0; }
+@media (min-width: 640px) { .edit-goals .btn-block { width: auto; } }
+
+/* Questionnaire, « Vous êtes… » : libellés longs (« En recherche d'emploi ») : une colonne sur petit téléphone,
+   deux colonnes qui ne dépassent jamais la carte ensuite. */
+.profiles { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 var(--space-2); }
+@media (min-width: 400px) { .profiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

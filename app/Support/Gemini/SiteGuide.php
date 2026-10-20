@@ -30,6 +30,7 @@ class SiteGuide
             // « Mes cours » et temps du jour : lus dans config/platform.php (courses, daily_time).
             ':course_minutes' => Duration::format((int) config('platform.courses.max_session_minutes') * 60),
             ':min_start' => Duration::format(DailyTime::minStartSeconds()),
+            ':answer_edits' => (string) config('program.answer_edits_per_day'),
             ':course_photos' => (string) (int) config('platform.courses.max_photos'),
             ':course_pdf' => (int) (config('platform.courses.pdf_max_kilobytes') / 1024).' mégaoctets et '.(int) config('platform.courses.pdf_max_pages').' pages au plus',
             ':plans' => self::plans(),

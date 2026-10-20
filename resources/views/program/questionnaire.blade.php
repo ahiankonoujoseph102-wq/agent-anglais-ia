@@ -1,16 +1,31 @@
-<x-layout title="Mon programme personnel" narrow>
+@php
+    // « Modifier mes objectifs » (ProgramAnswersController) : même questionnaire, pré-rempli, autres adresses.
+    $editing ??= null;
+    $action = $editing ? route('program.answers.update', [$editing, $step]) : route('program.questionnaire.store', $step);
+    $previous = $editing ? route('program.answers.edit', [$editing, $step - 1]) : route('program.questionnaire', $step - 1);
+@endphp
+
+<x-layout :title="$editing ? 'Modifier mes objectifs' : 'Mon programme personnel'" narrow>
     <x-stepper :labels="['Objectif', 'Métier', 'Jours', 'Difficultés']" :current="$step" label="Étapes du questionnaire" />
 
     <div class="step-panel">
     <div class="page-head">
-        <h1>Construisons votre programme</h1>
-        <p class="muted">
-            Niveau {{ $level->value }} ({{ $level->label() }}) — question {{ $step }} sur {{ $steps }}.
-            Vos réponses servent à choisir les situations et le rythme de vos séances.
-        </p>
+        @if ($editing)
+            <h1>Modifier mes objectifs</h1>
+            <p class="muted">
+                Niveau {{ $level->value }} ({{ $level->label() }}) — question {{ $step }} sur {{ $steps }}.
+                Vos réponses actuelles sont déjà cochées : changez ce que vous voulez. Votre progression est gardée ; seules les leçons à venir s'adaptent.
+            </p>
+        @else
+            <h1>Construisons votre programme</h1>
+            <p class="muted">
+                Niveau {{ $level->value }} ({{ $level->label() }}) — question {{ $step }} sur {{ $steps }}.
+                Vos réponses servent à choisir les situations et le rythme de vos séances.
+            </p>
+        @endif
     </div>
 
-    <form method="POST" action="{{ route('program.questionnaire.store', $step) }}" class="card form-card" novalidate>
+    <form method="POST" action="{{ $action }}" class="card form-card" novalidate>
         @csrf
 
         @if ($step === 1)
@@ -27,7 +42,7 @@
         @elseif ($step === 2)
             <fieldset class="field">
                 <legend>Vous êtes… (facultatif)</legend>
-                <div class="days">
+                <div class="profiles">
                     @foreach ($profiles as $profile)
                         <label class="checkbox option">
                             <input type="radio" name="profile" value="{{ $profile->value }}" @checked(old('profile', $answers['profile'] ?? null) === $profile->value)>
@@ -70,11 +85,14 @@
             </fieldset>
         @endif
 
-        <button type="submit" class="btn btn-block btn-lg">{{ $step < $steps ? 'Continuer' : 'Construire mon programme' }} <x-icon name="arrow-right" /></button>
+        <button type="submit" class="btn btn-block btn-lg">{{ $step < $steps ? 'Continuer' : ($editing ? 'Enregistrer mes objectifs' : 'Construire mon programme') }} <x-icon name="arrow-right" /></button>
     </form>
 
     @if ($step > 1)
-        <p><a class="back-link" href="{{ route('program.questionnaire', $step - 1) }}"><x-icon name="arrow-left" /> Question précédente</a></p>
+        <p><a class="back-link" href="{{ $previous }}"><x-icon name="arrow-left" /> Question précédente</a></p>
+    @endif
+    @if ($editing)
+        <p><a class="back-link" href="{{ route('program.show') }}"><x-icon name="arrow-left" /> Retour à mon programme, sans rien changer</a></p>
     @endif
     </div>
 </x-layout>

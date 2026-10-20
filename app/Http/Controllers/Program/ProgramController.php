@@ -25,6 +25,8 @@ class ProgramController extends Controller
 
     private const SESSION_KEY = 'program_questionnaire';
 
+    public const DAYS = [1 => 'Lundi', 2 => 'Mardi', 3 => 'Mercredi', 4 => 'Jeudi', 5 => 'Vendredi', 6 => 'Samedi', 7 => 'Dimanche'];
+
     public function show(Request $request): View|RedirectResponse
     {
         $program = $request->user()->activeProgram;
@@ -84,7 +86,7 @@ class ProgramController extends Controller
             'goals' => Goal::cases(),
             'profiles' => Profile::cases(),
             'difficulties' => Difficulty::cases(),
-            'days' => [1 => 'Lundi', 2 => 'Mardi', 3 => 'Mercredi', 4 => 'Jeudi', 5 => 'Vendredi', 6 => 'Samedi', 7 => 'Dimanche'],
+            'days' => self::DAYS,
             'level' => $request->user()->level ?? Level::A1,
         ]);
     }

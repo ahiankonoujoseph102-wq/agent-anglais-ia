@@ -7,6 +7,7 @@
         <span class="eyebrow"><x-icon name="target" /> Objectif : {{ \Illuminate\Support\Str::lcfirst($program->goal->label()) }}</span>
         <h1>Mon programme {{ $program->level->value }}</h1>
         <p class="muted">{{ $levelTitle }} · {{ $program->occupation }}</p>
+        <a class="btn btn-outline" href="{{ route('program.answers.edit', [$program, 1]) }}"><x-icon name="target" /> Modifier mes objectifs</a>
     </div>
 
     @if (! empty($program->content['intro']))

@@ -32,6 +32,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\Program\AttestationController;
 use App\Http\Controllers\Program\LessonHistoryController;
+use App\Http\Controllers\Program\ProgramAnswersController;
 use App\Http\Controllers\Program\ProgramController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\WebAppController;
@@ -114,6 +115,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/programme', [ProgramController::class, 'show'])->name('program.show');
     Route::get('/programme/questionnaire/{step}', [ProgramController::class, 'questionnaire'])->whereNumber('step')->name('program.questionnaire');
     Route::post('/programme/questionnaire/{step}', [ProgramController::class, 'saveStep'])->whereNumber('step')->name('program.questionnaire.store');
+    Route::get('/programme/{program}/objectifs/{step}', [ProgramAnswersController::class, 'edit'])->whereNumber(['program', 'step'])->name('program.answers.edit');
+    Route::post('/programme/{program}/objectifs/{step}', [ProgramAnswersController::class, 'update'])->whereNumber(['program', 'step'])->name('program.answers.update');
     Route::get('/programme/unites/{number}', [ProgramController::class, 'unit'])->whereNumber('number')->name('program.unit');
     Route::get('/mes-seances', LessonHistoryController::class)->name('lessons.history');
     Route::get('/attestations/{attestation}/telecharger', [AttestationController::class, 'download'])->name('attestation.download');
