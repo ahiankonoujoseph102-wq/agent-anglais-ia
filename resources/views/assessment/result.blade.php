@@ -54,6 +54,53 @@
         </div>
     @endif
 
+    {{--
+        Sans abonnement : « Voici votre première leçon », le tableau de la première leçon du niveau (unité 1, leçon 1 ;
+        App\Support\Curriculum\LessonBoards::firstLesson), juste au-dessus des formules. Affichage seulement.
+    --}}
+    @if ($firstLesson)
+        <section class="section-tight first-lesson reveal" aria-labelledby="premiere-lecon">
+            <span class="eyebrow">Niveau {{ $lessonLevel->value }}</span>
+            <h2 id="premiere-lecon">Voici votre première leçon avec {{ $teacher }}</h2>
+            <p class="muted">Au tableau, les phrases et les mots de votre première séance. {{ $teacher }} vous les enseigne un par un, vous les répétez, puis vous les utilisez dans une conversation.</p>
+            <div class="board board-preview">
+                <div class="board-head">
+                    <span class="board-label"><x-icon name="list" /> Tableau</span>
+                    <span class="board-phase">Leçon 1</span>
+                </div>
+                <div class="board-body">
+                    <p class="board-title">{{ $firstLesson['title'] }}</p>
+                    @if ($firstLesson['phrases'] !== [])
+                        <p class="board-heading">Phrases clés</p>
+                        <ul class="board-list">
+                            @foreach (array_slice($firstLesson['phrases'], 0, 4) as $phrase)
+                                <li class="board-item">
+                                    <span class="board-en" lang="en">{{ $phrase['en'] }}</span>
+                                    @if ($phrase['fr'] ?? $phrase['use'] ?? null)
+                                        <span class="board-fr">{{ $phrase['fr'] ?? $phrase['use'] }}</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                    @if ($firstLesson['vocabulary'] !== [])
+                        <p class="board-heading">Vocabulaire</p>
+                        <ul class="board-words">
+                            @foreach (array_slice($firstLesson['vocabulary'], 0, 6) as $word)
+                                <li class="board-item">
+                                    <span class="board-en" lang="en">{{ $word['en'] }}</span>
+                                    @if ($word['fr'])
+                                        <span class="board-fr">{{ $word['fr'] }}</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+            </div>
+        </section>
+    @endif
+
     {{-- Accès déjà ouvert : formules repliées sous « Voir les formules ». Sans abonnement : bien visibles. --}}
     @if ($hasSubscription)
         <details class="plans-fold reveal">

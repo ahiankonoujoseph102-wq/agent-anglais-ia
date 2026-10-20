@@ -9,7 +9,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Validator;
 
 /**
- * Envoi d'une leçon « Mes cours » : de 1 à 4 photos, OU un PDF (10 mégaoctets et 10 pages au plus).
+ * Envoi d'une leçon « Mes cours » : de 1 à 4 photos, OU un PDF (20 mégaoctets et 50 pages au plus).
  * Les limites viennent de config/platform.php (courses).
  */
 class StoreCourseRequest extends FormRequest
@@ -67,7 +67,7 @@ class StoreCourseRequest extends FormRequest
                 if ($pages === null) {
                     $validator->errors()->add('pdf', 'Ce PDF ne peut pas être ouvert (protégé ou abîmé). Envoyez plutôt des photos de vos pages.');
                 } elseif ($pages > $max) {
-                    $validator->errors()->add('pdf', "Ce PDF a {$pages} pages : {$max} pages au plus. Envoyez seulement la partie de la leçon dont vous avez besoin.");
+                    $validator->errors()->add('pdf', "Votre PDF a {$pages} pages : {$max} pages au plus. Envoyez seulement les pages utiles.");
                 }
             }
         }];
@@ -105,8 +105,8 @@ class StoreCourseRequest extends FormRequest
             'pages.*.uploaded' => 'Une photo n\'a pas pu être envoyée : elle est peut-être trop lourde.',
             'pdf.mimes' => 'Le fichier doit être un PDF.',
             'pdf.mimetypes' => 'Le fichier doit être un PDF.',
-            'pdf.max' => "Ce PDF est trop lourd : {$pdfMegabytes} mégaoctets au plus.",
-            'pdf.uploaded' => 'Le PDF n\'a pas pu être envoyé : il est peut-être trop lourd.',
+            'pdf.max' => "Votre fichier dépasse {$pdfMegabytes} mégaoctets : envoyez seulement les pages utiles.",
+            'pdf.uploaded' => 'Votre fichier est trop lourd pour être envoyé : envoyez seulement les pages utiles.',
         ];
     }
 

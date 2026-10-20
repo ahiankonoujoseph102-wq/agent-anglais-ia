@@ -4,6 +4,7 @@ namespace App\Support\Gemini;
 
 use App\Enums\Level;
 use App\Enums\Skill;
+use App\Models\Assessment;
 use App\Models\User;
 use App\Support\Curriculum\Curriculum;
 use App\Support\Curriculum\Unit;
@@ -257,7 +258,8 @@ class TeacherSetup
             'minutes' => $minutes,
             'warning' => (int) config('platform.lessons.warning_minutes_before_end'),
             // Fin de l'évaluation : questions libres, conclusion et sa phrase fixe.
-            'questions_minutes' => (int) ceil((int) config('platform.assessment.questions_seconds') / 60),
+            'questions_minutes' => (int) ceil(Assessment::afterVerdictSeconds() / 60),
+            'discovery_intro' => (string) config('platform.assessment.discovery_intro'),
             'max_questions' => (int) config('platform.assessment.questions_max'),
             'closing' => (string) config('platform.assessment.closing_phrase'),
             // Séance du jour : langue d'enseignement selon le niveau et phrases de passage d'un temps à l'autre.

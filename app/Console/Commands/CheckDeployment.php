@@ -9,6 +9,7 @@ use App\Support\Live\LiveProviders;
 use App\Support\PaymentCountry;
 use App\Support\PrivateStorage;
 use App\Support\SiteSettings;
+use App\Support\UploadLimits;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +59,17 @@ class CheckDeployment extends Command
 
         $this->section('Planificateur');
         $this->checkScheduler();
+
+        // « Mes cours » : PDF de 20 mégaoctets, lecture jusqu'à une minute. Valeurs de PHP en ligne de commande ;
+        // celles du site, et deux essais réels, sont dans Administration, « Diagnostic des fournisseurs ».
+        $this->section('Envoi de fichiers (« Mes cours »)');
+        // Information seulement : la ligne de commande n'a pas forcément les réglages du site (jamais un échec ici).
+        $limits = UploadLimits::report();
+        $verdict = fn (array $limit, string $value, string $needed) => $value.($limit['ok'] ? ' (suffisant)' : " (il faut au moins {$needed})");
+        $this->line('    Taille d\'un fichier : '.$verdict($limits['file'], UploadLimits::label($limits['file']['value']), UploadLimits::label($limits['file']['needed'])));
+        $this->line('    Taille d\'un envoi : '.$verdict($limits['post'], UploadLimits::label($limits['post']['value']), UploadLimits::label($limits['post']['needed'])));
+        $this->line('    Durée d\'une page : '.$verdict($limits['time'], $limits['time']['value'] === 0 ? 'aucune limite' : $limits['time']['value'].' secondes', $limits['time']['needed'].' secondes'));
+        $this->line('    Valeurs de la ligne de commande. Pour le site lui-même : Administration, « Diagnostic des fournisseurs », « Limites d\'envoi ».');
 
         // Valeurs par défaut de la configuration, remplacées par celles saisies dans les Réglages (facultatifs).
         $this->section('Moyens de paiement et coordonnées (configuration et Réglages)');

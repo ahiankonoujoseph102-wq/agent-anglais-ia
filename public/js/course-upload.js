@@ -4,7 +4,7 @@
  *
  * - Photos : au plus 4 pages ; chaque photo est réduite (côté le plus long environ 1600 pixels, JPEG).
  *   Si le navigateur ne sait pas la réduire, la photo part telle quelle (le serveur vérifie son poids).
- * - PDF : au plus 10 mégaoctets (le serveur vérifie aussi les 10 pages). Un PDF remplace les photos.
+ * - PDF : au plus 20 mégaoctets (le serveur vérifie aussi les 50 pages). Un PDF remplace les photos.
  * Les calculs sont testés par tests/js/course-upload.test.mjs. Sans JavaScript, la galerie (pages[]) et
  * le PDF (pdf) s'envoient tels quels.
  */
@@ -48,6 +48,13 @@ export function addPages(current, added, max) {
     const room = Math.max(0, max - current.length);
 
     return { pages: [...current, ...added.slice(0, room)], refused: Math.max(0, added.length - room) };
+}
+
+/**
+ * PDF trop lourd : « Votre fichier dépasse 20 mégaoctets : envoyez seulement les pages utiles. »
+ */
+export function pdfTooHeavy(maxBytes) {
+    return `Votre fichier dépasse ${Math.round(maxBytes / 1024 / 1024)} mégaoctets : envoyez seulement les pages utiles.`;
 }
 
 /**
@@ -251,7 +258,7 @@ if (typeof document !== 'undefined' && document.querySelector('[data-course-form
         }
 
         if (file.size > pdfMaxBytes) {
-            say(`Ce PDF est trop lourd (${formatBytes(file.size)}) : ${formatBytes(pdfMaxBytes)} au plus.`);
+            say(pdfTooHeavy(pdfMaxBytes));
 
             return;
         }
@@ -290,16 +297,15 @@ if (typeof document !== 'undefined' && document.querySelector('[data-course-form
             return;
         }
 
-        submit.disabled = true;
-        submit.dataset.label ??= submit.textContent;
-        submit.textContent = 'Lecture de votre leçon…';
+        // L'envoi lui-même (en arrière-plan, messages clairs si une limite bloque) : public/js/long-submit.js.
         waiting.hidden = false;
     });
 
-    // Retour arrière vers la page gardée en mémoire : le bouton redevient utilisable.
+    // Retour arrière vers la page gardée en mémoire, ou envoi qui a échoué : on peut réessayer.
     window.addEventListener('pageshow', () => {
-        submit.disabled = false;
-        submit.textContent = submit.dataset.label ?? submit.textContent;
+        waiting.hidden = true;
+    });
+    form.addEventListener('long-submit:failed', () => {
         waiting.hidden = true;
     });
 

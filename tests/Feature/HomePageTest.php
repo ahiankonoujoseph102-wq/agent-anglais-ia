@@ -63,7 +63,7 @@ class HomePageTest extends TestCase
             ->assertSee('class="hero-teacher"', false)
             // Sections.
             ->assertSee('Quatre étapes simples')
-            ->assertSee('Ce qui rend Talkami différent')
+            ->assertSee('Comment se passe votre cours avec Teacher Joe ?')
             ->assertSee('Grand Marché de Lomé')
             ->assertSee('Vous êtes élève ?')
             ->assertSee('Questions fréquentes')
@@ -79,5 +79,40 @@ class HomePageTest extends TestCase
         // Vocabulaire imposé et aucune promesse d'aide aux cours (pas encore disponible).
         $this->assertDoesNotMatchRegularExpression('/certificat|diplôme|conversation vidéo|devoirs de classe|aide aux cours/iu', strip_tags($html));
         $this->assertStringNotContainsString('T-Money', $html);
+    }
+
+    public function test_home_page_shows_how_a_lesson_goes_in_four_steps_with_a_board_preview(): void
+    {
+        config(['avatar.model.name' => 'Professeur Kofi']);
+
+        $html = $this->get('/')->assertOk()
+            ->assertSee('Comment se passe votre cours avec Professeur Kofi ?')
+            ->assertSee('La leçon :')
+            ->assertSee('affichés au tableau, en anglais simple, avec une explication en français si vous ne comprenez pas')
+            ->assertSee('La pratique :')
+            ->assertSee('La conversation :')
+            ->assertSee('Le bilan :')
+            ->assertSee('une phrase à retenir')
+            // Les deux idées fortes de l'ancienne section, en une ligne chacune.
+            ->assertSee('Des situations de chez nous :')
+            ->assertSee('À votre rythme :')
+            // Teacher Joe prend soin de l'apprenant, la progression est rattachée à l'échelle des niveaux.
+            ->assertSee('Patient, sans jugement, à votre rythme')
+            ->assertSee('vos erreurs revues aux séances suivantes')
+            // Après le paiement : accès provisoire, accueil, 4 questions, première séance le jour même.
+            ->assertSee('Souvent, votre accès s\'ouvre tout de suite pour 24 heures', false)
+            ->assertSee('première séance possible le jour même')
+            ->assertSee('Comment se passe une séance ?')
+            ->assertSee('Que se passe-t-il après le paiement ?')
+            ->assertDontSee('Ce qui rend')
+            ->getContent();
+
+        // Aperçu du Tableau : HTML seulement (aucune image), vraies phrases du niveau A1, une phrase allumée.
+        $this->assertMatchesRegularExpression('/<figure class="board board-preview[^"]*"[^>]*>/', $html);
+        $preview = substr($html, strpos($html, 'board-preview'), 2000);
+        $this->assertStringNotContainsString('<img', $preview);
+        $this->assertStringContainsString('My name is Afi.', $preview);
+        $this->assertSame(1, substr_count($preview, 'is-lit'));
+        $this->assertStringContainsString('My name is Afi.', file_get_contents(resource_path('curriculum/a1.php')));
     }
 }

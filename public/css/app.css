@@ -1015,7 +1015,7 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
    Téléphone : l'une sous l'autre ; à partir de 720 pixels : grille 2 × 2. */
 .audiences { display: grid; gap: var(--space-5); }
 .students.audience { align-items: start; align-content: start; gap: var(--space-4); padding: var(--space-4) var(--space-4) var(--space-5); }
-.audience .photo-frame { aspect-ratio: 16 / 9; box-shadow: none; border-radius: var(--radius); }
+.audience .photo-frame { aspect-ratio: 2 / 1; box-shadow: none; border-radius: var(--radius); }
 .audience h2 { margin: 0 0 var(--space-2); font-size: 1.3rem; }
 .audience-body > p { margin: 0 0 var(--space-3); }
 .audience-points { list-style: none; padding: 0; margin: 0 0 var(--space-4); display: grid; gap: var(--space-2); }
@@ -1242,3 +1242,43 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
     #board-wide .board-body { max-height: min(36vh, 320px); }
 }
 @media (prefers-reduced-motion: reduce) { .board-item.is-lit { animation: none; } }
+
+/* Accueil : « Comment se passe votre cours avec Teacher Joe ? » (section bleu nuit). Quatre temps en cartes compactes
+   (numéro + texte), aperçu du Tableau (mêmes classes que la séance, sans script), deux points forts en une ligne. */
+.lead .hero-also { display: block; margin: var(--space-2) 0 0; }
+.board-preview { margin: 0; max-width: 420px; width: 100%; justify-self: center; box-shadow: 0 0 0 1px var(--c-on-dark-line), var(--shadow); box-shadow: 0 0 0 1px rgba(255, 255, 255, .25), var(--shadow); }
+.board-preview .board-head { cursor: default; }
+.board-preview .board-head::after { content: none; }
+.board-preview .board-body { max-height: none; overflow: visible; }
+.course-grid { display: grid; gap: var(--space-5); }
+.course-grid .section-head { margin-bottom: 0; }
+.course-steps { list-style: none; margin: 0; padding: var(--space-4); display: grid; gap: var(--space-3); }
+.course-steps li { display: flex; gap: var(--space-3); align-items: flex-start; }
+.course-steps .how-num { width: 32px; height: 32px; font-size: var(--fs-md); }
+.course-steps p { margin: 0; color: var(--c-muted); line-height: 1.45; }
+.course-steps strong { color: var(--c-primary); }
+.course-plus { list-style: none; padding: 0; margin: var(--space-5) 0; display: grid; gap: var(--space-2); color: var(--c-on-dark-muted); }
+.course-plus li { display: flex; gap: var(--space-2); align-items: flex-start; }
+.course-plus .icon { flex: none; margin-top: 3px; color: var(--c-accent); }
+.course-plus strong { color: var(--c-on-dark); }
+@media (min-width: 720px) {
+    .course-plus { grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+}
+@media (min-width: 900px) {
+    .course-grid { grid-template-columns: 1.25fr 1fr; column-gap: var(--space-8); align-items: center; }
+    .course-grid .section-head { grid-column: 1; grid-row: 1; }
+    .course-grid .course-steps { grid-column: 1; grid-row: 2; }
+    .course-grid .board-preview { grid-column: 2; grid-row: 1 / 3; }
+}
+
+/* Page de résultat : « Voici votre première leçon » (tableau de l'unité 1, leçon 1, au-dessus des formules). */
+.first-lesson .board-preview { max-width: 560px; margin-top: var(--space-4); justify-self: start; }
+
+/* « Mes cours » : partie d'un PDF à travailler (pages côte à côte, sommaire, parties déjà travaillées). */
+.course-part-pages { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.course-part-form { margin-top: var(--space-4); }
+.course-outline { list-style: none; padding: 0; margin: var(--space-2) 0 0; display: grid; gap: var(--space-1); max-height: 320px; overflow-y: auto; }
+.course-outline strong { margin-right: var(--space-2); color: var(--c-primary); }
+.course-parts { list-style: none; padding: 0; margin: var(--space-2) 0 0; display: grid; gap: var(--space-2); }
+.course-parts li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.course-parts form { margin: 0; flex: none; }

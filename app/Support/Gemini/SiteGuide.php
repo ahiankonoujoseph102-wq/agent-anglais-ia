@@ -2,6 +2,7 @@
 
 namespace App\Support\Gemini;
 
+use App\Models\Assessment;
 use App\Support\DailyTime;
 use App\Support\Duration;
 use App\Support\PaymentCountry;
@@ -27,11 +28,15 @@ class SiteGuide
             ':platform' => (string) config('platform.name'),
             ':teacher' => (string) config('avatar.model.name'),
             ':assessment' => Duration::format((int) config('platform.assessment.max_minutes') * 60),
+            // Après le verdict : mini-leçon découverte, questions et conclusion ; durée totale de l'évaluation.
+            ':after_verdict' => Duration::format(Assessment::afterVerdictSeconds()),
+            ':assessment_total' => Duration::format(Assessment::totalMinutes() * 60),
             // « Mes cours » et temps du jour : lus dans config/platform.php (courses, daily_time).
             ':course_minutes' => Duration::format((int) config('platform.courses.max_session_minutes') * 60),
             ':min_start' => Duration::format(DailyTime::minStartSeconds()),
             ':answer_edits' => (string) config('program.answer_edits_per_day'),
             ':course_photos' => (string) (int) config('platform.courses.max_photos'),
+            ':part_pages' => (string) (int) config('platform.courses.part_max_pages'),
             ':course_pdf' => (int) (config('platform.courses.pdf_max_kilobytes') / 1024).' mégaoctets et '.(int) config('platform.courses.pdf_max_pages').' pages au plus',
             ':plans' => self::plans(),
             ':operators' => self::operators(),

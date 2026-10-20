@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Course;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Course\ChooseCoursePartRequest;
 use App\Http\Requests\Course\StoreCourseRequest;
 use App\Models\CourseLesson;
 use App\Models\CoursePage;
@@ -11,6 +12,8 @@ use App\Support\DailyTime;
 use App\Support\Gemini\CourseReader;
 use App\Support\PdfPages;
 use App\Support\PrivateStorage;
+use App\Support\UploadLimits;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -71,13 +74,16 @@ class CourseController extends Controller
      * disque privé. Une leçon illisible, d'une autre matière, ou une panne de lecture : rien n'est
      * enregistré ni compté dans la limite du jour (celle des séances).
      */
-    public function store(StoreCourseRequest $request, CourseReader $reader): RedirectResponse
+    public function store(StoreCourseRequest $request, CourseReader $reader): RedirectResponse|JsonResponse
     {
         $user = $request->user();
 
         if ($redirect = $this->requireAccess($user)) {
-            return $redirect;
+            return $this->respond($request, $redirect);
         }
+
+        // Lecture d'un document jusqu'à 50 pages : deux fournisseurs au plus, chacun avec son délai.
+        self::allowLongReading();
 
         $limiter = 'course-read:'.$user->id;
 
@@ -90,7 +96,10 @@ class CourseController extends Controller
         $files = array_map(fn ($file) => ['data' => (string) $file->get(), 'mime' => (string) $file->getMimeType()], $uploads);
 
         RateLimiter::hit($limiter, 3600);
-        $reading = $reader->read($files);
+        $pageCount = $pdf !== null ? PdfPages::count($files[0]['data']) : count($uploads);
+        // Long PDF : seulement le sommaire à l'envoi ; la partie à travailler est lue avant la séance.
+        $byParts = $pdf !== null && $pageCount > (int) config('platform.courses.part_max_pages');
+        $reading = $byParts ? $reader->outline($files[0]['data']) : $reader->read($files);
 
         if ($reading['status'] === CourseReader::UNAVAILABLE) {
             // Notre panne, pas celle de l'apprenant : la tentative ne compte pas non plus dans la limite par heure.
@@ -98,14 +107,114 @@ class CourseController extends Controller
         }
 
         if ($reading['status'] !== CourseReader::LESSON) {
-            return to_route('courses.create')
+            return $this->respond($request, to_route('courses.create')
                 ->withInput($request->only('title'))
-                ->with('course_error', $this->rejection($reading['status'], $pdf !== null));
+                ->with('course_error', $this->rejection($reading['status'], $pdf !== null)));
         }
 
-        $lesson = $this->save($user, $request, $reading, $uploads, $pdf !== null ? PdfPages::count($files[0]['data']) : count($uploads));
+        $lesson = $this->save($user, $request, $reading + ['text' => null], $uploads, $pageCount);
+        $teacher = config('avatar.model.name');
 
-        return redirect()->to(route('courses.show', $lesson).'#travailler')->with('status', 'Votre leçon est prête. Teacher Joe l\'a lue : vous pouvez lui parler.');
+        return $this->respond($request, $byParts
+            ? redirect()->to(route('courses.show', $lesson).'#partie')->with('status', "{$teacher} a parcouru vos {$pageCount} pages. Choisissez maintenant la partie à travailler.")
+            : redirect()->to(route('courses.show', $lesson).'#travailler')->with('status', "Votre leçon est prête. {$teacher} l'a lue : vous pouvez lui parler."));
+    }
+
+    /**
+     * Partie d'un PDF à travailler à la prochaine séance : une partie déjà lue (reprise, aucune nouvelle lecture),
+     * ou des pages / un passage. Long PDF : la partie est lue maintenant (part_max_pages pages au plus) et gardée ;
+     * PDF court, déjà lu en entier : la partie indique seulement à Teacher Joe sur quoi se concentrer.
+     */
+    public function choosePart(ChooseCoursePartRequest $request, CourseReader $reader, CourseLesson $course): RedirectResponse|JsonResponse
+    {
+        $user = $request->user();
+
+        if ($redirect = $this->requireAccess($user)) {
+            return $this->respond($request, $redirect);
+        }
+
+        $back = route('courses.show', $course);
+        $part = $request->existingPart();
+        [$from, $to] = $request->pages();
+        $description = $request->description();
+
+        // Même choix qu'une partie déjà lue : reprise, sans relire le fichier.
+        $part ??= $course->parts()
+            ->where('page_from', $from)->where('page_to', $to)
+            ->where('request', $description)
+            ->when($course->readByParts(), fn ($query) => $query->whereNotNull('content'))
+            ->first();
+
+        if ($part === null && $course->readByParts()) {
+            self::allowLongReading();
+            $limiter = 'course-read:'.$user->id;
+
+            if (RateLimiter::tooManyAttempts($limiter, (int) config('platform.courses.reads_per_hour'))) {
+                throw ValidationException::withMessages(['from' => StoreCourseRequest::waitMessage(RateLimiter::availableIn($limiter))]);
+            }
+
+            $file = $course->pages()->first();
+            $pdf = $file !== null ? PrivateStorage::disk()->get($file->path) : null;
+
+            if ($pdf === null) {
+                return $this->respond($request, redirect()->to($back.'#partie')->with('status', 'Le fichier de cette leçon est introuvable. Supprimez-la et envoyez-la de nouveau.'));
+            }
+
+            RateLimiter::hit($limiter, 3600);
+            $reading = $reader->readPart($pdf, $from, $to, $description, (array) ($course->content['outline'] ?? []));
+
+            if ($reading['status'] === CourseReader::UNAVAILABLE) {
+                RateLimiter::decrement($limiter, 3600);
+            }
+
+            if ($reading['status'] !== CourseReader::LESSON) {
+                throw ValidationException::withMessages(['from' => match ($reading['status']) {
+                    CourseReader::NOT_FOUND => config('avatar.model.name').' n\'a pas trouvé ce passage. Indiquez plutôt les pages (par exemple de la page 3 à la page 5).',
+                    CourseReader::UNREADABLE => 'Ces pages ne peuvent pas être lues avec certitude. Choisissez d\'autres pages, ou envoyez des photos nettes de cette partie.',
+                    CourseReader::NOT_ENGLISH => 'Ces pages ne sont pas une leçon d\'anglais. Choisissez la partie de votre cours d\'anglais.',
+                    default => 'La lecture est momentanément indisponible. Rien n\'a été compté : réessayez dans quelques minutes.',
+                }]);
+            }
+
+            $part = $course->parts()->create([
+                'page_from' => $reading['page_from'],
+                'page_to' => $reading['page_to'],
+                'request' => $description,
+                'content' => array_diff_key($reading, array_flip(['status', 'title', 'text', 'page_from', 'page_to'])),
+                'text' => $reading['text'],
+                'provider' => $reading['provider'] ?? null,
+            ]);
+        }
+
+        $part ??= $course->parts()->create(['page_from' => $from, 'page_to' => $to, 'request' => $description]);
+        $part->touch();
+        $course->update(['current_part_id' => $part->id]);
+
+        return $this->respond($request, redirect()->to($back.'#travailler')
+            ->with('status', 'Partie choisie : '.$part->label().'. '.config('avatar.model.name').' se concentrera sur elle.'));
+    }
+
+    /**
+     * Envoi par le navigateur (fetch, Accept: application/json) : l'adresse où aller, messages déjà gardés en
+     * session ; sinon la redirection habituelle (sans JavaScript).
+     */
+    private function respond(Request $request, RedirectResponse $redirect): RedirectResponse|JsonResponse
+    {
+        return $request->expectsJson() ? response()->json(['redirect' => $redirect->getTargetUrl()]) : $redirect;
+    }
+
+    /**
+     * La lecture peut durer jusqu'à deux délais de fournisseur : PHP ne doit pas couper avant (le navigateur, lui,
+     * affiche un message clair s'il attend trop longtemps).
+     */
+    private static function allowLongReading(): void
+    {
+        $needed = 2 * (int) config('platform.courses.read_timeout_seconds') + 30;
+        $current = (int) ini_get('max_execution_time');
+
+        if ($current !== 0 && $current < $needed && function_exists('set_time_limit')) {
+            @set_time_limit($needed);
+        }
     }
 
     public function show(Request $request, CourseLesson $course): View|RedirectResponse
@@ -117,8 +226,13 @@ class CourseController extends Controller
         }
 
         return view('courses.show', [
-            'course' => $course->load('pages'),
+            'course' => $course->load(['pages', 'parts', 'currentPart']),
             'counter' => $this->counter($request->user()),
+            'partLimits' => [
+                'browser_timeout' => (int) config('platform.courses.browser_timeout_seconds'),
+                'max_pages' => (int) config('platform.courses.part_max_pages'),
+                'description_max' => (int) config('platform.courses.part_description_max'),
+            ],
         ]);
     }
 
@@ -267,6 +381,24 @@ class CourseController extends Controller
     }
 
     /**
+     * Poids d'un PDF vérifié dans le navigateur : la limite de « Mes cours », ou celle du serveur si elle est plus
+     * petite (l'élève lit alors tout de suite « Votre fichier dépasse … », au lieu d'un envoi refusé).
+     */
+    private static function pdfMaxBytes(): int
+    {
+        $limits = UploadLimits::report();
+        $bytes = (int) config('platform.courses.pdf_max_kilobytes') * 1024;
+
+        foreach ([$limits['file']['value'], $limits['post']['value'] - 1024 * 1024] as $server) {
+            if ($server > 0) {
+                $bytes = min($bytes, $server);
+            }
+        }
+
+        return $bytes;
+    }
+
+    /**
      * @return array<string, int|float>
      */
     private function limits(): array
@@ -278,7 +410,9 @@ class CourseController extends Controller
             'max_side' => (int) config('platform.courses.photo_max_side'),
             'quality' => (float) config('platform.courses.photo_quality'),
             'photo_max_bytes' => (int) config('platform.courses.photo_max_kilobytes') * 1024,
-            'pdf_max_bytes' => (int) config('platform.courses.pdf_max_kilobytes') * 1024,
+            'pdf_max_bytes' => self::pdfMaxBytes(),
+            'part_pages' => (int) config('platform.courses.part_max_pages'),
+            'browser_timeout' => (int) config('platform.courses.browser_timeout_seconds'),
         ];
     }
 }

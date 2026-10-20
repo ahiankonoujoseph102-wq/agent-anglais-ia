@@ -27,7 +27,7 @@
     <section class="section" aria-labelledby="formules-gratuit">
         <div class="cta-band reveal">
             <h2 id="formules-gratuit">D'abord, une évaluation gratuite</h2>
-            <p>{{ $minutes }} minutes à l'oral avec {{ $teacher }} pour connaître votre niveau, de A1 à C2, et poser vos questions. Une seule par compte, sans paiement.</p>
+            <p>{{ $minutes }} minutes à l'oral avec {{ $teacher }} pour connaître votre niveau, de A1 à C2, puis une mini-leçon et vos questions ({{ \App\Models\Assessment::totalMinutes() }} minutes au plus en tout). Une seule par compte, sans paiement.</p>
             <div class="cta-actions">
                 <a class="btn btn-accent btn-lg" href="{{ Navigation::assessmentUrl() }}"><x-icon name="mic" /> Passer mon évaluation gratuite</a>
             </div>

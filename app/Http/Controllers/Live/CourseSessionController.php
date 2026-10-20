@@ -31,6 +31,8 @@ class CourseSessionController extends Controller
 {
     private const NO_ACCESS = 'Mes cours demande une formule active : choisissez votre formule pour l\'utiliser.';
 
+    private const CHOOSE_PART = 'Choisissez d\'abord la partie de votre PDF à travailler (les pages ou le passage).';
+
     public function show(Request $request, CourseLesson $course): View|RedirectResponse
     {
         $user = $request->user();
@@ -46,12 +48,17 @@ class CourseSessionController extends Controller
             return to_route('courses.show', $course)->with('status', DailyTime::EXHAUSTED);
         }
 
+        // Long PDF : la partie à travailler est choisie (et lue) avant la séance.
+        if ($open === null && ! $course->readyForSession()) {
+            return redirect()->to(route('courses.show', $course).'#partie')->with('status', self::CHOOSE_PART);
+        }
+
         $remaining = $open?->remainingSeconds() ?? self::allowedSeconds($user);
 
         return view('live.session', [
             'mode' => 'course',
             'title' => 'Mon cours',
-            'intro' => 'Teacher Joe a lu votre leçon « '.$course->title.' ». Il vous demandera ce que vous voulez faire : comprendre toute la leçon, poser une question précise ou travailler un exercice. '
+            'intro' => 'Teacher Joe a lu votre leçon « '.$course->title.' »'.($course->currentPart ? ' ('.$course->currentPart->label().')' : '').'. Il vous demandera ce que vous voulez faire : comprendre toute la leçon, poser une question précise ou travailler un exercice. '
                 .'Cette séance dure '.Duration::format($remaining).' au plus ; il vous préviendra avant la fin. '
                 .'Elle prend sur votre temps du jour, partagé avec la séance orale. '.DailyTime::remainingSentence((int) $user->remainingSecondsToday(false)),
             'remainingSeconds' => $remaining,
@@ -126,6 +133,10 @@ class CourseSessionController extends Controller
 
             if (! $user->canStartSessionToday()) {
                 return $this->refuse(DailyTime::EXHAUSTED, 403);
+            }
+
+            if (! $course->readyForSession()) {
+                return $this->refuse(self::CHOOSE_PART, 409);
             }
         } elseif (! $session->canConnectAgain()) {
             return $this->refuse('Trop de reconnexions pour cette séance. Rechargez la page pour en commencer une nouvelle.', 429);

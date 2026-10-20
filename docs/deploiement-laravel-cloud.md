@@ -364,6 +364,16 @@ Commande `php artisan schedule:list` : elle affiche les cinq tâches et leur pro
 
 Pour une attestation : téléchargez-en une depuis le compte d'un apprenant qui a réussi un bilan de niveau ; le PDF est alors enregistré dans le dossier `attestations/` du même bucket, et `app:check-deployment` l'ajoute à son décompte « Attestations enregistrées ».
 
+### 12.4 Les limites d'envoi de « Mes cours » (PDF de 20 mégaoctets, lecture d'une minute)
+
+La documentation de Laravel Cloud ne dit ni la taille maximale d'un envoi ni la durée maximale d'une page : il faut les essayer sur le site en ligne.
+
+1. Connectez-vous en administrateur, onglet **Diagnostic des fournisseurs**, bloc **Limites d'envoi**. Les trois lignes (taille d'un fichier, taille d'un envoi, durée d'une page) sont les réglages du site lui-même : chacune doit dire « suffisant ».
+2. Touchez **Essayer un envoi de 20 mégaoctets** (en wifi de préférence : 20 mégaoctets sont vraiment envoyés). « Réussi » : un PDF de cette taille passe. « Échec » : le message dit ce qui bloque.
+3. Touchez **Essayer une attente de 60 secondes** et gardez la page ouverte. « Réussi » : une longue lecture n'est pas coupée. « Échec après … secondes » : le serveur coupe avant la fin.
+4. Si un essai échoue, rien ne casse pour les élèves : ils voient un message clair (« Votre fichier est trop lourd pour être envoyé : envoyez seulement les pages utiles », ou « La lecture prend plus de temps que prévu… ») et peuvent envoyer moins de pages. Écrivez alors au support de Laravel Cloud pour demander une limite plus haute.
+5. `php artisan app:check-deployment` affiche aussi ces valeurs (section « Envoi de fichiers ») ; ce sont celles de la ligne de commande, qui peuvent différer de celles du site : l'essai du point 2 fait foi.
+
 ---
 
 ## 13. Commandes à connaître

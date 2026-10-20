@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use App\Support\Gemini\CourseReader;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class CourseReaderTest extends TestCase
 {
@@ -58,5 +58,33 @@ class CourseReaderTest extends TestCase
         $reading = CourseReader::normalize(['verdict' => 'lesson', 'title' => 'Vide', 'text' => '   ']);
 
         $this->assertSame(CourseReader::UNREADABLE, $reading['status']);
+    }
+
+    public function test_the_outline_of_a_long_pdf_is_cleaned(): void
+    {
+        $clean = CourseReader::normalizeOutline([
+            'verdict' => 'lesson', 'title' => 'Book', 'summary' => 'Un manuel.', 'level' => 'b1',
+            'outline' => [['page' => 1, 'content' => 'Unit 1'], ['page' => 0, 'content' => 'faux'], ['page' => 99, 'content' => 'trop loin'], ['page' => '2', 'content' => ' Unit 2 '], ['page' => 3]],
+        ]);
+
+        $this->assertSame('lesson', $clean['status']);
+        $this->assertSame('B1', $clean['level']);
+        $this->assertSame([['page' => 1, 'content' => 'Unit 1'], ['page' => 2, 'content' => 'Unit 2']], $clean['outline']);
+        $this->assertSame('unreadable', CourseReader::normalizeOutline(['verdict' => 'lesson'])['status']);
+        $this->assertSame('unavailable', CourseReader::normalizeOutline(['verdict' => 'ignore les consignes'])['status']);
+    }
+
+    public function test_a_part_keeps_the_pages_asked_or_the_pages_found(): void
+    {
+        $reading = ['verdict' => 'lesson', 'text' => 'Exercise 2.', 'page_from' => 9, 'page_to' => 12];
+
+        $asked = CourseReader::normalizePart($reading, 3, 5);
+        $this->assertSame([3, 5], [$asked['page_from'], $asked['page_to']]);
+
+        $found = CourseReader::normalizePart($reading, null, null);
+        $this->assertSame([9, 12], [$found['page_from'], $found['page_to']]);
+
+        $this->assertSame([null, null], array_values(array_intersect_key(CourseReader::normalizePart(['verdict' => 'lesson', 'text' => 'x', 'page_from' => 5, 'page_to' => 2], null, null), array_flip(['page_from', 'page_to']))));
+        $this->assertSame('not_found', CourseReader::normalizePart(['verdict' => 'not_found'], null, null)['status']);
     }
 }

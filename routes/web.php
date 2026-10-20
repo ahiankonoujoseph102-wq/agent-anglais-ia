@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\LiveTrialController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TextDiagnosticController;
+use App\Http\Controllers\Admin\UploadCheckController;
 use App\Http\Controllers\Admin\UsageController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VoiceController;
@@ -140,6 +141,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/seance/fin', [CourseSessionController::class, 'finish'])->middleware('throttle:10,1')->name('finish');
         Route::get('/{course}', [CourseController::class, 'show'])->whereNumber('course')->name('show');
         Route::get('/{course}/pages/{page}', [CourseController::class, 'page'])->whereNumber(['course', 'page'])->name('page');
+        Route::post('/{course}/partie', [CourseController::class, 'choosePart'])->whereNumber('course')->middleware('throttle:10,1')->name('part');
         Route::delete('/{course}', [CourseController::class, 'destroy'])->whereNumber('course')->middleware('confirm:course.delete')->name('destroy');
         Route::get('/{course}/seance', [CourseSessionController::class, 'show'])->whereNumber('course')->name('session');
         Route::post('/{course}/seance/connexion', [CourseSessionController::class, 'connect'])->whereNumber('course')->middleware('throttle:10,1')->name('connect');
@@ -189,6 +191,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/diagnostic-voix/essai/{provider}', [VoiceDiagnosticController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('voice-diagnostic.test');
     Route::post('/diagnostic-voix/preparer', [VoiceDiagnosticController::class, 'prepare'])->middleware('throttle:6,1')->name('voice-diagnostic.prepare');
     Route::get('/diagnostic-texte', [TextDiagnosticController::class, 'index'])->name('text-diagnostic.index');
+    Route::post('/diagnostic-texte/envoi', [UploadCheckController::class, 'size'])->middleware('throttle:4,1')->name('upload-check.size');
+    Route::post('/diagnostic-texte/attente', [UploadCheckController::class, 'wait'])->middleware('throttle:4,1')->name('upload-check.wait');
     Route::post('/diagnostic-texte/essai/{provider}', [TextDiagnosticController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('text-diagnostic.test');
     Route::post('/diagnostic-texte/direct/{provider}/essai', [LiveTrialController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.test');
     Route::get('/diagnostic-texte/direct/{provider}/conversation', [LiveTrialController::class, 'show'])->whereIn('provider', ['gemini', 'openai'])->name('live-trial.show');

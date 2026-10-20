@@ -69,6 +69,9 @@
             {{-- Séance du jour : le tableau, sous Teacher Joe sur téléphone (replié), déplacé à droite sur grand écran. --}}
             @if (! empty($board))
                 <div id="board-home"><x-live-board :board="$board" :translations="$boardTranslations ?? 'show'" /></div>
+            @else
+                {{-- Évaluation : le tableau de la mini-leçon découverte y apparaît après le verdict (live-session.js). --}}
+                <div id="board-home"></div>
             @endif
 
             {{-- Ordinateur (900 pixels et plus) : sous Teacher Joe, les conseils avant le début, puis la transcription

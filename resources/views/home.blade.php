@@ -32,8 +32,8 @@
                 {{ $teacher }} vous fait parler sans gêne ni jugement, vous corrige et vous fait progresser à votre rythme, depuis votre téléphone.
                 Commencez par une évaluation orale gratuite de {{ $minutes }} minutes.
                 Vous apprenez l'anglais américain, compris partout dans le monde.
+                <span class="hero-also">Élève ou étudiant ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école ou de l'université.</span>
             </p>
-            <p class="hero-also">Élève ou étudiant ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école ou de l'université.</p>
             <div class="actions actions-row">
                 <a class="btn btn-accent btn-lg btn-block" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
                 @guest
@@ -98,66 +98,63 @@
             <li class="card reveal" style="--i: 1">
                 <div class="how-head"><span class="how-num">2</span><span class="icon-bubble"><x-icon name="mic" /></span></div>
                 <h3>Passez l'évaluation gratuite</h3>
-                <p>{{ $minutes }} minutes à l'oral avec {{ $teacher }}, qui vous annonce votre niveau et répond à vos questions.</p>
+                <p>{{ $minutes }} minutes à l'oral pour trouver votre niveau, puis une mini-leçon et vos questions.</p>
             </li>
             <li class="card reveal" style="--i: 2">
                 <div class="how-head"><span class="how-num">3</span><span class="icon-bubble"><x-icon name="mobile" /></span></div>
                 <h3>Choisissez votre formule</h3>
-                <p>Payez par Mobile Money depuis votre téléphone, puis envoyez la capture de la confirmation.</p>
+                <p>Payez par Mobile Money et envoyez la capture. Souvent, votre accès s'ouvre tout de suite pour 24 heures, puis notre équipe le confirme.</p>
             </li>
             <li class="card reveal" style="--i: 3">
                 <div class="how-head"><span class="how-num">4</span><span class="icon-bubble"><x-icon name="calendar-check" /></span></div>
                 <h3>Parlez chaque jour</h3>
-                <p>Une séance orale à durée fixe, construite à partir de votre programme personnel.</p>
+                <p>{{ $teacher }} vous accueille, 4 petites questions, et votre programme est prêt : première séance possible le jour même.</p>
             </li>
         </ol>
     </section>
 
-    <section class="section band band-dark" aria-labelledby="difference">
-        <div class="section-split">
+    {{--
+        Comment se passe le cours : la séance du jour en quatre temps (config/teacher.php → lesson), avec un aperçu du
+        Tableau en HTML (aucune image ; phrases de l'unité 1 du niveau A1 du programme officiel). Seule section bleu nuit.
+    --}}
+    <section class="section band band-dark" aria-labelledby="cours">
+        <div class="course-grid">
             <div class="section-head reveal">
-                <span class="eyebrow">Pourquoi {{ $platform }}</span>
-                <h2 id="difference">Ce qui rend {{ $platform }} différent</h2>
-                <p class="muted">On apprend à parler en parlant. Chaque séance est une vraie conversation, guidée par un professeur patient.</p>
+                <span class="eyebrow">Une séance avec {{ $teacher }}</span>
+                <h2 id="cours">Comment se passe votre cours avec {{ $teacher }} ?</h2>
+                <p class="muted">Patient, sans jugement, à votre rythme : vous pouvez lui poser une question à tout moment, même en français.</p>
             </div>
-            <figure class="photo-frame reveal"><x-photo name="etudiante-parle" /></figure>
+            <figure class="board board-preview reveal" aria-label="Aperçu du Tableau pendant une séance">
+                <div class="board-head">
+                    <span class="board-label"><x-icon name="list" /> Tableau</span>
+                    <span class="board-phase">Leçon</span>
+                </div>
+                <div class="board-body">
+                    <p class="board-title" lang="en">Greetings and introductions</p>
+                    <ul class="board-list">
+                        <li class="board-item is-seen"><span class="board-en" lang="en">Good morning, madam!</span><span class="board-fr">Bonjour, madame !</span></li>
+                        <li class="board-item is-lit"><span class="board-en" lang="en">My name is Afi. I'm from Togo.</span><span class="board-fr">Je m'appelle Afi. Je viens du Togo.</span></li>
+                        <li class="board-item"><span class="board-en" lang="en">How are you? I'm fine, thanks.</span><span class="board-fr">Comment allez-vous ? Je vais bien, merci.</span></li>
+                    </ul>
+                </div>
+            </figure>
+            <ol class="card course-steps reveal">
+                <li><span class="how-num course-num">1</span><p><strong>La leçon :</strong> {{ $teacher }} vous enseigne les phrases, les mots et les verbes du jour, affichés au tableau, en anglais simple, avec une explication en français si vous ne comprenez pas.</p></li>
+                <li><span class="how-num course-num">2</span><p><strong>La pratique :</strong> vous répétez et vous construisez vos phrases, guidé par {{ $teacher }}.</p></li>
+                <li><span class="how-num course-num">3</span><p><strong>La conversation :</strong> vous utilisez la leçon dans une vraie situation (travail, marché, entretien…), il vous corrige avec douceur.</p></li>
+                <li><span class="how-num course-num">4</span><p><strong>Le bilan :</strong> ce que vous avez appris, et une phrase à retenir.</p></li>
+            </ol>
         </div>
-        <div class="features">
-            <article class="card feature reveal" style="--i: 0">
-                <span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span>
-                <div>
-                    <h3>Vous parlez vraiment</h3>
-                    <p>La séance est orale du début à la fin. {{ $teacher }} pose des questions, écoute et vous fait parler le plus possible.</p>
-                </div>
-            </article>
-            <article class="card feature reveal" style="--i: 1">
-                <span class="icon-bubble"><x-icon name="check-circle" /></span>
-                <div>
-                    <h3>Des corrections immédiates</h3>
-                    <p>Une erreur ? Il vous donne la bonne façon de dire, <span lang="en">« You said… We say… »</span>, puis vous répétez. Vos erreurs reviennent aux séances suivantes jusqu'à ce qu'elles soient corrigées.</p>
-                </div>
-            </article>
-            <article class="card feature reveal" style="--i: 2">
-                <span class="icon-bubble"><x-icon name="pin" /></span>
-                <div>
-                    <h3>Des situations de chez nous</h3>
-                    <p>Au Grand Marché de Lomé, en zémidjan, au port autonome, mais aussi au travail, en voyage, pour vos études, au téléphone et sur internet.</p>
-                </div>
-            </article>
-            <article class="card feature reveal" style="--i: 3">
-                <span class="icon-bubble"><x-icon name="calendar" /></span>
-                <div>
-                    <h3>À votre rythme</h3>
-                    <p>Vous choisissez vos jours. Chaque séance a une durée fixe et suit votre programme : votre niveau, votre objectif, votre métier.</p>
-                </div>
-            </article>
-        </div>
+        <ul class="course-plus reveal">
+            <li><x-icon name="pin" /> <span><strong>Des situations de chez nous :</strong> le Grand Marché de Lomé, le zémidjan, le port, le travail, le voyage, les études.</span></li>
+            <li><x-icon name="calendar" /> <span><strong>À votre rythme :</strong> vous choisissez vos jours, et chaque séance a une durée fixe.</span></li>
+        </ul>
         <ul class="levels reveal" aria-label="Les niveaux, de A1 à C2">
             @foreach (Level::cases() as $level)
                 <li><strong class="level-dot">{{ $level->value }}</strong><span>{{ $level->label() }}</span></li>
             @endforeach
         </ul>
-        <p class="muted small reveal next-step">Douze unités par niveau. À la fin de chaque niveau, un bilan oral réussi donne une attestation de niveau.</p>
+        <p class="muted small reveal next-step">Un programme construit pour vous, vos erreurs revues aux séances suivantes, un bilan oral et une attestation à la fin de chaque niveau.</p>
     </section>
 
     <section class="section band" aria-labelledby="plans">
@@ -203,7 +200,7 @@
                 <ul class="audience-points">
                     <li><x-icon name="check-circle" /> Oser parler, sans gêne ni jugement</li>
                     <li><x-icon name="check-circle" /> S'entraîner aux entretiens de bourse, d'admission ou de stage</li>
-                    <li><x-icon name="check-circle" /> Préparer un départ à l'étranger</li>
+                    <li><x-icon name="check-circle" /> Vos cours d'anglais en PDF, avec « Mes cours »</li>
                 </ul>
                 <a class="btn btn-accent" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
             </div>
@@ -215,7 +212,7 @@
                 <h2 id="eleves">Vous êtes élève ?</h2>
                 <p>Vos cours d'anglais enfin compris : en plus de l'oral, {{ $teacher }} vous aide dans vos leçons d'anglais de l'école avec « Mes cours ».</p>
                 <ul class="audience-points">
-                    <li><x-icon name="camera" /> Photographiez votre leçon ou votre exercice d'anglais</li>
+                    <li><x-icon name="camera" /> {{ \App\Support\CourseFiles::offer() }}</li>
                     <li><x-icon name="book" /> {{ $teacher }} vous l'explique en détail, en français quand il le faut, et répond à vos questions</li>
                     <li><x-icon name="edit" /> Il vous guide pour faire votre exercice vous-même, puis corrige</li>
                 </ul>
@@ -257,8 +254,7 @@
         <div class="section-head reveal">
             <span class="eyebrow">Dans votre pays</span>
             <h2 id="pays">Apprendre l'anglais au Togo, au Bénin, au Burkina Faso et en Côte d'Ivoire</h2>
-            <p class="muted">Mêmes formules et mêmes prix partout, avec les moyens de paiement de votre pays. <a href="{{ route('about') }}">Qui sommes-nous ?</a></p>
-            <p class="muted">Vous habitez ailleurs ? {{ $platform }} accueille les francophones du monde entier : inscription et évaluation gratuite depuis tous les pays, abonnement avec notre équipe sur WhatsApp.</p>
+            <p class="muted">Mêmes formules et mêmes prix partout, avec les moyens de paiement de votre pays. Vous habitez ailleurs ? {{ $platform }} accueille les francophones du monde entier, abonnement avec notre équipe sur WhatsApp. <a href="{{ route('about') }}">Qui sommes-nous ?</a></p>
         </div>
         <x-country-links :pages="$countryPages" />
     </section>
@@ -296,18 +292,19 @@
                         <li><strong>{{ $paymentCountry['name'] }}</strong> : {{ implode(', ', $paymentCountry['operators']) }}</li>
                     @endforeach
                 </ul>
-            </details>
-            <details>
-                <summary><x-icon name="globe" /><span>Je n'habite pas dans un de ces pays : puis-je m'inscrire ?</span></summary>
-                <p>Oui. {{ $platform }} accueille les francophones de tous les pays : l'inscription et l'évaluation gratuite fonctionnent partout. Le paiement en ligne n'est pas encore disponible hors de ces pays : notre équipe vous explique sur WhatsApp comment vous abonner. Les prix restent en francs CFA.</p>
+                <p>Vous habitez dans un autre pays ? L'inscription et l'évaluation gratuite fonctionnent partout : notre équipe vous explique sur WhatsApp comment vous abonner, avec les mêmes prix en francs CFA.</p>
             </details>
             <details>
                 <summary><x-icon name="languages" /><span>Quel anglais vais-je apprendre ?</span></summary>
                 <p>L'anglais américain, compris partout dans le monde : sa prononciation, son vocabulaire et son orthographe. Si vous avez appris des mots britanniques à l'école, ils ne sont jamais comptés comme des fautes : {{ $teacher }} vous donne simplement l'équivalent américain quand c'est utile.</p>
             </details>
             <details>
-                <summary><x-icon name="hourglass" /><span>Qu'est-ce que l'accès provisoire ?</span></summary>
-                <p>Si votre capture est claire (bon montant, bon numéro, paiement récent), vous pouvez commencer vos séances tout de suite, pendant 24 heures, le temps que notre équipe vérifie votre paiement. Une fois vérifiée, votre formule devient définitive, sans perdre aucun jour.</p>
+                <summary><x-icon name="mic" /><span>Comment se passe une séance ?</span></summary>
+                <p>Elle a une durée fixe et se passe en quatre temps. La leçon : {{ $teacher }} vous enseigne les phrases, les mots et les verbes du jour, affichés au tableau. La pratique : vous répétez et vous construisez vos phrases. La conversation : vous utilisez la leçon dans une situation de votre vie, il vous corrige avec douceur. Le bilan : ce que vous avez appris et une phrase à retenir. Il parle anglais, adapté à votre niveau, et vous explique en français quand vous ne comprenez pas.</p>
+            </details>
+            <details>
+                <summary><x-icon name="calendar-check" /><span>Que se passe-t-il après le paiement ? Qu'est-ce que l'accès provisoire ?</span></summary>
+                <p>Vous envoyez la capture de la confirmation. Si elle est claire (bon montant, bon numéro, paiement récent), vous avez un accès provisoire : vos séances commencent tout de suite, pendant 24 heures, le temps que notre équipe vérifie votre paiement ; une fois vérifiée, votre formule devient définitive, sans perdre aucun jour. Sinon, l'équipe vérifie d'abord. {{ $teacher }} vous accueille, vous répondez à 4 petites questions (objectif, métier, jours, difficultés) et votre programme personnel est prêt : votre première séance peut avoir lieu le jour même.</p>
             </details>
             <details>
                 <summary><x-icon name="headphones" /><span>De quel matériel ai-je besoin ?</span></summary>
@@ -322,8 +319,8 @@
                 <p>À la fin de chaque niveau (douze unités), vous passez un bilan oral avec {{ $teacher }}. S'il est réussi, vous recevez une attestation de niveau en PDF, que chacun peut vérifier en ligne grâce à son code.</p>
             </details>
             <details>
-                <summary><x-icon name="book" /><span>{{ $teacher }} peut-il m'aider dans mes cours d'anglais ?</span></summary>
-                <p>Oui, avec « Mes cours », pour les élèves et les étudiants (lycée, université, formation) qui ont une formule active. Vous photographiez votre leçon ou votre exercice d'anglais, {{ $teacher }} la lit et vous l'explique, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et c'est une aide en plus de votre programme pour parler anglais. Votre formule donne un temps par jour, que vous partagez librement entre la séance orale et « Mes cours ».</p>
+                <summary><x-icon name="book" /><span>Puis-je travailler mes cours d'anglais, même en PDF ?</span></summary>
+                <p>Oui, avec « Mes cours », pour les élèves et les étudiants (lycée, université, formation) qui ont une formule active. {{ \App\Support\CourseFiles::offer() }}. Pour un long PDF, vous choisissez avant la séance les pages ({{ \App\Support\CourseFiles::partPages() }} au plus à la fois) ou le passage à travailler, et vous revenez un autre jour pour la suite, sans renvoyer le fichier. {{ $teacher }} lit votre leçon et vous l'explique, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et c'est une aide en plus de votre programme pour parler anglais. Votre formule donne un temps par jour, que vous partagez librement entre la séance orale et « Mes cours ».</p>
             </details>
             <details>
                 <summary><x-icon name="bubble" /><span>Puis-je m'entraîner pour un entretien ou un exposé en anglais ?</span></summary>
@@ -331,7 +328,7 @@
             </details>
             <details>
                 <summary><x-icon name="gift" /><span>L'évaluation est-elle vraiment gratuite ?</span></summary>
-                <p>Oui. Une évaluation orale de {{ $minutes }} minutes au maximum par compte, sans paiement ni engagement. Vous découvrez votre niveau, puis vous décidez.</p>
+                <p>Oui. Une évaluation orale par compte, sans paiement ni engagement : {{ $minutes }} minutes pour trouver votre niveau, puis une mini-leçon pour découvrir comment se passe un cours, et vos questions ({{ \App\Models\Assessment::totalMinutes() }} minutes au plus en tout). Ensuite, vous décidez.</p>
             </details>
         </div>
         @php($faqHtml = ob_get_clean())
@@ -347,7 +344,7 @@
     <section class="section band">
         <div class="cta-band reveal">
             <h2>Votre anglais oral commence aujourd'hui</h2>
-            <p>{{ $minutes }} minutes gratuites avec {{ $teacher }} pour connaître votre niveau et poser vos questions.</p>
+            <p>Une évaluation orale gratuite avec {{ $teacher }} : votre niveau, une première phrase apprise et vos questions.</p>
             <div class="cta-actions">
                 <a class="btn btn-accent btn-lg" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
                 @if ($whatsappUrl)

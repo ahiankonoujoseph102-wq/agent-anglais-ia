@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
  * sur le disque PRIVÉ, son contenu lu par le modèle est enregistré ici pour ne pas relire le
  * fichier à chaque séance.
  */
-#[Fillable(['title', 'source', 'page_count', 'content', 'text'])]
+#[Fillable(['title', 'source', 'page_count', 'content', 'text', 'current_part_id'])]
 class CourseLesson extends Model
 {
     public const SOURCE_PHOTOS = 'photos';
@@ -57,6 +57,40 @@ class CourseLesson extends Model
         return $this->hasMany(CourseSession::class);
     }
 
+    /**
+     * @return HasMany<CoursePart, $this>
+     */
+    public function parts(): HasMany
+    {
+        return $this->hasMany(CoursePart::class)->latest('updated_at')->latest('id');
+    }
+
+    /**
+     * La partie choisie pour la prochaine séance.
+     *
+     * @return BelongsTo<CoursePart, $this>
+     */
+    public function currentPart(): BelongsTo
+    {
+        return $this->belongsTo(CoursePart::class, 'current_part_id');
+    }
+
+    /**
+     * Long PDF lu en sommaire seulement : une partie doit être choisie (et lue) avant la séance.
+     */
+    public function readByParts(): bool
+    {
+        return $this->isPdf() && $this->page_count > (int) config('platform.courses.part_max_pages');
+    }
+
+    /**
+     * Prêt pour une séance : leçon lue en entier, ou partie choisie et lue.
+     */
+    public function readyForSession(): bool
+    {
+        return ! $this->readByParts() || $this->currentPart?->content !== null;
+    }
+
     public function isPdf(): bool
     {
         return $this->source === self::SOURCE_PDF;
@@ -91,11 +125,25 @@ class CourseLesson extends Model
      */
     public function promptContext(): string
     {
-        $content = $this->content;
+        $part = $this->currentPart;
+        // Long PDF : le contenu lu de la partie choisie ; sinon la leçon entière (avec la partie à travailler en premier).
+        $content = $part?->content ?? $this->content;
         $lines = [
             'LESSON TITLE: '.$this->title,
             'PAGES: '.$this->pagesLabel(),
         ];
+
+        if ($part !== null) {
+            $lines[] = 'PART TO WORK ON TODAY (chosen by the learner: focus on it, the rest of the lesson only if the learner asks): '
+                .implode(' — ', array_filter([
+                    $part->page_from !== null ? 'pages '.$part->page_from.' to '.$part->page_to : null,
+                    $part->request ? 'the learner wrote: "'.$part->request.'"' : null,
+                ]));
+        }
+
+        if ($this->readByParts() && filled($this->content['summary'] ?? null)) {
+            $lines[] = 'WHOLE DOCUMENT, IN SHORT: '.$this->content['summary'];
+        }
 
         if (filled($content['summary'] ?? null)) {
             $lines[] = 'SUMMARY: '.$content['summary'];
@@ -137,8 +185,11 @@ class CourseLesson extends Model
             }
         }
 
-        if (filled($this->text)) {
-            $lines[] = "FULL TEXT OF THE PAGES (transcription):\n".Str::limit((string) $this->text, (int) config('platform.courses.text_limit'), '…');
+        $text = $part?->content !== null ? $part->text : $this->text;
+
+        if (filled($text)) {
+            $lines[] = ($part?->content !== null ? 'TEXT OF THE CHOSEN PART (transcription):' : 'FULL TEXT OF THE PAGES (transcription):')
+                ."\n".Str::limit((string) $text, (int) config('platform.courses.text_limit'), '…');
         }
 
         return implode("\n", $lines);

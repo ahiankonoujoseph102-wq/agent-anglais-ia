@@ -58,10 +58,14 @@ return [
         'max_minutes' => 5,
         // Le professeur est prévenu ce nombre de minutes avant la fin pour conclure.
         'warning_minutes_before_end' => 1,
-        // Après l'annonce du niveau : questions libres puis conclusion, en français.
-        // Ce temps s'ajoute à partir du verdict (durée totale coupée par le serveur :
-        // max_minutes + questions_seconds au plus).
+        // Après l'annonce du niveau : mini-leçon découverte (une phrase du niveau trouvé), questions libres puis
+        // conclusion, en français. Ces temps s'ajoutent à partir du verdict (durée totale coupée par le serveur :
+        // max_minutes + discovery_seconds + questions_seconds au plus, soit 8 minutes).
         'questions_seconds' => 120,
+        'discovery_seconds' => 60,
+        // Mini-leçon : phrase dite mot pour mot pour l'ouvrir, et nombre de phrases montrées au tableau.
+        'discovery_intro' => 'Laissez-moi vous montrer comment nous allons travailler ensemble.',
+        'discovery_phrases' => 3,
         // Nombre de questions auxquelles le professeur répond.
         'questions_max' => 3,
         // UNE indication « passez à la conclusion » ce nombre de secondes avant la fin.
@@ -169,9 +173,21 @@ return [
         'photos_total_max_kilobytes' => 16384,
         'photo_max_side' => 1600,
         'photo_quality' => 0.82,
-        // PDF : poids (kilooctets) et nombre de pages.
-        'pdf_max_kilobytes' => 10240,
-        'pdf_max_pages' => 10,
+        // PDF : poids (kilooctets) et nombre de pages. Gemini et OpenAI acceptent 50 mégaoctets par PDF envoyé
+        // directement (documentation lue le 20 octobre 2026) : ces limites restent bien en dessous.
+        'pdf_max_kilobytes' => 20480,
+        'pdf_max_pages' => 50,
+        // Un PDF de plus de part_max_pages pages est lu en deux temps : à l'envoi, un sommaire page par page ;
+        // avant la séance, la partie choisie (part_max_pages pages au plus), relue et gardée (course_parts).
+        'part_max_pages' => 10,
+        // Passage décrit par l'élève (« l'exercice 2 ») : caractères au plus.
+        'part_description_max' => 150,
+        // Délai accordé à CHAQUE fournisseur pour lire un sommaire ou une partie (secondes) ; le navigateur
+        // abandonne l'attente après browser_timeout_seconds avec un message clair.
+        'read_timeout_seconds' => 30,
+        'browser_timeout_seconds' => 100,
+        // « Diagnostic des fournisseurs », essai de l'attente : aussi long que la lecture la plus longue.
+        'check_wait_seconds' => 60,
         // Lectures de leçons (réussies ou non) par heure et par apprenant : protège le coût de la lecture.
         'reads_per_hour' => 10,
         // Dossier des fichiers sur le disque privé.

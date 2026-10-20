@@ -66,6 +66,8 @@ final readonly class CountryPage
             ':minutes' => (string) config('platform.assessment.max_minutes'),
             ':operators' => self::operators($country),
             ':daily' => self::dailyMinutes(),
+            ':course_photos' => (string) CourseFiles::photos(),
+            ':course_pages' => (string) CourseFiles::pdfPages(),
             ':dial' => (string) ($all?->dialCode ?? ''),
         ];
         $fill = fn (string $text) => strtr($text, $markers);

@@ -29,7 +29,7 @@
     @endif
 
     <form method="POST" action="{{ route('courses.store') }}" enctype="multipart/form-data"
-          class="card form-card rise course-form" id="course-form" novalidate data-course-form
+          class="card form-card rise course-form" id="course-form" novalidate data-course-form data-long-submit data-busy-label="Lecture de votre leçon…" data-timeout="{{ $limits['browser_timeout'] }}"
           data-max-photos="{{ $limits['photos'] }}" data-max-side="{{ $limits['max_side'] }}" data-quality="{{ $limits['quality'] }}"
           data-photo-max-bytes="{{ $limits['photo_max_bytes'] }}" data-pdf-max-bytes="{{ $limits['pdf_max_bytes'] }}">
         @csrf
@@ -58,8 +58,9 @@
         </div>
 
         <p class="hint">
-            Jusqu'à {{ $limits['photos'] }} photos (une par page), ou un PDF de {{ $limits['pdf_megabytes'] }} mégaoctets et
-            {{ $limits['pdf_pages'] }} pages au plus. Les photos sont réduites avant l'envoi pour économiser vos données.
+            Ajoutez jusqu'à {{ $limits['photos'] }} photos de votre cahier ou de votre livre (une par page), ou votre cours en PDF
+            (jusqu'à {{ $limits['pdf_pages'] }} pages et {{ $limits['pdf_megabytes'] }} mégaoctets). Les photos sont réduites avant l'envoi pour économiser vos données.
+            Un long PDF ? Vous choisirez ensuite la partie à travailler, {{ $limits['part_pages'] }} pages au plus à la fois.
         </p>
 
         @error('pages')
@@ -89,12 +90,15 @@
         <x-input name="title" label="Titre de la leçon" :value="old('title')" maxlength="150"
                  :hint="config('avatar.model.name').' en propose un d\'après votre leçon si vous n\'en donnez pas.'" />
 
+        <p class="error" data-long-submit-error role="alert" hidden></p>
         <button type="submit" class="btn btn-accent btn-block btn-lg btn-plan course-submit" data-course-submit>Envoyer ma leçon</button>
         <p class="hint course-waiting" data-course-waiting hidden role="status">
-            {{ config('avatar.model.name') }} lit votre leçon. Cela peut prendre une demi-minute : gardez cette page ouverte.
+            {{ config('avatar.model.name') }} lit votre leçon. Cela peut prendre jusqu'à une minute pour un long PDF : gardez cette page ouverte.
         </p>
         <p class="muted small next-step">Vos pages restent privées : seuls vous et notre équipe pouvez les voir.</p>
     </form>
 
+    {{-- Dans cet ordre : course-upload.js vérifie le choix, long-submit.js envoie en arrière-plan. --}}
     <script type="module" src="{{ \App\Support\Asset::url('js/course-upload.js') }}"></script>
+    <script type="module" src="{{ \App\Support\Asset::url('js/long-submit.js') }}"></script>
 </x-layout>
