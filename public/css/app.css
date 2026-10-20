@@ -1244,6 +1244,8 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .board[data-translations="discreet"] .board-fr { font-size: var(--fs-xs); opacity: .8; }
 .board[data-translations="hidden"] .board-fr { display: none; }
 .board.show-translations .board-fr { display: block; font-size: var(--fs-sm); opacity: 1; }
+.board-heading .icon { width: 14px; height: 14px; vertical-align: -2px; }
+.board-pitfall { margin: 0; padding: 6px 10px 6px 12px; border-radius: var(--radius-sm); border-left: 3px solid var(--c-accent); background: var(--c-on-dark-glow); font-size: var(--fs-sm); overflow-wrap: anywhere; }
 .board-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--c-on-dark-muted); cursor: pointer; }
 .board-toggle input { accent-color: var(--c-accent); width: 16px; height: 16px; }
 @media (min-width: 900px), (orientation: landscape) and (max-height: 560px) {

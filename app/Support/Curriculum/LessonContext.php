@@ -116,6 +116,10 @@ class LessonContext
             $lines[] = '- Rule: '.implode(' / ', array_filter([$board['rule']['en'], $board['rule']['fr'] ? '(in French) '.$board['rule']['fr'] : null]));
         }
 
+        if (! empty($board['pitfall'])) {
+            $lines[] = '- Pitfall of the day (in French, from the programme; teach it by contrast): '.$board['pitfall'];
+        }
+
         $lines[] = '';
         $lines[] = 'PREVIOUS LESSON';
 
