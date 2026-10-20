@@ -102,6 +102,41 @@
         Les séances orales en direct n'en font pas partie.
     </p>
 
+    {{-- Documents personnels de révision des séances « Mes cours » (App\Support\CourseReviews::stats). --}}
+    <h2 class="next-step" id="documents-revision">Documents de révision (Mes cours)</h2>
+    <div class="stats">
+        <div class="stat">
+            <div class="label">Préparés</div>
+            <div class="value">{{ $reviews['documents']['ready'] }}</div>
+            <div class="detail">dont {{ $reviews['today'] }} aujourd'hui · {{ UsageCost::format($reviews['cost']) }} au total</div>
+        </div>
+        <div class="stat">
+            <div class="label">En préparation</div>
+            <div class="value">{{ $reviews['documents']['pending'] }}</div>
+            <div class="detail">quelques séances à chaque passage du planificateur</div>
+        </div>
+        <div class="stat">
+            <div class="label">En échec</div>
+            <div class="value">{{ $reviews['documents']['failed'] }}</div>
+            <div class="detail">après trois essais ; l'élève peut « Réessayer »</div>
+        </div>
+        <div class="stat">
+            <div class="label">Séances trop courtes</div>
+            <div class="value">{{ $reviews['documents']['skipped'] }}</div>
+            <div class="detail">aucun document</div>
+        </div>
+    </div>
+    <p class="muted small">
+        Rédigés par
+        @forelse ($reviews['providers'] as $provider => $count)
+            {{ $provider === 'openai' ? 'OpenAI' : 'Gemini' }} : {{ $count }}@if (! $loop->last), @endif
+        @empty
+            aucun fournisseur pour l'instant
+        @endforelse.
+        E-mails envoyés : {{ $reviews['mail']['sent'] }}, en échec : {{ $reviews['mail']['failed'] }}, non envoyés (limite du jour) : {{ $reviews['mail']['quota'] }},
+        élèves sans adresse : {{ $reviews['mail']['no_email'] }}. Détail du jour : page « Alertes ».
+    </p>
+
     {{-- Modèle texte (captures, « Mes cours », estimation, rédactions) : Gemini d'abord, OpenAI en secours. --}}
     <h2 class="next-step">Analyse de texte et d'images</h2>
     <div class="stats">

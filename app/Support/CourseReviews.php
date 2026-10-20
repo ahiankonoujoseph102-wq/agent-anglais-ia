@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enums\LessonStatus;
 use App\Models\CourseReview;
 use App\Models\CourseSession;
+use App\Models\TextAnalysis;
 use App\Support\Gemini\CourseReviewWriter;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -195,6 +196,29 @@ class CourseReviews
         $recent = $session->ended_at !== null && $session->ended_at->gte(now()->subDays((int) self::setting('lookback_days')));
 
         return $session->status !== LessonStatus::InProgress && $recent && $session->course_lesson_id !== null ? CourseReview::PENDING : 'none';
+    }
+
+    /**
+     * Chiffres de l'administration (« Consommation » et « Alertes ») : documents par état et par fournisseur, coût
+     * estimé, e-mails par résultat (au total et aujourd'hui).
+     *
+     * @return array{documents: array<string, int>, today: int, providers: array<string, int>, cost: float, mail: array<string, int>, mail_today: array<string, int>}
+     */
+    public static function stats(): array
+    {
+        $count = fn (string $column) => CourseReview::query()->toBase()->selectRaw($column.' as value, count(*) as aggregate_count')
+            ->whereNotNull($column)->groupBy($column)->pluck('aggregate_count', 'value')->map(fn ($n) => (int) $n)->all();
+
+        return [
+            'documents' => array_merge([CourseReview::READY => 0, CourseReview::PENDING => 0, CourseReview::FAILED => 0, CourseReview::SKIPPED => 0], $count('status')),
+            'today' => CourseReview::query()->where('status', CourseReview::READY)->where('prepared_at', '>=', today())->count(),
+            'providers' => $count('provider'),
+            'cost' => (float) TextAnalysis::query()->where('kind', 'review')->sum('cost_usd'),
+            'mail' => array_merge([CourseReviewMailer::SENT => 0, CourseReviewMailer::FAILED => 0, CourseReviewMailer::QUOTA => 0, CourseReviewMailer::NO_EMAIL => 0], $count('mail_status')),
+            'mail_today' => array_merge([CourseReviewMailer::SENT => 0, CourseReviewMailer::FAILED => 0, CourseReviewMailer::QUOTA => 0], CourseReview::query()->toBase()
+                ->selectRaw('mail_status as value, count(*) as aggregate_count')->whereNotNull('mail_status')->where('mailed_at', '>=', today())
+                ->groupBy('mail_status')->pluck('aggregate_count', 'value')->map(fn ($n) => (int) $n)->all()),
+        ];
     }
 
     public static function setting(string $key): mixed
