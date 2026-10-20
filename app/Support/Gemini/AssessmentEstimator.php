@@ -24,7 +24,7 @@ class AssessmentEstimator
             .'comprehension, vocabulary, grammar, fluency. Answers in French or no answer mean a low level. '
             .'Reply with exactly two lines and nothing else:'."\n"
             .'LEVEL: <A1, A2, B1, B2, C1 or C2>'."\n"
-            .'FEEDBACK: <two short sentences in French for the learner: strengths, what to work on>',
+            .'FEEDBACK: <'.TeacherSetup::FEEDBACK_RULE.'>',
             "TRANSCRIPT\n".$transcript,
             300,
             'estimate',

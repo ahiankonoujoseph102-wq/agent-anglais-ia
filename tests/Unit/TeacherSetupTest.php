@@ -339,4 +339,19 @@ class TeacherSetupTest extends TestCase
         $this->assertSame('cedar', OpenAiRealtime::session($setup)['audio']['output']['voice']);
         $this->assertArrayNotHasKey('language', OpenAiRealtime::session($setup)['audio']['input']['transcription'] ?? []);
     }
+
+    public function test_assessment_feedback_speaks_to_the_learner_with_vous_never_in_the_third_person(): void
+    {
+        $setup = TeacherSetup::assessment(new User(['name' => 'Afi']), 5);
+        $feedback = $setup['tools'][0]['functionDeclarations'][0]['parameters']['properties']['feedback']['description'];
+
+        $this->assertSame(TeacherSetup::FEEDBACK_RULE, $feedback);
+        $this->assertStringContainsString('in French, written directly TO the learner with "vous"', $feedback);
+        $this->assertStringContainsString('Never write about the learner in the third person', $feedback);
+        $this->assertStringContainsString('addressed directly to the learner with "vous", never in the third person', config('teacher.assessment'));
+
+        // Même règle chez OpenAI (fonction tirée de la configuration de Gemini).
+        $openai = OpenAiRealtime::session($setup);
+        $this->assertSame(TeacherSetup::FEEDBACK_RULE, $openai['tools'][0]['parameters']['properties']['feedback']['description']);
+    }
 }

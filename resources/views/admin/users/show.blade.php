@@ -18,7 +18,7 @@
 
     <section class="card" id="compte">
         <dl class="summary">
-            <dt>Téléphone</dt><dd><a href="tel:{{ $user->phone }}">{{ $user->phone }}</a></dd>
+            <dt>Téléphone</dt><dd><a href="tel:{{ $user->phone }}">{{ \App\Support\PhoneNumber::display($user->phone) }}</a></dd>
             <dt>Pays</dt><dd>{{ $user->countryName() }}@unless ($user->canPayOnline()) : paiement en ligne indisponible, abonnement par WhatsApp puis « Offrir un accès »@endunless</dd>
             @if ($user->email)
                 <dt>Adresse e-mail</dt><dd><a href="mailto:{{ $user->email }}">{{ $user->email }}</a></dd>

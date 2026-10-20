@@ -175,7 +175,7 @@
                         $learnerCost = $learnerCosts[$learner->id] ?? ['oral' => 0.0, 'course' => 0.0];
                     @endphp
                     <tr>
-                        <td data-label="Apprenant">{{ $learner->name }}<br><span class="muted small">{{ $learner->phone }}</span></td>
+                        <td data-label="Apprenant">{{ $learner->name }}<br><span class="muted small">{{ \App\Support\PhoneNumber::display($learner->phone) }}</span></td>
                         <td data-label="Évaluation">
                             @if ($learner->assessment)
                                 {{ $learner->assessment->status->label() }}

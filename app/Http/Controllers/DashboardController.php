@@ -63,6 +63,8 @@ class DashboardController extends Controller
             'skills' => $user->skillAverages(),
             'openErrors' => $user->openErrors()->limit(5)->get(),
             'openErrorsCount' => $user->openErrors()->count(),
+            // « Séances faites » : affiché seulement quand il y en a (vrai nombre de séances orales terminées).
+            'lessonsDone' => $user->lessons()->where('status', LessonStatus::Completed)->count(),
             'attestations' => $user->attestations()->orderBy('level')->get(),
             'lastLevelTest' => $user->levelTests()->latest('id')->first(),
             'assessment' => $assessment,

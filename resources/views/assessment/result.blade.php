@@ -17,7 +17,10 @@
                 <h1 id="niveau">Votre niveau : <span class="result-level">{{ $found->value }}</span></h1>
                 <p class="result-label">{{ $found->label() }}</p>
                 @if ($assessment->feedback)
-                    <p class="result-feedback">{{ $assessment->feedback }}</p>
+                    <div class="result-opinion">
+                        <h2 class="result-opinion-title">L'avis de {{ $teacher }}</h2>
+                        <p class="result-feedback">{{ $assessment->feedback }}</p>
+                    </div>
                 @endif
 
                 <div class="result-voice" data-level-message>
@@ -51,6 +54,11 @@
         </div>
     @endif
 
+    {{-- Accès déjà ouvert : formules repliées sous « Voir les formules ». Sans abonnement : bien visibles. --}}
+    @if ($hasSubscription)
+        <details class="plans-fold reveal">
+            <summary class="btn btn-outline btn-block">Voir les formules</summary>
+    @endif
     <section class="section-tight" aria-labelledby="formules">
         <span class="eyebrow">Votre prochaine étape</span>
         <h2 id="formules">Commencez votre programme {{ $chosen?->value ?? $found?->value }} dès aujourd'hui</h2>
@@ -62,6 +70,9 @@
         <p class="muted small next-step"><x-icon name="book" /> Chaque formule comprend aussi l'aide à vos cours d'anglais (« Mes cours »), en plus de l'oral.</p>
         <p class="muted small next-step">Paiement par Mobile Money depuis votre téléphone. Vous choisissez ensuite vos jours de séance.</p>
     </section>
+    @if ($hasSubscription)
+        </details>
+    @endif
 
     @if ($canChoose)
         <section class="section-tight" aria-labelledby="autre-niveau">

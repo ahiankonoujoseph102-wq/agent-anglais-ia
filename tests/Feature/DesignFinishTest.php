@@ -2,11 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AssessmentStatus;
+use App\Enums\LessonStatus;
 use App\Enums\Level;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\BuildsPrograms;
+use Tests\Concerns\HasCourses;
 use Tests\TestCase;
 
 /**
@@ -16,7 +21,7 @@ use Tests\TestCase;
  */
 class DesignFinishTest extends TestCase
 {
-    use BuildsPrograms, RefreshDatabase;
+    use BuildsPrograms, HasCourses, RefreshDatabase;
 
     private static function css(): string
     {
@@ -158,5 +163,92 @@ class DesignFinishTest extends TestCase
         $this->actingAs($user)->get(route('program.answers.edit', [$program, 3]))->assertOk()
             ->assertSee('À quoi servent vos réponses')
             ->assertSee('class="days"', false);
+    }
+
+    private function assessedLearner(?string $plan = null, string $phone = '+22879162390'): User
+    {
+        $user = User::factory()->create(['name' => 'Afi', 'phone' => $phone, 'welcomed_at' => now()]);
+        $user->forceFill(['level' => Level::A2])->save();
+        $user->assessment()->create([
+            'status' => AssessmentStatus::Completed,
+            'started_at' => now()->subHour(),
+            'ended_at' => now()->subHour()->addMinutes(5),
+            'allowed_seconds' => 300,
+            'used_seconds' => 300,
+            'level' => Level::A2,
+            // Ancien résumé à la troisième personne : jamais réécrit, affiché sous « L'avis de Teacher Joe ».
+            'feedback' => 'L\'apprenant comprend les questions simples.',
+        ]);
+
+        if ($plan) {
+            Subscription::factory()->for($user)->forPlan($plan)->create();
+        }
+
+        return $user->fresh();
+    }
+
+    public function test_my_courses_shows_a_single_add_button_when_there_is_no_lesson(): void
+    {
+        Storage::fake('local');
+        config(['filesystems.private_disk' => 'local']);
+        $user = $this->learner();
+
+        $html = $this->actingAs($user)->get(route('courses.index'))->assertOk()->getContent();
+        $this->assertSame(1, substr_count($html, 'Ajouter une leçon'));
+        $this->assertMatchesRegularExpression('/empty-state.*Ajouter une leçon/s', $html);
+
+        // Avec une leçon : le bouton du haut revient (toujours un seul).
+        $this->storedLesson($user);
+        $html = $this->actingAs($user)->get(route('courses.index'))->assertOk()->getContent();
+        $this->assertSame(1, substr_count($html, 'Ajouter une leçon'));
+        $this->assertStringNotContainsString('empty-state', $html);
+    }
+
+    public function test_result_page_shows_plans_to_a_learner_without_access_and_folds_them_otherwise(): void
+    {
+        $guest = $this->assessedLearner();
+        $html = $this->actingAs($guest)->get(route('assessment.show'))->assertOk()
+            ->assertSeeInOrder(["L'avis de ".config('avatar.model.name'), 'L&#039;apprenant comprend les questions simples.'], false)
+            ->assertSee('Choisir Essentiel')
+            ->getContent();
+        $this->assertStringNotContainsString('plans-fold', $html);
+        $this->assertStringNotContainsString('Voir les formules', $html);
+
+        $subscriber = $this->assessedLearner('essentiel', '+22890112233');
+        $this->actingAs($subscriber)->get(route('assessment.show'))->assertOk()
+            ->assertSeeInOrder(['Votre accès est ouvert', '<details class="plans-fold', 'Voir les formules', 'Choisir Essentiel', '</details>'], false);
+    }
+
+    public function test_dashboard_shows_teacher_joe_and_counts_only_real_sessions(): void
+    {
+        $user = $this->assessedLearner('essentiel');
+        $this->buildProgram($user);
+
+        $html = $this->actingAs($user)->get(route('dashboard'))->assertOk()->getContent();
+        $this->assertStringContainsString('class="hero-teacher-face welcome-face"', $html);
+        $this->assertStringNotContainsString('apple-touch-icon.png" width="64"', $html);
+        $this->assertStringContainsString("L'avis de ".config('avatar.model.name'), $html);
+        // Aucune séance faite : deux colonnes égales, pas de « Séances faites ».
+        $this->assertStringContainsString('class="stats stats-pair"', $html);
+        $this->assertStringNotContainsString('Séances faites', $html);
+
+        $user->lessons()->create(['date' => today(), 'started_at' => now()->subMinutes(20), 'ended_at' => now()->subMinutes(5), 'allowed_seconds' => 900, 'used_seconds' => 900, 'status' => LessonStatus::Completed]);
+        $user->lessons()->create(['date' => today(), 'started_at' => now()->subMinutes(4), 'allowed_seconds' => 900, 'used_seconds' => 0, 'status' => LessonStatus::Interrupted]);
+
+        $this->actingAs($user)->get(route('dashboard'))->assertOk()
+            ->assertSee('Séances faites')
+            ->assertSee('séance orale terminée')
+            ->assertDontSee('stats-pair');
+    }
+
+    public function test_account_number_is_shown_with_spaces(): void
+    {
+        $this->assertSame('+228 79 16 23 90', PhoneNumber::display('+22879162390'));
+        $this->assertSame('+225 07 07 07 07 07', PhoneNumber::display('+2250707070707'));
+        $this->assertSame('+33 6 12 34 56 78', PhoneNumber::display('+33612345678'));
+        $this->assertSame('pas un numéro', PhoneNumber::display('pas un numéro'));
+
+        $user = $this->assessedLearner();
+        $this->actingAs($user)->get(route('account.edit'))->assertOk()->assertSee('+228 79 16 23 90');
     }
 }

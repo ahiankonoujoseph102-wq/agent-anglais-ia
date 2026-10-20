@@ -70,4 +70,29 @@ class PhoneNumber
 
         return '+'.$digits;
     }
+
+    /**
+     * Numéro international affiché lisiblement : indicatif, puis chiffres par deux en partant de la fin
+     * (+22879162390 → « +228 79 16 23 90 »). Un numéro qui n'est pas au format international est rendu tel quel.
+     */
+    public static function display(?string $phone): string
+    {
+        $phone = (string) $phone;
+
+        if (! preg_match('/^\+(\d{8,15})$/', $phone, $match)) {
+            return $phone;
+        }
+
+        $dial = Countries::dial(Countries::forPhone($phone));
+
+        if ($dial === null || ! str_starts_with($match[1], $dial)) {
+            return $phone;
+        }
+
+        $local = substr($match[1], strlen($dial));
+        $groups = str_split(strrev($local), 2);
+        $local = strrev(implode(' ', $groups));
+
+        return '+'.$dial.' '.$local;
+    }
 }

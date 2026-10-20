@@ -27,7 +27,10 @@
                 <span>{{ \App\Support\DailyTime::remainingSentence($counter['remaining']) }}</span>
             </p>
             <p class="muted small">Votre temps du jour est partagé librement entre la séance orale et « Mes cours ». Une séance avec {{ config('avatar.model.name') }} dure {{ \App\Support\Duration::format((int) config('platform.courses.max_session_minutes') * 60) }} au plus, jamais plus que le temps qu'il vous reste.</p>
-            <a href="{{ route('courses.create') }}" class="btn btn-accent btn-block btn-lg"><x-icon name="plus" /> Ajouter une leçon</a>
+            {{-- Aucune leçon : un seul bouton, celui de l'état vide plus bas. --}}
+            @if ($lessons->total() > 0)
+                <a href="{{ route('courses.create') }}" class="btn btn-accent btn-block btn-lg"><x-icon name="plus" /> Ajouter une leçon</a>
+            @endif
         </section>
 
         <h2 class="next-step">Mes leçons</h2>
