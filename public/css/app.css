@@ -206,7 +206,9 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 .option:hover { border-color: var(--c-primary-line); }
 .option:active { transform: scale(.985); }
 .option:has(input:checked) { border-color: var(--c-primary); background: var(--c-primary-soft); }
-.days { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 var(--space-2); }
+/* Jours : grille souple, jamais plus large que la carte (« Dimanche » et « Jeudi » débordaient à 768 et 1280). */
+.days { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: 0 var(--space-2); }
+.days .option, .profiles .option { min-width: 0; padding-inline: var(--space-3); overflow-wrap: anywhere; }
 .form-footer { margin-top: var(--space-5); text-align: center; }
 .form-footer p { margin: 0 0 var(--space-2); }
 
@@ -758,7 +760,6 @@ main { overflow-x: clip; }
     .levels li:first-child::before { left: 50%; }
     .levels li:last-child::before { right: 50%; }
     .choices { grid-template-columns: repeat(3, 1fr); }
-    .days { grid-template-columns: repeat(4, 1fr); }
     .footer-grid { grid-template-columns: 1.3fr 1fr 1fr; }
     .payment-grid { grid-template-columns: 240px 1fr; }
     .payment-actions { grid-template-columns: 1fr 2fr; align-items: start; }
@@ -1018,7 +1019,7 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 /* Questionnaire, « Vous êtes… » : libellés longs (« En recherche d'emploi ») : une colonne sur petit téléphone,
    deux colonnes qui ne dépassent jamais la carte ensuite. */
 .profiles { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 var(--space-2); }
-@media (min-width: 400px) { .profiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 400px) { .profiles { grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr)); } }
 
 /* ---------- Accueil : finition ----------
    Sections alternées sur toute la largeur (.band : blanc ; .band-soft : bleu très clair ; .band-dark : bleu nuit,
@@ -1093,4 +1094,22 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 @keyframes bob {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-8px); }
+}
+
+/* Pages étroites (connexion, inscription, questionnaire) : sur grand écran, carte formulaire et petit panneau d'aide
+   à côté (<x-form-aside>) ; téléphone et tablette : panneau caché, rien ne change. */
+.with-aside-panel { display: none; }
+.aside-teacher { margin: 0 0 var(--space-4); text-align: center; }
+.aside-face { display: block; width: 140px; height: 140px; margin: 0 auto var(--space-3); border-radius: 50%; overflow: hidden; background: var(--c-bg-warm); box-shadow: 0 0 0 4px var(--c-surface), 0 0 0 7px var(--c-accent); }
+.aside-face img { display: block; width: 100%; height: 100%; transform: scale(1.9) translate(0, 16%); }
+.aside-teacher figcaption { color: var(--c-muted); font-size: var(--fs-sm); }
+.aside-teacher strong { display: block; color: var(--c-heading); font-size: var(--fs-md); }
+.with-aside-panel .hero-points { margin: 0; }
+.aside-title { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-lg); }
+.aside-title .icon { color: var(--c-accent-strong); flex: none; }
+.aside-list { margin: 0 0 var(--space-3); padding-left: 1.1em; display: grid; gap: var(--space-2); font-size: var(--fs-sm); }
+@media (min-width: 900px) {
+    .container-narrow:has(.with-aside) { max-width: calc(var(--container-narrow) + 300px + var(--space-8)); }
+    .with-aside { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--space-8); align-items: start; }
+    .with-aside-panel { display: block; position: sticky; top: 96px; padding: var(--space-5); }
 }

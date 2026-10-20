@@ -2,6 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Level;
+use App\Models\Subscription;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\BuildsPrograms;
 use Tests\TestCase;
 
 /**
@@ -11,6 +16,8 @@ use Tests\TestCase;
  */
 class DesignFinishTest extends TestCase
 {
+    use BuildsPrograms, RefreshDatabase;
+
     private static function css(): string
     {
         return (string) file_get_contents(public_path('css/app.css'));
@@ -113,5 +120,43 @@ class DesignFinishTest extends TestCase
         $this->assertStringNotContainsString('.how-head::after', $css);
         $this->assertStringContainsString('.how::before', self::mediaBlocks('min-width: 900px'));
         $this->assertStringContainsString('.faq-section .faq { margin-inline: auto; max-width: 760px; }', $css);
+    }
+
+    public function test_questionnaire_choices_never_overflow_the_card(): void
+    {
+        $css = self::css();
+
+        // Jours et profils : grille souple (jamais plus de colonnes que la carte n'en contient).
+        $this->assertStringContainsString('.days { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr));', $css);
+        $this->assertStringContainsString('.profiles { grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr)); }', $css);
+        $this->assertStringContainsString('.days .option, .profiles .option { min-width: 0;', $css);
+        $this->assertDoesNotMatchRegularExpression('/\.days \{ grid-template-columns: repeat\(\d/', $css);
+    }
+
+    public function test_narrow_pages_get_a_help_panel_on_large_screens_only(): void
+    {
+        $css = self::css();
+        $this->assertStringContainsString('.with-aside-panel { display: none; }', $css);
+        $this->assertStringContainsString('.with-aside-panel { display: block;', self::mediaBlocks('min-width: 900px'));
+
+        foreach (['/connexion', '/inscription'] as $page) {
+            $this->get($page)->assertOk()
+                ->assertSee('class="with-aside-panel card"', false)
+                ->assertSee(config('avatar.model.name'))
+                ->assertSeeInOrder(['Gratuite et sans engagement', 'Votre niveau, de A1 à C2', 'Paiement par Mobile Money']);
+        }
+
+        $user = User::factory()->create();
+        $user->level = Level::A2;
+        $user->save();
+        Subscription::factory()->for($user)->create();
+
+        $this->actingAs($user)->get(route('program.questionnaire', 1))->assertOk()
+            ->assertSee('À quoi servent vos réponses');
+
+        $program = $this->buildProgram($user->fresh());
+        $this->actingAs($user)->get(route('program.answers.edit', [$program, 3]))->assertOk()
+            ->assertSee('À quoi servent vos réponses')
+            ->assertSee('class="days"', false);
     }
 }
