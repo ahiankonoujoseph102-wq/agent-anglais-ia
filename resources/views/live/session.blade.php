@@ -26,6 +26,7 @@
          data-live-openai="{{ \App\Support\Asset::url('js/live-openai.js') }}"
          data-transcript="{{ \App\Support\Asset::url('js/transcript.js') }}"
          data-turn-watch="{{ \App\Support\Asset::url('js/turn-watch.js') }}"
+         data-lesson-board="{{ \App\Support\Asset::url('js/lesson-board.js') }}"
          data-audio='@json($audio)'
          @if (\App\Support\Avatar::enabled())
              data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"
@@ -64,6 +65,11 @@
                 </div>
             </div>
             <button type="button" id="teacher3d-toggle" class="btn btn-link teacher3d-toggle" hidden></button>
+
+            {{-- Séance du jour : le tableau, sous Teacher Joe sur téléphone (replié), déplacé à droite sur grand écran. --}}
+            @if (! empty($board))
+                <div id="board-home"><x-live-board :board="$board" :translations="$boardTranslations ?? 'show'" /></div>
+            @endif
 
             {{-- Ordinateur (900 pixels et plus) : sous Teacher Joe, les conseils avant le début, puis la transcription
                  (live-session.js y déplace #subtitles). Caché sur téléphone et en paysage : rien n'y change. --}}
@@ -129,6 +135,9 @@
                 <x-icon name="clock" />
                 <div><strong>Le temps continue pendant la pause.</strong> Au-delà de {{ \App\Support\Duration::format((int) config('platform.live.pause_max_seconds')) }}, la conversation se termine.</div>
             </div>
+
+            {{-- Grand écran (et téléphone couché) : le tableau vient ici, à côté de Teacher Joe. --}}
+            <div id="board-wide"></div>
 
             <div id="controls" class="live-controls" hidden>
                 <button type="button" id="interrupt" class="btn btn-accent btn-lg live-control live-control-wide" hidden>

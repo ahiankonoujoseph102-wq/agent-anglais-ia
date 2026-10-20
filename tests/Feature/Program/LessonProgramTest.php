@@ -95,8 +95,9 @@ class LessonProgramTest extends TestCase
                 && str_contains($text, array_key_first($unit->vocabulary))
                 && str_contains($text, 'Summary: Révision du present perfect.')
                 && str_contains($text, "[{$error->id}] wrong: \"I am agree\" → correct: \"I agree\"")
-                && str_contains($text, 'Quick review')
-                && str_contains($text, 'Oral practice in situation');
+                && str_contains($text, 'ERRORS TO REVIEW')
+                && str_contains($text, 'STEP 2 — GUIDED PRACTICE')
+                && str_contains($text, 'STEP 3 — CONVERSATION');
         });
 
         $lesson = $user->lessons()->latest('id')->first();

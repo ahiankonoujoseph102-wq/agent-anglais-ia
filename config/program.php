@@ -21,6 +21,22 @@ return [
     // Nombre maximal d'erreurs rappelées au professeur à chaque séance.
     'errors_per_lesson' => 6,
 
+    // Séance du jour en quatre temps (App\Support\Curriculum\LessonPlan) : part du temps (hors bilan, qui occupe toujours
+    // les dernières minutes : platform.lessons.warning_minutes_before_end) donnée à la leçon, à la pratique guidée et à la
+    // conversation. A1 et A2 : surtout leçon et pratique ; B1 : équilibré ; B2 à C2 : leçon courte, surtout conversation.
+    'lesson_shares' => [
+        'beginner' => ['lesson' => 40, 'practice' => 25, 'conversation' => 30],
+        'intermediate' => ['lesson' => 30, 'practice' => 25, 'conversation' => 45],
+        'advanced' => ['lesson' => 20, 'practice' => 15, 'conversation' => 65],
+    ],
+
+    // Sous cette durée (minutes), la leçon et la pratique guidée sont fusionnées.
+    'lesson_merge_below' => 6,
+
+    // Tableau de la séance pas encore prêt à l'ouverture de « Ma séance du jour » : délai accordé à chaque
+    // fournisseur du modèle texte (secondes), puis tableau de secours tiré du programme. Jamais à la connexion.
+    'board_prepare_timeout' => 6,
+
     // « Modifier mes objectifs » : modifications enregistrées au plus par jour et par compte (minuit, heure de Lomé).
     'answer_edits_per_day' => 3,
 

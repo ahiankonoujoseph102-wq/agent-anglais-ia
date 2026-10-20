@@ -88,6 +88,9 @@ class ProgramBuilder
         $program->content = ['intro' => $this->intro($user, $program)];
         $program->save();
 
+        // Tableau de la première leçon, préparé après la réponse (jamais au moment de la connexion à la séance).
+        LessonBoards::queue($program->currentLesson()->first(), $program);
+
         return $program;
     }
 

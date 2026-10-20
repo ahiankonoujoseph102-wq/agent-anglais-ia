@@ -12,17 +12,21 @@ use App\Http\Requests\Live\SignalRequest;
 use App\Models\Lesson;
 use App\Models\ProgramLesson;
 use App\Models\User;
+use App\Support\Curriculum\LessonBoards;
 use App\Support\Curriculum\LessonContext;
+use App\Support\Curriculum\LessonPlan;
 use App\Support\Curriculum\LessonReport;
 use App\Support\DailyTime;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Text\TextProviders;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
+use Throwable;
 
 /**
  * La séance du jour des abonnés, limitée au temps restant du jour de leur formule (partagé avec « Mes cours »).
@@ -51,11 +55,20 @@ class LessonController extends Controller
             return to_route('dashboard')->with('status', DailyTime::EXHAUSTED);
         }
 
+        $board = $this->board($user, $lesson);
+
         return view('live.session', [
             'mode' => 'lesson',
             'title' => 'Ma séance du jour',
             'intro' => DailyTime::remainingSentence($remaining).' Ce temps du jour est partagé avec « Mes cours ». Le professeur vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
             'remainingSeconds' => $remaining,
+            'board' => $board,
+            // Traductions du tableau : visibles en A1 et A2, discrètes en B1, masquées ensuite.
+            'boardTranslations' => match ($user->activeProgram()->first()?->level ?? $user->level) {
+                Level::A1, Level::A2, null => 'show',
+                Level::B1 => 'discreet',
+                default => 'hidden',
+            },
             'urls' => [
                 'connect' => route('lesson.connect'),
                 'signal' => route('lesson.signal'),
@@ -123,7 +136,9 @@ class LessonController extends Controller
         $programLesson = $lesson?->programLesson ?? $program?->currentLesson()->first();
         $programLesson?->setRelation('program', $program);
 
-        $setup = TeacherSetup::lesson($user, (int) ceil($allowedSeconds / 60), $request->handle(), $this->context($user, $programLesson));
+        $minutes = (int) ceil($allowedSeconds / 60);
+        $plan = LessonPlan::for($program?->level ?? $user->level, $minutes);
+        $setup = TeacherSetup::lesson($user, $minutes, $request->handle(), $this->context($user, $programLesson, $plan));
 
         try {
             $token = $live->request($setup, $deadline, $lesson, $request->failedProvider());
@@ -148,10 +163,23 @@ class LessonController extends Controller
         $warningMinutes = (int) config('platform.lessons.warning_minutes_before_end');
 
         return response()->json($live->attach($lesson, $token, $setup, [
-            'start' => TeacherSetup::cue('lesson_start', ['minutes' => (int) ceil($allowedSeconds / 60)]),
+            'start' => TeacherSetup::cue('lesson_start', ['minutes' => $minutes]),
             'resume' => TeacherSetup::cue('resume'),
             'warning' => TeacherSetup::cue('lesson_warning', ['remaining' => $warningMinutes]),
-        ], $warningMinutes * 60, $resumed));
+            // Séance en quatre temps : reprise selon l'étape en cours, et une seule relance douce vers la conversation.
+            'resume_phases' => self::phaseCues('lesson_resume'),
+            'pause_phases' => self::phaseCues('lesson_pause_resume'),
+            'conversation' => TeacherSetup::cue('lesson_conversation'),
+        ], $warningMinutes * 60, $resumed) + [
+            // Écran : étape en cours d'après les phrases de passage du professeur, sinon d'après le temps écoulé.
+            'phases' => [
+                'phrases' => (array) config('platform.lessons.phase_phrases'),
+                'starts' => LessonPlan::starts($plan),
+                'merged' => $plan['merged'],
+                // Durée accordée à la séance : temps écoulé = durée − temps restant.
+                'total' => $lesson->allowed_seconds,
+            ],
+        ]);
     }
 
     public function signal(SignalRequest $request): JsonResponse
@@ -180,6 +208,7 @@ class LessonController extends Controller
         }
 
         LessonReport::record($lesson, $request->validated());
+        $this->prepareNextBoard($request->user());
 
         return response()->json([
             'saved' => true,
@@ -197,6 +226,8 @@ class LessonController extends Controller
         if ($lesson->closeIfOver()) {
             $lesson->finish(now());
         }
+
+        $this->prepareNextBoard($request->user());
 
         return response()->json(['status' => $lesson->status->label()]);
     }
@@ -229,7 +260,7 @@ class LessonController extends Controller
     /**
      * Consignes de la séance : profil, leçon du jour, séance précédente, erreurs à revoir.
      */
-    private function context(User $user, ?ProgramLesson $programLesson): ?string
+    private function context(User $user, ?ProgramLesson $programLesson, array $plan): ?string
     {
         if ($programLesson === null) {
             return null;
@@ -238,7 +269,66 @@ class LessonController extends Controller
         $previous = $user->lessons()->whereNotNull('reported_at')->latest('id')->first();
         $errors = $user->openErrors()->limit((int) config('program.errors_per_lesson'))->get();
 
-        return LessonContext::describe($user, $programLesson->program, $programLesson, $previous, $errors);
+        // Tableau déjà préparé, sinon celui de secours : jamais de préparation au moment de la connexion.
+        return LessonContext::describe($user, $programLesson->program, $programLesson, $previous, $errors,
+            LessonBoards::for($programLesson, $programLesson->program), $plan);
+    }
+
+    /**
+     * Une indication par étape de la séance (reprise après une coupure ou une pause).
+     *
+     * @return array<string, string>
+     */
+    private static function phaseCues(string $key): array
+    {
+        $names = [
+            'lesson' => 'STEP 1 (lesson: teaching the board)',
+            'practice' => 'STEP 2 (guided practice)',
+            'conversation' => 'STEP 3 (conversation: the role play)',
+            'summary' => 'STEP 4 (summary)',
+        ];
+
+        return array_map(fn (string $name) => TeacherSetup::cue($key, ['phase' => $name]), $names);
+    }
+
+    /**
+     * Tableau de la leçon du jour (celle de la séance reprise, sinon la prochaine à faire). S'il n'est pas encore
+     * prêt, il est préparé ici avec un délai court (jamais à la connexion) ; sinon, tableau de secours du programme.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function board(User $user, ?Lesson $lesson): ?array
+    {
+        $program = $user->activeProgram()->first();
+        $programLesson = $lesson?->programLesson ?? $program?->currentLesson()->first();
+
+        if ($program === null || $programLesson === null) {
+            return null;
+        }
+
+        $programLesson->setRelation('program', $program);
+
+        if (! LessonBoards::ready($programLesson, $program) && TextProviders::available() !== []) {
+            try {
+                LessonBoards::prepare($programLesson, $program, (int) config('program.board_prepare_timeout'));
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
+
+        return LessonBoards::for($programLesson, $program);
+    }
+
+    /**
+     * Après une séance : le tableau de la leçon suivante est préparé après la réponse.
+     */
+    private function prepareNextBoard(User $user): void
+    {
+        $program = $user->activeProgram()->first();
+        $next = $program?->currentLesson()->first();
+        $next?->setRelation('program', $program);
+
+        LessonBoards::queue($next, $program);
     }
 
     /**

@@ -73,7 +73,7 @@ class TeacherSetup
 
         return self::setup(
             self::instructions('lesson', $user, $minutes, [
-                'context' => $context ?? 'No programme context: practise free conversation adapted to the learner\'s level.',
+                'context' => $context ?? 'No programme context and no board today (the learner has finished the programme): skip STEP 1 and STEP 2, practise free conversation adapted to the learner\'s level (STEP 3), then STEP 4.',
             ]),
             [[
                 'name' => self::END_LESSON,
@@ -88,7 +88,7 @@ class TeacherSetup
                         ],
                         'summary' => [
                             'type' => 'STRING',
-                            'description' => 'Short summary of the lesson in French (what was learned, key phrases).',
+                            'description' => 'Short summary of the lesson in French (what was learned, key phrases, and the sentence to remember).',
                         ],
                         'homework' => [
                             'type' => 'STRING',
@@ -204,7 +204,23 @@ class TeacherSetup
      */
     public static function cue(string $key, array $replace = []): string
     {
-        return self::fill((string) config("teacher.cues.{$key}"), $replace + ['closing' => (string) config('platform.assessment.closing_phrase')]);
+        return self::fill((string) config("teacher.cues.{$key}"), $replace + ['closing' => (string) config('platform.assessment.closing_phrase')] + self::phasePhrases());
+    }
+
+    /**
+     * Phrases de passage de la séance du jour (platform.lessons.phase_phrases), comme marqueurs :practice_phrase…
+     *
+     * @return array<string, string>
+     */
+    private static function phasePhrases(): array
+    {
+        $phrases = [];
+
+        foreach ((array) config('platform.lessons.phase_phrases') as $phase => $phrase) {
+            $phrases[$phase.'_phrase'] = (string) $phrase;
+        }
+
+        return $phrases;
     }
 
     /**
@@ -219,8 +235,9 @@ class TeacherSetup
 
         $text = implode("\n\n", array_filter([
             trim((string) config('teacher.persona')),
-            // L'évaluation gratuite et « Mes cours » ont leurs propres règles de langue.
-            in_array($kind, ['assessment', 'course'], true) ? '' : (string) config("teacher.level_guidance.{$level}", ''),
+            // L'évaluation gratuite et « Mes cours » ont leurs propres règles de langue ; la séance du jour a les siennes
+            // (anglais d'abord, teacher.lesson_language, insérées par le marqueur :language de teacher.lesson).
+            in_array($kind, ['assessment', 'course', 'lesson'], true) ? '' : (string) config("teacher.level_guidance.{$level}", ''),
             // Savoir-faire d'un vrai professeur : séance orale quotidienne et « Mes cours » seulement.
             in_array($kind, ['lesson', 'course'], true) ? trim((string) config('teacher.coaching')) : '',
             // Écoute active (résumé de la réponse, une ou deux corrections importantes, question liée) : séance
@@ -243,7 +260,9 @@ class TeacherSetup
             'questions_minutes' => (int) ceil((int) config('platform.assessment.questions_seconds') / 60),
             'max_questions' => (int) config('platform.assessment.questions_max'),
             'closing' => (string) config('platform.assessment.closing_phrase'),
-        ]);
+            // Séance du jour : langue d'enseignement selon le niveau et phrases de passage d'un temps à l'autre.
+            'language' => trim(config('teacher.lesson_language.common')."\n".config("teacher.lesson_language.{$level}", '')),
+        ] + self::phasePhrases());
 
         // Ajoutés APRÈS le remplacement des marqueurs : le nom de l'apprenant n'est jamais relu comme un marqueur.
         return implode("\n\n", [
