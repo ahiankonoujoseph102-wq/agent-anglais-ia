@@ -20,6 +20,7 @@ use App\Support\DailyTime;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\WorkingTogether;
 use App\Support\Text\TextProviders;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -138,7 +139,8 @@ class LessonController extends Controller
 
         $minutes = (int) ceil($allowedSeconds / 60);
         $plan = LessonPlan::for($program?->level ?? $user->level, $minutes);
-        $setup = TeacherSetup::lesson($user, $minutes, $request->handle(), $this->context($user, $programLesson, $plan));
+        $setup = TeacherSetup::lesson($user, $minutes, $request->handle(), $this->context($user, $programLesson, $plan),
+            WorkingTogether::lessonNumber($user, $lesson));
 
         try {
             $token = $live->request($setup, $deadline, $lesson, $request->failedProvider());

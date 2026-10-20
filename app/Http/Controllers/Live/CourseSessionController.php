@@ -14,6 +14,7 @@ use App\Support\Duration;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\WorkingTogether;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -144,7 +145,8 @@ class CourseSessionController extends Controller
 
         $allowedSeconds = $session?->allowed_seconds ?? self::allowedSeconds($user);
         $deadline = $session?->deadline() ?? now()->addSeconds($allowedSeconds);
-        $setup = TeacherSetup::course($user, (int) ceil($allowedSeconds / 60), $course->promptContext(), $request->handle());
+        $setup = TeacherSetup::course($user, (int) ceil($allowedSeconds / 60), $course->promptContext(), $request->handle(),
+            WorkingTogether::courseNumber($user, $session));
 
         try {
             $token = $live->request($setup, $deadline, $session, $request->failedProvider());

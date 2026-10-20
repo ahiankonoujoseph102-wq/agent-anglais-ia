@@ -166,7 +166,7 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('rephrase the question ONCE, more simply', $text);
         $this->assertStringContainsString('move on to another, easier question', $text);
         $this->assertStringContainsString('Never speak over the learner', $text);
-        $this->assertStringContainsString('ask your first, very easy question (for example: "What is your name?") and WAIT', $text);
+        $this->assertStringContainsString('ask your first, very easy question in English (for example: "What is your name?") and WAIT', $text);
     }
 
     public function test_resumption_cues_never_ask_for_a_new_welcome(): void
