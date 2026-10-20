@@ -354,8 +354,9 @@ main { overflow-x: clip; }
 .students { position: relative; overflow: hidden; display: grid; gap: var(--space-6); align-items: center; padding: var(--space-8) var(--space-5); border-radius: var(--radius-lg); background: var(--c-surface); border: 1px solid var(--c-border); box-shadow: var(--shadow); }
 .students h2 { margin-top: 0; }
 .check-list { list-style: none; padding: 0; margin: 0 0 var(--space-5); display: grid; gap: var(--space-2); }
-.check-list li { display: flex; gap: var(--space-2); align-items: flex-start; font-weight: var(--fw-bold); }
-.check-list .icon { flex: none; margin-top: 3px; color: var(--c-accent-strong); }
+/* Icône posée à gauche, texte d'un seul tenant (liens et mots en gras restent dans la phrase, sur toute la largeur). */
+.check-list li { position: relative; padding-left: 28px; font-weight: var(--fw-bold); }
+.check-list .icon { position: absolute; left: 0; top: 3px; color: var(--c-accent-strong); }
 .faq { display: grid; gap: var(--space-2); max-width: 760px; }
 .faq details { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius); }
 .faq summary { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 56px; padding: var(--space-3) var(--space-4); font-weight: var(--fw-bold); color: var(--c-heading); cursor: pointer; list-style: none; }

@@ -78,11 +78,11 @@
                 <h2 id="apropos-teacher">Comment fonctionne {{ $teacher }}</h2>
                 <ul class="check-list">
                     <li><x-icon name="sparkle" /> {{ $teacher }} est un personnage animé en 3D dans votre navigateur ; sa bouche suit sa voix.</li>
-                    <li><x-icon name="bubble" /> Sa voix et ses réponses viennent d'une intelligence artificielle de Google (Gemini) ou, en secours, d'OpenAI.</li>
+                    <li><x-icon name="bubble" /> {{ $teacher }} a été conçu et programmé par {{ config('platform.founder.name') }}. Il s'appuie sur une intelligence artificielle de pointe, encadrée par la méthode pédagogique de {{ $platform }}.</li>
                     <li><x-icon name="level" /> L'évaluation orale gratuite donne votre niveau, de A1 à C2, en {{ $minutes }} minutes, puis {{ config('avatar.model.name') }} vous montre comment se passe une leçon et répond à vos questions.</li>
-                    <li><x-icon name="check-circle" /> Pendant la séance, il vous fait parler, vous corrige aussitôt et garde vos erreurs pour les revoir.</li>
+                    <li><x-icon name="check-circle" /> <span>Chaque séance se passe en quatre temps : la leçon au tableau, la pratique guidée, une conversation dans une situation de votre vie, puis le bilan ; il vous corrige aussitôt et garde vos erreurs pour les revoir.</span></li>
                     <li><x-icon name="clock" /> Il annonce la durée, vous prévient avant la fin, et le site arrête la séance à l'heure.</li>
-                    <li><x-icon name="shield" /> Votre voix n'est jamais enregistrée ; le texte des conversations est effacé après {{ $keepDays }} jours (<a href="{{ route('privacy') }}">Confidentialité</a>).</li>
+                    <li><x-icon name="shield" /> <span>Votre voix n'est jamais enregistrée ; le texte des conversations est effacé après {{ $keepDays }} jours (voir la page <a href="{{ route('privacy') }}">Confidentialité</a>).</span></li>
                 </ul>
                 <a class="btn btn-accent btn-lg" href="{{ Navigation::assessmentUrl() }}"><x-icon name="mic" /> Passer mon évaluation gratuite</a>
             </div>
