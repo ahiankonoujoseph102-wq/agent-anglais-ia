@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\Assessment;
+
 /**
  * Page « Apprendre l'anglais » d'un pays de paiement (resources/content/pays.php) : textes propres au
  * pays, marqueurs remplis depuis la configuration (nom, professeur, moyens de paiement, durées).
@@ -64,6 +66,7 @@ final readonly class CountryPage
             ':platform' => (string) config('platform.name'),
             ':teacher' => (string) config('avatar.model.name'),
             ':minutes' => (string) config('platform.assessment.max_minutes'),
+            ':total' => (string) Assessment::totalMinutes(),
             ':operators' => self::operators($country),
             ':daily' => self::dailyMinutes(),
             ':course_photos' => (string) CourseFiles::photos(),

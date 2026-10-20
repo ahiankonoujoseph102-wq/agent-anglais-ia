@@ -6,7 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Accueil : blocs de persuasion « Vous vous reconnaissez ? », « Vous avez déjà essayé ? » et
+ * Accueil : blocs de persuasion « Êtes-vous vraiment fier de votre niveau en anglais ? », « Vous avez déjà essayé ? » et
  * « Qui est derrière … ? ». Des situations vécues, jamais des témoignages ; aucun chiffre ni urgence inventés.
  */
 class PersuasionTest extends TestCase
@@ -21,7 +21,7 @@ class PersuasionTest extends TestCase
     ];
 
     /**
-     * HTML du bloc « Vous vous reconnaissez ? » et « Vous avez déjà essayé ? ».
+     * HTML du bloc « Êtes-vous vraiment fier de votre niveau en anglais ? » et « Vous avez déjà essayé ? ».
      */
     private function persuasionBlock(): string
     {
@@ -36,7 +36,8 @@ class PersuasionTest extends TestCase
     {
         $this->get('/')->assertOk()->assertSeeInOrder([
             'id="promesse"',
-            'Vous vous reconnaissez ?',
+            'Êtes-vous vraiment fier de votre niveau en anglais ?',
+            'Si vous vous reconnaissez dans l\'une de ces phrases, '.config('avatar.model.name').' est fait pour vous.',
             ...self::SITUATIONS,
             "Ce n'est pas un manque d'intelligence : c'est un manque de pratique.",
             config('avatar.model.name').' est là pour ça.',

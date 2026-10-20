@@ -10,6 +10,7 @@
 | que ce que fait le site. Marqueurs remplis par CountryPage :
 |   :platform   nom de la plateforme         :teacher     nom du professeur
 |   :minutes    durée de l'évaluation        :operators   moyens de paiement du pays (configuration)
+|   :total      durée de l'évaluation au plus en tout (mini-leçon et questions comprises)
 |   :daily      temps par jour des formules  :dial        indicatif du pays
 |   :course_photos, :course_pages  photos et pages de PDF au plus dans « Mes cours »
 | Interdits : « certificat », « diplôme », « fait les devoirs » (sauf « ne fait pas les devoirs »),
@@ -53,7 +54,7 @@ return [
             ],
             [
                 'question' => 'Pourquoi un professeur d\'anglais en ligne plutôt qu\'un cours du soir ?',
-                'answer' => ':teacher est disponible chaque jour, à l\'heure qui vous arrange. Vous parlez pendant toute la séance, il vous corrige aussitôt et il garde vos erreurs pour les revoir avec vous.',
+                'answer' => ':teacher est disponible chaque jour, à l\'heure qui vous arrange. Il vous enseigne d\'abord la leçon du jour, puis vous parlez : il vous laisse chercher la bonne forme avant de vous corriger, et il revoit vos erreurs et vos phrases des jours passés aux séances suivantes.',
             ],
         ],
     ],
@@ -131,7 +132,7 @@ return [
         'faq' => [
             [
                 'question' => 'Je n\'ai pas beaucoup de temps : combien dure une séance ?',
-                'answer' => 'Votre formule donne un temps par jour (:daily), à partager entre la séance orale et « Mes cours ». :teacher annonce la durée au début, vous prévient avant la fin, et le site arrête la séance à l\'heure.',
+                'answer' => 'Votre formule donne un temps par jour (:daily), à partager entre la séance orale et « Mes cours ». :teacher annonce la durée au début, enseigne la leçon du jour, vous fait pratiquer puis parler, vous prévient avant la fin, et le site arrête la séance à l\'heure.',
             ],
             [
                 'question' => 'Puis-je suivre les séances sur un ordinateur ?',
@@ -172,7 +173,7 @@ return [
         'faq' => [
             [
                 'question' => 'Comment mon niveau est-il trouvé ?',
-                'answer' => 'Pendant une conversation de :minutes minutes au plus, :teacher vous pose des questions adaptées à vos réponses, puis vous annonce votre niveau, de A1 à C2. Il vous montre ensuite comment se passe une leçon avec une première phrase, puis répond à vos questions en français.',
+                'answer' => 'Pendant une conversation de :minutes minutes au plus, :teacher vous pose des questions adaptées à vos réponses, puis vous annonce votre niveau, de A1 à C2. Il vous montre ensuite comment se passe une leçon avec une première phrase, puis répond à vos questions en français : :total minutes au plus en tout.',
             ],
             [
                 'question' => 'Mon attestation peut-elle être vérifiée ?',
