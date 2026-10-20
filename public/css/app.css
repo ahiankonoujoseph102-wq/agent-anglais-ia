@@ -329,7 +329,7 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 .hero::before { width: 420px; height: 420px; top: -140px; right: -160px; background: radial-gradient(circle at 35% 35%, var(--c-accent-soft), transparent 68%); }
 .hero::after { width: 360px; height: 360px; bottom: -120px; left: -180px; background: radial-gradient(circle at 60% 40%, var(--c-primary-soft), transparent 70%); }
 /* Troisième forme floue de l'accueil (téléphone : immobile ; ordinateur : lente, voir plus bas). */
-.hero-blob { position: absolute; z-index: -1; width: 300px; height: 300px; top: 34%; left: 38%; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, var(--c-accent-soft), transparent 70%); opacity: .7; }
+.hero-blob { position: absolute; z-index: -1; width: 240px; height: 240px; top: 34%; left: 25%; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, var(--c-accent-soft), transparent 70%); opacity: .7; }
 .students { isolation: isolate; }
 .students::before { width: 320px; height: 320px; right: -120px; bottom: -140px; background: radial-gradient(circle, var(--c-accent-soft), transparent 70%); animation: drift 24s ease-in-out infinite alternate; }
 .cta-band::before { z-index: 0; width: 260px; height: 260px; left: -90px; bottom: -110px; background: radial-gradient(circle, var(--c-on-dark-glow), transparent 70%); animation: drift 20s ease-in-out infinite alternate; }
@@ -1099,7 +1099,7 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
     .hero-media { max-width: 460px; }
     .hero::before { animation: drift 22s ease-in-out infinite alternate; }
     .hero::after { animation: drift 26s ease-in-out -8s infinite alternate-reverse; }
-    .hero-blob { animation: drift 30s ease-in-out -4s infinite alternate; }
+    .hero-blob { width: 300px; height: 300px; left: 38%; animation: drift 30s ease-in-out -4s infinite alternate; }
     .hero-bubble { animation: bob 6s ease-in-out infinite; }
     .hero-bubble.right { animation-delay: -2s; }
     .hero-bubble.third { display: block; left: auto; right: -18px; bottom: 34%; border-radius: var(--radius) var(--radius) 4px var(--radius); color: var(--c-accent-strong); animation-delay: -4s; }
