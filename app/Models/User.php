@@ -157,6 +157,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Documents de révision des séances « Mes cours ».
+     *
+     * @return HasMany<CourseReview, $this>
+     */
+    public function courseReviews(): HasMany
+    {
+        return $this->hasMany(CourseReview::class);
+    }
+
+    /**
      * Le programme en cours (un seul actif à la fois).
      *
      * @return HasOne<Program, $this>

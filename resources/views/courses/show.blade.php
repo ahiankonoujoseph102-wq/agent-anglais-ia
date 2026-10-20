@@ -120,6 +120,28 @@
         @endif
     </section>
 
+    @if ($reviewSessions->isNotEmpty())
+        <section class="card rise" style="--i: 2" id="documents" aria-labelledby="documents-titre">
+            <div class="card-title">
+                <span class="icon-bubble"><x-icon name="file-text" /></span>
+                <h2 id="documents-titre">Mes documents de révision</h2>
+            </div>
+            <p class="muted small">Après chaque séance, {{ $teacher }} vous prépare un document à relire et à refaire vous-même : la leçon expliquée, vos erreurs, les phrases à retenir et un petit exercice.</p>
+            @if (blank(auth()->user()?->email))
+                <p class="muted small review-invite"><x-icon name="mail" /> Ajoutez votre adresse e-mail dans <a href="{{ route('account.edit') }}">« Mon compte »</a> pour recevoir vos documents de révision par e-mail.</p>
+            @endif
+            <ul class="review-list">
+                @foreach ($reviewSessions as $session)
+                    <li>
+                        <span class="review-date">Séance du {{ $session->ended_at->timezone(config('app.timezone'))->translatedFormat('j F Y') }}</span>
+                        <x-course-review :session="$session" />
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+        <script type="module" src="{{ \App\Support\Asset::url('js/course-review.js') }}"></script>
+    @endif
+
     <section class="card rise" style="--i: 2">
         <h2>Les pages de la leçon</h2>
         <ul class="course-pages">

@@ -219,7 +219,7 @@ Sur un téléphone, on ne peut pas lancer d'ordinateur local : on demande la cl�
 
 ## 9. Activer le planificateur de tâches (Scheduler)
 
-Le projet a six tâches automatiques (la sixième, `payments:alert-expiring`, tourne toutes les dix minutes : voir l'étape 10 ter) : fermeture des séances abandonnées (chaque minute), fin des abonnements (chaque heure), préparation des messages vocaux qui manquent encore (chaque heure, aucune demande à Google quand tout est prêt), effacement du texte des conversations de plus de 90 jours (chaque nuit à 3 heures 10) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
+Le projet a sept tâches automatiques (la sixième, `payments:alert-expiring`, tourne toutes les dix minutes : voir l'étape 10 ter) : fermeture des séances abandonnées (chaque minute), préparation des documents de révision de « Mes cours » (chaque minute, trois séances au plus à chaque passage, jamais deux passages en même temps), fin des abonnements (chaque heure), préparation des messages vocaux qui manquent encore (chaque heure, aucune demande à Google quand tout est prêt), effacement du texte des conversations de plus de 90 jours (chaque nuit à 3 heures 10) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
 
 1. Sur le canvas, touchez la carte **App** (le cluster de l'application).
 2. Activez l'interrupteur **Scheduler**.
@@ -273,7 +273,8 @@ Dès qu'une capture de paiement arrive, qu'un accès provisoire va se terminer d
 | Nom | Rôle |
 |---|---|
 | `ADMIN_ALERT_EMAIL` | Une ou plusieurs adresses qui reçoivent les alertes, séparées par des virgules. |
-| `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | E-mail par Brevo : `smtp`, `smtp-relay.brevo.com`, `587`, puis vos identifiants Brevo, l'adresse d'expéditeur vérifiée et `Talkami`. Aucune autre variable n'est nécessaire : le port 587 passe en connexion chiffrée (STARTTLS) tout seul. |
+| `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | E-mail par Brevo : `smtp`, `smtp-relay.brevo.com`, `587`, puis vos identifiants Brevo, l'adresse d'expéditeur vérifiée et `Talkami`. Aucune autre variable n'est nécessaire : le port 587 passe en connexion chiffrée (STARTTLS) tout seul. Ces réglages servent aussi à envoyer aux élèves leurs documents de révision (PDF joint). |
+| `MAIL_DAILY_LIMIT` | Facultatif, 300 par défaut (offre gratuite de Brevo) : e-mails par jour, documents de révision et alertes ensemble ; 20 restent toujours gardés pour vos alertes. |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Clés des notifications. `VAPID_SUBJECT` = `mailto:` suivi de votre adresse. |
 
 Créer les deux clés VAPID (une seule fois) : onglet **Commands** de l'environnement, lancez `php artisan alerts:generate-vapid`, copiez les deux premières lignes dans les variables, puis **redéployez**. La clé privée est un secret : ne la collez nulle part ailleurs.

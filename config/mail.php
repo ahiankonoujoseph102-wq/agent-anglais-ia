@@ -111,6 +111,10 @@ return [
     |
     */
 
+    // Limite d'envoi du jour (offre gratuite de Brevo : 300 e-mails par jour), un seul compteur pour les documents de
+    // révision des élèves et les alertes de l'administrateur (App\Support\MailQuota).
+    'daily_limit' => (int) env('MAIL_DAILY_LIMIT', 300),
+
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),

@@ -75,6 +75,21 @@
         <p class="muted small">Le premier e-mail envoyé depuis une adresse Gmail peut arriver dans les courriers indésirables : ouvrez-le et touchez « Pas du spam » une fois.</p>
     </section>
 
+    <section class="card" id="documents-revision">
+        <h2>E-mails des documents de révision</h2>
+        <p>
+            Envoi aux élèves : <strong>{{ $mailQuota['configured'] ? 'réglé' : 'non réglé' }}</strong>
+            @unless ($mailQuota['configured'])
+                <span class="muted">(MAIL_FROM_ADDRESS et les réglages SMTP : les documents restent téléchargeables dans « Mes cours »)</span>
+            @endunless
+        </p>
+        <p>
+            Aujourd'hui : <strong>{{ $mailQuota['used'] }} {{ $mailQuota['used'] > 1 ? 'e-mails' : 'e-mail' }} sur {{ $mailQuota['limit'] }}</strong> (documents et alertes ensemble) ·
+            documents envoyés : {{ $reviewMail['sent'] }}, en échec : {{ $reviewMail['failed'] }}, non envoyés (limite) : {{ $reviewMail['quota'] }}.
+        </p>
+        <p class="muted small">Au plus {{ $mailQuota['reviews'] }} e-mails de documents par jour : les {{ $mailQuota['limit'] - $mailQuota['reviews'] }} derniers restent gardés pour vos alertes. Au-delà, le document reste téléchargeable et vous êtes prévenu une fois dans la journée.</p>
+    </section>
+
     <section class="card" id="journal">
         <h2>Dernières alertes</h2>
         @if ($recent->isEmpty())

@@ -2,10 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Models\CourseReview;
 use App\Models\PushSubscription;
 use App\Support\Alerts\AdminAlerts;
 use App\Support\Founder;
 use App\Support\Live\LiveProviders;
+use App\Support\MailQuota;
 use App\Support\PaymentCountry;
 use App\Support\PrivateStorage;
 use App\Support\SiteSettings;
@@ -85,6 +87,13 @@ class CheckDeployment extends Command
         $this->line('    Notifications sur le téléphone : '.($alerts->pushConfigured() ? 'réglées' : 'non réglées (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT)'));
         $this->line('    Téléphones abonnés : '.PushSubscription::query()->count());
         $this->line('    E-mail : '.($alerts->mailConfigured() ? 'réglé ('.count((array) config('alerts.emails')).' adresse(s))' : 'non réglé (ADMIN_ALERT_EMAIL, MAIL_FROM_ADDRESS, MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD)'));
+
+        // Documents de révision « Mes cours » : informations seulement (le document sort sans logo sans l'extension GD).
+        $this->section('Documents de révision (Mes cours)');
+        $this->line('    Extension GD (logo du PDF) : '.(extension_loaded('gd') ? 'présente' : 'absente : le PDF sort sans logo'));
+        $this->line('    E-mails aux élèves : '.(MailQuota::configured() ? 'réglés' : 'non réglés (MAIL_FROM_ADDRESS, MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD) : téléchargement seulement'));
+        $this->line('    E-mails du jour : '.MailQuota::usedToday().' sur '.MailQuota::limit());
+        $this->line('    Documents prêts : '.CourseReview::query()->where('status', CourseReview::READY)->count());
 
         // Référencement : informations seulement, jamais un échec (aucune valeur n'est obligatoire).
         $this->section('Référencement');

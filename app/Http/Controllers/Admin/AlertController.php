@@ -7,6 +7,8 @@ use App\Models\AdminAlert;
 use App\Models\PushSubscription;
 use App\Support\Alerts\AdminAlerts;
 use App\Support\Alerts\AlertBuilder;
+use App\Support\CourseReviews;
+use App\Support\MailQuota;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +29,9 @@ class AlertController extends Controller
             'devices' => PushSubscription::query()->with('user')->orderBy('created_at')->get(),
             'publicKey' => $alerts->pushConfigured() ? config('alerts.vapid.public_key') : null,
             'recent' => AdminAlert::query()->orderByDesc('id')->limit((int) config('alerts.shown'))->get(),
+            // E-mails du jour : documents de révision et alertes, un seul compteur (limite gratuite de Brevo).
+            'mailQuota' => ['used' => MailQuota::usedToday(), 'limit' => MailQuota::limit(), 'reviews' => (int) config('platform.courses.review.daily_emails'), 'configured' => MailQuota::configured()],
+            'reviewMail' => CourseReviews::stats()['mail_today'],
         ]);
     }
 

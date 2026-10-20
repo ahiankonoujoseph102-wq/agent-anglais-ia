@@ -162,6 +162,8 @@ class CourseSessionController extends Controller
 
         $session ??= $user->courseSessions()->create([
             'course_lesson_id' => $course->id,
+            // Partie du PDF travaillée : le document de révision portera sur elle.
+            'course_part_id' => $course->current_part_id,
             'date' => today(),
             'allowed_seconds' => $allowedSeconds,
             'started_at' => now(),

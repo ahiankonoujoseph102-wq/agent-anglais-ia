@@ -15,7 +15,7 @@ class OptionalEmailTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const HINT = 'Facultatif. Pour recevoir plus tard vos corrections et documents.';
+    private const HINT = 'Facultatif. Pour recevoir vos documents de révision par e-mail.';
 
     /**
      * @return array<string, string>
