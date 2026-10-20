@@ -246,6 +246,8 @@ class TeacherSetup
             in_array($kind, ['assessment', 'course', 'lesson'], true) ? '' : (string) config("teacher.level_guidance.{$level}", ''),
             // Savoir-faire d'un vrai professeur : séance orale quotidienne et « Mes cours » seulement.
             in_array($kind, ['lesson', 'course'], true) ? trim((string) config('teacher.coaching')) : '',
+            // Façon de corriger : faire chercher, puis donner la bonne forme, puis faire redire (même périmètre).
+            in_array($kind, ['lesson', 'course'], true) ? trim((string) config('teacher.correction')) : '',
             // Écoute active (résumé de la réponse, une ou deux corrections importantes, question liée) : séance
             // quotidienne, « Mes cours » et bilan de niveau ; l'évaluation gratuite a sa propre règle, plus courte.
             in_array($kind, ['lesson', 'course', 'level_test'], true) ? trim((string) config('teacher.listening')) : '',
