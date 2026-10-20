@@ -14,6 +14,7 @@ use App\Models\ProgramLesson;
 use App\Models\User;
 use App\Support\Curriculum\LessonBoards;
 use App\Support\Curriculum\LessonContext;
+use App\Support\Curriculum\LessonPlan;
 use App\Support\Curriculum\LessonReport;
 use App\Support\DailyTime;
 use App\Support\Gemini\GeminiUnavailable;
@@ -129,7 +130,9 @@ class LessonController extends Controller
         $programLesson = $lesson?->programLesson ?? $program?->currentLesson()->first();
         $programLesson?->setRelation('program', $program);
 
-        $setup = TeacherSetup::lesson($user, (int) ceil($allowedSeconds / 60), $request->handle(), $this->context($user, $programLesson));
+        $minutes = (int) ceil($allowedSeconds / 60);
+        $plan = LessonPlan::for($program?->level ?? $user->level, $minutes);
+        $setup = TeacherSetup::lesson($user, $minutes, $request->handle(), $this->context($user, $programLesson, $plan));
 
         try {
             $token = $live->request($setup, $deadline, $lesson, $request->failedProvider());
@@ -154,10 +157,21 @@ class LessonController extends Controller
         $warningMinutes = (int) config('platform.lessons.warning_minutes_before_end');
 
         return response()->json($live->attach($lesson, $token, $setup, [
-            'start' => TeacherSetup::cue('lesson_start', ['minutes' => (int) ceil($allowedSeconds / 60)]),
+            'start' => TeacherSetup::cue('lesson_start', ['minutes' => $minutes]),
             'resume' => TeacherSetup::cue('resume'),
             'warning' => TeacherSetup::cue('lesson_warning', ['remaining' => $warningMinutes]),
-        ], $warningMinutes * 60, $resumed));
+            // Séance en quatre temps : reprise selon l'étape en cours, et une seule relance douce vers la conversation.
+            'resume_phases' => self::phaseCues('lesson_resume'),
+            'pause_phases' => self::phaseCues('lesson_pause_resume'),
+            'conversation' => TeacherSetup::cue('lesson_conversation'),
+        ], $warningMinutes * 60, $resumed) + [
+            // Écran : étape en cours d'après les phrases de passage du professeur, sinon d'après le temps écoulé.
+            'phases' => [
+                'phrases' => (array) config('platform.lessons.phase_phrases'),
+                'starts' => LessonPlan::starts($plan),
+                'merged' => $plan['merged'],
+            ],
+        ]);
     }
 
     public function signal(SignalRequest $request): JsonResponse
@@ -238,7 +252,7 @@ class LessonController extends Controller
     /**
      * Consignes de la séance : profil, leçon du jour, séance précédente, erreurs à revoir.
      */
-    private function context(User $user, ?ProgramLesson $programLesson): ?string
+    private function context(User $user, ?ProgramLesson $programLesson, array $plan): ?string
     {
         if ($programLesson === null) {
             return null;
@@ -247,7 +261,26 @@ class LessonController extends Controller
         $previous = $user->lessons()->whereNotNull('reported_at')->latest('id')->first();
         $errors = $user->openErrors()->limit((int) config('program.errors_per_lesson'))->get();
 
-        return LessonContext::describe($user, $programLesson->program, $programLesson, $previous, $errors);
+        // Tableau déjà préparé, sinon celui de secours : jamais de préparation au moment de la connexion.
+        return LessonContext::describe($user, $programLesson->program, $programLesson, $previous, $errors,
+            LessonBoards::for($programLesson, $programLesson->program), $plan);
+    }
+
+    /**
+     * Une indication par étape de la séance (reprise après une coupure ou une pause).
+     *
+     * @return array<string, string>
+     */
+    private static function phaseCues(string $key): array
+    {
+        $names = [
+            'lesson' => 'STEP 1 (lesson: teaching the board)',
+            'practice' => 'STEP 2 (guided practice)',
+            'conversation' => 'STEP 3 (conversation: the role play)',
+            'summary' => 'STEP 4 (summary)',
+        ];
+
+        return array_map(fn (string $name) => TeacherSetup::cue($key, ['phase' => $name]), $names);
     }
 
     /**

@@ -19,9 +19,12 @@ class LessonContext
 {
     /**
      * @param  Collection<int, LearnerError>  $errors
+     * @param  array<string, mixed>|null  $board  tableau de la leçon (LessonBoards::for), sinon celui de secours
+     * @param  array{lesson: int, practice: int, conversation: int, summary: int, merged: bool, minutes: int}|null  $plan  temps de chaque étape (LessonPlan)
      */
-    public static function describe(User $user, Program $program, ProgramLesson $current, ?Lesson $previous, Collection $errors): string
+    public static function describe(User $user, Program $program, ProgramLesson $current, ?Lesson $previous, Collection $errors, ?array $board = null, ?array $plan = null): string
     {
+        $board ??= LessonBoards::for($current, $program);
         $unit = $current->unit();
         $situation = $current->situation();
         $lines = [];
@@ -73,6 +76,43 @@ class LessonContext
 
         if ($current->attempts > 0) {
             $lines[] = '- This lesson was already started '.$current->attempts.' time(s) and must be finished: consolidate before moving on.';
+        }
+
+        if ($plan !== null) {
+            $lines[] = '';
+            $lines[] = "TODAY'S PLAN (".$plan['minutes'].' minutes)';
+            $lines[] = $plan['merged']
+                ? '- STEP 1 and STEP 2 together (lesson and guided practice, short session): about '.$plan['lesson'].' minute(s)'
+                : '- STEP 1, lesson: about '.$plan['lesson'].' minute(s)'."\n".'- STEP 2, guided practice: about '.$plan['practice'].' minute(s)';
+            $lines[] = '- STEP 3, conversation: about '.$plan['conversation'].' minute(s)';
+            $lines[] = '- STEP 4, summary: the last '.$plan['summary'].' minute(s)';
+        }
+
+        $lines[] = '';
+        $lines[] = "TODAY'S BOARD (shown on the learner's screen; teach it in this order)";
+        $lines[] = '- Title: '.$board['title'];
+        $lines[] = '- Key phrases:';
+
+        foreach ($board['phrases'] as $phrase) {
+            $lines[] = '  * "'.$phrase['en'].'"'.($phrase['fr'] ? ' = '.$phrase['fr'] : '').(! empty($phrase['use']) ? ' (use: '.$phrase['use'].')' : '');
+        }
+
+        $lines[] = '- Words:';
+
+        foreach ($board['vocabulary'] as $word) {
+            $lines[] = '  * '.$word['en'].($word['fr'] ? ' = '.$word['fr'] : '');
+        }
+
+        if ($board['verbs'] !== []) {
+            $lines[] = '- Verbs:';
+
+            foreach ($board['verbs'] as $verb) {
+                $lines[] = '  * '.$verb['forms'].($verb['fr'] ? ' = '.$verb['fr'] : '');
+            }
+        }
+
+        if ($board['rule']['en'] || $board['rule']['fr']) {
+            $lines[] = '- Rule: '.implode(' / ', array_filter([$board['rule']['en'], $board['rule']['fr'] ? '(in French) '.$board['rule']['fr'] : null]));
         }
 
         $lines[] = '';

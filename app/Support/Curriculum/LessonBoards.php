@@ -274,7 +274,7 @@ class LessonBoards
      * Tableau de secours tiré du programme officiel : les phrases modèles des fonctions orales (« … »), le
      * vocabulaire de l'unité et la règle de grammaire de la leçon (en français). Aucun appel au modèle.
      *
-     * @return array{title: string, phrases: list<array{en: string, fr: ?string}>, vocabulary: list<array{en: string, fr: ?string}>, verbs: list<array{base: string, forms: string, fr: ?string}>, rule: array{en: ?string, fr: ?string}, source: string}
+     * @return array{title: string, phrases: list<array{en: string, fr: ?string, use?: ?string}>, vocabulary: list<array{en: string, fr: ?string}>, verbs: list<array{base: string, forms: string, fr: ?string}>, rule: array{en: ?string, fr: ?string}, source: string}
      */
     public static function fallback(ProgramLesson $lesson, Program $program): array
     {
@@ -289,7 +289,8 @@ class LessonBoards
             foreach ($quotes[1] as $index => $quote) {
                 // Seulement les phrases en anglais (les guillemets peuvent aussi citer du français).
                 if (count($phrases) < self::PHRASES[1] && preg_match('/^[A-Za-z0-9 ,.!?\'’()\/-]+$/', $quote) && str_word_count($quote) >= 2) {
-                    $phrases[] = ['en' => self::text($quote, 140), 'fr' => $index === 0 && $label !== null ? self::text($label, 140) : null];
+                    // Pas de traduction dans le programme : seulement l'usage de la phrase (« Présenter sa famille »).
+                    $phrases[] = ['en' => self::text($quote, 140), 'fr' => null, 'use' => $index === 0 && $label !== null ? self::text($label, 80) : null];
                 }
             }
         }

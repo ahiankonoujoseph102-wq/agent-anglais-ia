@@ -23,14 +23,20 @@ class TeacherSetupTest extends TestCase
             'teacher.coaching' => '',
             'teacher.listening' => '',
             'teacher.american_english' => '',
+            'teacher.level_test' => 'Test of :minutes minutes.',
         ]);
 
         $user = new User(['name' => 'Yao']);
         $user->level = Level::B2;
 
+        // Séance du jour : sa langue d'enseignement vient du marqueur :language (teacher.lesson_language), pas de level_guidance.
         $this->assertStringStartsWith(
-            "Teacher of Prof Test for Yao.\n\n".config('teacher.level_guidance.B2')."\n\nLesson of 15 minutes, warning 2 minutes before.\n\nQUESTIONS ABOUT THE WEBSITE",
+            "Teacher of Prof Test for Yao.\n\nLesson of 15 minutes, warning 2 minutes before.\n\nQUESTIONS ABOUT THE WEBSITE",
             TeacherSetup::instructions('lesson', $user, 15),
+        );
+        $this->assertStringStartsWith(
+            "Teacher of Prof Test for Yao.\n\n".config('teacher.level_guidance.B2')."\n\nTest of 10 minutes.\n\nQUESTIONS ABOUT THE WEBSITE",
+            TeacherSetup::instructions('level_test', $user, 10),
         );
     }
 
@@ -48,9 +54,11 @@ class TeacherSetupTest extends TestCase
         foreach (['A2', 'B1'] as $value) {
             $user = new User(['name' => 'Afi']);
             $user->level = Level::from($value);
-            $text = TeacherSetup::instructions('lesson', $user, 15);
+            // Bilan de niveau : règles par niveau (level_guidance) ; séance du jour : teacher.lesson_language.
+            $text = TeacherSetup::instructions('level_test', $user, 15);
 
             $this->assertStringContainsString(config("teacher.level_guidance.{$value}"), $text);
+            $this->assertStringContainsString(config("teacher.lesson_language.{$value}"), TeacherSetup::instructions('lesson', $user, 15));
             $this->assertStringContainsString('repeat', config("teacher.level_guidance.{$value}"));
             $this->assertStringContainsString('rephrase in simpler English', config("teacher.level_guidance.{$value}"));
         }
@@ -236,9 +244,10 @@ class TeacherSetupTest extends TestCase
         $user = new User(['name' => 'Afi']);
         $user->level = Level::A2;
         $lesson = TeacherSetup::instructions('lesson', $user, 15);
-        $this->assertStringContainsString('you have more time than in the assessment', $lesson);
-        $this->assertStringContainsString('make the learner say the correct form again', $lesson);
-        $this->assertStringContainsString(config('teacher.level_guidance.A2'), $lesson);
+        $this->assertStringContainsString('slow and clear articulation', config('teacher.lesson_language.A2'));
+        $this->assertStringContainsString('Almost! We say "…". Say it again.', $lesson);
+        $this->assertStringContainsString(config('teacher.lesson_language.A2'), $lesson);
+        $this->assertStringNotContainsString(config('teacher.level_guidance.A2'), $lesson);
     }
 
     public function test_no_function_call_for_expressions_in_any_conversation(): void

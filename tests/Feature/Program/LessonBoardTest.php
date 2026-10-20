@@ -157,6 +157,7 @@ class LessonBoardTest extends TestCase
         $this->assertCount(8, $fallback['vocabulary']);
         $this->assertSame(array_key_first($unit->vocabulary), $fallback['vocabulary'][0]['en']);
         $this->assertGreaterThanOrEqual(1, count($fallback['phrases']));
+        $this->assertNull($fallback['phrases'][0]['fr'], 'aucune traduction inventée');
         // Seules des phrases anglaises du programme, jamais du français entre guillemets.
         foreach ($fallback['phrases'] as $phrase) {
             $this->assertMatchesRegularExpression('/^[A-Za-z0-9 ,.!?\'’()\/-]+$/', $phrase['en']);
