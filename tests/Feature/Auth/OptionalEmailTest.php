@@ -15,7 +15,7 @@ class OptionalEmailTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const HINT = 'Facultatif. Pour recevoir plus tard vos corrections et documents.';
+    private const HINT = 'Facultatif, pour vous contacter si besoin.';
 
     /**
      * @return array<string, string>
@@ -37,6 +37,17 @@ class OptionalEmailTest extends TestCase
             ->assertSee('Adresse e-mail')
             ->assertSee('type="email"', false)
             ->assertSee(self::HINT);
+    }
+
+    public function test_no_page_promises_to_send_corrections_or_documents_by_email(): void
+    {
+        // Aucun envoi d'e-mail à l'apprenant n'existe : rien ne doit le promettre.
+        $pages = [$this->get('/inscription')->getContent(), $this->actingAs(User::factory()->create())->get('/compte')->getContent()];
+        foreach (['corrections et documents', 'recevoir plus tard', 'par e-mail vos', 'recevoir vos corrections'] as $promise) {
+            foreach ($pages as $page) {
+                $this->assertStringNotContainsStringIgnoringCase($promise, $page);
+            }
+        }
     }
 
     public function test_learner_can_register_without_an_email(): void

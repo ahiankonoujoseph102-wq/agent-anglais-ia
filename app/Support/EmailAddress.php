@@ -8,7 +8,7 @@ namespace App\Support;
 class EmailAddress
 {
     /** Texte d'aide sous le champ (inscription et compte). */
-    public const HINT = 'Facultatif. Pour recevoir plus tard vos corrections et documents.';
+    public const HINT = 'Facultatif, pour vous contacter si besoin.';
 
     public static function normalize(mixed $email): ?string
     {
