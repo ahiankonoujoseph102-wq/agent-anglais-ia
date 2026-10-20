@@ -65,7 +65,7 @@ class DesignFinishTest extends TestCase
         $html = $this->get('/')->assertOk()->getContent();
 
         $this->assertSame(1, substr_count($html, 'band-dark'));
-        $this->assertMatchesRegularExpression('/class="section band band-dark"[^>]*aria-labelledby="difference"/', $html);
+        $this->assertMatchesRegularExpression('/class="section band band-dark"[^>]*aria-labelledby="cours"/', $html);
         $this->assertGreaterThanOrEqual(3, substr_count($html, 'band band-soft'));
         // Fond animé : trois formes floues (deux pseudo-éléments + une) et trois bulles, dont une sur ordinateur seulement.
         $this->assertStringContainsString('class="hero-blob"', $html);
