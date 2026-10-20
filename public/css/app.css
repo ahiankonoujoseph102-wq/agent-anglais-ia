@@ -1186,11 +1186,15 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .persuade { display: grid; gap: var(--space-4); }
 .persuade-card { margin: 0; display: flex; flex-direction: column; }
 .persuade-card h2 { margin-bottom: var(--space-4); }
+.persuade-card h2:has(+ .persuade-lead) { margin-bottom: var(--space-2); }
+.persuade-lead { margin: 0 0 var(--space-3); font-size: var(--fs-sm); color: var(--c-muted); }
 .situations, .tried { list-style: none; padding: 0; margin: 0 0 var(--space-4); display: grid; gap: var(--space-3); }
-.situations li { display: flex; align-items: center; gap: var(--space-3); font-weight: var(--fw-bold); color: var(--c-heading); }
-.situations .icon-bubble { flex: none; width: 44px; height: 44px; border-radius: 13px; }
-.situations .icon-bubble .icon { width: 22px; height: 22px; }
-.persuade-answer { margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4); border-left: 4px solid var(--c-accent); border-radius: var(--radius-sm); background: var(--c-accent-soft); color: var(--c-text); }
+/* Phrases plus serrées que la liste voisine : le titre a maintenant une ligne d'explication, l'accueil ne s'allonge pas. */
+.situations { gap: var(--space-2); }
+.situations li { display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-sm); line-height: 1.4; font-weight: var(--fw-bold); color: var(--c-heading); }
+.situations .icon-bubble { flex: none; width: 40px; height: 40px; border-radius: 12px; }
+.situations .icon-bubble .icon { width: 20px; height: 20px; }
+.persuade-answer { margin: 0 0 var(--space-4); padding: var(--space-2) var(--space-3); border-left: 4px solid var(--c-accent); border-radius: var(--radius-sm); background: var(--c-accent-soft); color: var(--c-text); }
 .persuade-answer strong { color: var(--c-heading); }
 .persuade-card > .btn { margin-top: auto; }
 .tried li { display: flex; align-items: flex-start; gap: var(--space-3); color: var(--c-muted); }

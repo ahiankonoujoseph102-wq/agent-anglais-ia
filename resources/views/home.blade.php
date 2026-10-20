@@ -56,12 +56,13 @@
     </section>
 
     {{--
-        « Vous vous reconnaissez ? » et « Vous avez déjà essayé ? » : des situations que l'on vit, jamais des
-        témoignages (aucun nom, aucune photo, aucune citation attribuée). Deux cartes, côte à côte sur ordinateur.
+        « Êtes-vous vraiment fier de votre anglais ? » et « Vous avez déjà essayé ? » : des situations que l'on vit,
+        jamais des témoignages (aucun nom, aucune photo, aucune citation attribuée). Deux cartes, côte à côte sur ordinateur.
     --}}
     <div class="section band persuade">
         <section class="card persuade-card reveal" aria-labelledby="reconnaissez">
-            <h2 id="reconnaissez">Vous vous reconnaissez ?</h2>
+            <h2 id="reconnaissez">Êtes-vous vraiment fier de votre anglais ?</h2>
+            <p class="persuade-lead">Si vous vous reconnaissez dans l'une de ces phrases, {{ $teacher }} est fait pour vous.</p>
             <ul class="situations">
                 <li><span class="icon-bubble"><x-icon name="mic-off" /></span> <span>Je comprends un peu l'anglais, mais quand il faut parler, je bloque.</span></li>
                 <li><span class="icon-bubble"><x-icon name="messages" /></span> <span>Je cherche mes mots, et ça ne sort pas.</span></li>
