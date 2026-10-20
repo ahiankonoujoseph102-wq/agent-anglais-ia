@@ -16,6 +16,7 @@ use App\Support\Curriculum\LessonBoards;
 use App\Support\Curriculum\LessonContext;
 use App\Support\Curriculum\LessonPlan;
 use App\Support\Curriculum\LessonReport;
+use App\Support\Curriculum\SpacedReview;
 use App\Support\DailyTime;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
@@ -275,7 +276,8 @@ class LessonController extends Controller
 
         // Tableau déjà préparé, sinon celui de secours : jamais de préparation au moment de la connexion.
         return LessonContext::describe($user, $programLesson->program, $programLesson, $previous, $errors,
-            LessonBoards::for($programLesson, $programLesson->program), $plan);
+            LessonBoards::for($programLesson, $programLesson->program), $plan,
+            SpacedReview::phrases($user, $programLesson->program, $programLesson));
     }
 
     /**
