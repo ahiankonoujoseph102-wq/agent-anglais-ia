@@ -98,7 +98,7 @@
             <li class="card reveal" style="--i: 1">
                 <div class="how-head"><span class="how-num">2</span><span class="icon-bubble"><x-icon name="mic" /></span></div>
                 <h3>Passez l'évaluation gratuite</h3>
-                <p>{{ $minutes }} minutes à l'oral avec {{ $teacher }} pour trouver votre niveau, puis une mini-leçon et vos questions.</p>
+                <p>{{ $minutes }} minutes à l'oral pour trouver votre niveau, puis une mini-leçon et vos questions.</p>
             </li>
             <li class="card reveal" style="--i: 2">
                 <div class="how-head"><span class="how-num">3</span><span class="icon-bubble"><x-icon name="mobile" /></span></div>
@@ -200,7 +200,7 @@
                 <ul class="audience-points">
                     <li><x-icon name="check-circle" /> Oser parler, sans gêne ni jugement</li>
                     <li><x-icon name="check-circle" /> S'entraîner aux entretiens de bourse, d'admission ou de stage</li>
-                    <li><x-icon name="check-circle" /> Préparer un départ à l'étranger</li>
+                    <li><x-icon name="check-circle" /> Vos cours d'anglais en PDF, avec « Mes cours »</li>
                 </ul>
                 <a class="btn btn-accent" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
             </div>
@@ -212,7 +212,7 @@
                 <h2 id="eleves">Vous êtes élève ?</h2>
                 <p>Vos cours d'anglais enfin compris : en plus de l'oral, {{ $teacher }} vous aide dans vos leçons d'anglais de l'école avec « Mes cours ».</p>
                 <ul class="audience-points">
-                    <li><x-icon name="camera" /> Photographiez votre leçon ou votre exercice d'anglais</li>
+                    <li><x-icon name="camera" /> {{ \App\Support\CourseFiles::offer() }}</li>
                     <li><x-icon name="book" /> {{ $teacher }} vous l'explique en détail, en français quand il le faut, et répond à vos questions</li>
                     <li><x-icon name="edit" /> Il vous guide pour faire votre exercice vous-même, puis corrige</li>
                 </ul>
@@ -292,10 +292,7 @@
                         <li><strong>{{ $paymentCountry['name'] }}</strong> : {{ implode(', ', $paymentCountry['operators']) }}</li>
                     @endforeach
                 </ul>
-            </details>
-            <details>
-                <summary><x-icon name="globe" /><span>Je n'habite pas dans un de ces pays : puis-je m'inscrire ?</span></summary>
-                <p>Oui. {{ $platform }} accueille les francophones de tous les pays : l'inscription et l'évaluation gratuite fonctionnent partout. Le paiement en ligne n'est pas encore disponible hors de ces pays : notre équipe vous explique sur WhatsApp comment vous abonner. Les prix restent en francs CFA.</p>
+                <p>Vous habitez dans un autre pays ? L'inscription et l'évaluation gratuite fonctionnent partout : notre équipe vous explique sur WhatsApp comment vous abonner, avec les mêmes prix en francs CFA.</p>
             </details>
             <details>
                 <summary><x-icon name="languages" /><span>Quel anglais vais-je apprendre ?</span></summary>
@@ -322,8 +319,8 @@
                 <p>À la fin de chaque niveau (douze unités), vous passez un bilan oral avec {{ $teacher }}. S'il est réussi, vous recevez une attestation de niveau en PDF, que chacun peut vérifier en ligne grâce à son code.</p>
             </details>
             <details>
-                <summary><x-icon name="book" /><span>{{ $teacher }} peut-il m'aider dans mes cours d'anglais ?</span></summary>
-                <p>Oui, avec « Mes cours », pour les élèves et les étudiants (lycée, université, formation) qui ont une formule active. Vous photographiez votre leçon ou votre exercice d'anglais, {{ $teacher }} la lit et vous l'explique, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et c'est une aide en plus de votre programme pour parler anglais. Votre formule donne un temps par jour, que vous partagez librement entre la séance orale et « Mes cours ».</p>
+                <summary><x-icon name="book" /><span>Puis-je travailler mes cours d'anglais, même en PDF ?</span></summary>
+                <p>Oui, avec « Mes cours », pour les élèves et les étudiants (lycée, université, formation) qui ont une formule active. {{ \App\Support\CourseFiles::offer() }}. Pour un long PDF, vous choisissez avant la séance les pages ({{ \App\Support\CourseFiles::partPages() }} au plus à la fois) ou le passage à travailler, et vous revenez un autre jour pour la suite, sans renvoyer le fichier. {{ $teacher }} lit votre leçon et vous l'explique, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et c'est une aide en plus de votre programme pour parler anglais. Votre formule donne un temps par jour, que vous partagez librement entre la séance orale et « Mes cours ».</p>
             </details>
             <details>
                 <summary><x-icon name="bubble" /><span>Puis-je m'entraîner pour un entretien ou un exposé en anglais ?</span></summary>

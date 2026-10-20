@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\Level;
 use App\Models\User;
+use App\Support\Gemini\SiteGuide;
 use App\Support\Gemini\TeacherSetup;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\HasCourses;
@@ -27,7 +28,9 @@ class CourseHelpHomeTest extends TestCase
 
         foreach ([
             "Vos cours d'anglais enfin compris",
-            "Photographiez votre leçon ou votre exercice d'anglais",
+            "Ajoutez jusqu'à 4 photos de votre cahier ou de votre livre, ou votre cours en PDF (jusqu'à 50 pages)",
+            'Puis-je travailler mes cours d\'anglais, même en PDF ?',
+            'vous revenez un autre jour pour la suite, sans renvoyer le fichier',
             'en français quand il le faut',
             'et répond à vos questions',
             'Il vous guide pour faire votre exercice vous-même, puis corrige',
@@ -89,7 +92,7 @@ class CourseHelpHomeTest extends TestCase
             "Prenez la parole en anglais : exposés, entretiens, études ou stage à l'étranger.",
             'Oser parler, sans gêne ni jugement',
             "S'entraîner aux entretiens de bourse, d'admission ou de stage",
-            "Préparer un départ à l'étranger",
+            "Vos cours d'anglais en PDF, avec « Mes cours »",
             // Les cartes existantes sont toujours là.
             'Vous êtes élève ?', 'Vous êtes parent ?', 'Vous travaillez ?', 'Inscrire mon enfant',
         ] as $text) {
@@ -213,5 +216,27 @@ class CourseHelpHomeTest extends TestCase
         $this->assertStringContainsString('EVERY point of the lesson', $course);
         $this->assertStringContainsString('never skimming', $course);
         $this->assertStringContainsString('ask a short question to check they understood', $course);
+    }
+
+    public function test_every_presentation_of_my_courses_offers_photos_or_a_pdf_of_fifty_pages(): void
+    {
+        $offer = "Ajoutez jusqu'à 4 photos de votre cahier ou de votre livre, ou votre cours en PDF (jusqu'à 50 pages)";
+        $user = $this->learner();
+
+        foreach (['/', '/mes-cours'] as $url) {
+            $this->assertStringContainsString($offer, html_entity_decode($this->actingAs($user)->get($url)->getContent(), ENT_QUOTES), $url);
+        }
+
+        $this->assertStringContainsString($offer, html_entity_decode($this->actingAs($user)->get('/espace')->getContent(), ENT_QUOTES));
+        $this->assertStringContainsString('ou son cours en PDF (jusqu\'à 50 pages)', html_entity_decode($this->get('/apprendre-anglais/benin')->getContent(), ENT_QUOTES));
+        $this->assertStringContainsString('ou son cours en PDF (20 mégaoctets et 50 pages au plus)', SiteGuide::text());
+
+        // Plus aucun « photographiez » seul, nulle part où « Mes cours » est présenté (le message vocal de bienvenue
+        // ne change pas : il n'est pas dans ces fichiers).
+        $files = [...glob(resource_path('views/**/*.blade.php')), ...glob(resource_path('views/*.blade.php')), resource_path('content/pays.php'), resource_path('teacher/site-guide.md')];
+
+        foreach ($files as $file) {
+            $this->assertDoesNotMatchRegularExpression('/photographi/iu', (string) file_get_contents($file), $file);
+        }
     }
 }

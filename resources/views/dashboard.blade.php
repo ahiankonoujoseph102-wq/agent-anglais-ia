@@ -167,8 +167,8 @@
                 <h2 id="courses-card-title">Mes cours</h2>
             </div>
             <p>
-                Un complément facultatif : apportez une leçon d'anglais de votre école, de votre université ou de votre formation, et {{ config('avatar.model.name') }}
-                vous aide à la comprendre et à vous exercer.
+                Un complément facultatif pour vos leçons d'anglais de l'école, de l'université ou de votre formation.
+                {{ \App\Support\CourseFiles::offer() }} : {{ config('avatar.model.name') }} vous aide à les comprendre et à vous exercer.
             </p>
             <p class="course-counter"><x-icon name="clock" /> <span>Pris sur votre temps du jour, partagé avec la séance orale.</span></p>
             <a href="{{ route('courses.index') }}" class="btn btn-light btn-block"><x-icon name="arrow-right" /> Ouvrir Mes cours</a>

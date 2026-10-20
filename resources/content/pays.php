@@ -11,6 +11,7 @@
 |   :platform   nom de la plateforme         :teacher     nom du professeur
 |   :minutes    durée de l'évaluation        :operators   moyens de paiement du pays (configuration)
 |   :daily      temps par jour des formules  :dial        indicatif du pays
+|   :course_photos, :course_pages  photos et pages de PDF au plus dans « Mes cours »
 | Interdits : « certificat », « diplôme », « fait les devoirs » (sauf « ne fait pas les devoirs »),
 | « donne les réponses », « tous vos cours », « T-Money », tout chiffre inventé.
 | Les situations du programme se passent au Togo ou dans un cadre international (aucun autre pays cité).
@@ -68,7 +69,7 @@ return [
             [
                 'icon' => 'book',
                 'title' => 'Aide aux devoirs d\'anglais pour les élèves',
-                'text' => 'Avec « Mes cours », l\'élève photographie sa leçon ou son exercice d\'anglais. :teacher la lit, l\'explique en français et le guide pour faire l\'exercice lui-même : il ne fait pas les devoirs à sa place. Les étudiants (lycée, université, formation) s\'en servent aussi pour leurs cours d\'anglais. C\'est uniquement pour les cours d\'anglais, et c\'est compris dans le temps de la formule.',
+                'text' => 'Avec « Mes cours », l\'élève ajoute jusqu\'à :course_photos photos de son cahier ou de son livre, ou son cours en PDF (jusqu\'à :course_pages pages). :teacher la lit, l\'explique en français et le guide pour faire l\'exercice lui-même : il ne fait pas les devoirs à sa place. Les étudiants (lycée, université, formation) s\'en servent aussi pour leurs cours d\'anglais. C\'est uniquement pour les cours d\'anglais, et c\'est compris dans le temps de la formule.',
             ],
             [
                 'icon' => 'clock',

@@ -36,6 +36,7 @@ class SiteGuide
             ':min_start' => Duration::format(DailyTime::minStartSeconds()),
             ':answer_edits' => (string) config('program.answer_edits_per_day'),
             ':course_photos' => (string) (int) config('platform.courses.max_photos'),
+            ':part_pages' => (string) (int) config('platform.courses.part_max_pages'),
             ':course_pdf' => (int) (config('platform.courses.pdf_max_kilobytes') / 1024).' mégaoctets et '.(int) config('platform.courses.pdf_max_pages').' pages au plus',
             ':plans' => self::plans(),
             ':operators' => self::operators(),

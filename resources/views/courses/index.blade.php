@@ -5,8 +5,8 @@
             <h1>Mes cours</h1>
         </div>
         <p class="muted">
-            Un complément facultatif : apportez une leçon d'anglais de votre école, de votre université ou de votre formation, et {{ config('avatar.model.name') }}
-            vous aide à la comprendre, répond à vos questions et vous guide sur ses exercices.
+            Un complément facultatif pour vos leçons d'anglais de l'école, de l'université ou de votre formation. {{ \App\Support\CourseFiles::offer() }} :
+            {{ config('avatar.model.name') }} vous aide à les comprendre, répond à vos questions et vous guide sur les exercices.
             Votre programme et votre séance orale du jour restent l'essentiel.
         </p>
     </div>
@@ -57,7 +57,7 @@
             <div class="card empty-state">
                 <span class="icon-bubble"><x-icon name="book" /></span>
                 <p><strong>Vous n'avez pas encore ajouté de leçon.</strong></p>
-                <p class="muted">Prenez votre cahier ou votre livre d'anglais : une photo suffit.</p>
+                <p class="muted">{{ \App\Support\CourseFiles::offer() }}.</p>
                 <div class="actions">
                     <a href="{{ route('courses.create') }}" class="btn btn-accent btn-block"><x-icon name="plus" /> Ajouter une leçon</a>
                 </div>
