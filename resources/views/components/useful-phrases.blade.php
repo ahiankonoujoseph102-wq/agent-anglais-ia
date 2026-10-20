@@ -9,7 +9,7 @@
 <details id="useful-phrases" class="useful-phrases" @if ($open) open @endif>
     <summary class="useful-head">
         <span class="useful-label"><x-icon name="messages" /> Phrases utiles</span>
-        <span class="useful-hint">Dites-les à voix haute</span>
+        <span class="useful-hint">À dire à voix haute</span>
     </summary>
     <div class="useful-body">
         <p class="useful-intro">Vous pouvez poser vos questions en français et vous avez le droit de vous tromper. Pour demander de l'aide à {{ config('avatar.model.name') }}, dites simplement :</p>

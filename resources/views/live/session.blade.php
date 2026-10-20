@@ -157,11 +157,6 @@
             </div>
 
 
-            {{-- Évaluation, séance du jour, « Mes cours » : ce que l'élève peut dire pour demander de l'aide. --}}
-            @if (in_array($mode, ['assessment', 'lesson', 'course'], true))
-                <x-useful-phrases :open="$usefulPhrasesOpen ?? false" />
-            @endif
-
             <div id="subtitles-home"><div id="subtitles" class="subtitles" aria-live="polite" hidden></div></div>
 
             <div id="outcome" class="card" hidden></div>
@@ -179,6 +174,12 @@
                 <button type="button" id="stop" class="btn btn-light btn-block" hidden>Terminer</button>
                 <a id="back" href="{{ $urls['done'] }}" @class(['btn btn-block', 'btn-light' => $mode !== 'assessment']) hidden>{{ match ($mode) { 'assessment' => 'Voir mon résultat complet', 'course' => 'Retour à ma leçon', default => 'Retour à mon espace' } }}</a>
             </div>
+
+            {{-- Évaluation, séance du jour, « Mes cours » : ce que l'élève peut dire pour demander de l'aide. En bas de la
+                 colonne : sur téléphone, les sous-titres, le résultat et les formules passent avant. --}}
+            @if (in_array($mode, ['assessment', 'lesson', 'course'], true))
+                <x-useful-phrases :open="$usefulPhrasesOpen ?? false" />
+            @endif
         </div>
     </div>
 
