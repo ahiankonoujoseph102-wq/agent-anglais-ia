@@ -6,6 +6,7 @@ use App\Enums\SubscriptionStatus;
 use App\Models\CourseReview;
 use App\Models\CourseSession;
 use App\Models\User;
+use App\Support\Gemini\SiteGuide;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -118,5 +119,18 @@ class CourseReviewPagesTest extends TestCase
             ->assertSee('Pas de document de révision pour cette séance : elle était trop courte.')
             ->assertDontSee('Télécharger mon document de révision');
         $this->actingAs($this->user)->get(route('courses.review.download', $this->session))->assertNotFound();
+    }
+
+    public function test_privacy_and_the_site_guide_describe_the_revision_document(): void
+    {
+        $this->get(route('privacy'))->assertOk()
+            ->assertSee('votre document personnel de révision en PDF')
+            ->assertSee('Les leçons de « Mes cours » et leurs documents de révision')
+            ->assertSee('votre document de révision vous est envoyé en pièce jointe');
+
+        $guide = SiteGuide::text();
+        $this->assertStringContainsString('DOCUMENT DE RÉVISION', $guide);
+        $this->assertStringContainsString('« Télécharger mon document de révision »', $guide);
+        $this->assertStringContainsString('jamais une copie à rendre', $guide);
     }
 }
