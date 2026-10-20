@@ -1313,3 +1313,17 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .course-parts { list-style: none; padding: 0; margin: var(--space-2) 0 0; display: grid; gap: var(--space-2); }
 .course-parts li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .course-parts form { margin: 0; flex: none; }
+
+/* Documents de révision « Mes cours » (components/course-review) : une ligne par séance. */
+.review-list { list-style: none; padding: 0; margin: var(--space-3) 0 0; display: grid; gap: var(--space-3); }
+.review-list > li { display: grid; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--c-border); }
+.review-list > li:first-child { padding-top: 0; border-top: 0; }
+.review-date { font-weight: var(--fw-bold); color: var(--c-heading); overflow-wrap: anywhere; }
+.review-doc, .review-doc-line { margin: 0; }
+.review-doc-line form { margin: var(--space-2) 0 0; }
+.review-doc .btn { max-width: 100%; white-space: normal; }
+p.review-doc-line[data-review-when="pending"] { display: flex; align-items: center; gap: var(--space-2); color: var(--c-muted); font-size: var(--fs-sm); }
+p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
+.review-spinner { flex: none; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--c-border); border-top-color: var(--c-accent); animation: review-spin 1s linear infinite; }
+@keyframes review-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .review-spinner { animation: none; } }

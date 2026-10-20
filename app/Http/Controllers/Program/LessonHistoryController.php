@@ -23,6 +23,8 @@ class LessonHistoryController extends Controller
                 ->latest('id')
                 ->paginate(15),
             'openErrors' => $user->openErrors()->get(),
+            // Séances « Mes cours » finies et leur document de révision (les plus récentes d'abord).
+            'courseSessions' => $user->courseSessions()->whereNotNull('ended_at')->with(['review', 'lesson'])->latest('id')->limit(10)->get(),
             'resolvedCount' => $user->learnerErrors()->where('status', ErrorStatus::Resolved)->count(),
         ]);
     }

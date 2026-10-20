@@ -21,6 +21,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Course\CourseController;
+use App\Http\Controllers\Course\CourseReviewController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Live\AssessmentController;
@@ -143,6 +144,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/{course}/pages/{page}', [CourseController::class, 'page'])->whereNumber(['course', 'page'])->name('page');
         Route::post('/{course}/partie', [CourseController::class, 'choosePart'])->whereNumber('course')->middleware('throttle:10,1')->name('part');
         Route::delete('/{course}', [CourseController::class, 'destroy'])->whereNumber('course')->middleware('confirm:course.delete')->name('destroy');
+        // Document personnel de révision d'une séance : téléchargement, état (mise à jour de la page), « Réessayer ».
+        Route::get('/seances/{session}/document', [CourseReviewController::class, 'download'])->whereNumber('session')->name('review.download');
+        Route::get('/seances/{session}/document/etat', [CourseReviewController::class, 'status'])->whereNumber('session')->middleware('throttle:30,1')->name('review.status');
+        Route::post('/seances/{session}/document/reessayer', [CourseReviewController::class, 'retry'])->whereNumber('session')->middleware('throttle:10,1')->name('review.retry');
         Route::get('/{course}/seance', [CourseSessionController::class, 'show'])->whereNumber('course')->name('session');
         Route::post('/{course}/seance/connexion', [CourseSessionController::class, 'connect'])->whereNumber('course')->middleware('throttle:10,1')->name('connect');
     });

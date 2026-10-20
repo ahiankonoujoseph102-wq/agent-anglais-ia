@@ -173,6 +173,23 @@ class CourseReviews
         }
     }
 
+    /**
+     * Ce que l'élève voit pour une séance : ready, pending (en préparation, aussi avant la création de la ligne),
+     * failed, skipped (séance trop courte) ou none (séance en cours, ou trop ancienne pour un document).
+     */
+    public static function stateOf(CourseSession $session): string
+    {
+        $review = $session->relationLoaded('review') ? $session->review : $session->review()->first();
+
+        if ($review !== null) {
+            return $review->status;
+        }
+
+        $recent = $session->ended_at !== null && $session->ended_at->gte(now()->subDays((int) self::setting('lookback_days')));
+
+        return $session->status !== LessonStatus::InProgress && $recent && $session->course_lesson_id !== null ? CourseReview::PENDING : 'none';
+    }
+
     public static function setting(string $key): mixed
     {
         return config('platform.courses.review.'.$key);

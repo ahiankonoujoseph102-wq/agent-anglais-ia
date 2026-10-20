@@ -227,6 +227,8 @@ class CourseController extends Controller
 
         return view('courses.show', [
             'course' => $course->load(['pages', 'parts', 'currentPart']),
+            // Séances finies de cette leçon et leur document de révision (les plus récentes d'abord).
+            'reviewSessions' => $course->sessions()->whereNotNull('ended_at')->with('review')->latest('id')->limit(10)->get(),
             'counter' => $this->counter($request->user()),
             'partLimits' => [
                 'browser_timeout' => (int) config('platform.courses.browser_timeout_seconds'),

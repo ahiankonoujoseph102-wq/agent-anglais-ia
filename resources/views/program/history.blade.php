@@ -30,6 +30,24 @@
         @endforelse
     </section>
 
+    @if ($courseSessions->isNotEmpty())
+        <section class="card rise" style="--i: 2" id="documents" aria-labelledby="documents-titre">
+            <div class="card-title">
+                <span class="icon-bubble"><x-icon name="file-text" /></span>
+                <h2 id="documents-titre">Mes cours : documents de révision</h2>
+            </div>
+            <ul class="review-list">
+                @foreach ($courseSessions as $session)
+                    <li>
+                        <span class="review-date">{{ $session->lesson?->title ?? 'Leçon supprimée' }} · {{ $session->ended_at->timezone(config('app.timezone'))->translatedFormat('j F Y') }}</span>
+                        <x-course-review :session="$session" />
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+        <script type="module" src="{{ \App\Support\Asset::url('js/course-review.js') }}"></script>
+    @endif
+
     <h2 class="next-step">Historique</h2>
     @forelse ($lessons as $lesson)
         <article class="card lesson-card reveal">
