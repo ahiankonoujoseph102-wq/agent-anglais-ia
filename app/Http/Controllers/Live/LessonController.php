@@ -12,17 +12,20 @@ use App\Http\Requests\Live\SignalRequest;
 use App\Models\Lesson;
 use App\Models\ProgramLesson;
 use App\Models\User;
+use App\Support\Curriculum\LessonBoards;
 use App\Support\Curriculum\LessonContext;
 use App\Support\Curriculum\LessonReport;
 use App\Support\DailyTime;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Text\TextProviders;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
+use Throwable;
 
 /**
  * La séance du jour des abonnés, limitée au temps restant du jour de leur formule (partagé avec « Mes cours »).
@@ -51,11 +54,14 @@ class LessonController extends Controller
             return to_route('dashboard')->with('status', DailyTime::EXHAUSTED);
         }
 
+        $board = $this->board($user, $lesson);
+
         return view('live.session', [
             'mode' => 'lesson',
             'title' => 'Ma séance du jour',
             'intro' => DailyTime::remainingSentence($remaining).' Ce temps du jour est partagé avec « Mes cours ». Le professeur vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
             'remainingSeconds' => $remaining,
+            'board' => $board,
             'urls' => [
                 'connect' => route('lesson.connect'),
                 'signal' => route('lesson.signal'),
@@ -180,6 +186,7 @@ class LessonController extends Controller
         }
 
         LessonReport::record($lesson, $request->validated());
+        $this->prepareNextBoard($request->user());
 
         return response()->json([
             'saved' => true,
@@ -197,6 +204,8 @@ class LessonController extends Controller
         if ($lesson->closeIfOver()) {
             $lesson->finish(now());
         }
+
+        $this->prepareNextBoard($request->user());
 
         return response()->json(['status' => $lesson->status->label()]);
     }
@@ -239,6 +248,46 @@ class LessonController extends Controller
         $errors = $user->openErrors()->limit((int) config('program.errors_per_lesson'))->get();
 
         return LessonContext::describe($user, $programLesson->program, $programLesson, $previous, $errors);
+    }
+
+    /**
+     * Tableau de la leçon du jour (celle de la séance reprise, sinon la prochaine à faire). S'il n'est pas encore
+     * prêt, il est préparé ici avec un délai court (jamais à la connexion) ; sinon, tableau de secours du programme.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function board(User $user, ?Lesson $lesson): ?array
+    {
+        $program = $user->activeProgram()->first();
+        $programLesson = $lesson?->programLesson ?? $program?->currentLesson()->first();
+
+        if ($program === null || $programLesson === null) {
+            return null;
+        }
+
+        $programLesson->setRelation('program', $program);
+
+        if (! LessonBoards::ready($programLesson, $program) && TextProviders::available() !== []) {
+            try {
+                LessonBoards::prepare($programLesson, $program, (int) config('program.board_prepare_timeout'));
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
+
+        return LessonBoards::for($programLesson, $program);
+    }
+
+    /**
+     * Après une séance : le tableau de la leçon suivante est préparé après la réponse.
+     */
+    private function prepareNextBoard(User $user): void
+    {
+        $program = $user->activeProgram()->first();
+        $next = $program?->currentLesson()->first();
+        $next?->setRelation('program', $program);
+
+        LessonBoards::queue($next, $program);
     }
 
     /**

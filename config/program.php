@@ -21,6 +21,10 @@ return [
     // Nombre maximal d'erreurs rappelées au professeur à chaque séance.
     'errors_per_lesson' => 6,
 
+    // Tableau de la séance pas encore prêt à l'ouverture de « Ma séance du jour » : délai accordé à chaque
+    // fournisseur du modèle texte (secondes), puis tableau de secours tiré du programme. Jamais à la connexion.
+    'board_prepare_timeout' => 6,
+
     // « Modifier mes objectifs » : modifications enregistrées au plus par jour et par compte (minuit, heure de Lomé).
     'answer_edits_per_day' => 3,
 

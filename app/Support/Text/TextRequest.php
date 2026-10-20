@@ -16,6 +16,7 @@ final class TextRequest
         'estimate' => 'Estimation du niveau sans verdict',
         'program' => 'Présentation du programme',
         'encouragement' => 'Message aux apprenants inactifs',
+        'board' => 'Tableaux des séances',
         'diagnostic' => 'Essai du diagnostic',
     ];
 

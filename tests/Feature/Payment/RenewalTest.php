@@ -65,7 +65,8 @@ class RenewalTest extends TestCase
             ->assertRedirect('/abonnement')
             ->assertSessionHas('status', 'Votre abonnement a expiré : renouvelez-le pour reprendre vos séances.');
         $this->actingAs($user)->postJson('/seance/connexion')->assertForbidden();
-        Http::assertNothingSent();
+        // Aucun jeton de séance demandé (la seule demande possible est la préparation du tableau de la leçon).
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), 'auth_tokens'));
 
         $this->actingAs($user)->get('/espace')
             ->assertSee('Votre abonnement a expiré')

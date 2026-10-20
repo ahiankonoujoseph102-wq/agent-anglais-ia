@@ -147,7 +147,7 @@ class QuestionnaireTest extends TestCase
         Http::assertSent(fn (Request $request) => $request['model'] === 'gemini-3.5-flash-lite'
             && $request['store'] === false
             && $request->hasHeader('x-goog-api-key', 'cle-test')
-            && str_contains($request['input'], 'Akossiwa'));
+            && is_string($request['input']) && str_contains($request['input'], 'Akossiwa'));
     }
 
     public function test_lessons_are_blocked_until_the_program_is_built(): void
