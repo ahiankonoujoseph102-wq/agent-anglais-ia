@@ -67,9 +67,9 @@ class HomePageTest extends TestCase
             ->assertSee('Grand Marché de Lomé')
             ->assertSee('Vous êtes élève ?')
             ->assertSee('Questions fréquentes')
-            ->assertSee('Qu\'est-ce que l\'accès provisoire ?', false)
-            ->assertSee('De quel matériel ai-je besoin ?')
-            ->assertSee('Combien de données internet faut-il ?')
+            ->assertSee('accès provisoire de 24 heures')
+            ->assertSee('De quoi ai-je besoin (matériel, internet) ?')
+            ->assertSee('environ 50 mégaoctets pour une séance de 15 minutes')
             ->assertSee('Qu\'est-ce que l\'attestation de niveau ?', false)
             ->assertSee('Mixx by Yas')
             // Bouton WhatsApp (seul bouton vert).
@@ -103,7 +103,7 @@ class HomePageTest extends TestCase
             ->assertSee('Souvent, votre accès s\'ouvre tout de suite pour 24 heures', false)
             ->assertSee('première séance possible le jour même')
             ->assertSee('Comment se passe une séance ?')
-            ->assertSee('Que se passe-t-il après le paiement ?')
+            ->assertSee('Comment payer mon abonnement ?')
             ->assertDontSee('Ce qui rend')
             ->getContent();
 

@@ -286,50 +286,59 @@
         @php(ob_start())
         <div class="faq reveal">
             <details>
-                <summary><x-icon name="wallet" /><span>Comment payer mon abonnement ?</span></summary>
-                <p>Par Mobile Money, depuis votre téléphone. Vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Aucune carte bancaire n'est nécessaire. Mêmes formules et mêmes prix dans tous les pays :</p>
-                <ul class="faq-list">
-                    @foreach ($paymentCountries as $paymentCountry)
-                        <li><strong>{{ $paymentCountry['name'] }}</strong> : {{ implode(', ', $paymentCountry['operators']) }}</li>
-                    @endforeach
-                </ul>
-                <p>Vous habitez dans un autre pays ? L'inscription et l'évaluation gratuite fonctionnent partout : notre équipe vous explique sur WhatsApp comment vous abonner, avec les mêmes prix en francs CFA.</p>
+                <summary><x-icon name="sparkle" /><span>Je suis débutant complet, est-ce pour moi ?</span></summary>
+                <p>Oui. L'évaluation gratuite trouve votre niveau, même s'il est tout au début (A1). {{ $teacher }} part de là : il vous enseigne d'abord des phrases simples, une à la fois, les dit lentement et vous les fait répéter avant de vous faire parler. Il explique en anglais simple et, si vous ne comprenez pas, en français.</p>
+            </details>
+            <details>
+                <summary><x-icon name="gift" /><span>L'évaluation est-elle vraiment gratuite ?</span></summary>
+                <p>Oui. Une évaluation orale par compte, sans paiement ni engagement : {{ $minutes }} minutes pour trouver votre niveau, de A1 à C2. {{ $teacher }} vous montre ensuite comment se passe un cours avec une première phrase de votre niveau, puis répond à vos questions en français : {{ \App\Models\Assessment::totalMinutes() }} minutes au plus en tout. Ensuite, vous décidez.</p>
+            </details>
+            <details>
+                <summary><x-icon name="mic" /><span>Comment se passe une séance ?</span></summary>
+                <p>{{ $teacher }} annonce la durée au début, et la séance se passe en quatre temps. La leçon : il vous enseigne les phrases, les mots et la règle du jour, écrits au tableau sur votre écran. La pratique : vous répétez et vous construisez vos phrases. La conversation : vous utilisez la leçon dans une situation de votre vie. Le bilan : ce que vous savez faire maintenant et une phrase à retenir. Il parle d'abord anglais, à votre niveau ; le français sert de filet de sécurité quand vous ne comprenez pas.</p>
+            </details>
+            <details>
+                <summary><x-icon name="help" /><span>Puis-je poser mes questions en français ?</span></summary>
+                <p>Oui, à tout moment. Vous pouvez aussi lui demander de répéter, de parler plus lentement ou de réexpliquer : les phrases utiles sont écrites sur votre écran pendant la séance (« Can you repeat, please? », « Can you explain in French, please? »). Et vous avez le droit de vous tromper : c'est en parlant qu'on progresse.</p>
+            </details>
+            <details>
+                <summary><x-icon name="check-circle" /><span>Comment {{ $teacher }} corrige-t-il mes erreurs ?</span></summary>
+                <p>Il corrige d'abord les erreurs qui empêchent d'être bien compris, une ou deux à la fois. Il vous laisse chercher avec un indice, puis donne la bonne forme et vous fait redire la phrase entière. Il vous montre aussi les pièges des francophones (« En français on dit…, en anglais on dit… »). Vos erreurs sont gardées et reviennent aux séances suivantes, jusqu'à ce que vous les disiez juste deux fois de suite.</p>
+            </details>
+            <details>
+                <summary><x-icon name="history" /><span>Vais-je oublier ce que j'ai appris ?</span></summary>
+                <p>{{ $teacher }} vous aide à retenir. Au début de chaque séance, il vous redemande la phrase à retenir de la veille et votre devoir. Pendant la pratique, il vous fait retrouver des phrases des leçons passées (de la veille, de quelques jours, de la semaine d'avant) et revoit vos erreurs. Le plus efficace reste de pratiquer un peu chaque jour.</p>
             </details>
             <details>
                 <summary><x-icon name="languages" /><span>Quel anglais vais-je apprendre ?</span></summary>
                 <p>L'anglais américain, compris partout dans le monde : sa prononciation, son vocabulaire et son orthographe. Si vous avez appris des mots britanniques à l'école, ils ne sont jamais comptés comme des fautes : {{ $teacher }} vous donne simplement l'équivalent américain quand c'est utile.</p>
             </details>
             <details>
-                <summary><x-icon name="mic" /><span>Comment se passe une séance ?</span></summary>
-                <p>Elle a une durée fixe et se passe en quatre temps. La leçon : {{ $teacher }} vous enseigne les phrases, les mots et les verbes du jour, affichés au tableau. La pratique : vous répétez et vous construisez vos phrases. La conversation : vous utilisez la leçon dans une situation de votre vie, il vous corrige avec douceur. Le bilan : ce que vous avez appris et une phrase à retenir. Il parle anglais, adapté à votre niveau, et vous explique en français quand vous ne comprenez pas.</p>
+                <summary><x-icon name="book" /><span>Puis-je travailler mes cours d'anglais, même en PDF ?</span></summary>
+                <p>Oui, avec « Mes cours », pour les élèves et les étudiants (lycée, université, formation) qui ont une formule active. {{ \App\Support\CourseFiles::offer() }}. Pour un long PDF, vous choisissez avant la séance les pages ({{ \App\Support\CourseFiles::partPages() }} au plus à la fois) ou le passage à travailler, et vous revenez un autre jour pour la suite, sans renvoyer le fichier. {{ $teacher }} vous explique la leçon, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et le temps se prend sur votre temps du jour, partagé avec la séance orale.</p>
             </details>
             <details>
-                <summary><x-icon name="calendar-check" /><span>Que se passe-t-il après le paiement ? Qu'est-ce que l'accès provisoire ?</span></summary>
-                <p>Vous envoyez la capture de la confirmation. Si elle est claire (bon montant, bon numéro, paiement récent), vous avez un accès provisoire : vos séances commencent tout de suite, pendant 24 heures, le temps que notre équipe vérifie votre paiement ; une fois vérifiée, votre formule devient définitive, sans perdre aucun jour. Sinon, l'équipe vérifie d'abord. {{ $teacher }} vous accueille, vous répondez à 4 petites questions (objectif, métier, jours, difficultés) et votre programme personnel est prêt : votre première séance peut avoir lieu le jour même.</p>
+                <summary><x-icon name="bubble" /><span>Puis-je préparer un entretien ou un exposé ?</span></summary>
+                <p>Oui. Dans le questionnaire de votre programme, choisissez l'objectif « Préparer un entretien (bourse, admission, visa, stage, embauche) » ou « Faire un exposé ou une soutenance en anglais ». Pour un entretien, {{ $teacher }} joue l'examinateur : il pose les questions une par une, écoute votre réponse, puis vous corrige et vous propose une meilleure formulation. C'est un entraînement à l'oral : ce n'est pas la préparation d'un examen officiel, et aucun résultat n'est garanti.</p>
             </details>
             <details>
-                <summary><x-icon name="headphones" /><span>De quel matériel ai-je besoin ?</span></summary>
-                <p>Un téléphone ou un ordinateur avec un micro, un navigateur récent comme Chrome, et une connexion internet. Des écouteurs sont pratiques mais pas obligatoires. Aucune application à installer : vous pouvez simplement ajouter {{ $platform }} à l'écran d'accueil de votre téléphone.</p>
+                <summary><x-icon name="wallet" /><span>Comment payer mon abonnement ?</span></summary>
+                <p>Par Mobile Money, depuis votre téléphone : vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Aucune carte bancaire. Mêmes formules et mêmes prix dans tous les pays :</p>
+                <ul class="faq-list">
+                    @foreach ($paymentCountries as $paymentCountry)
+                        <li><strong>{{ $paymentCountry['name'] }}</strong> : {{ implode(', ', $paymentCountry['operators']) }}</li>
+                    @endforeach
+                </ul>
+                <p>Si la capture est claire (bon montant, bon numéro, paiement récent), vous avez un accès provisoire de 24 heures : vos séances commencent tout de suite, pendant que notre équipe vérifie ; une fois vérifiée, votre formule devient définitive, sans perdre aucun jour. Sinon, l'équipe vérifie d'abord. Vous répondez ensuite à 4 petites questions et votre programme personnel est prêt.</p>
+                <p>Vous habitez dans un autre pays ? L'inscription et l'évaluation gratuite fonctionnent partout : notre équipe vous explique sur WhatsApp comment vous abonner, avec les mêmes prix en francs CFA.</p>
             </details>
             <details>
-                <summary><x-icon name="wifi" /><span>Combien de données internet faut-il ?</span></summary>
-                <p>Les pages du site sont légères. Pendant une séance, la voix passe en continu : comptez environ 3 à 4 mégaoctets par minute selon le temps de parole, soit environ 50 mégaoctets pour une séance de 15 minutes. Le professeur en 3D (environ 1 mégaoctet) n'est téléchargé qu'une seule fois. Si vous le pouvez, utilisez le wifi.</p>
+                <summary><x-icon name="headphones" /><span>De quoi ai-je besoin (matériel, internet) ?</span></summary>
+                <p>Un téléphone ou un ordinateur avec un micro, un navigateur récent comme Chrome et une connexion internet ; des écouteurs sont pratiques mais pas obligatoires, et aucune application n'est à installer. Pendant une séance, la voix passe en continu : comptez environ 3 à 4 mégaoctets par minute, soit environ 50 mégaoctets pour une séance de 15 minutes. Le professeur en 3D (environ 1 mégaoctet) n'est téléchargé qu'une seule fois. Si vous le pouvez, utilisez le wifi.</p>
             </details>
             <details>
                 <summary><x-icon name="award" /><span>Qu'est-ce que l'attestation de niveau ?</span></summary>
                 <p>À la fin de chaque niveau (douze unités), vous passez un bilan oral avec {{ $teacher }}. S'il est réussi, vous recevez une attestation de niveau en PDF, que chacun peut vérifier en ligne grâce à son code.</p>
-            </details>
-            <details>
-                <summary><x-icon name="book" /><span>Puis-je travailler mes cours d'anglais, même en PDF ?</span></summary>
-                <p>Oui, avec « Mes cours », pour les élèves et les étudiants (lycée, université, formation) qui ont une formule active. {{ \App\Support\CourseFiles::offer() }}. Pour un long PDF, vous choisissez avant la séance les pages ({{ \App\Support\CourseFiles::partPages() }} au plus à la fois) ou le passage à travailler, et vous revenez un autre jour pour la suite, sans renvoyer le fichier. {{ $teacher }} lit votre leçon et vous l'explique, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et c'est une aide en plus de votre programme pour parler anglais. Votre formule donne un temps par jour, que vous partagez librement entre la séance orale et « Mes cours ».</p>
-            </details>
-            <details>
-                <summary><x-icon name="bubble" /><span>Puis-je m'entraîner pour un entretien ou un exposé en anglais ?</span></summary>
-                <p>Oui. Dans le questionnaire de votre programme, choisissez l'objectif « Préparer un entretien (bourse, admission, visa, stage, embauche) » ou « Faire un exposé ou une soutenance en anglais ». Pour un entretien, {{ $teacher }} joue l'examinateur : il pose les questions une par une, écoute votre réponse, puis vous corrige et vous propose une meilleure formulation. C'est un entraînement à l'oral : ce n'est pas la préparation d'un examen officiel, et aucun résultat n'est garanti.</p>
-            </details>
-            <details>
-                <summary><x-icon name="gift" /><span>L'évaluation est-elle vraiment gratuite ?</span></summary>
-                <p>Oui. Une évaluation orale par compte, sans paiement ni engagement : {{ $minutes }} minutes pour trouver votre niveau, puis une mini-leçon pour découvrir comment se passe un cours, et vos questions ({{ \App\Models\Assessment::totalMinutes() }} minutes au plus en tout). Ensuite, vous décidez.</p>
             </details>
         </div>
         @php($faqHtml = ob_get_clean())

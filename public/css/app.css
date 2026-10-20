@@ -359,11 +359,13 @@ main { overflow-x: clip; }
 .check-list .icon { position: absolute; left: 0; top: 3px; color: var(--c-accent-strong); }
 .faq { display: grid; gap: var(--space-2); max-width: 760px; }
 .faq details { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius); }
-.faq summary { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 56px; padding: var(--space-3) var(--space-4); font-weight: var(--fw-bold); color: var(--c-heading); cursor: pointer; list-style: none; }
+/* Lignes repliées compactes (douze questions sur l'accueil) : 48 pixels au moins, toujours faciles à toucher. */
+.faq summary { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 48px; padding: var(--space-2) var(--space-3); font-weight: var(--fw-bold); color: var(--c-heading); cursor: pointer; list-style: none; }
 .faq summary::-webkit-details-marker { display: none; }
-.faq summary::after { content: "+"; flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--c-accent); color: var(--c-on-accent); font-size: var(--fs-lg); font-weight: var(--fw-heavy); transition: transform var(--dur-fast); }
+.faq summary::after { content: "+"; flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--c-accent); color: var(--c-on-accent); font-size: var(--fs-lg); font-weight: var(--fw-heavy); transition: transform var(--dur-fast); }
 .faq summary > span { flex: 1; }
-.faq summary .icon { width: 44px; height: 44px; padding: 10px; border-radius: 13px; background: var(--ib-bg); color: var(--ib-fg); box-shadow: var(--ib-ring); stroke-width: 2.25; }
+@media (max-width: 639px) { .faq summary > span { font-size: var(--fs-sm); } }
+.faq summary .icon { flex: none; width: 36px; height: 36px; padding: 8px; border-radius: 11px; background: var(--ib-bg); color: var(--ib-fg); box-shadow: var(--ib-ring); stroke-width: 2.25; }
 .faq summary .icon .d { fill: var(--ib-fill); }
 .faq details[open] summary::after { content: "−"; }
 .faq summary:focus-visible { outline: 3px solid var(--c-focus); outline-offset: 2px; border-radius: var(--radius); }
