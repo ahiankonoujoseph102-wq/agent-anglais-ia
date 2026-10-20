@@ -43,6 +43,8 @@ const { OpenAiTransport } = await import(root.dataset.liveOpenai);
 const { TranscriptRecorder } = await import(root.dataset.transcript);
 // Mesure des tours de parole (délai de réponse), fin de tour de secours, attente d'une réponse.
 const { VoiceActivity, TurnWatch, learnerMetrics, teacherMetrics } = await import(root.dataset.turnWatch);
+// Tableau de la séance du jour : élément expliqué et étape en cours, d'après la voix du professeur.
+const { BoardTracker, BoardView } = root.dataset.lessonBoard ? await import(root.dataset.lessonBoard) : {};
 // Secondes, pour la fin automatique.
 const clock = () => performance.now() / 1000;
 const MIC_PREFERENCE = 'mic-device';
@@ -85,6 +87,62 @@ function placeSubtitles() {
 
 placeSubtitles();
 wideScreen?.addEventListener?.('change', placeSubtitles);
+
+// Tableau (séance du jour) : sous Teacher Joe et replié sur téléphone ; à droite et ouvert sur grand écran et téléphone couché.
+const boardEl = $('board');
+const board = boardEl && BoardView ? { view: new BoardView(boardEl), tracker: null, nudged: false } : null;
+const wideBoard = window.matchMedia?.('(min-width: 900px), (orientation: landscape) and (max-height: 560px)');
+
+function placeBoard() {
+    if (!board) {
+        return;
+    }
+
+    const wide = wideBoard?.matches;
+    const target = wide ? $('board-wide') : $('board-home');
+
+    if (target && boardEl.parentElement !== target) {
+        target.append(boardEl);
+    }
+
+    if (wide) {
+        boardEl.open = true;
+    }
+}
+
+placeBoard();
+wideBoard?.addEventListener?.('change', placeBoard);
+boardEl?.querySelector('[data-board-translations]')?.addEventListener('change', (event) => {
+    boardEl.classList.toggle('show-translations', event.target.checked);
+});
+
+/** Secondes écoulées depuis le début de la séance (temps du serveur). */
+function lessonElapsed() {
+    return Math.max(0, (state.config?.phases?.total ?? 0) - remainingSeconds());
+}
+
+/** Étape en cours du tableau (ou null hors séance du jour). */
+function boardPhase() {
+    return board?.tracker ? board.tracker.phase(lessonElapsed()) : null;
+}
+
+/**
+ * Indication de reprise (coupure ou pause) : celle de l'étape en cours, avec le dernier élément du tableau
+ * expliqué, pour que Teacher Joe ne recommence ni l'accueil ni la leçon.
+ */
+function resumeCue(kind) {
+    const phases = state.config?.cues?.[kind === 'pause' ? 'pause_phases' : 'resume_phases'];
+    const phase = boardPhase();
+    const fallback = kind === 'pause' ? state.config.cues.pause_resume : state.config.cues.resume;
+
+    if (!phases || !phase || !phases[phase]) {
+        return fallback;
+    }
+
+    const last = board.tracker.current ? board.view.label(board.tracker.current) : null;
+
+    return phases[phase] + (last ? ` The last board item you were working on: "${last}".` : '');
+}
 
 // Professeur 3D, chargé en arrière-plan ; le visage SVG reste affiché en attendant.
 let teacher = null;
@@ -391,6 +449,12 @@ function subtitle(speaker, text, key = null) {
 
     // Expression du professeur 3D au moment où il dit « Great answer! », « You said… », « Goodbye! »…
     if (speaker === 'teacher') {
+        const lit = board?.tracker?.feed(text);
+
+        if (lit) {
+            board.view.light(lit);
+        }
+
         const expression = state.cues.feed(text);
 
         if (expression) {
@@ -1169,6 +1233,11 @@ async function connect({ planned = false, failed = null } = {}) {
 
     const isResume = state.everReady;
     state.config = result.data;
+
+    if (board && state.config.phases) {
+        board.tracker ??= new BoardTracker(board.view.items());
+        board.tracker.configure(state.config.phases);
+    }
     state.tokenExpiresAt = Date.now() + state.config.token_expires_in * 1000;
 
     if (!isResume && state.config.closing_phrase) {
@@ -1272,7 +1341,7 @@ function handlersFor(transport, { planned, isResume }) {
             // Un seul accueil : à la première connexion. En pause, la reprise
             // de la pause suffira (inutile de faire parler le professeur).
             if (!planned && !(isResume && state.paused)) {
-                cue(isResume ? state.config.cues.resume : state.config.cues.start);
+                cue(isResume ? resumeCue('resume') : state.config.cues.start);
             }
 
             if (!isResume && !planned) {
@@ -1732,6 +1801,18 @@ function tick() {
         cue(state.config.cues.warning);
     }
 
+    // Séance du jour : étape affichée sur le tableau, et UNE relance douce vers la conversation si elle tarde.
+    if (board?.tracker) {
+        const elapsed = lessonElapsed();
+        board.view.setPhase(board.tracker.phase(elapsed), state.config.phases?.merged);
+
+        if (!board.nudged && state.connected && !state.paused && state.config.cues?.conversation
+            && board.tracker.needsConversationNudge(elapsed) && !teacherSpeaking() && !state.generating) {
+            board.nudged = true;
+            cue(state.config.cues.conversation);
+        }
+    }
+
     // UNE indication après le verdict : passer à la conclusion, environ 30 secondes avant la fin.
     if (state.connected && state.end.shouldConclude(seconds, teacherSpeaking() || state.generating)) {
         sendText(state.config.cues.conclusion);
@@ -1864,7 +1945,7 @@ function togglePause() {
         setStatus('En conversation');
         unmuteVoiceStream();
         // L'apprenant n'a rien entendu pendant la pause : le professeur reprend sa question.
-        cue(state.config.cues.pause_resume);
+        cue(resumeCue('pause'));
     }
 
     renderTurn();

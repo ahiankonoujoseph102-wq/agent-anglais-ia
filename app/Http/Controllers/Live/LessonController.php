@@ -63,6 +63,12 @@ class LessonController extends Controller
             'intro' => DailyTime::remainingSentence($remaining).' Ce temps du jour est partagé avec « Mes cours ». Le professeur vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
             'remainingSeconds' => $remaining,
             'board' => $board,
+            // Traductions du tableau : visibles en A1 et A2, discrètes en B1, masquées ensuite.
+            'boardTranslations' => match ($user->activeProgram()->first()?->level ?? $user->level) {
+                Level::A1, Level::A2, null => 'show',
+                Level::B1 => 'discreet',
+                default => 'hidden',
+            },
             'urls' => [
                 'connect' => route('lesson.connect'),
                 'signal' => route('lesson.signal'),
@@ -170,6 +176,8 @@ class LessonController extends Controller
                 'phrases' => (array) config('platform.lessons.phase_phrases'),
                 'starts' => LessonPlan::starts($plan),
                 'merged' => $plan['merged'],
+                // Durée accordée à la séance : temps écoulé = durée − temps restant.
+                'total' => $lesson->allowed_seconds,
             ],
         ]);
     }

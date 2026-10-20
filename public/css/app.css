@@ -1207,3 +1207,38 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
     .founder-photo { width: 112px; height: 112px; }
 }
 @media (max-width: 639px) { .about-card:has(.founder-photo) { flex-direction: column; } }
+
+/* Séance du jour : TABLEAU de la leçon (components/live-board.blade.php, public/js/lesson-board.js). Bleu nuit comme un
+   tableau, élément expliqué en orange (texte bleu nuit), éléments déjà vus cochés. Téléphone : sous Teacher Joe,
+   replié, la ligne du haut donne l'étape et l'élément en cours ; grand écran : à droite, ouvert. */
+.board { margin: 0 0 var(--space-3); border-radius: var(--radius-lg); background: var(--c-primary); color: var(--c-on-dark); box-shadow: var(--shadow-sm); overflow: hidden; }
+.board-head { display: flex; align-items: center; gap: var(--space-2); min-height: 48px; padding: var(--space-2) var(--space-3); cursor: pointer; list-style: none; }
+.board-head::-webkit-details-marker { display: none; }
+.board-head::after { content: "+"; flex: none; margin-left: auto; font-weight: var(--fw-heavy); color: var(--c-accent); }
+.board[open] .board-head::after { content: "−"; }
+.board-label { display: inline-flex; align-items: center; gap: 6px; font-weight: var(--fw-heavy); flex: none; }
+.board-label .icon { color: var(--c-accent); }
+.board-phase { flex: none; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--c-accent); color: var(--c-on-accent); font-size: var(--fs-xs); font-weight: var(--fw-heavy); }
+.board-now { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-sm); color: var(--c-on-dark-muted); }
+.board[open] .board-now { display: none; }
+.board-body { padding: 0 var(--space-3) var(--space-3); max-height: 42vh; overflow-y: auto; }
+.board-title { color: var(--c-on-dark); font-size: var(--fs-lg); margin: 0 0 var(--space-2); }
+.board-heading { margin: var(--space-3) 0 var(--space-1); font-size: var(--fs-xs); font-weight: var(--fw-bold); text-transform: uppercase; letter-spacing: .06em; color: var(--c-accent); }
+.board-list, .board-words { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.board-words { grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr)); }
+.board-item { position: relative; display: grid; gap: 2px; margin: 0; padding: 6px 10px 6px 12px; border-radius: var(--radius-sm); border-left: 3px solid transparent; background: var(--c-on-dark-glow); transition: background var(--dur-fast), color var(--dur-fast); }
+.board-en { font-weight: var(--fw-bold); overflow-wrap: anywhere; }
+.board-fr { font-size: var(--fs-sm); color: var(--c-on-dark-muted); overflow-wrap: anywhere; }
+.board-item.is-seen { border-left-color: var(--c-on-dark-line); border-left-color: rgba(255, 255, 255, .45); }
+.board-item.is-lit { background: var(--c-accent); color: var(--c-on-accent); border-left-color: var(--c-surface); animation: board-lit var(--dur-slow) var(--ease); }
+.board-item.is-lit .board-fr { color: var(--c-on-accent); }
+@keyframes board-lit { from { transform: scale(.98); } to { transform: none; } }
+.board[data-translations="discreet"] .board-fr { font-size: var(--fs-xs); opacity: .8; }
+.board[data-translations="hidden"] .board-fr { display: none; }
+.board.show-translations .board-fr { display: block; font-size: var(--fs-sm); opacity: 1; }
+.board-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--c-on-dark-muted); cursor: pointer; }
+.board-toggle input { accent-color: var(--c-accent); width: 16px; height: 16px; }
+@media (min-width: 900px), (orientation: landscape) and (max-height: 560px) {
+    #board-wide .board-body { max-height: min(36vh, 320px); }
+}
+@media (prefers-reduced-motion: reduce) { .board-item.is-lit { animation: none; } }

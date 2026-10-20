@@ -172,4 +172,56 @@ class LessonFourStepsTest extends TestCase
         $this->assertStringContainsString('STEP 1 — LESSON', $session['instructions']);
         $this->assertStringContainsString(config('teacher.lesson_language.A2'), $session['instructions']);
     }
+
+    public function test_the_lesson_screen_shows_the_board_with_its_items_and_the_phase(): void
+    {
+        $user = $this->learner(Level::A1);
+        $program = $user->activeProgram()->firstOrFail();
+        $lesson = $program->currentLesson()->firstOrFail();
+        LessonBoard::query()->create([
+            'key' => LessonBoards::key($lesson, $program), 'level' => 'A1', 'unit_number' => 1, 'lesson_number' => 1,
+            'situation_index' => $lesson->situation_index, 'goal' => 'work', 'content' => LessonBoards::normalize(LessonBoardTest::board()), 'provider' => 'gemini',
+        ]);
+
+        $html = $this->actingAs($user)->get('/seance')->assertOk()->getContent();
+
+        // Sous Teacher Joe (déplacé à droite sur grand écran par live-session.js), étape « Leçon » au début.
+        $this->assertMatchesRegularExpression('/<div id="board-home"><details id="board" class="board" data-translations="show" data-phase="lesson">/', $html);
+        $this->assertStringContainsString('<div id="board-wide"></div>', $html);
+        $this->assertStringContainsString('<span class="board-phase" data-board-phase>Leçon</span>', $html);
+        $this->assertStringContainsString('data-board-item="p0" data-kind="phrase" data-say="This is my sister."', $html);
+        $this->assertStringContainsString('data-board-item="w0" data-kind="word" data-say="mother / mom"', $html);
+        $this->assertStringContainsString('data-board-item="b0" data-kind="verb" data-say="I have / she has"', $html);
+        $this->assertStringContainsString('data-board-item="r" data-kind="phrase"', $html);
+        $this->assertStringContainsString('<span class="board-fr">Voici ma sœur.</span>', $html);
+        $this->assertStringContainsString('data-lesson-board="', $html);
+        // A1 : traductions visibles, sans case à cocher.
+        $this->assertStringNotContainsString('Voir les traductions', $html);
+    }
+
+    public function test_translations_are_discreet_in_b1_and_hidden_from_b2(): void
+    {
+        $this->actingAs($this->learner(Level::B1))->get('/seance')->assertOk()
+            ->assertSee('data-translations="discreet"', false)->assertSee('Voir les traductions');
+        $this->actingAs($this->learner(Level::C1))->get('/seance')->assertOk()
+            ->assertSee('data-translations="hidden"', false);
+
+        $css = (string) file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString('.board[data-translations="hidden"] .board-fr { display: none; }', $css);
+        $this->assertStringContainsString('.board.show-translations .board-fr { display: block;', $css);
+    }
+
+    public function test_the_board_is_only_on_the_daily_lesson_and_the_screen_reads_it_without_any_function(): void
+    {
+        $this->actingAs(User::factory()->create())->get('/evaluation')->assertOk()->assertDontSee('id="board"', false);
+
+        $script = (string) file_get_contents(public_path('js/live-session.js'));
+        $this->assertStringContainsString('const lit = board?.tracker?.feed(text);', $script);
+        $this->assertStringContainsString("cue(isResume ? resumeCue('resume') : state.config.cues.start);", $script);
+        $this->assertStringContainsString("cue(resumeCue('pause'));", $script);
+        $this->assertStringContainsString('board.tracker.needsConversationNudge(elapsed) && !teacherSpeaking() && !state.generating', $script);
+        // Aucune fonction ajoutée : seule la fonction de bilan existe dans la séance du jour.
+        $setup = TeacherSetup::lesson($this->learner(Level::A2), 15);
+        $this->assertSame([TeacherSetup::END_LESSON], array_column($setup['tools'][0]['functionDeclarations'], 'name'));
+    }
 }
