@@ -14,6 +14,7 @@ use App\Support\Duration;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\WorkingTogether;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -57,6 +58,7 @@ class CourseSessionController extends Controller
 
         return view('live.session', [
             'mode' => 'course',
+            'usefulPhrasesOpen' => WorkingTogether::isFirst(WorkingTogether::courseNumber($user, $open)),
             'title' => 'Mon cours',
             'intro' => 'Teacher Joe a lu votre leçon « '.$course->title.' »'.($course->currentPart ? ' ('.$course->currentPart->label().')' : '').'. Il vous demandera ce que vous voulez faire : comprendre toute la leçon, poser une question précise ou travailler un exercice. '
                 .'Cette séance dure '.Duration::format($remaining).' au plus ; il vous préviendra avant la fin. '
@@ -144,7 +146,8 @@ class CourseSessionController extends Controller
 
         $allowedSeconds = $session?->allowed_seconds ?? self::allowedSeconds($user);
         $deadline = $session?->deadline() ?? now()->addSeconds($allowedSeconds);
-        $setup = TeacherSetup::course($user, (int) ceil($allowedSeconds / 60), $course->promptContext(), $request->handle());
+        $setup = TeacherSetup::course($user, (int) ceil($allowedSeconds / 60), $course->promptContext(), $request->handle(),
+            WorkingTogether::courseNumber($user, $session));
 
         try {
             $token = $live->request($setup, $deadline, $session, $request->failedProvider());

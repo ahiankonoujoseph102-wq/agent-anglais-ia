@@ -21,6 +21,10 @@ return [
     // Nombre maximal d'erreurs rappelées au professeur à chaque séance.
     'errors_per_lesson' => 6,
 
+    // Révision espacée (App\Support\Curriculum\SpacedReview) : une phrase clé de la leçon faite il y a environ
+    // ce nombre de jours (ou la plus récente avant), redemandée pendant la pratique guidée de la séance du jour.
+    'review_days' => [1, 3, 7],
+
     // Séance du jour en quatre temps (App\Support\Curriculum\LessonPlan) : part du temps (hors bilan, qui occupe toujours
     // les dernières minutes : platform.lessons.warning_minutes_before_end) donnée à la leçon, à la pratique guidée et à la
     // conversation. A1 et A2 : surtout leçon et pratique ; B1 : équilibré ; B2 à C2 : leçon courte, surtout conversation.

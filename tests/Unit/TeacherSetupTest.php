@@ -21,6 +21,7 @@ class TeacherSetupTest extends TestCase
             'teacher.persona' => 'Teacher of :platform for :name.',
             'teacher.lesson' => 'Lesson of :minutes minutes, warning :warning minutes before.',
             'teacher.coaching' => '',
+            'teacher.correction' => '',
             'teacher.listening' => '',
             'teacher.american_english' => '',
             'teacher.level_test' => 'Test of :minutes minutes.',
@@ -166,7 +167,7 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('rephrase the question ONCE, more simply', $text);
         $this->assertStringContainsString('move on to another, easier question', $text);
         $this->assertStringContainsString('Never speak over the learner', $text);
-        $this->assertStringContainsString('ask your first, very easy question (for example: "What is your name?") and WAIT', $text);
+        $this->assertStringContainsString('ask your first, very easy question in English (for example: "What is your name?") and WAIT', $text);
     }
 
     public function test_resumption_cues_never_ask_for_a_new_welcome(): void
@@ -250,7 +251,7 @@ class TeacherSetupTest extends TestCase
         $user->level = Level::A2;
         $lesson = TeacherSetup::instructions('lesson', $user, 15);
         $this->assertStringContainsString('slow and clear articulation', config('teacher.lesson_language.A2'));
-        $this->assertStringContainsString('Almost! We say "…". Say it again.', $lesson);
+        $this->assertStringContainsString('a clue first (\'Almost! Listen: …?\'), the right form only if the learner does not find it, then \'Say it again.\'', $lesson);
         $this->assertStringContainsString(config('teacher.lesson_language.A2'), $lesson);
         $this->assertStringNotContainsString(config('teacher.level_guidance.A2'), $lesson);
     }

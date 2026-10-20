@@ -21,8 +21,9 @@ class LessonContext
      * @param  Collection<int, LearnerError>  $errors
      * @param  array<string, mixed>|null  $board  tableau de la leçon (LessonBoards::for), sinon celui de secours
      * @param  array{lesson: int, practice: int, conversation: int, summary: int, merged: bool, minutes: int}|null  $plan  temps de chaque étape (LessonPlan)
+     * @param  list<array{en: string, fr: ?string, days: int}>  $review  phrases des leçons passées à redemander (SpacedReview)
      */
-    public static function describe(User $user, Program $program, ProgramLesson $current, ?Lesson $previous, Collection $errors, ?array $board = null, ?array $plan = null): string
+    public static function describe(User $user, Program $program, ProgramLesson $current, ?Lesson $previous, Collection $errors, ?array $board = null, ?array $plan = null, array $review = []): string
     {
         $board ??= LessonBoards::for($current, $program);
         $unit = $current->unit();
@@ -115,14 +116,30 @@ class LessonContext
             $lines[] = '- Rule: '.implode(' / ', array_filter([$board['rule']['en'], $board['rule']['fr'] ? '(in French) '.$board['rule']['fr'] : null]));
         }
 
+        if (! empty($board['pitfall'])) {
+            $lines[] = '- Pitfall of the day (in French, from the programme; teach it by contrast): '.$board['pitfall'];
+        }
+
         $lines[] = '';
         $lines[] = 'PREVIOUS LESSON';
 
         if ($previous?->summary) {
             $lines[] = '- Summary: '.$previous->summary;
             $lines[] = '- Homework given: '.($previous->homework ?: 'none');
+            $lines[] = '- Use them for the WARM-UP: the learner recalls the sentence to remember, then tells you about the homework.';
         } else {
-            $lines[] = '- None: this is the first lesson of the programme.';
+            $lines[] = '- None: this is the first lesson of the programme (no warm-up today).';
+        }
+
+        $lines[] = '';
+        $lines[] = 'PHRASES TO REVIEW (spaced review of past lessons, in STEP 2: the learner recalls them)';
+
+        if ($review === []) {
+            $lines[] = '- None today.';
+        }
+
+        foreach ($review as $phrase) {
+            $lines[] = sprintf('- "%s"%s (learned about %d day(s) ago)', $phrase['en'], $phrase['fr'] ? ' = '.$phrase['fr'] : '', $phrase['days']);
         }
 
         $lines[] = '';

@@ -8,6 +8,7 @@ use App\Models\Assessment;
 use App\Models\User;
 use App\Support\Curriculum\Curriculum;
 use App\Support\Curriculum\Unit;
+use App\Support\Live\WorkingTogether;
 
 /**
  * Construit la configuration de conversation du professeur à partir de
@@ -62,9 +63,10 @@ class TeacherSetup
 
     /**
      * @param  string|null  $context  profil, leçon du jour et erreurs (App\Support\Curriculum\LessonContext)
+     * @param  int  $session  numéro de la séance parmi celles déjà faites (WorkingTogether::lessonNumber)
      * @return array<string, mixed>
      */
-    public static function lesson(User $user, int $minutes, ?string $resumeHandle = null, ?string $context = null): array
+    public static function lesson(User $user, int $minutes, ?string $resumeHandle = null, ?string $context = null, int $session = 1): array
     {
         $scores = [];
 
@@ -74,6 +76,7 @@ class TeacherSetup
 
         return self::setup(
             self::instructions('lesson', $user, $minutes, [
+                'working_together' => WorkingTogether::lesson($session),
                 'context' => $context ?? 'No programme context and no board today (the learner has finished the programme): skip STEP 1 and STEP 2, practise free conversation adapted to the learner\'s level (STEP 3), then STEP 4.',
             ]),
             [[
@@ -89,7 +92,7 @@ class TeacherSetup
                         ],
                         'summary' => [
                             'type' => 'STRING',
-                            'description' => 'Short summary of the lesson in French (what was learned, key phrases, and the sentence to remember).',
+                            'description' => 'Short summary of the lesson in French. Start with the sentence to remember, in English between double quotes, with its meaning in French; then what the learner can now do and the key phrases. It is used for the warm-up of the next lesson.',
                         ],
                         'homework' => [
                             'type' => 'STRING',
@@ -139,12 +142,14 @@ class TeacherSetup
      * fonction à appeler (pas de bilan) : la séance s'arrête au temps, par « Terminer » ou à la fermeture de la page.
      *
      * @param  string  $lesson  contenu de la leçon (App\Models\CourseLesson::promptContext), donnée et non consigne
+     * @param  int  $session  numéro de la séance « Mes cours » parmi celles déjà faites (WorkingTogether::courseNumber)
      * @return array<string, mixed>
      */
-    public static function course(User $user, int $minutes, string $lesson, ?string $resumeHandle = null): array
+    public static function course(User $user, int $minutes, string $lesson, ?string $resumeHandle = null, int $session = 1): array
     {
         return self::setup(
             self::instructions('course', $user, $minutes, [
+                'working_together' => WorkingTogether::course($session),
                 'lesson' => $lesson,
                 'warning_seconds' => (int) config('platform.courses.warning_seconds'),
             ]),
@@ -241,6 +246,8 @@ class TeacherSetup
             in_array($kind, ['assessment', 'course', 'lesson'], true) ? '' : (string) config("teacher.level_guidance.{$level}", ''),
             // Savoir-faire d'un vrai professeur : séance orale quotidienne et « Mes cours » seulement.
             in_array($kind, ['lesson', 'course'], true) ? trim((string) config('teacher.coaching')) : '',
+            // Façon de corriger : faire chercher, puis donner la bonne forme, puis faire redire (même périmètre).
+            in_array($kind, ['lesson', 'course'], true) ? trim((string) config('teacher.correction')) : '',
             // Écoute active (résumé de la réponse, une ou deux corrections importantes, question liée) : séance
             // quotidienne, « Mes cours » et bilan de niveau ; l'évaluation gratuite a sa propre règle, plus courte.
             in_array($kind, ['lesson', 'course', 'level_test'], true) ? trim((string) config('teacher.listening')) : '',
@@ -258,6 +265,8 @@ class TeacherSetup
             'level' => $level,
             'minutes' => $minutes,
             'warning' => (int) config('platform.lessons.warning_minutes_before_end'),
+            // « Comment travailler avec moi » : accueil des premières séances (sinon première séance par défaut).
+            'working_together' => $kind === 'course' ? WorkingTogether::course(1) : WorkingTogether::lesson(1),
             // Fin de l'évaluation : questions libres, conclusion et sa phrase fixe.
             'questions_minutes' => (int) ceil(Assessment::afterVerdictSeconds() / 60),
             'discovery_intro' => (string) config('platform.assessment.discovery_intro'),

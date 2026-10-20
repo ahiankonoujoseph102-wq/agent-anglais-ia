@@ -3,6 +3,7 @@
     Bilan) et éléments qui s'allument quand Teacher Joe en parle (public/js/lesson-board.js). Téléphone : sous Teacher Joe,
     replié (la ligne du haut montre l'étape et l'élément en cours) ; ordinateur et téléphone couché : dans la colonne de
     droite, ouvert. Traductions : visibles en A1 et A2, discrètes en B1, masquées ensuite (case « Voir les traductions »).
+    En bas : le piège du jour des francophones (programme officiel).
 --}}
 @props(['board', 'translations' => 'show'])
 
@@ -73,6 +74,12 @@
                     <span class="board-fr">{{ $board['rule']['fr'] }}</span>
                 @endif
             </p>
+        @endif
+
+        {{-- Piège du jour des francophones (programme officiel) : expliqué par contraste, sans surlignage. --}}
+        @if (! empty($board['pitfall']))
+            <h3 class="board-heading"><x-icon name="alert" /> Attention, piège</h3>
+            <p class="board-pitfall">{{ $board['pitfall'] }}</p>
         @endif
     </div>
 </details>

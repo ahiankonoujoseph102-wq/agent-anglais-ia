@@ -16,10 +16,12 @@ use App\Support\Curriculum\LessonBoards;
 use App\Support\Curriculum\LessonContext;
 use App\Support\Curriculum\LessonPlan;
 use App\Support\Curriculum\LessonReport;
+use App\Support\Curriculum\SpacedReview;
 use App\Support\DailyTime;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\WorkingTogether;
 use App\Support\Text\TextProviders;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -59,6 +61,8 @@ class LessonController extends Controller
 
         return view('live.session', [
             'mode' => 'lesson',
+            // Phrases utiles dépliées aux premières séances, repliées ensuite.
+            'usefulPhrasesOpen' => WorkingTogether::isFirst(WorkingTogether::lessonNumber($user, $lesson)),
             'title' => 'Ma séance du jour',
             'intro' => DailyTime::remainingSentence($remaining).' Ce temps du jour est partagé avec « Mes cours ». Le professeur vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
             'remainingSeconds' => $remaining,
@@ -138,7 +142,8 @@ class LessonController extends Controller
 
         $minutes = (int) ceil($allowedSeconds / 60);
         $plan = LessonPlan::for($program?->level ?? $user->level, $minutes);
-        $setup = TeacherSetup::lesson($user, $minutes, $request->handle(), $this->context($user, $programLesson, $plan));
+        $setup = TeacherSetup::lesson($user, $minutes, $request->handle(), $this->context($user, $programLesson, $plan),
+            WorkingTogether::lessonNumber($user, $lesson));
 
         try {
             $token = $live->request($setup, $deadline, $lesson, $request->failedProvider());
@@ -271,7 +276,8 @@ class LessonController extends Controller
 
         // Tableau déjà préparé, sinon celui de secours : jamais de préparation au moment de la connexion.
         return LessonContext::describe($user, $programLesson->program, $programLesson, $previous, $errors,
-            LessonBoards::for($programLesson, $programLesson->program), $plan);
+            LessonBoards::for($programLesson, $programLesson->program), $plan,
+            SpacedReview::phrases($user, $programLesson->program, $programLesson));
     }
 
     /**

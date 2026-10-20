@@ -61,17 +61,29 @@ class LessonBoards
     /**
      * Tableau à afficher et à donner au professeur : celui préparé, sinon le tableau de secours (jamais d'appel ici).
      *
-     * @return array{title: string, phrases: list<array{en: string, fr: ?string}>, vocabulary: list<array{en: string, fr: ?string}>, verbs: list<array{base: string, forms: string, fr: ?string}>, rule: array{en: ?string, fr: ?string}, source: string}
+     * @return array{title: string, phrases: list<array{en: string, fr: ?string}>, vocabulary: list<array{en: string, fr: ?string}>, verbs: list<array{base: string, forms: string, fr: ?string}>, rule: array{en: ?string, fr: ?string}, pitfall: ?string, source: string}
      */
     public static function for(ProgramLesson $lesson, Program $program): array
     {
         $board = LessonBoard::query()->where('key', self::key($lesson, $program))->first();
 
         if ($board !== null && ($content = self::normalize((array) $board->content)) !== null) {
-            return $content + ['source' => $board->provider];
+            return $content + ['source' => $board->provider, 'pitfall' => self::pitfall($lesson)];
         }
 
         return self::fallback($lesson, $program);
+    }
+
+    /**
+     * Piège du jour des francophones (« Ne dites pas … : dites … »), tiré du programme officiel (champ pitfalls de
+     * l'unité, une par leçon à tour de rôle), jamais du modèle texte : ajouté au tableau à la lecture, aucun tableau
+     * à refaire.
+     */
+    public static function pitfall(ProgramLesson $lesson): ?string
+    {
+        $pitfalls = array_values($lesson->unit()->pitfalls);
+
+        return $pitfalls === [] ? null : self::text($pitfalls[($lesson->lesson_number - 1) % count($pitfalls)], 300);
     }
 
     /**
@@ -79,7 +91,7 @@ class LessonBoards
      * « Voici votre première leçon » de la page de résultat. Un tableau déjà préparé pour cette leçon (objectif
      * « conversation » d'abord, sinon un autre objectif), sinon le tableau de secours. Jamais d'appel ici.
      *
-     * @return array{title: string, phrases: list<array{en: string, fr: ?string, use?: ?string}>, vocabulary: list<array{en: string, fr: ?string}>, verbs: list<array{base: string, forms: string, fr: ?string}>, rule: array{en: ?string, fr: ?string}, source: string}
+     * @return array{title: string, phrases: list<array{en: string, fr: ?string, use?: ?string}>, vocabulary: list<array{en: string, fr: ?string}>, verbs: list<array{base: string, forms: string, fr: ?string}>, rule: array{en: ?string, fr: ?string}, pitfall: ?string, source: string}
      */
     public static function firstLesson(Level $level): array
     {
@@ -327,7 +339,7 @@ class LessonBoards
      * Tableau de secours tiré du programme officiel : les phrases modèles des fonctions orales (« … »), le
      * vocabulaire de l'unité et la règle de grammaire de la leçon (en français). Aucun appel au modèle.
      *
-     * @return array{title: string, phrases: list<array{en: string, fr: ?string, use?: ?string}>, vocabulary: list<array{en: string, fr: ?string}>, verbs: list<array{base: string, forms: string, fr: ?string}>, rule: array{en: ?string, fr: ?string}, source: string}
+     * @return array{title: string, phrases: list<array{en: string, fr: ?string, use?: ?string}>, vocabulary: list<array{en: string, fr: ?string}>, verbs: list<array{base: string, forms: string, fr: ?string}>, rule: array{en: ?string, fr: ?string}, pitfall: ?string, source: string}
      */
     public static function fallback(ProgramLesson $lesson, Program $program): array
     {
@@ -360,6 +372,7 @@ class LessonBoards
             'vocabulary' => $vocabulary,
             'verbs' => [],
             'rule' => ['en' => null, 'fr' => $unit->grammar[$lesson->lesson_number - 1] ?? $unit->grammar[0] ?? null],
+            'pitfall' => self::pitfall($lesson),
             'source' => 'programme',
         ];
     }
