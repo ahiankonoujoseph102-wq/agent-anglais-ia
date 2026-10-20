@@ -211,6 +211,9 @@ return [
             'timeout_seconds' => 45,
             'transcript_limit' => 12000,
             'directory' => 'course-reviews',
+            // E-mails de documents par jour : la limite gratuite de Brevo (mail.daily_limit, 300) moins 20 gardés pour
+            // les alertes de l'administrateur. Au-delà : document téléchargeable seulement, administrateur prévenu.
+            'daily_emails' => 280,
         ],
     ],
 

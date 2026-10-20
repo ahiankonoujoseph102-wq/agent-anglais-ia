@@ -124,6 +124,13 @@ class CourseReviews
                 'next_attempt_at' => null,
             ])->save();
 
+            // Par e-mail (PDF joint) si l'élève a une adresse : jamais bloquant, le document reste téléchargeable.
+            try {
+                CourseReviewMailer::send($review);
+            } catch (Throwable $e) {
+                report($e);
+            }
+
             return true;
         } finally {
             $lock->release();

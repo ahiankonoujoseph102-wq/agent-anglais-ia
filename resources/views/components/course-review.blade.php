@@ -18,6 +18,9 @@
         </p>
         <p class="review-doc-line" data-review-when="ready" @if ($state !== 'ready') hidden @endif>
             <a class="btn btn-accent" href="{{ route('courses.review.download', $session) }}"><x-icon name="download" /> Télécharger mon document de révision</a>
+            @if ($session->review?->mail_status === \App\Support\CourseReviewMailer::SENT)
+                <span class="muted small review-mailed"><x-icon name="mail" /> Envoyé aussi par e-mail.</span>
+            @endif
         </p>
         <div class="review-doc-line" data-review-when="failed" @if ($state !== 'failed') hidden @endif>
             <p class="small">La préparation de votre document de révision n'a pas abouti. Vous pouvez réessayer.</p>

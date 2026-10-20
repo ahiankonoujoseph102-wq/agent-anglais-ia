@@ -1327,3 +1327,5 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .review-spinner { flex: none; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--c-border); border-top-color: var(--c-accent); animation: review-spin 1s linear infinite; }
 @keyframes review-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .review-spinner { animation: none; } }
+.review-mailed, .review-invite { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+.review-doc-line[data-review-when="ready"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }

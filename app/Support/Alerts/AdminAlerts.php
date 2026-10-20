@@ -5,6 +5,7 @@ namespace App\Support\Alerts;
 use App\Mail\PaymentAlertMail;
 use App\Models\AdminAlert;
 use App\Models\PushSubscription;
+use App\Support\MailQuota;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -120,6 +121,11 @@ final class AdminAlerts
      */
     private function sendMail(AlertMessage $alert): array
     {
+        // Limite d'envoi du jour (Brevo), partagée avec les documents de révision : 20 e-mails restent gardés pour les alertes.
+        if (! MailQuota::allowsAlert()) {
+            return ['status' => AdminAlert::FAILED, 'reason' => 'limite d\'envoi d\'e-mails du jour atteinte'];
+        }
+
         try {
             Mail::to(config('alerts.emails'))->send(new PaymentAlertMail($alert));
         } catch (Throwable $e) {
