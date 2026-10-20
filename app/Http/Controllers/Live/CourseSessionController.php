@@ -58,6 +58,7 @@ class CourseSessionController extends Controller
 
         return view('live.session', [
             'mode' => 'course',
+            'usefulPhrasesOpen' => WorkingTogether::isFirst(WorkingTogether::courseNumber($user, $open)),
             'title' => 'Mon cours',
             'intro' => 'Teacher Joe a lu votre leçon « '.$course->title.' »'.($course->currentPart ? ' ('.$course->currentPart->label().')' : '').'. Il vous demandera ce que vous voulez faire : comprendre toute la leçon, poser une question précise ou travailler un exercice. '
                 .'Cette séance dure '.Duration::format($remaining).' au plus ; il vous préviendra avant la fin. '

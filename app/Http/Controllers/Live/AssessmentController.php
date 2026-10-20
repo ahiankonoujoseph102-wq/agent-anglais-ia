@@ -43,6 +43,8 @@ class AssessmentController extends Controller
 
         return view('live.session', [
             'mode' => 'assessment',
+            // Premier contact avec Teacher Joe : phrases utiles dépliées.
+            'usefulPhrasesOpen' => true,
             'title' => 'Évaluation gratuite',
             'intro' => "Parlez avec votre professeur pendant {$minutes} minutes au maximum. Il vous posera des questions de plus en plus difficiles, puis vous annoncera votre niveau, vous montrera comment se passe une leçon et répondra à vos questions.",
             'remainingSeconds' => $assessment?->remainingSeconds() ?? $minutes * 60,

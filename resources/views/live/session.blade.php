@@ -157,6 +157,11 @@
             </div>
 
 
+            {{-- Évaluation, séance du jour, « Mes cours » : ce que l'élève peut dire pour demander de l'aide. --}}
+            @if (in_array($mode, ['assessment', 'lesson', 'course'], true))
+                <x-useful-phrases :open="$usefulPhrasesOpen ?? false" />
+            @endif
+
             <div id="subtitles-home"><div id="subtitles" class="subtitles" aria-live="polite" hidden></div></div>
 
             <div id="outcome" class="card" hidden></div>

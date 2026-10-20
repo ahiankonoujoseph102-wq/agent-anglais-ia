@@ -1254,6 +1254,21 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 /* Accueil : « Comment se passe votre cours avec Teacher Joe ? » (section bleu nuit). Quatre temps en cartes compactes
    (numéro + texte), aperçu du Tableau (mêmes classes que la séance, sans script), deux points forts en une ligne. */
 .lead .hero-also { display: block; margin: var(--space-2) 0 0; }
+/* Phrases utiles pendant une séance (components/useful-phrases) : à lire, à dire à voix haute. */
+.useful-phrases { margin: 0 0 var(--space-3); border: 1px solid var(--c-border); border-left: 4px solid var(--c-accent); border-radius: var(--radius-lg); background: var(--c-surface); box-shadow: var(--shadow-sm); }
+.useful-head { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: var(--space-2) var(--space-3); cursor: pointer; list-style: none; }
+.useful-head::-webkit-details-marker { display: none; }
+.useful-head::after { content: "+"; flex: none; margin-left: auto; font-weight: var(--fw-heavy); color: var(--c-accent-strong); }
+.useful-phrases[open] .useful-head::after { content: "−"; }
+.useful-label { display: inline-flex; align-items: center; gap: 6px; font-weight: var(--fw-heavy); color: var(--c-heading); flex: none; }
+.useful-label .icon { color: var(--c-accent-strong); }
+.useful-hint { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-xs); color: var(--c-muted); }
+.useful-body { padding: 0 var(--space-3) var(--space-3); }
+.useful-intro { margin: 0 0 var(--space-2); font-size: var(--fs-sm); color: var(--c-muted); }
+.useful-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); }
+.useful-list li { display: grid; gap: 1px; padding: 6px 10px; border-radius: var(--radius-sm); background: var(--c-primary-soft); }
+.useful-en { font-weight: var(--fw-bold); color: var(--c-heading); overflow-wrap: anywhere; }
+.useful-fr { font-size: var(--fs-sm); color: var(--c-muted); overflow-wrap: anywhere; }
 .board-preview { margin: 0; max-width: 420px; width: 100%; justify-self: center; box-shadow: 0 0 0 1px var(--c-on-dark-line), var(--shadow); box-shadow: 0 0 0 1px rgba(255, 255, 255, .25), var(--shadow); }
 .board-preview .board-head { cursor: default; }
 .board-preview .board-head::after { content: none; }

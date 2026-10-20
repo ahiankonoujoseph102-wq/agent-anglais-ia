@@ -60,6 +60,8 @@ class LessonController extends Controller
 
         return view('live.session', [
             'mode' => 'lesson',
+            // Phrases utiles dépliées aux premières séances, repliées ensuite.
+            'usefulPhrasesOpen' => WorkingTogether::isFirst(WorkingTogether::lessonNumber($user, $lesson)),
             'title' => 'Ma séance du jour',
             'intro' => DailyTime::remainingSentence($remaining).' Ce temps du jour est partagé avec « Mes cours ». Le professeur vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
             'remainingSeconds' => $remaining,

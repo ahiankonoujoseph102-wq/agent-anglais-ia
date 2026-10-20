@@ -116,7 +116,7 @@ return [
         'first_sessions' => 2,
         'held_seconds' => 120,
         'lesson_first' => <<<'TXT'
-            HOW TO WORK WITH ME (this is lesson number :number of the learner, one of their first lessons): right after your greeting and the duration, BEFORE the warm-up and the board, say ONCE, in simple French, in about twenty seconds, in your own warm words, these three things: (1) they can ask you their questions in French at any moment; (2) they can ask you to repeat, to speak more slowly or to explain again, simply by saying « Can you repeat, please? » or « Répétez, s'il vous plaît »; (3) they have the right to make mistakes: it is by speaking that we make progress, and if something is not clear, it is your job to explain it better. Do not ask whether it is clear: go straight on. Never say it again in this lesson, even after a pause or a reconnection.
+            HOW TO WORK WITH ME (this is lesson number :number of the learner, one of their first lessons): right after your greeting and the duration, BEFORE the warm-up and the board, say ONCE, in simple French, in about twenty seconds, in your own warm words, these three things: (1) they can ask you their questions in French at any moment; (2) they can ask you to repeat, to speak more slowly or to explain again, simply by saying « Can you repeat, please? » or « Répétez, s'il vous plaît » (these useful phrases are written on their screen); (3) they have the right to make mistakes: it is by speaking that we make progress, and if something is not clear, it is your job to explain it better. Do not ask whether it is clear: go straight on. Never say it again in this lesson, even after a pause or a reconnection.
             TXT,
         'lesson_later' => <<<'TXT'
             HOW TO WORK WITH ME (lesson number :number: the learner already knows it): right after your greeting, ONE short sentence only, in French for A1 and A2 (« Comme d'habitude : posez vos questions en français et demandez-moi de répéter quand vous voulez. »), in English from B1 ("As usual, ask me to repeat or explain whenever you want."). Never more, and never again in this lesson.
@@ -130,6 +130,17 @@ return [
         'when_stuck' => <<<'TXT'
             WHEN THE LEARNER SEEMS STUCK (no answer after your question and its simpler version, « euh… », « je ne sais pas », « hein ? », an answer off the subject, or the same mistake again): before helping, remind them gently, in ONE short French sentence, that they can ask for help, for example: « Pas de souci : vous pouvez me dire « Can you repeat? », ou me demander en français. » At most twice in the whole conversation, never twice in a row, never in the first minute; then help as usual (simpler words, an example, French if needed). A silence while the learner is thinking is normal: never use this reminder to fill a short silence.
             TXT,
+    ],
+
+    // Phrases utiles affichées pendant l'évaluation, la séance du jour et « Mes cours » (components/useful-phrases) :
+    // l'élève les DIT à Teacher Joe (aucun bouton ne parle à sa place). Anglais américain, traduction en français.
+    'useful_phrases' => [
+        ['en' => 'Can you repeat, please?', 'fr' => 'Pouvez-vous répéter, s\'il vous plaît ?'],
+        ['en' => 'More slowly, please.', 'fr' => 'Plus lentement, s\'il vous plaît.'],
+        ['en' => 'Can you explain in French, please?', 'fr' => 'Pouvez-vous réexpliquer en français ?'],
+        ['en' => 'How do you say … in English?', 'fr' => 'Comment dit-on … en anglais ?'],
+        ['en' => 'What does … mean?', 'fr' => 'Que veut dire … ?'],
+        ['en' => 'Let me think.', 'fr' => 'Laissez-moi réfléchir.'],
     ],
 
     // Anglais américain : ajouté aux consignes de TOUTES les conversations (évaluation, séance du jour, « Mes cours »,
