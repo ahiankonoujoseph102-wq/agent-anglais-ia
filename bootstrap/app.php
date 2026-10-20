@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Middleware\ApplyFrenchTypography;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\MarkPrivatePagesNoIndex;
@@ -27,6 +28,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Changement de domaine : ancienne adresse → APP_URL en 301 (toutes les routes, après les proxys de confiance).
         $middleware->append(RedirectToPrimaryDomain::class);
+
+        // Typographie française des pages HTML : espaces insécables devant « ? ! ; : » et dans les guillemets.
+        $middleware->append(ApplyFrenchTypography::class);
 
         // HTTPS obligatoire en production (avant tout le reste du groupe web).
         $middleware->prependToGroup('web', RedirectToHttps::class);

@@ -32,6 +32,8 @@ main { flex: 1; padding: var(--space-6) 0 var(--space-12); }
 
 img, svg { max-width: 100%; }
 a { color: var(--c-primary); text-underline-offset: 3px; }
+/* Numéros de téléphone : jamais coupés en fin de ligne. */
+a[href^="tel:"] { white-space: nowrap; }
 a:hover { color: var(--c-primary-strong); }
 
 h1, h2, h3 { line-height: 1.2; margin: 0 0 .5em; font-weight: var(--fw-heavy); letter-spacing: -.02em; color: var(--c-heading); }
@@ -502,9 +504,17 @@ main { overflow-x: clip; }
 
 /* ---------- Installation de l'application ---------- */
 
-.install { display: flex; align-items: center; gap: var(--space-3); background: var(--c-surface); border: 1px solid var(--c-primary-line); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); box-shadow: var(--shadow); margin: 0 0 var(--space-6); animation: rise var(--dur) var(--ease) both; }
-.install p { margin: 0; flex: 1; font-size: var(--fs-sm); }
-.install p strong { display: block; font-size: var(--fs-md); }
+/* « Installer l'application » : petite barre fixe juste au-dessus de la barre du bas (en bas de l'écran sans elle). */
+.install { position: fixed; z-index: 24; left: var(--space-3); right: var(--space-3); bottom: calc(var(--space-3) + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; display: flex; align-items: center; gap: var(--space-2); background: var(--c-surface); border: 1px solid var(--c-primary-line); border-radius: var(--radius); padding: 6px 6px 6px var(--space-3); box-shadow: var(--shadow-lg); animation: rise var(--dur) var(--ease) both; }
+.has-tabbar .install { bottom: calc(var(--tabbar) + var(--space-2) + env(safe-area-inset-bottom)); }
+.install .icon-bubble { display: none; }
+.install p { margin: 0; flex: 1; min-width: 0; font-size: var(--fs-xs); line-height: 1.3; }
+.install p strong { display: block; font-size: var(--fs-sm); }
+.install-more { display: none; }
+@media (min-width: 640px) { .install-more { display: inline; } .install .icon-bubble { display: grid; width: 40px; height: 40px; } }
+/* Place gardée sous le contenu : la barre ne cache jamais la fin de la page ni le pied de page. */
+.has-install-bar .site-footer { padding-bottom: calc(var(--space-6) + 64px + env(safe-area-inset-bottom)); }
+.has-install-bar.has-tabbar .site-footer { padding-bottom: calc(var(--tabbar) + var(--space-6) + 64px + env(safe-area-inset-bottom)); }
 .install .btn { min-height: 40px; padding: 8px 14px; }
 .install .install-close { background: none; border: 0; padding: 6px; color: var(--c-muted); cursor: pointer; border-radius: 50%; min-height: 0; }
 
@@ -792,6 +802,8 @@ main { overflow-x: clip; }
     .tabbar { display: none; }
     .has-tabbar main { padding-bottom: var(--space-12); }
     .has-tabbar .site-footer { padding-bottom: var(--space-6); }
+    .has-tabbar .install { bottom: calc(var(--space-3) + env(safe-area-inset-bottom)); }
+    .has-install-bar.has-tabbar .site-footer { padding-bottom: calc(var(--space-6) + 64px); }
 }
 
 /* Administrateur : un lien et une pastille de plus, la navigation complète ne tient qu'à partir de 1440 pixels. */
@@ -991,6 +1003,11 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .footer-countries { margin-top: var(--space-2); }
 .students h1 { margin-top: 0; }
 @media (min-width: 640px) { .footer-countries { grid-column: 1 / -1; margin-top: 0; } }
+/* Pied de page : à partir de 640 pixels, les liens forment une colonne bien rangée (pays : une ligne). */
+.footer-links li:has(> [hidden]:only-child) { display: none; }
+@media (min-width: 640px) {
+    .footer-links:not(.footer-countries) { flex-direction: column; flex-wrap: nowrap; gap: var(--space-2); align-content: start; }
+}
 @media (min-width: 640px) { .country-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* Accueil : quatre cartes compactes (.students.audience) : étudiants, élèves, parents, professionnels.

@@ -251,4 +251,27 @@ class DesignFinishTest extends TestCase
         $user = $this->assessedLearner();
         $this->actingAs($user)->get(route('account.edit'))->assertOk()->assertSee('+228 79 16 23 90');
     }
+
+    public function test_install_bar_sits_above_the_bottom_bar_and_stays_hidden_once_closed_or_installed(): void
+    {
+        $css = self::css();
+        $this->assertStringContainsString('.install { position: fixed;', $css);
+        $this->assertStringContainsString('.has-tabbar .install { bottom: calc(var(--tabbar) + var(--space-2) + env(safe-area-inset-bottom)); }', $css);
+        // Place gardée : ni la barre du bas ni la barre d'installation ne cachent le pied de page.
+        $this->assertStringContainsString('.has-install-bar.has-tabbar .site-footer { padding-bottom: calc(var(--tabbar) + var(--space-6) + 64px', $css);
+        $this->assertStringContainsString('.has-tabbar .site-footer { padding-bottom: calc(var(--tabbar) + var(--space-6)', $css);
+
+        $script = (string) file_get_contents(public_path('js/app.js'));
+        $this->assertStringContainsString('if (!banner || standalone || dismissed()) {', $script);
+        $this->assertMatchesRegularExpression("/addEventListener\('appinstalled', \(\) => \{[^}]*dismiss\(\);/s", $script);
+        $this->assertStringContainsString("localStorage.setItem(DISMISSED, '1')", $script);
+
+        $this->get('/')->assertSee('<span class="install-more">', false);
+    }
+
+    public function test_footer_links_form_a_tidy_column_from_640_pixels(): void
+    {
+        $this->assertStringContainsString('.footer-links:not(.footer-countries) { flex-direction: column;', self::mediaBlocks('min-width: 640px'));
+        $this->assertStringContainsString('.footer-links li:has(> [hidden]:only-child) { display: none; }', self::css());
+    }
 }
