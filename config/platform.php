@@ -325,18 +325,21 @@ return [
     | Fondateur (page « À propos » et données structurées Person)
     |--------------------------------------------------------------------------
     |
-    | Uniquement des faits vérifiés. « bio » : À COMPLÉTER par le fondateur (2 à 4 phrases :
-    | parcours, pourquoi Talkami) ; tant qu'elle est vide, la page ne l'affiche pas et
-    | « php artisan app:check-deployment » le signale.
+    | Uniquement des faits vérifiés, donnés par le fondateur. « bio » : sa phrase (page « À propos »,
+    | carte « Qui est derrière … ? » de l'accueil, données structurées) ; vide, elle n'est pas affichée
+    | et « php artisan app:check-deployment » le signale. Marqueur :platform = nom de la plateforme. « photo » : chemin dans public/ (carré, WebP).
+    | « headline » : ce qui suit le nom sur la carte de l'accueil.
     |
     */
     'founder' => [
         'name' => 'Joseph Ahiankonou',
         'role' => 'Fondateur',
+        'headline' => 'coach et formateur à Lomé',
         'city' => 'Lomé',
         'country' => 'Togo',
         'country_code' => 'TG',
-        'bio' => null,
+        'bio' => 'J\'ai créé :platform pour que chaque francophone puisse enfin oser parler anglais, depuis son téléphone, sans gêne.',
+        'photo' => 'images/fondateur-joseph-ahiankonou.webp',
     ],
 
     /*

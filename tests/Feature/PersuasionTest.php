@@ -87,4 +87,46 @@ class PersuasionTest extends TestCase
             $this->assertStringNotContainsString($urgency, $text);
         }
     }
+
+    private const BIO = "J'ai créé Talkami pour que chaque francophone puisse enfin oser parler anglais, depuis son téléphone, sans gêne.";
+
+    public function test_home_shows_who_is_behind_the_platform_before_the_questions(): void
+    {
+        $html = $this->get('/')->assertOk()
+            ->assertSeeInOrder(['id="pays"', 'Qui est derrière Talkami ?', 'Joseph Ahiankonou', 'coach et formateur à Lomé', self::BIO, 'En savoir plus', 'id="questions"'], false)
+            ->getContent();
+
+        // Photo ronde, chargée à la demande, avec son texte alternatif ; lien vers « À propos ».
+        $this->assertMatchesRegularExpression('/<img class="founder-photo" src="[^"]*images\/fondateur-joseph-ahiankonou\.webp\?v=[^"]+" width="320" height="320" alt="Joseph Ahiankonou, fondateur de Talkami" loading="lazy" decoding="async">/', $html);
+        $this->assertMatchesRegularExpression('/<a href="'.preg_quote(route('about'), '/').'" class="founder-more">En savoir plus/', $html);
+    }
+
+    public function test_about_page_shows_the_founder_bio_and_photo(): void
+    {
+        $this->get(route('about'))->assertOk()
+            ->assertSeeInOrder(['alt="Joseph Ahiankonou, fondateur de Talkami"', 'Joseph Ahiankonou, fondateur', self::BIO], false);
+
+        // Sans présentation ni photo : rien d'inventé, aucune image cassée.
+        config(['platform.founder.bio' => null, 'platform.founder.photo' => null]);
+        $this->get(route('about'))->assertOk()->assertDontSee('founder-photo', false)->assertDontSee('founder-bio', false);
+        $this->get('/')->assertOk()->assertDontSee('Qui est derrière');
+    }
+
+    public function test_founder_photo_is_a_small_square_webp(): void
+    {
+        $path = public_path(config('platform.founder.photo'));
+
+        $this->assertFileExists($path);
+        $this->assertLessThanOrEqual(15 * 1024, filesize($path));
+        [$width, $height, $type] = getimagesize($path);
+        $this->assertSame($width, $height);
+        $this->assertSame(IMAGETYPE_WEBP, $type);
+    }
+
+    public function test_the_platform_name_in_the_bio_comes_from_the_configuration(): void
+    {
+        config(['platform.name' => 'Professeur Ama']);
+
+        $this->get(route('about'))->assertSeeText("J'ai créé Professeur Ama pour que chaque francophone")->assertDontSeeText("J'ai créé Talkami");
+    }
 }

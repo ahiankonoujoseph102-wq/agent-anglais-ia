@@ -263,6 +263,23 @@
         <x-country-links :pages="$countryPages" />
     </section>
 
+    {{-- « Qui est derrière … ? » : le fondateur, sobrement (config/platform.php → founder ; photo chargée à la demande). --}}
+    @if (\App\Support\Founder::bio())
+        <section class="section band founder-section" aria-labelledby="fondateur-accueil">
+            <div class="card founder-card reveal">
+                @if (\App\Support\Founder::photoUrl())
+                    <img class="founder-photo" src="{{ \App\Support\Founder::photoUrl() }}" width="320" height="320" alt="{{ \App\Support\Founder::photoAlt() }}" loading="lazy" decoding="async">
+                @endif
+                <div>
+                    <h2 id="fondateur-accueil">Qui est derrière {{ $platform }} ?</h2>
+                    <p class="founder-name"><strong>{{ config('platform.founder.name') }}</strong>, {{ config('platform.founder.headline') }}</p>
+                    <p class="founder-bio">{{ \App\Support\Founder::bio() }}</p>
+                    <a href="{{ route('about') }}" class="founder-more">En savoir plus <x-icon name="arrow-right" /></a>
+                </div>
+            </div>
+        </section>
+    @endif
+
     <section class="section band band-soft faq-section" aria-labelledby="questions">
         <div class="section-head reveal">
             <span class="eyebrow">Vos questions</span>

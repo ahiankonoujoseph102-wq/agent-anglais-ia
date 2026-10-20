@@ -230,10 +230,14 @@ class SeoTest extends TestCase
         $this->assertSame('Fondateur', $person['jobTitle']);
         $this->assertSame(['@type' => 'PostalAddress', 'addressLocality' => 'Lomé', 'addressCountry' => 'TG'], $person['address']);
         $this->assertSame('Talkami', $person['worksFor']['name']);
-        $this->assertArrayNotHasKey('description', $person, 'Aucune présentation inventée tant que founder.bio est vide.');
+        // Présentation écrite par le fondateur lui-même, et sa photo.
+        $this->assertSame("J'ai créé Talkami pour que chaque francophone puisse enfin oser parler anglais, depuis son téléphone, sans gêne.", $person['description']);
+        $this->assertSame(Seo::url('images/fondateur-joseph-ahiankonou.webp'), $person['image']);
 
-        config(['platform.founder.bio' => 'Une présentation écrite par le fondateur.']);
-        $this->get('/a-propos')->assertSeeText('Une présentation écrite par le fondateur.');
+        // Sans présentation : rien d'inventé.
+        config(['platform.founder.bio' => null]);
+        $person = $this->jsonLdOf($this->get('/a-propos')->getContent())[0];
+        $this->assertArrayNotHasKey('description', $person, 'Aucune présentation inventée tant que founder.bio est vide.');
 
         $offers = $this->jsonLdOf($this->get('/formules')->assertSeeText('7 500 FCFA')->getContent())[0];
         $this->assertSame('Service', $offers['@type']);
