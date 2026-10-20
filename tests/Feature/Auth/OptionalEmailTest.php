@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -100,7 +101,7 @@ class OptionalEmailTest extends TestCase
         $this->actingAs($user)->get('/compte')
             ->assertOk()
             ->assertSee('Mon compte')
-            ->assertSee($user->phone)
+            ->assertSee(PhoneNumber::display($user->phone))
             ->assertSee(self::HINT);
 
         $this->put('/compte', ['email' => 'Nouvelle@Exemple.tg'])

@@ -6,6 +6,7 @@ use App\Support\SiteSettings;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\LoggedExceptionCollection;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -21,5 +22,19 @@ abstract class TestCase extends BaseTestCase
 
         // Réglages de l'administration relus à chaque test (base vidée entre deux tests).
         SiteSettings::flush();
+    }
+
+    /**
+     * Réponses comparées avec des espaces ordinaires (voir PlainSpacesResponse).
+     */
+    protected function createTestResponse($response, $request)
+    {
+        return tap(PlainSpacesResponse::fromBaseResponse($response, $request), function ($response) {
+            $response->withExceptions(
+                $this->app->bound(LoggedExceptionCollection::class)
+                    ? $this->app->make(LoggedExceptionCollection::class)
+                    : new LoggedExceptionCollection
+            );
+        });
     }
 }

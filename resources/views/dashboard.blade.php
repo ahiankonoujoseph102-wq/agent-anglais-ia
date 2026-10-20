@@ -1,6 +1,7 @@
 <x-layout title="Mon espace" install>
     <div class="welcome rise">
-        <img src="{{ asset('icons/apple-touch-icon.png') }}" width="64" height="64" alt="">
+        {{-- Petit visage de Teacher Joe (au lieu du logo). --}}
+        <span class="hero-teacher-face welcome-face"><img src="{{ \App\Support\Asset::url('images/teacher-joe.webp') }}" width="56" height="56" alt=""></span>
         <div>
             <h1>Bonjour {{ $user->name }}</h1>
             <p>Votre professeur {{ config('avatar.model.name') }} est prêt.</p>
@@ -237,7 +238,7 @@
 
     @if ($assessment?->feedback)
         <section class="card next-step reveal">
-            <div class="card-title"><span class="icon-bubble icon-bubble-accent"><x-icon name="badge-check" /></span><h2>Votre évaluation</h2></div>
+            <div class="card-title"><span class="icon-bubble icon-bubble-accent"><x-icon name="badge-check" /></span><h2>L'avis de {{ config('avatar.model.name') }}</h2></div>
             <p>{{ $assessment->feedback }}</p>
         </section>
     @endif
@@ -253,7 +254,15 @@
     @if ($program || $streak > 0)
         <section class="next-step">
             <h2 class="next-step">Mon suivi</h2>
-            <div class="stats">
+            {{-- Deux colonnes égales ; « Séances faites » en troisième seulement quand il y en a. --}}
+            <div class="stats {{ $lessonsDone > 0 ? '' : 'stats-pair' }}">
+                @if ($lessonsDone > 0)
+                    <div class="stat reveal">
+                        <div class="label"><x-icon name="check-circle" /> Séances faites</div>
+                        <div class="value">{{ $lessonsDone }}</div>
+                        <div class="detail">{{ $lessonsDone > 1 ? 'séances orales terminées' : 'séance orale terminée' }}</div>
+                    </div>
+                @endif
                 <div class="stat reveal">
                     <div class="label"><x-icon name="fire" /> Série en cours</div>
                     <div class="value">{{ $streak }} {{ $streak > 1 ? 'jours' : 'jour' }}</div>

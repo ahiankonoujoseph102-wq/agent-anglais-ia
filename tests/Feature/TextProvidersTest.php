@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Models\TextAnalysis;
 use App\Models\User;
 use App\Support\Gemini\AssessmentEstimator;
+use App\Support\Gemini\TeacherSetup;
 use App\Support\Gemini\TextClient;
 use App\Support\Text\OpenAiText;
 use App\Support\Text\TextLog;
@@ -283,6 +284,7 @@ class TextProvidersTest extends TestCase
         $this->assertSame('A2', $estimate['level']->value);
         Http::assertSent(fn (Request $request) => str_contains($request->url(), self::OPENAI_URL)
             && str_contains($request['instructions'], 'LEVEL: <A1, A2, B1, B2, C1 or C2>')
+            && str_contains($request['instructions'], TeacherSetup::FEEDBACK_RULE)
             && $request['input'][0]['content'] === [['type' => 'input_text', 'text' => "TRANSCRIPT\nLearner: I live in Kara."]]
             && $request['reasoning']['effort'] === 'none'
             && ! isset($request['text']));

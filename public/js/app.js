@@ -54,8 +54,24 @@ function dismissed() {
     }
 }
 
-function dismiss() {
+// Petite barre juste au-dessus de la barre du bas : la page garde de la place pour elle (classe sur <body>).
+function showBanner() {
+    if (!banner || standalone || dismissed()) {
+        return;
+    }
+
+    banner.removeAttribute('hidden');
+    document.body.classList.add('has-install-bar');
+}
+
+function hideBanner() {
     banner?.setAttribute('hidden', '');
+    document.body.classList.remove('has-install-bar');
+}
+
+// Fermée ou application installée : cachée pour de bon.
+function dismiss() {
+    hideBanner();
 
     try {
         localStorage.setItem(DISMISSED, '1');
@@ -68,9 +84,7 @@ window.addEventListener('beforeinstallprompt', (event) => {
     deferredPrompt = event;
     buttons.forEach((button) => button.removeAttribute('hidden'));
 
-    if (banner && !dismissed()) {
-        banner.removeAttribute('hidden');
-    }
+    showBanner();
 });
 
 buttons.forEach((button) => button.addEventListener('click', async () => {
@@ -84,13 +98,13 @@ buttons.forEach((button) => button.addEventListener('click', async () => {
     buttons.forEach((b) => b.setAttribute('hidden', ''));
 
     if (outcome === 'accepted') {
-        banner?.setAttribute('hidden', '');
+        dismiss();
     }
 }));
 
 window.addEventListener('appinstalled', () => {
     buttons.forEach((button) => button.setAttribute('hidden', ''));
-    banner?.setAttribute('hidden', '');
+    dismiss();
 });
 
 // iPhone et iPad (Safari) : pas d'invite automatique, on explique la marche à suivre.
@@ -100,7 +114,7 @@ if (banner && ios && !standalone && !dismissed()) {
     banner.querySelector('[data-install-android]')?.setAttribute('hidden', '');
     banner.querySelector('[data-install-ios]')?.removeAttribute('hidden');
     banner.querySelector('[data-install-button]')?.setAttribute('hidden', '');
-    banner.removeAttribute('hidden');
+    showBanner();
 }
 
 banner?.querySelector('[data-install-close]')?.addEventListener('click', dismiss);

@@ -8,7 +8,7 @@
     <section class="card form-card rise" style="--i: 1">
         <dl class="summary">
             <dt>Nom</dt><dd>{{ $user->name }}</dd>
-            <dt>Téléphone</dt><dd>{{ $user->phone }}</dd>
+            <dt>Téléphone</dt><dd>{{ \App\Support\PhoneNumber::display($user->phone) }}</dd>
         </dl>
 
         <form method="POST" action="{{ route('account.update') }}" class="next-step" novalidate>

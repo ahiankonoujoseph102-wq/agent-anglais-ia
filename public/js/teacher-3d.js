@@ -16,6 +16,50 @@
 
 const CACHE = 'teacher3d';
 
+/* ---------- Tableau noir du décor ---------- */
+
+// Mots écrits à la craie : courts, pour tenir entiers même sur un téléphone en portrait.
+export const BOARD_LINES = ['Hello!', "Let's talk!"];
+const BOARD_Z = -0.6;
+// Plus grand tableau possible (celui d'avant), et bord droit gardé à l'écart de la tête.
+const BOARD_MAX = { left: -1.12, right: -0.22, bottom: 0.535, top: 1.065 };
+const BOARD_MARGIN = 0.06;
+const BOARD_MIN_WIDTH = 0.12;
+// En dessous de cette largeur, seule la première ligne est écrite (assez grande pour être lue).
+const BOARD_ONE_LINE_WIDTH = 0.3;
+
+/**
+ * Position du tableau (en mètres, plan du mur) d'après ce que voit la caméra :
+ * il commence au bord gauche VISIBLE (avec une marge) et s'arrête avant la
+ * tête, donc il n'est jamais coupé par le bord de l'image. Renvoie null s'il
+ * n'y a pas la place (image très étroite). Même calcul que resize().
+ * Fonction pure, testée par tests/js/teacher-3d.test.mjs.
+ */
+export function boardLayout({ aspect, distance, fov = 30, target = [0, 0.57, 0] }) {
+    const [cx, cy, cz] = target;
+    const tan = Math.tan((fov * Math.PI / 180) / 2);
+    const cameraZ = cz + distance;
+    const cameraY = cy + distance * 0.06;
+    const depth = cameraZ - BOARD_Z;
+    const halfHeight = tan * depth;
+    const halfWidth = halfHeight * aspect;
+    // Centre de l'image sur le mur (la caméra regarde un peu vers le bas).
+    const centerY = cameraY - (cameraY - cy) * (depth / distance);
+
+    const left = Math.max(BOARD_MAX.left, cx - halfWidth + BOARD_MARGIN);
+    const right = BOARD_MAX.right;
+    const top = Math.min(BOARD_MAX.top, centerY + halfHeight - BOARD_MARGIN * 1.6);
+    const bottom = BOARD_MAX.bottom;
+
+    if (right - left < BOARD_MIN_WIDTH || top - bottom < 0.2) {
+        return null;
+    }
+
+    const lines = right - left < BOARD_ONE_LINE_WIDTH ? BOARD_LINES.slice(0, 1) : BOARD_LINES;
+
+    return { left, right, bottom, top, lines, visible: { left: cx - halfWidth, right: cx + halfWidth, top: centerY + halfHeight, bottom: centerY - halfHeight } };
+}
+
 /* ---------- Expressions et gestes ---------- */
 
 // Expressions : formes du visage, attitude de la tête [inclinaison avant, rotation, penché], geste.
@@ -303,30 +347,9 @@ class Teacher3D {
             box(4, 3, 0.02, '#ecd8bd', 0, 0.9, -0.62);
             box(4, 0.5, 0.03, '#d9bf9c', 0, -0.05, -0.6);
 
-            // Tableau noir avec quelques mots écrits à la craie.
-            const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = 256;
-            const g = canvas.getContext('2d');
-            g.fillStyle = '#16305e';
-            g.fillRect(0, 0, 512, 256);
-            g.textAlign = 'right';
-            g.fillStyle = 'rgba(255,255,255,0.85)';
-            g.font = 'bold 54px sans-serif';
-            g.fillText('Hello!', 470, 80);
-            g.font = '32px sans-serif';
-            g.fillStyle = 'rgba(255,255,255,0.7)';
-            g.fillText('Good morning', 470, 140);
-            g.fillText('A  B  C', 470, 205);
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.colorSpace = THREE.SRGBColorSpace;
-            const board = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.5), new THREE.MeshLambertMaterial({ map: texture }));
-            board.position.set(-0.62, 0.80, -0.6);
-            room.add(board);
-            box(1.06, 0.03, 0.03, '#8a5a36', -0.62, 0.535, -0.59);
-            box(1.06, 0.03, 0.03, '#8a5a36', -0.62, 1.065, -0.59);
-            box(0.03, 0.56, 0.03, '#8a5a36', -0.11, 0.80, -0.59);
-            box(0.03, 0.56, 0.03, '#8a5a36', -1.13, 0.80, -0.59);
+            // Tableau noir : placé et redessiné à chaque changement de taille (resize → placeBoard).
+            this.board = new THREE.Group();
+            room.add(this.board);
 
             // Fenêtre ensoleillée.
             box(0.56, 0.5, 0.01, '#bfe0f2', 0.66, 0.88, -0.605);
@@ -356,6 +379,88 @@ class Teacher3D {
         }
 
         this.scene.add(room);
+    }
+
+    // Tableau noir dans la partie visible à gauche de la tête, texte court centré : jamais coupé.
+    placeBoard(distance) {
+        if (!this.board) {
+            return;
+        }
+
+        const { THREE } = this;
+        const layout = boardLayout({ aspect: this.camera.aspect, distance, fov: this.camera.fov, target: this.config.model.camera.target });
+        const key = layout ? [layout.left, layout.right, layout.bottom, layout.top].map((v) => v.toFixed(3)).join() : 'none';
+
+        if (key === this.boardKey) {
+            return;
+        }
+
+        this.boardKey = key;
+
+        for (const child of [...this.board.children]) {
+            this.board.remove(child);
+            child.geometry?.dispose();
+            child.material?.map?.dispose();
+            child.material?.dispose();
+        }
+
+        if (!layout) {
+            return;
+        }
+
+        const { left, right, bottom, top } = layout;
+        const width = right - left;
+        const height = top - bottom;
+        const cx = (left + right) / 2;
+        const cy = (top + bottom) / 2;
+
+        // Texture de 512 pixels sur le côté le plus long ; texte réduit s'il dépasse la largeur.
+        const scale = 512 / Math.max(width, height);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(64, Math.round(width * scale));
+        canvas.height = Math.max(64, Math.round(height * scale));
+        const g = canvas.getContext('2d');
+        g.fillStyle = '#16305e';
+        g.fillRect(0, 0, canvas.width, canvas.height);
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        const fit = (text, size, weight) => {
+            g.font = `${weight} ${size}px sans-serif`;
+            const room = canvas.width * 0.84;
+            const measured = g.measureText(text).width;
+
+            if (measured > room) {
+                g.font = `${weight} ${Math.floor(size * room / measured)}px sans-serif`;
+            }
+        };
+        const { lines } = layout;
+        const big = Math.min(canvas.height * 0.3, 96);
+        fit(lines[0], big, 'bold');
+        g.fillStyle = 'rgba(255,255,255,0.88)';
+        g.fillText(lines[0], canvas.width / 2, canvas.height * (lines.length > 1 ? 0.4 : 0.42));
+
+        if (lines[1]) {
+            fit(lines[1], big * 0.55, 'normal');
+            g.fillStyle = 'rgba(255,255,255,0.72)';
+            g.fillText(lines[1], canvas.width / 2, canvas.height * 0.7);
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const board = new THREE.Mesh(new THREE.PlaneGeometry(width, height), new THREE.MeshLambertMaterial({ map: texture }));
+        board.position.set(cx, cy, BOARD_Z);
+        this.board.add(board);
+
+        // Cadre en bois.
+        const frame = (w, h, x, y) => {
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.03), new THREE.MeshLambertMaterial({ color: '#8a5a36' }));
+            mesh.position.set(x, y, BOARD_Z + 0.01);
+            this.board.add(mesh);
+        };
+        frame(width + 0.06, 0.03, cx, bottom - 0.015);
+        frame(width + 0.06, 0.03, cx, top + 0.015);
+        frame(0.03, height + 0.06, left - 0.015, cy);
+        frame(0.03, height + 0.06, right + 0.015, cy);
     }
 
     prepareModel() {
@@ -404,6 +509,7 @@ class Teacher3D {
         this.camera.lookAt(cx, cy, cz);
         this.camera.updateProjectionMatrix();
         this.eyeLevelPitch = Math.atan2((this.config.model.camera.eye_height ?? 0.68) - this.camera.position.y, distance);
+        this.placeBoard(distance);
     }
 
     /* ---------- Audio ---------- */

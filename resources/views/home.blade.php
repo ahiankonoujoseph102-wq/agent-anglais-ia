@@ -18,6 +18,8 @@
 <x-layout install :description="'Apprenez à parler anglais avec '.$teacher.', professeur d\'anglais en ligne disponible chaque jour sur votre téléphone. Évaluation orale gratuite.'">
     {{-- Haut de page : la promesse et le bouton orange, visibles sans faire défiler. --}}
     <section class="hero" aria-labelledby="promesse">
+        {{-- Fond animé léger (CSS seulement) : trois formes floues ; bulles près de Teacher Joe. --}}
+        <span class="hero-blob" aria-hidden="true"></span>
         <div class="hero-text rise">
             {{-- Téléphone : Teacher Joe visible dès l'ouverture (même image que plus bas, aucun poids en plus). --}}
             <p class="hero-teacher">
@@ -49,10 +51,12 @@
             <img src="{{ Asset::url('images/teacher-joe.webp') }}" width="560" height="560" alt="{{ $teacher }}, le professeur d'anglais de {{ $platform }}" fetchpriority="high">
             <span class="hero-bubble right" lang="en" aria-hidden="true">Hello!</span>
             <span class="hero-bubble" lang="en" aria-hidden="true">Let's talk!</span>
+            <span class="hero-bubble third" lang="en" aria-hidden="true">How are you?</span>
         </figure>
     </section>
 
-    <section class="section" aria-labelledby="etapes">
+    {{-- Sections alternées : bleu très clair, bleu nuit (une seule), blanc… (.band, fond sur toute la largeur). --}}
+    <section class="section band band-soft" aria-labelledby="etapes">
         <div class="section-head reveal">
             <span class="eyebrow">Comment ça marche</span>
             <h2 id="etapes">Quatre étapes simples</h2>
@@ -81,7 +85,7 @@
         </ol>
     </section>
 
-    <section class="section" aria-labelledby="difference">
+    <section class="section band band-dark" aria-labelledby="difference">
         <div class="section-split">
             <div class="section-head reveal">
                 <span class="eyebrow">Pourquoi {{ $platform }}</span>
@@ -122,13 +126,13 @@
         </div>
         <ul class="levels reveal" aria-label="Les niveaux, de A1 à C2">
             @foreach (Level::cases() as $level)
-                <li><strong>{{ $level->value }}</strong><span>{{ $level->label() }}</span></li>
+                <li><strong class="level-dot">{{ $level->value }}</strong><span>{{ $level->label() }}</span></li>
             @endforeach
         </ul>
         <p class="muted small reveal next-step">Douze unités par niveau. À la fin de chaque niveau, un bilan oral réussi donne une attestation de niveau.</p>
     </section>
 
-    <section class="section" aria-labelledby="plans">
+    <section class="section band" aria-labelledby="plans">
         <div class="section-head reveal">
             <span class="eyebrow">Formules</span>
             <h2 id="plans">Des formules simples, sans engagement</h2>
@@ -139,10 +143,22 @@
                 <x-plan-card :plan="$plan" :href="auth()->check() ? route('payment.create', $plan->key) : route('register')" class="reveal" style="--i: {{ $loop->index }}" />
             @endforeach
         </div>
-        <p class="muted small reveal next-step">
-            <a href="{{ route('plans') }}">Tout savoir sur les formules et les prix</a>.
-            Paiement par Mobile Money ({{ implode(', ', $countries) }}) : {{ implode(', ', $operators) }}.
-        </p>
+        {{-- Moyens de paiement groupés par pays, en petites étiquettes. --}}
+        <div class="pay-methods reveal">
+            <p class="muted small">Paiement par Mobile Money, depuis votre téléphone. <a href="{{ route('plans') }}">Tout savoir sur les formules et les prix</a>.</p>
+            <ul class="pay-countries" aria-label="Moyens de paiement par pays">
+                @foreach ($paymentCountries as $paymentCountry)
+                    <li>
+                        <span class="pay-country">{{ $paymentCountry['name'] }}</span>
+                        <span class="tags">
+                            @foreach ($paymentCountry['operators'] as $operatorName)
+                                <span class="tag">{{ $operatorName }}</span>
+                            @endforeach
+                        </span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
     </section>
 
     {{--
@@ -150,7 +166,7 @@
         Chacune : une photo, un titre, une phrase, trois points courts au plus, un bouton orange.
         Téléphone : l'une sous l'autre ; à partir de 720 pixels : grille 2 × 2.
     --}}
-    <div class="section audiences">
+    <div class="section band band-soft audiences">
         <section class="students audience reveal" aria-labelledby="etudiants">
             <figure class="photo-frame"><x-photo name="etudiants-bibliotheque" /></figure>
             <div class="audience-body">
@@ -209,7 +225,7 @@
         </section>
     </div>
 
-    <section class="section" aria-labelledby="pays">
+    <section class="section band" aria-labelledby="pays">
         <div class="section-head reveal">
             <span class="eyebrow">Dans votre pays</span>
             <h2 id="pays">Apprendre l'anglais au Togo, au Bénin, au Burkina Faso et en Côte d'Ivoire</h2>
@@ -219,7 +235,7 @@
         <x-country-links :pages="$countryPages" />
     </section>
 
-    <section class="section" aria-labelledby="questions">
+    <section class="section band band-soft faq-section" aria-labelledby="questions">
         <div class="section-head reveal">
             <span class="eyebrow">Vos questions</span>
             <h2 id="questions">Questions fréquentes</h2>
@@ -283,7 +299,7 @@
         @endpush
     </section>
 
-    <section class="section">
+    <section class="section band">
         <div class="cta-band reveal">
             <h2>Votre anglais oral commence aujourd'hui</h2>
             <p>{{ $minutes }} minutes gratuites avec {{ $teacher }} pour connaître votre niveau et poser vos questions.</p>

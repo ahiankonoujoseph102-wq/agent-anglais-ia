@@ -14,6 +14,15 @@ use App\Support\Curriculum\Unit;
  */
 class TeacherSetup
 {
+    /**
+     * Résumé de l'évaluation (fonction record_assessment_result et estimation sans verdict) : en français,
+     * adressé directement à l'apprenant avec « vous », jamais à la troisième personne.
+     */
+    public const FEEDBACK_RULE = 'Two or three sentences in French, written directly TO the learner with "vous" '
+        .'(for example: "Vous comprenez bien les questions simples. Travaillez maintenant les verbes au passé."): '
+        .'strengths, then what to work on. Never write about the learner in the third person '
+        .'(never "l\'apprenant", "il", "elle" or the learner\'s name as a subject).';
+
     public const RECORD_ASSESSMENT_RESULT = 'record_assessment_result';
 
     public const END_LESSON = 'end_lesson';
@@ -40,7 +49,7 @@ class TeacherSetup
                         ],
                         'feedback' => [
                             'type' => 'STRING',
-                            'description' => 'Two or three sentences in French: strengths and what to work on.',
+                            'description' => self::FEEDBACK_RULE,
                         ],
                     ],
                     'required' => ['level', 'feedback'],

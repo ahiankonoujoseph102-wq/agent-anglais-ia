@@ -40,7 +40,7 @@
                 @endif
             </p>
             <dl class="summary">
-                <dt>Compte</dt><dd><a href="tel:{{ $payment->user->phone }}">{{ $payment->user->phone }}</a></dd>
+                <dt>Compte</dt><dd><a href="tel:{{ $payment->user->phone }}">{{ \App\Support\PhoneNumber::display($payment->user->phone) }}</a></dd>
                 <dt>Formule</dt><dd>{{ $payment->plan_name }} ({{ $payment->duration_days }} jours)</dd>
                 <dt>Prix</dt><dd><strong>{{ $payment->formattedAmount() }}</strong></dd>
                 <dt>Opérateur choisi</dt><dd>{{ $payment->operator_name }} ({{ $payment->country }}) → {{ $payment->recipient_number }}</dd>

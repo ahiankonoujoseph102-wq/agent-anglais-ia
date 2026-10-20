@@ -167,7 +167,7 @@
                     <span class="icon-bubble icon-bubble-primary"><x-icon name="download" /></span>
                     <p data-install-android>
                         <strong>Installer l'application</strong>
-                        Ouvrez {{ config('platform.name') }} directement depuis l'écran d'accueil de votre téléphone.
+                        <span class="install-more">Ouvrez {{ config('platform.name') }} directement depuis l'écran d'accueil de votre téléphone.</span>
                     </p>
                     <p data-install-ios hidden>
                         <strong>Ajouter à l'écran d'accueil</strong>

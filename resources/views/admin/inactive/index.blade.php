@@ -19,7 +19,7 @@
             <tbody>
                 @foreach ($learners as $learner)
                     <tr>
-                        <td data-label="Apprenant"><a href="{{ route('admin.users.show', $learner) }}">{{ $learner->name }}</a><br><span class="muted small">{{ $learner->phone }}</span></td>
+                        <td data-label="Apprenant"><a href="{{ route('admin.users.show', $learner) }}">{{ $learner->name }}</a><br><span class="muted small">{{ \App\Support\PhoneNumber::display($learner->phone) }}</span></td>
                         <td data-label="Dernière séance">
                             @if ($learner->lessons_max_started_at)
                                 {{ \Illuminate\Support\Carbon::parse($learner->lessons_max_started_at)->format('d/m/Y') }}
