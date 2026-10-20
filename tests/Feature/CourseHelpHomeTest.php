@@ -29,9 +29,10 @@ class CourseHelpHomeTest extends TestCase
             "Vos cours d'anglais enfin compris",
             "Photographiez votre leçon ou votre exercice d'anglais",
             'en français quand il le faut',
-            'Posez-lui vos questions sur la leçon',
+            'et répond à vos questions',
             'Il vous guide pour faire votre exercice vous-même, puis corrige',
             "Uniquement pour les cours d'anglais.",
+            'Aussi pour les étudiants : lycée, université, formation.',
             'Vous êtes parent ?',
             "Un professeur d'anglais patient pour votre enfant",
             'ne fait pas les devoirs à la place de votre enfant',
@@ -44,35 +45,68 @@ class CourseHelpHomeTest extends TestCase
 
         // L'oral reste le message principal : le titre du haut de page n'a pas changé.
         $this->assertStringContainsString('Parlez anglais avec un professeur', $html);
+        $this->assertStringContainsString('vous fait parler sans gêne ni jugement', $html);
+        $this->assertStringContainsString('Osez parler anglais', $html);
     }
 
-    public function test_the_three_cards_share_one_format_and_come_in_the_right_order(): void
+    public function test_the_four_cards_share_one_compact_format_and_come_in_the_right_order(): void
     {
         $html = $this->get('/')->assertOk()->getContent();
 
-        $eleves = strpos($html, 'id="eleves"');
-        $parents = strpos($html, 'id="parents"');
-        $pros = strpos($html, 'id="pros"');
+        // Étudiants, puis Élèves, puis Parents, puis « Vous travaillez ? ».
+        $positions = array_map(fn (string $id) => strpos($html, 'id="'.$id.'"'), ['etudiants', 'eleves', 'parents', 'pros']);
+        $this->assertNotContains(false, $positions);
+        $sorted = $positions;
+        sort($sorted);
+        $this->assertSame($sorted, $positions);
 
-        // Élèves, puis Parents, puis « Vous travaillez ? ».
-        $this->assertTrue($eleves < $parents && $parents < $pros);
-
-        // Même composant : trois cartes « students », une photo arrondie, une étiquette, un titre, un bouton orange.
+        // Même carte compacte : une photo, un titre, une phrase, trois points au plus, un bouton orange.
         $document = new \DOMDocument;
         @$document->loadHTML('<?xml encoding="utf-8"?>'.$html);
         $xpath = new \DOMXPath($document);
+        $this->assertSame(4, $xpath->query('//div[contains(@class,"audiences")]/section[contains(@class,"students")]')->length);
 
-        foreach (['eleves', 'parents', 'pros'] as $id) {
-            $card = '//section[@aria-labelledby="'.$id.'"]/div[contains(@class,"students")]';
+        foreach (['etudiants', 'eleves', 'parents', 'pros'] as $id) {
+            $card = '//section[@aria-labelledby="'.$id.'"][contains(@class,"audience")]';
             $this->assertSame(1, $xpath->query($card.'/figure[contains(@class,"photo-frame")]//img[@loading="lazy"][@width][@height]')->length, $id);
-            $this->assertSame(1, $xpath->query($card.'//span[@class="eyebrow"]')->length, $id);
             $this->assertSame(1, $xpath->query($card.'//h2[@id="'.$id.'"]')->length, $id);
-            $this->assertGreaterThanOrEqual(1, $xpath->query($card.'//a[contains(@class,"btn-accent")]')->length, $id);
+            $this->assertLessThanOrEqual(3, $xpath->query($card.'//ul[contains(@class,"audience-points")]/li')->length, $id);
+            $this->assertGreaterThanOrEqual(1, $xpath->query($card.'//ul[contains(@class,"audience-points")]/li')->length, $id);
+            $this->assertSame(1, $xpath->query($card.'//a[contains(@class,"btn-accent")]')->length, $id);
         }
 
         // Le bouton « parents » mène à l'inscription ; l'ancien bloc n'existe plus.
         $this->assertStringContainsString('href="'.route('register').'"', $html);
         $this->assertStringNotContainsString('class="parents', $html);
+    }
+
+    public function test_the_student_card_speaks_to_students_without_promising_a_result(): void
+    {
+        $html = html_entity_decode($this->get('/')->assertOk()->getContent(), ENT_QUOTES);
+
+        foreach ([
+            'Vous êtes étudiant ?',
+            "Prenez la parole en anglais : exposés, entretiens, études ou stage à l'étranger.",
+            'Oser parler, sans gêne ni jugement',
+            "S'entraîner aux entretiens de bourse, d'admission ou de stage",
+            "Préparer un départ à l'étranger",
+            // Les cartes existantes sont toujours là.
+            'Vous êtes élève ?', 'Vous êtes parent ?', 'Vous travaillez ?', 'Inscrire mon enfant',
+        ] as $text) {
+            $this->assertStringContainsString($text, $html);
+        }
+
+        // La photo des étudiants : en deux tailles, avec sa licence.
+        foreach ([480, 960] as $size) {
+            $this->assertFileExists(public_path("images/photos/etudiants-bibliotheque-{$size}.webp"));
+        }
+        $this->assertStringContainsString('pexels.com/photo/people-on-the-table-reading-books-10744384', file_get_contents(base_path('LICENCES-TIERS.md')));
+
+        // Aucune promesse : ni examen officiel, ni bourse, visa ou résultat garantis.
+        foreach (['TOEFL', 'IELTS', 'bourse garantie', 'visa garanti', 'admission garantie', 'réussite garantie', 'garantit'] as $forbidden) {
+            $this->assertStringNotContainsStringIgnoringCase($forbidden, $html);
+            $this->assertStringNotContainsStringIgnoringCase($forbidden, file_get_contents(resource_path('teacher/site-guide.md')));
+        }
     }
 
     public function test_the_parent_photo_exists_in_both_sizes_and_is_credited(): void

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Difficulty;
 use App\Enums\Goal;
 use App\Enums\Level;
+use App\Enums\Profile;
 use App\Enums\ProgramLessonStatus;
 use App\Enums\ProgramStatus;
 use App\Support\Curriculum\Curriculum;
@@ -21,7 +22,7 @@ use Illuminate\Support\Carbon;
  * découpées en leçons et réparties sur ses jours de travail.
  */
 #[Fillable([
-    'level', 'status', 'start_level', 'target_level', 'goal', 'occupation', 'interests',
+    'level', 'status', 'start_level', 'target_level', 'goal', 'profile', 'occupation', 'interests',
     'study_days', 'study_time', 'difficulties', 'content', 'is_active',
 ])]
 class Program extends Model
@@ -45,6 +46,7 @@ class Program extends Model
             'start_level' => Level::class,
             'target_level' => Level::class,
             'goal' => Goal::class,
+            'profile' => Profile::class,
             'study_days' => 'array',
             'difficulties' => 'array',
             'content' => 'array',

@@ -150,7 +150,7 @@ return [
             'questionnaire' => 'Première étape : un court questionnaire, de quelques questions seulement. Grâce à vos réponses, nous construirons ensemble votre programme personnel, adapté à votre objectif et à votre rythme.',
             'lesson' => 'Deuxième étape : chaque jour, vous parlez anglais avec moi. Votre formule vous donne :daily_duration par jour, et ce temps est à vous : partagez-le librement entre notre conversation en anglais et l\'explication de vos leçons d\'anglais de l\'école. Installez-vous dans un endroit calme, gardez votre téléphone près de la bouche, et parlez à voix haute. N\'ayez pas peur de vous tromper : c\'est en parlant que l\'on progresse. En anglais, on dit : « Don\'t be shy ! » Cela veut dire : n\'ayez pas peur !',
             'lesson_rules' => 'Dans « Mon espace », vous voyez toujours le temps qu\'il vous reste aujourd\'hui. Quand il est écoulé, la séance s\'arrête toute seule, et votre temps revient chaque jour à minuit. Pendant que je parle, vous pouvez m\'interrompre avec le bouton « Interrompre le professeur ». Vous pouvez aussi faire une pause, mais le temps continue de s\'écouler, ou couper votre micro.',
-            'courses' => 'Si vous êtes élève, il y a aussi « Mes cours », dans le menu. Vous photographiez votre leçon ou votre exercice d\'anglais de l\'école, je vous l\'explique, je réponds à vos questions et je vous guide pour faire vous-même l\'exercice. Une explication dure :course_minutes au plus, et elle prend simplement sur votre temps du jour. C\'est uniquement pour l\'anglais.',
+            'courses' => 'Si vous êtes élève ou étudiant, il y a aussi « Mes cours », dans le menu. Vous photographiez votre leçon ou votre exercice d\'anglais de l\'école, de l\'université ou de votre formation, je vous l\'explique, je réponds à vos questions et je vous guide pour faire vous-même l\'exercice. Une explication dure :course_minutes au plus, et elle prend simplement sur votre temps du jour. C\'est uniquement pour l\'anglais.',
             'closing' => 'Tout est clair ? Alors, c\'est parti ! En anglais : « Let\'s start ! » Cela veut dire : c\'est parti ! Touchez le bouton orange, et nous commençons ensemble.',
         ],
         // Remplace « questionnaire » quand le programme personnel est déjà construit.
@@ -233,6 +233,27 @@ return [
     | Séance quotidienne
     |--------------------------------------------------------------------------
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Objectifs du questionnaire : comment adapter la pratique de la séance du jour
+    |--------------------------------------------------------------------------
+    |
+    | Ajouté au contexte de la séance (LessonContext) selon l'objectif choisi. Toujours en anglais
+    | américain, le français seulement pour expliquer. Jamais de promesse de résultat (bourse, admission,
+    | visa, emploi) ni de préparation à un examen officiel d'anglais.
+    |
+    */
+
+    'goal_focus' => [
+        'study_abroad' => 'Link the role play to studying or traveling abroad when it fits: introducing yourself to a university or a host family, answering "Why do you want to study abroad?", the airport, the campus, finding housing. Keep today\'s unit content.',
+        'interview' => <<<'TXT'
+            INTERVIEW MODE. During the practice step, you may play the EXAMINER of an interview that matches the learner (scholarship or admission panel, consular officer for a visa, recruiter for an internship or a job), using today's unit content. Announce the role in one sentence. Then ask ONE interview question at a time ("Tell me about yourself.", "Why do you want to study abroad?", "Why should we choose you?", "What are your strengths?"), and WAIT for the full answer. After each answer, step out of the role briefly: say what was good, correct the most useful mistake ('You said "…". We say "…".'), and suggest a better, natural way to answer in American English; have the learner say the improved answer again, then go on with the next question. Use French only to explain. This is speaking practice: never promise a scholarship, an admission, a visa or a job, and never present it as preparation for an official English exam.
+            TXT,
+        'presentation' => 'Link the role play to a class presentation or a thesis defense when it fits: opening and structuring a short talk, presenting a project, answering questions from a jury or a teacher. Let the learner present for a minute, then correct and help them say it again more clearly.',
+        'clients' => 'Link the role play to clients or partners when it fits: welcoming a client, presenting your business or product, taking an order, answering a complaint, a short phone call. You play the client or the partner.',
+        'confidence' => 'The learner wants to dare to speak. Create a warm, safe atmosphere with no judgment: short and easy questions first, real encouragement after each try, mistakes treated as normal. Make them speak as much as possible and gently longer each time. Correct only what helps most.',
+    ],
+
     'lesson' => <<<'TXT'
         This conversation is the learner's DAILY LESSON. It lasts :minutes minutes and the website will cut it automatically at the limit.
 

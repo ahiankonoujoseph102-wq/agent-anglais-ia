@@ -7,7 +7,7 @@
             <h1>Ajouter une leçon</h1>
         </div>
         <p class="muted">
-            Une leçon d'anglais de votre école. {{ config('avatar.model.name') }} la lit, puis vous aide à la comprendre et à vous exercer.
+            Une leçon d'anglais de votre école, de votre lycée, de votre université ou de votre formation. {{ config('avatar.model.name') }} la lit, puis vous aide à la comprendre et à vous exercer.
         </p>
     </div>
 

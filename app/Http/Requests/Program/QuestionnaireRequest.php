@@ -4,6 +4,7 @@ namespace App\Http\Requests\Program;
 
 use App\Enums\Difficulty;
 use App\Enums\Goal;
+use App\Enums\Profile;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,6 +21,7 @@ class QuestionnaireRequest extends FormRequest
         return match ((int) $this->route('step')) {
             1 => ['goal' => ['required', Rule::enum(Goal::class)]],
             2 => [
+                'profile' => ['nullable', Rule::enum(Profile::class)],
                 'occupation' => ['required', 'string', 'min:2', 'max:150'],
                 'interests' => ['nullable', 'string', 'max:255'],
             ],

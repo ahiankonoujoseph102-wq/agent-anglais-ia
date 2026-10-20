@@ -23,3 +23,12 @@ Licence vérifiée sur la page de chaque photo le 17 octobre 2026. Liste et text
 | `public/images/photos/etudiante-parle-*.webp` | <https://unsplash.com/photos/a-woman-wearing-headphones-and-holding-a-cell-phone-agINaOByj4k> | Ato Aikins (<https://unsplash.com/@ato_aikins>) |
 | `public/images/photos/parent-enfant-lecture-*.webp` | <https://unsplash.com/photos/a-woman-reading-a-book-to-a-child-Nu5819t1K6c> (« Reading with Mum », licence gratuite vérifiée sur la page le 17 octobre 2026) | Chidy Young (<https://unsplash.com/@ychidy>) |
 | `public/images/photos/equipe-reunion-*.webp` | <https://unsplash.com/photos/a-group-of-people-sitting-around-a-white-table-YsJUxCIW14U> | Ninthgrid (<https://unsplash.com/@ninthgrid_>) |
+
+## Photos (Pexels)
+
+Licence Pexels (<https://www.pexels.com/license/>) : usage gratuit, commercial permis, sans obligation de citer.
+Licence (« Free ») vérifiée sur la page de la photo le 20 octobre 2026 ; aucune mention d'image générée par une IA (photo d'appareil, Canon EOS 7D, 10 novembre 2020).
+
+| Fichiers | Photo | Auteur |
+|---|---|---|
+| `public/images/photos/etudiants-bibliotheque-*.webp` | <https://www.pexels.com/photo/people-on-the-table-reading-books-10744384/> | Peter Chikubula (<https://www.pexels.com/@peter-chikubula-157991289/>) |

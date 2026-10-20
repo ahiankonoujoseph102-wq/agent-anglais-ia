@@ -166,7 +166,7 @@
                 <h2 id="courses-card-title">Mes cours</h2>
             </div>
             <p>
-                Un complément facultatif : apportez une leçon d'anglais de votre école, et {{ config('avatar.model.name') }}
+                Un complément facultatif : apportez une leçon d'anglais de votre école, de votre université ou de votre formation, et {{ config('avatar.model.name') }}
                 vous aide à la comprendre et à vous exercer.
             </p>
             <p class="course-counter"><x-icon name="clock" /> <span>Pris sur votre temps du jour, partagé avec la séance orale.</span></p>

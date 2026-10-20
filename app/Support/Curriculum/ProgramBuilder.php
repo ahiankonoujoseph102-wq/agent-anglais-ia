@@ -5,6 +5,7 @@ namespace App\Support\Curriculum;
 use App\Enums\Difficulty;
 use App\Enums\Goal;
 use App\Enums\Level;
+use App\Enums\Profile;
 use App\Enums\ProgramStatus;
 use App\Models\Program;
 use App\Models\User;
@@ -23,14 +24,18 @@ class ProgramBuilder
     public function __construct(private TextClient $text) {}
 
     /**
-     * @param  array{goal: string, occupation: string, interests?: string|null, study_days: list<int|string>, study_time?: string|null, difficulties: list<string>}  $answers
+     * @param  array{goal: string, profile?: string|null, occupation: string, interests?: string|null, study_days: list<int|string>, study_time?: string|null, difficulties: list<string>}  $answers
      */
     public function build(User $user, Level $level, array $answers): Program
     {
         $goal = Goal::from($answers['goal']);
-        $profileTags = self::profileTags(($answers['occupation'] ?? '').' '.($answers['interests'] ?? ''));
+        $profile = Profile::tryFrom((string) ($answers['profile'] ?? ''));
+        $profileTags = array_values(array_unique([
+            ...($profile?->tags() ?? []),
+            ...self::profileTags(($answers['occupation'] ?? '').' '.($answers['interests'] ?? '')),
+        ]));
 
-        $program = DB::transaction(function () use ($user, $level, $answers, $goal, $profileTags) {
+        $program = DB::transaction(function () use ($user, $level, $answers, $goal, $profile, $profileTags) {
             // Un seul programme actif : l'ancien est archivé (ou reste « validé »).
             $user->programs()->where('is_active', true)->get()->each(function (Program $old) {
                 $old->is_active = false;
@@ -48,6 +53,7 @@ class ProgramBuilder
                 'target_level' => $level->next() ?? $level,
                 'status' => ProgramStatus::Active,
                 'goal' => $goal,
+                'profile' => $profile,
                 'occupation' => trim($answers['occupation']),
                 'interests' => filled($answers['interests'] ?? null) ? trim($answers['interests']) : null,
                 'study_days' => array_values(array_map('intval', $answers['study_days'])),
@@ -141,7 +147,9 @@ class ProgramBuilder
             .'N\'invente aucune information.',
             "Présente son programme personnel à l'apprenant.\n"
             ."Prénom : {$user->name}\nNiveau : {$program->level->value} ({$program->level->label()})\n"
-            .'Objectif : '.Str::lcfirst($program->goal->label())."\nMétier ou situation : {$program->occupation}\n"
+            .'Objectif : '.Str::lcfirst($program->goal->label())."\n"
+            .($program->profile ? 'Profil : '.Str::lcfirst($program->profile->label())."\n" : '')
+            ."Métier ou situation : {$program->occupation}\n"
             .'Ce qu\'il trouve difficile : '.$difficulties."\n"
             .'Jours de travail : '.$program->studyDaysLabel()."\n"
             .'Premières unités : '.implode(' ; ', $units),

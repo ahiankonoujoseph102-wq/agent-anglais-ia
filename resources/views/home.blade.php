@@ -24,14 +24,14 @@
                 <span class="hero-teacher-face"><img src="{{ Asset::url('images/teacher-joe.webp') }}" width="56" height="56" alt=""></span>
                 <span><strong>{{ $teacher }}</strong> Votre professeur d'anglais à l'oral</span>
             </p>
-            <span class="eyebrow hero-eyebrow"><x-icon name="mic" /> L'anglais à l'oral, pour les francophones</span>
+            <span class="eyebrow hero-eyebrow"><x-icon name="mic" /> Osez parler anglais, pour les francophones</span>
             <h1 id="promesse">Parlez anglais avec un professeur <span class="accent">disponible chaque jour</span></h1>
             <p class="lead">
-                {{ $teacher }} vous fait parler, vous corrige et vous fait progresser à votre rythme, depuis votre téléphone.
+                {{ $teacher }} vous fait parler sans gêne ni jugement, vous corrige et vous fait progresser à votre rythme, depuis votre téléphone.
                 Commencez par une évaluation orale gratuite de {{ $minutes }} minutes.
                 Vous apprenez l'anglais américain, compris partout dans le monde.
             </p>
-            <p class="hero-also">Vous êtes élève ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école.</p>
+            <p class="hero-also">Élève ou étudiant ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école ou de l'université.</p>
             <div class="actions actions-row">
                 <a class="btn btn-accent btn-lg btn-block" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
                 @guest
@@ -145,49 +145,69 @@
         </p>
     </section>
 
-    {{-- Trois cartes de même format (.students) : élèves, parents, professionnels. --}}
-    <section class="section" aria-labelledby="eleves">
-        <div class="students students-reverse reveal">
+    {{--
+        Quatre cartes compactes de même format (.students.audience) : étudiants, élèves, parents, professionnels.
+        Chacune : une photo, un titre, une phrase, trois points courts au plus, un bouton orange.
+        Téléphone : l'une sous l'autre ; à partir de 720 pixels : grille 2 × 2.
+    --}}
+    <div class="section audiences">
+        <section class="students audience reveal" aria-labelledby="etudiants">
+            <figure class="photo-frame"><x-photo name="etudiants-bibliotheque" /></figure>
+            <div class="audience-body">
+                <h2 id="etudiants">Vous êtes étudiant ?</h2>
+                <p>Prenez la parole en anglais : exposés, entretiens, études ou stage à l'étranger.</p>
+                <ul class="audience-points">
+                    <li><x-icon name="check-circle" /> Oser parler, sans gêne ni jugement</li>
+                    <li><x-icon name="check-circle" /> S'entraîner aux entretiens de bourse, d'admission ou de stage</li>
+                    <li><x-icon name="check-circle" /> Préparer un départ à l'étranger</li>
+                </ul>
+                <a class="btn btn-accent" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
+            </div>
+        </section>
+
+        <section class="students audience reveal" aria-labelledby="eleves">
             <figure class="photo-frame"><x-photo name="eleve-ecouteurs" /></figure>
-            <div>
-                <span class="eyebrow">Vous êtes élève ?</span>
-                <h2 id="eleves">Vos cours d'anglais enfin compris</h2>
-                <p>En plus de l'oral, {{ $teacher }} vous aide dans vos leçons d'anglais de l'école avec « Mes cours ».</p>
-                <ol class="help-steps">
-                    <li><span class="icon-bubble"><x-icon name="camera" /></span><span>Photographiez votre leçon ou votre exercice d'anglais</span></li>
-                    <li><span class="icon-bubble"><x-icon name="book" /></span><span>{{ $teacher }} la lit et vous l'explique en détail, en français quand il le faut</span></li>
-                    <li><span class="icon-bubble"><x-icon name="bubble" /></span><span>Posez-lui vos questions sur la leçon</span></li>
-                    <li><span class="icon-bubble"><x-icon name="edit" /></span><span>Il vous guide pour faire votre exercice vous-même, puis corrige</span></li>
-                </ol>
-                <p class="help-only"><x-icon name="info" /> Uniquement pour les cours d'anglais.</p>
-                <a class="btn btn-accent btn-lg" href="{{ $coursesUrl }}"><x-icon :name="$coursesIcon" /> {{ $coursesLabel }}</a>
+            <div class="audience-body">
+                <h2 id="eleves">Vous êtes élève ?</h2>
+                <p>Vos cours d'anglais enfin compris : en plus de l'oral, {{ $teacher }} vous aide dans vos leçons d'anglais de l'école avec « Mes cours ».</p>
+                <ul class="audience-points">
+                    <li><x-icon name="camera" /> Photographiez votre leçon ou votre exercice d'anglais</li>
+                    <li><x-icon name="book" /> {{ $teacher }} vous l'explique en détail, en français quand il le faut, et répond à vos questions</li>
+                    <li><x-icon name="edit" /> Il vous guide pour faire votre exercice vous-même, puis corrige</li>
+                </ul>
+                <p class="help-only"><x-icon name="info" /> Uniquement pour les cours d'anglais. Aussi pour les étudiants : lycée, université, formation.</p>
+                <a class="btn btn-accent" href="{{ $coursesUrl }}"><x-icon :name="$coursesIcon" /> {{ $coursesLabel }}</a>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="section" aria-labelledby="parents">
-        <div class="students reveal">
+        <section class="students audience reveal" aria-labelledby="parents">
             <figure class="photo-frame"><x-photo name="parent-enfant-lecture" /></figure>
-            <div>
-                <span class="eyebrow">Vous êtes parent ?</span>
-                <h2 id="parents">Un professeur d'anglais patient pour votre enfant</h2>
-                <p>{{ $teacher }} ne fait pas les devoirs à la place de votre enfant. Il l'aide à comprendre sa leçon d'anglais et à faire lui-même son exercice, avec patience, une étape après l'autre. Il l'entraîne aussi à parler anglais à voix haute.</p>
-                <a class="btn btn-accent btn-lg" href="{{ route('register') }}"><x-icon name="user-plus" /> Inscrire mon enfant</a>
+            <div class="audience-body">
+                <h2 id="parents">Vous êtes parent ?</h2>
+                <p>Un professeur d'anglais patient pour votre enfant.</p>
+                <ul class="audience-points">
+                    <li><x-icon name="check-circle" /> {{ $teacher }} ne fait pas les devoirs à la place de votre enfant</li>
+                    <li><x-icon name="check-circle" /> Il l'aide à comprendre sa leçon d'anglais et à faire lui-même son exercice, une étape après l'autre</li>
+                    <li><x-icon name="check-circle" /> Il l'entraîne aussi à parler anglais à voix haute.</li>
+                </ul>
+                <a class="btn btn-accent" href="{{ route('register') }}"><x-icon name="user-plus" /> Inscrire mon enfant</a>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="section" aria-labelledby="pros">
-        <div class="students students-reverse reveal">
+        <section class="students audience reveal" aria-labelledby="pros">
             <figure class="photo-frame"><x-photo name="equipe-reunion" /></figure>
-            <div>
-                <span class="eyebrow">Vous travaillez ?</span>
-                <h2 id="pros">Réunions, clients, visiteurs : parlez anglais dans votre métier</h2>
-                <p>Quand vous construisez votre programme, vous indiquez votre métier et votre objectif. Les situations qui vous concernent passent en premier : accueillir un client étranger, présenter votre activité, négocier, voyager.</p>
-                <a class="btn btn-accent btn-lg" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
+            <div class="audience-body">
+                <h2 id="pros">Vous travaillez ?</h2>
+                <p>Réunions, clients, visiteurs : parlez anglais dans votre métier.</p>
+                <ul class="audience-points">
+                    <li><x-icon name="check-circle" /> Indiquez votre métier et votre objectif dans le questionnaire</li>
+                    <li><x-icon name="check-circle" /> Les situations qui vous concernent passent en premier</li>
+                    <li><x-icon name="check-circle" /> Accueillir un client étranger, présenter votre activité, négocier, voyager</li>
+                </ul>
+                <a class="btn btn-accent" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
 
     <section class="section" aria-labelledby="pays">
         <div class="section-head reveal">
@@ -242,7 +262,11 @@
             </details>
             <details>
                 <summary><x-icon name="book" /><span>{{ $teacher }} peut-il m'aider dans mes cours d'anglais ?</span></summary>
-                <p>Oui, avec « Mes cours », pour les élèves qui ont une formule active. Vous photographiez votre leçon ou votre exercice d'anglais, {{ $teacher }} la lit et vous l'explique, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et c'est une aide en plus de votre programme pour parler anglais. Votre formule donne un temps par jour, que vous partagez librement entre la séance orale et « Mes cours ».</p>
+                <p>Oui, avec « Mes cours », pour les élèves et les étudiants (lycée, université, formation) qui ont une formule active. Vous photographiez votre leçon ou votre exercice d'anglais, {{ $teacher }} la lit et vous l'explique, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et c'est une aide en plus de votre programme pour parler anglais. Votre formule donne un temps par jour, que vous partagez librement entre la séance orale et « Mes cours ».</p>
+            </details>
+            <details>
+                <summary><x-icon name="bubble" /><span>Puis-je m'entraîner pour un entretien ou un exposé en anglais ?</span></summary>
+                <p>Oui. Dans le questionnaire de votre programme, choisissez l'objectif « Préparer un entretien (bourse, admission, visa, stage, embauche) » ou « Faire un exposé ou une soutenance en anglais ». Pour un entretien, {{ $teacher }} joue l'examinateur : il pose les questions une par une, écoute votre réponse, puis vous corrige et vous propose une meilleure formulation. C'est un entraînement à l'oral : ce n'est pas la préparation d'un examen officiel, et aucun résultat n'est garanti.</p>
             </details>
             <details>
                 <summary><x-icon name="gift" /><span>L'évaluation est-elle vraiment gratuite ?</span></summary>
