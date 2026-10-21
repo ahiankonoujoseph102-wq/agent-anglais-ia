@@ -22,13 +22,26 @@ use Illuminate\Support\Str;
 class OpenAiRealtime
 {
     /**
+     * Vitesse de la voix pour un niveau (services.openai.realtime_speed), ramenée entre 0,25 et 1,5 ; null si aucune
+     * n'est réglée (vitesse normale d'OpenAI).
+     */
+    public static function speed(string $paceLevel): ?float
+    {
+        $speeds = (array) config('services.openai.realtime_speed');
+        $speed = $speeds[$paceLevel] ?? $speeds['unknown'] ?? null;
+
+        return is_numeric($speed) ? round(max(0.25, min(1.5, (float) $speed)), 2) : null;
+    }
+
+    /**
      * Configuration OpenAI tirée de la configuration Gemini du professeur : EXACTEMENT les mêmes consignes
      * (personnage, niveau, déroulé, fiche du site, situation de l'apprenant) et les mêmes fonctions.
      *
      * @param  array<string, mixed>  $setup  configuration « BidiGenerateContentSetup » (TeacherSetup)
+     * @param  string  $paceLevel  niveau qui règle la vitesse de la voix (TeacherSetup::paceLevel)
      * @return array<string, mixed>
      */
-    public static function session(array $setup): array
+    public static function session(array $setup, string $paceLevel = 'unknown'): array
     {
         $vad = (array) config('services.openai.realtime_vad');
         $tools = [];
@@ -63,6 +76,11 @@ class OpenAiRealtime
                 'output' => ['voice' => (string) config('services.openai.realtime_voice')],
             ],
         ];
+
+        // Vitesse de la voix selon le niveau (en plus des consignes de débit, teacher.pace).
+        if (($speed = self::speed($paceLevel)) !== null) {
+            $session['audio']['output']['speed'] = $speed;
+        }
 
         // Sous-titres « Vous » et texte des conversations : transcription de ce que dit l'apprenant (anglais ou
         // français), facturée à part par OpenAI ; désactivable (OPENAI_REALTIME_INPUT_TRANSCRIPTION=false).

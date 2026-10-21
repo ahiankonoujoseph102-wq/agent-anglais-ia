@@ -114,6 +114,15 @@ class LiveConnection
     }
 
     /**
+     * Niveau qui règle le débit de la voix (comme les consignes, TeacherSetup::paceLevel) : évaluation gratuite :
+     * niveau inconnu ; sinon le niveau de l'élève.
+     */
+    public static function paceLevel(Assessment|CourseSession|Lesson|LevelTest $conversation): string
+    {
+        return TeacherSetup::paceLevel($conversation instanceof Assessment ? 'assessment' : 'conversation', $conversation->loadMissing('user')->user);
+    }
+
+    /**
      * Note le fournisseur et le jeton délivré sur la conversation et construit la réponse JSON.
      *
      * @param  array{provider: string, expires_at: Carbon, token?: string, websocket_url?: string}  $token
@@ -132,7 +141,7 @@ class LiveConnection
 
         $connection = $provider === LiveProviders::OPENAI
             ? [
-                'call_url' => self::callUrl($conversation, OpenAiRealtime::session($setup)),
+                'call_url' => self::callUrl($conversation, OpenAiRealtime::session($setup, self::paceLevel($conversation))),
                 // Un appel OpenAI dure jusqu'à la fin de la séance (le serveur raccroche) : rien à renouveler.
                 'token_expires_in' => max(0, $conversation->remainingSeconds()) + 3600,
             ]
