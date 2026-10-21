@@ -16,7 +16,7 @@ class DisconnectionRuleTextTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const RULE = 'Si la connexion est coupée, votre temps de séance est mis en pause : vous ne perdez pas de minutes.';
+    private const RULE = 'Si la connexion est coupée, reprenez votre séance dès que possible : le temps de la coupure est mis en pause, vous ne perdez pas de minutes.';
 
     public function test_the_rule_is_the_same_sentence_everywhere(): void
     {
@@ -55,6 +55,8 @@ class DisconnectionRuleTextTest extends TestCase
             '/temps déjà utilisé est (dé)?compté\. Touchez/iu',
             '/Connexion coupée »?,? le temps déjà utilisé est (dé)?compté/iu',
             '/Tout le temps de validité d.un jeton est décompté/iu',
+            // Ancienne règle, qui promettait trop (une séance jamais reprise reste décomptée).
+            '/votre temps de séance est mis en pause\s*:\s*vous ne perdez pas de minutes/iu',
             '/(?<!pas une )(?<!PAS une )coupure( de connexion)?\s*[:,]\s*(le|votre) temps (continue|s.écoule|est (dé)?compté)/u',
             '/(connexion|internet) (est )?coupée?[^.]{0,60}(le|votre) temps (continue|s.écoule|est (dé)?compté)/iu',
         ];

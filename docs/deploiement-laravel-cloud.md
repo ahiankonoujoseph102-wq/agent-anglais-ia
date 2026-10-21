@@ -229,7 +229,7 @@ Le projet a huit tâches automatiques (la sixième, `payments:alert-expiring`, t
 3. Touchez **Save** (ou « Save and redeploy ») puis **Deploy**.
 4. Vous devez voir : un déploiement vert. Laravel Cloud lance alors `php artisan schedule:run` chaque minute.
 
-Pourquoi c'est important : sans le planificateur, une séance dont le navigateur a été fermé n'est jamais fermée ni décomptée. Règle annoncée aux élèves : « Si la connexion est coupée, votre temps de séance est mis en pause : vous ne perdez pas de minutes. » Le planificateur attend donc jusqu'à 10 minutes qu'un élève coupé revienne avant de fermer sa séance.
+Pourquoi c'est important : sans le planificateur, une séance dont le navigateur a été fermé n'est jamais fermée ni décomptée. Règle annoncée aux élèves : « Si la connexion est coupée, reprenez votre séance dès que possible : le temps de la coupure est mis en pause, vous ne perdez pas de minutes. » Le planificateur attend donc jusqu'à 10 minutes qu'un élève coupé revienne avant de fermer sa séance.
 
 ---
 

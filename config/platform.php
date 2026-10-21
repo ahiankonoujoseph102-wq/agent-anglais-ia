@@ -274,7 +274,7 @@ return [
         'disconnect_after_seconds' => 30,
         // LA phrase de cette règle, reprise telle quelle partout (écran de séance, conseils, foire aux questions,
         // fiche du site ; le message vocal de bienvenue la dit aussi) : tests/Feature/DisconnectionRuleTextTest.php.
-        'disconnect_rule' => 'Si la connexion est coupée, votre temps de séance est mis en pause : vous ne perdez pas de minutes.',
+        'disconnect_rule' => 'Si la connexion est coupée, reprenez votre séance dès que possible : le temps de la coupure est mis en pause, vous ne perdez pas de minutes.',
         'disconnect_pause_max_seconds' => 600,
         // Demi-duplex : le micro n'est pas envoyé pendant la voix du professeur, ni
         // pendant ce délai après (sa voix ne doit pas revenir par le haut-parleur).
