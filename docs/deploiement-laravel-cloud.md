@@ -396,6 +396,8 @@ La documentation de Laravel Cloud ne dit ni la taille maximale d'un envoi ni la 
 | Remettre les apprenants à zéro (simulation) | Onglet **Commands** | `php artisan app:reset-learners` |
 | Remettre les apprenants à zéro (pour de vrai) | Onglet **Commands** | voir l'étape 13 bis |
 | Revenir en arrière après une remise à zéro | Onglet **Commands** | `php artisan app:restore-learners backups/remise-a-zero-….json.gz` |
+| Vérifier une sauvegarde (lecture seule) | Onglet **Commands** | `php artisan app:inspect-backup` |
+| Mettre en file les invitations d'une remise à zéro, sans rien effacer | Onglet **Commands** | `php artisan learners:queue-invitations backups/remise-a-zero-….json.gz` (simulation, puis `--force`) |
 
 Les commandes de l'onglet **Commands** ne peuvent poser aucune question et s'arrêtent après 30 minutes.
 
@@ -414,6 +416,13 @@ Les apprenants gardent leur compte et leur mot de passe ; leur évaluation, leur
 2. Lancez la ligne donnée par la simulation, par exemple `php artisan app:reset-learners --database=talkami --force --confirm="EFFACER 85 COMPTES ET 5 PAIEMENTS" --include-test-payments --notify`. Le nombre de paiements fait partie de la confirmation.
 3. Sont effacés en plus : ces paiements, tous les abonnements payés des apprenants (ceux qui en avaient un perdent leur accès : « Offrir un accès » pour en redonner un) et les captures. Les lignes du journal **Alertes** sont gardées, sans lien vers ces paiements. Tout est dans la sauvegarde et revient avec `app:restore-learners`. Une capture en attente, un accès provisoire en cours ou une séance en cours refusent toujours.
 4. Après le lancement, ne plus jamais utiliser `--include-test-payments` : une capture effacée pourrait être envoyée et acceptée de nouveau.
+
+**Après la remise à zéro : vérifier, ne jamais relancer.**
+
+1. Touchez **Run** une seule fois. Si vous ne voyez pas le résultat, ne relancez pas : lancez la **simulation** `php artisan app:reset-learners` (avec `--include-test-payments` si vous l'aviez mis). Sa première ligne dit « Dernière remise à zéro faite le … » avec les nombres effacés, les invitations et le nom de la sauvegarde. Si la remise à zéro est faite, elle répond « Rien à effacer » : c'est normal, ce n'est pas un échec.
+2. Relancée par erreur, la commande ne fait plus rien : « Rien à effacer … Cette exécution n'a rien effacé. Ne relancez pas la remise à zéro. », sans sauvegarde vide et sans renvoyer les invitations. Deux exécutions en même temps : la seconde répond « Une remise à zéro est déjà en cours ».
+3. Vérifier la sauvegarde, sans rien modifier : `php artisan app:inspect-backup` (la plus récente) ou `php artisan app:inspect-backup backups/remise-a-zero-….json.gz`. Vous devez voir les paiements, les évaluations, les comptes avec un niveau, les fichiers, et « copies manquantes dans la sauvegarde : 0 ».
+4. Invitations : administration, **Alertes**, bloc « Invitations à refaire l'évaluation » (envoyées, restantes, en échec, sans adresse). Si aucune invitation n'a été mise en file (remise à zéro lancée sans `--notify`), d'abord la simulation `php artisan learners:queue-invitations backups/remise-a-zero-….json.gz`, puis la même ligne avec `--force`. Rien n'est effacé, une invitation déjà envoyée n'est jamais renvoyée.
 
 ---
 

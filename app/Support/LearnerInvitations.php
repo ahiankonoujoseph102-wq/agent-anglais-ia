@@ -7,6 +7,7 @@ use App\Mail\LearnerInvitationMail;
 use App\Models\LearnerInvitation;
 use App\Models\User;
 use App\Support\Alerts\Redact;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -20,20 +21,62 @@ use Throwable;
 class LearnerInvitations
 {
     /**
+     * Met en file une invitation par apprenant. Une invitation déjà envoyée n'est JAMAIS remise en file (aucun
+     * e-mail en double, même si la commande est relancée).
+     *
      * @param  list<int>  $userIds
-     * @return array{queued: int, no_email: int}
+     * @return array{queued: int, no_email: int, already_sent: int}
      */
     public static function queue(array $userIds): array
     {
-        $counts = ['queued' => 0, 'no_email' => 0];
+        $counts = ['queued' => 0, 'no_email' => 0, 'already_sent' => 0];
+        $sent = LearnerInvitation::query()->whereIn('user_id', $userIds)->where('status', LearnerInvitation::SENT)->pluck('user_id')->all();
 
         foreach (User::query()->whereIn('id', $userIds)->where('role', Role::Learner)->get(['id', 'email']) as $user) {
+            if (in_array($user->id, $sent, true)) {
+                $counts['already_sent']++;
+
+                continue;
+            }
+
             $status = filled($user->email) ? LearnerInvitation::PENDING : LearnerInvitation::NO_EMAIL;
             LearnerInvitation::query()->updateOrCreate(['user_id' => $user->id], ['status' => $status, 'error' => null, 'sent_at' => null]);
             $counts[$status === LearnerInvitation::PENDING ? 'queued' : 'no_email']++;
         }
 
         return $counts;
+    }
+
+    /**
+     * Invitations à mettre en file pour ces comptes (learners:queue-invitations, lecture seule) : apprenants encore
+     * inscrits, sans invitation envoyée ni déjà en file (ou notée « sans adresse »), et qui n'ont pas encore refait leur évaluation.
+     *
+     * @param  list<int>  $userIds
+     * @return array{accounts: int, to_queue: list<int>, with_email: int, no_email: int, already_sent: int, already_queued: int, evaluated: int}
+     */
+    public static function plan(array $userIds): array
+    {
+        $learners = User::query()->whereIn('id', $userIds)->where('role', Role::Learner)->get(['id', 'email']);
+        $statuses = LearnerInvitation::query()->whereIn('user_id', $userIds)->pluck('status', 'user_id');
+        $evaluated = DB::table('assessments')->whereIn('user_id', $userIds)->pluck('user_id')->map(fn ($id) => (int) $id)->all();
+        $plan = ['accounts' => $learners->count(), 'to_queue' => [], 'with_email' => 0, 'no_email' => 0, 'already_sent' => 0, 'already_queued' => 0, 'evaluated' => 0];
+
+        foreach ($learners as $user) {
+            $status = $statuses[$user->id] ?? null;
+
+            if ($status === LearnerInvitation::SENT) {
+                $plan['already_sent']++;
+            } elseif (in_array($status, [LearnerInvitation::PENDING, LearnerInvitation::NO_EMAIL], true)) {
+                $plan['already_queued']++;
+            } elseif (in_array($user->id, $evaluated, true)) {
+                $plan['evaluated']++;
+            } else {
+                $plan['to_queue'][] = $user->id;
+                $plan[filled($user->email) ? 'with_email' : 'no_email']++;
+            }
+        }
+
+        return $plan;
     }
 
     /**

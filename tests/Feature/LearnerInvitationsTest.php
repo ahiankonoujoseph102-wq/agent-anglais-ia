@@ -132,4 +132,60 @@ class LearnerInvitationsTest extends TestCase
             ->assertSeeText('restantes : 1')
             ->assertSeeText('sans adresse e-mail : 1');
     }
+
+    public function test_a_second_reset_never_sends_an_invitation_twice(): void
+    {
+        $afi = $this->learner('Afi Mensah', 'afi@example.test');
+        $this->resetAndNotify(1);
+        $this->artisan('learners:send-invitations')->assertSuccessful();
+        Mail::assertSentCount(1);
+
+        // Afi refait son évaluation, puis une nouvelle remise à zéro avec --notify : l'invitation envoyée reste envoyée.
+        $afi->assessment()->create(['status' => AssessmentStatus::Completed, 'started_at' => now(), 'ended_at' => now(), 'allowed_seconds' => 300, 'used_seconds' => 300, 'level' => Level::A2]);
+        $this->artisan('app:reset-learners', ['--database' => DB::connection()->getDatabaseName(), '--force' => true, '--confirm' => 'EFFACER 1 COMPTES', '--notify' => true])
+            ->expectsOutputToContain('1 déjà envoyée(s) (jamais en double)')
+            ->assertSuccessful();
+
+        $this->assertSame(LearnerInvitation::SENT, LearnerInvitation::query()->where('user_id', $afi->id)->value('status'));
+        $this->artisan('learners:send-invitations')->assertSuccessful();
+        Mail::assertSentCount(1);
+    }
+
+    public function test_invitations_can_be_queued_alone_from_a_backup_without_erasing_anything(): void
+    {
+        $afi = $this->learner('Afi Mensah', 'afi@example.test');
+        $yao = $this->learner('Yao', null);
+        $efua = $this->learner('Efua', 'efua@example.test');
+        $kossi = $this->learner('Kossi', 'kossi@example.test');
+
+        // Remise à zéro sans --notify.
+        $this->artisan('app:reset-learners', ['--database' => DB::connection()->getDatabaseName(), '--force' => true, '--confirm' => 'EFFACER 4 COMPTES'])->assertSuccessful();
+        $backup = Storage::disk('local')->files('backups')[0];
+        $this->assertSame(0, LearnerInvitation::count());
+
+        // Efua a déjà refait son évaluation ; Kossi a déjà été invité.
+        $efua->assessment()->create(['status' => AssessmentStatus::Completed, 'started_at' => now(), 'ended_at' => now(), 'allowed_seconds' => 300, 'used_seconds' => 300, 'level' => Level::B1]);
+        LearnerInvitation::query()->create(['user_id' => $kossi->id, 'status' => LearnerInvitation::SENT, 'sent_at' => now()]);
+        $lines = DB::table('assessments')->count();
+
+        $this->artisan('learners:queue-invitations', ['file' => $backup])
+            ->expectsOutputToContain('Déjà envoyées (jamais en double) : 1 ; déjà en file ou notées sans adresse : 0 ; évaluation déjà refaite : 1.')
+            ->expectsOutputToContain('À mettre en file : 2 (1 avec une adresse e-mail, 1 sans adresse')
+            ->expectsOutputToContain('Simulation : rien n\'a été mis en file.')
+            ->expectsOutputToContain("learners:queue-invitations {$backup} --force")
+            ->assertSuccessful();
+        $this->assertSame(1, LearnerInvitation::count());
+
+        $this->artisan('learners:queue-invitations', ['file' => $backup, '--force' => true])->expectsOutputToContain('1 en file d\'attente, 1 sans adresse e-mail. Rien n\'a été effacé.')->assertSuccessful();
+
+        $this->assertSame(LearnerInvitation::PENDING, LearnerInvitation::query()->where('user_id', $afi->id)->value('status'));
+        $this->assertSame(LearnerInvitation::NO_EMAIL, LearnerInvitation::query()->where('user_id', $yao->id)->value('status'));
+        $this->assertFalse(LearnerInvitation::query()->where('user_id', $efua->id)->exists());
+        $this->assertSame(LearnerInvitation::SENT, LearnerInvitation::query()->where('user_id', $kossi->id)->value('status'));
+        $this->assertSame($lines, DB::table('assessments')->count(), 'rien d\'effacé');
+
+        // Relancée : plus rien à mettre en file.
+        $this->artisan('learners:queue-invitations', ['file' => $backup, '--force' => true])->expectsOutputToContain('À mettre en file : 0')->assertSuccessful();
+        $this->artisan('learners:queue-invitations', ['file' => 'backups/inconnue.json.gz'])->assertFailed();
+    }
 }
