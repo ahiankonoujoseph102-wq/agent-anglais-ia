@@ -8,6 +8,7 @@ use App\Models\PushSubscription;
 use App\Support\Alerts\AdminAlerts;
 use App\Support\Alerts\AlertBuilder;
 use App\Support\CourseReviews;
+use App\Support\LearnerInvitations;
 use App\Support\MailQuota;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -32,6 +33,7 @@ class AlertController extends Controller
             // E-mails du jour : documents de révision et alertes, un seul compteur (limite gratuite de Brevo).
             'mailQuota' => ['used' => MailQuota::usedToday(), 'limit' => MailQuota::limit(), 'reviews' => (int) config('platform.courses.review.daily_emails'), 'configured' => MailQuota::configured()],
             'reviewMail' => CourseReviews::stats()['mail_today'],
+            'invitations' => LearnerInvitations::stats(),
         ]);
     }
 

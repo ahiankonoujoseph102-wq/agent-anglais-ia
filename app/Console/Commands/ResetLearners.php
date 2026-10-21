@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\LearnerInvitations;
 use App\Support\LearnerReset;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,8 @@ class ResetLearners extends Command
         {--database= : Nom de la base visée (vérifié contre la base connectée, obligatoire avec --force)}
         {--force : Effacer pour de vrai (sinon : simulation)}
         {--confirm= : Confirmation exacte : « EFFACER N COMPTES » (N = nombre de comptes d\'apprenants)}
-        {--include-granted : Retirer aussi les accès offerts en cours (gardés par défaut)}';
+        {--include-granted : Retirer aussi les accès offerts en cours (gardés par défaut)}
+        {--notify : Inviter par e-mail les apprenants remis à zéro à refaire leur évaluation gratuite}';
 
     protected $description = 'Remet à zéro les apprenants (évaluation, programme, séances…) ; simulation sans --force';
 
@@ -59,7 +61,7 @@ class ResetLearners extends Command
 
         if (! $this->option('force')) {
             $this->info('Simulation : rien n\'a été effacé.');
-            $this->line("Pour effacer : php artisan app:reset-learners --database={$connected} --force --confirm=\"{$expected}\"".($this->option('include-granted') ? ' --include-granted' : ''));
+            $this->line("Pour effacer : php artisan app:reset-learners --database={$connected} --force --confirm=\"{$expected}\"".($this->option('include-granted') ? ' --include-granted' : '').($this->option('notify') ? ' --notify' : ''));
 
             return self::SUCCESS;
         }
@@ -87,6 +89,13 @@ class ResetLearners extends Command
         $this->info('Remise à zéro faite : '.array_sum($result['rows']).' ligne(s) et '.$result['files'].' fichier(s) effacés.');
         $this->line('Sauvegarde (disque privé) : '.$result['backup']);
         $this->line('Retour en arrière : php artisan app:restore-learners '.$result['backup']);
+
+        if ($this->option('notify')) {
+            $queued = LearnerInvitations::queue($result['users']);
+            $days = (int) ceil($queued['queued'] / max(1, (int) config('platform.courses.review.daily_emails')));
+            $this->info("Invitations par e-mail : {$queued['queued']} en file d'attente, {$queued['no_email']} compte(s) sans adresse e-mail (rien n'est envoyé).");
+            $this->line('Envoi chaque heure (learners:send-invitations), dans la limite d\'e-mails du jour'.($days > 1 ? " : environ {$days} jours." : '.').' Suivi : administration, « Alertes ».');
+        }
 
         return self::SUCCESS;
     }

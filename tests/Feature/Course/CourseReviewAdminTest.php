@@ -57,7 +57,7 @@ class CourseReviewAdminTest extends TestCase
     {
         $this->actingAs(User::factory()->admin()->create())->get(route('admin.alerts.index'))->assertOk()
             ->assertSee('E-mails des documents de révision')
-            ->assertSeeText('Aujourd\'hui : 1 e-mail sur 300 (documents et alertes ensemble)')
+            ->assertSeeText('Aujourd\'hui : 1 e-mail sur 300 (documents, invitations et alertes ensemble)')
             ->assertSee('documents envoyés : 1, en échec : 0, non envoyés (limite) : 0')
             ->assertSee('Au plus 280 e-mails de documents par jour : les 20 derniers restent gardés pour vos alertes.')
             ->assertDontSee('MOT-DE-PASSE-SMTP-SECRET');

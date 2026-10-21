@@ -44,3 +44,7 @@ Schedule::command('payments:alert-expiring')->everyTenMinutes()->withoutOverlapp
 // Documents de révision des séances « Mes cours » : quelques séances par passage, jamais deux passages en même temps
 // (verrou libéré au plus tard après 10 minutes si un passage s'arrête brutalement).
 Schedule::command('courses:prepare-reviews')->everyMinute()->withoutOverlapping(10)->onOneServer();
+
+// Invitations à refaire l'évaluation gratuite (après app:reset-learners --notify) : par lots, dans la marge
+// d'e-mails du jour partagée avec les documents de révision (jamais les e-mails gardés pour les alertes).
+Schedule::command('learners:send-invitations')->hourly()->withoutOverlapping()->onOneServer();

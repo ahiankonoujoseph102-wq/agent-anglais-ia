@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\AdminAlert;
 use App\Models\CourseReview;
+use App\Models\LearnerInvitation;
 
 /**
  * Limite d'envoi d'e-mails du jour (offre gratuite de Brevo : mail.daily_limit, 300 par jour), UN seul compteur pour
@@ -33,6 +34,15 @@ class MailQuota
             ->count();
     }
 
+    /** Invitations à refaire l'évaluation (remise à zéro) parties aujourd'hui, réussies ou non. */
+    public static function invitationsToday(): int
+    {
+        return LearnerInvitation::query()
+            ->whereIn('status', [LearnerInvitation::SENT, LearnerInvitation::FAILED])
+            ->where('sent_at', '>=', today())
+            ->count();
+    }
+
     public static function alertsToday(): int
     {
         return AdminAlert::query()->where('channel', 'mail')->where('created_at', '>=', today())->count();
@@ -40,7 +50,7 @@ class MailQuota
 
     public static function usedToday(): int
     {
-        return self::reviewsToday() + self::alertsToday();
+        return self::reviewsToday() + self::invitationsToday() + self::alertsToday();
     }
 
     public static function limit(): int
@@ -51,7 +61,19 @@ class MailQuota
     /** Un document de révision peut-il encore partir aujourd'hui ? */
     public static function allowsReview(): bool
     {
-        return self::reviewsToday() < (int) config('platform.courses.review.daily_emails') && self::usedToday() < self::limit();
+        return self::learnerMailsToday() < (int) config('platform.courses.review.daily_emails') && self::usedToday() < self::limit();
+    }
+
+    /** Une invitation peut-elle encore partir aujourd'hui (même marge que les documents de révision) ? */
+    public static function allowsInvitation(): bool
+    {
+        return self::allowsReview();
+    }
+
+    /** E-mails aux élèves aujourd'hui : documents de révision et invitations, dans la même marge. */
+    public static function learnerMailsToday(): int
+    {
+        return self::reviewsToday() + self::invitationsToday();
     }
 
     /** Une alerte de l'administrateur peut-elle encore partir par e-mail aujourd'hui ? */
