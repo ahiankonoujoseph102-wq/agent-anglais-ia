@@ -32,13 +32,14 @@ class SpeechPreparer
     public const MAX_FAILURES = 3;
 
     /**
-     * Tous les messages communs, dans l'ordre : le message de bienvenue d'abord.
+     * Tous les messages communs, dans l'ordre : les messages du résultat de l'évaluation d'abord (courts, écoutés
+     * dès la fin de l'évaluation gratuite), puis le message de bienvenue.
      *
      * @return list<VoiceMessage>
      */
     public static function messages(): array
     {
-        return [...WelcomeMessage::messages(), ...LevelMessage::messages()];
+        return [...LevelMessage::messages(), ...WelcomeMessage::messages()];
     }
 
     /**

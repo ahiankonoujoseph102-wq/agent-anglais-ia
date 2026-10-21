@@ -81,6 +81,25 @@ class AssessmentController extends Controller
     }
 
     /**
+     * État du message vocal du résultat : prêt ou non. Pas encore prêt : il se prépare après la réponse, la page
+     * redemande et le joue dès qu'il est prêt.
+     */
+    public function voiceStatus(Request $request): JsonResponse
+    {
+        $level = $request->user()->assessment()->first()?->level;
+
+        abort_if($level === null, 404);
+
+        $ready = LevelMessage::ready($level);
+
+        if (! $ready) {
+            LevelMessage::queue($level);
+        }
+
+        return response()->json(['ready' => $ready]);
+    }
+
+    /**
      * « Choisir un autre niveau » : le niveau choisi est celui du programme, tant qu'il n'est pas construit.
      */
     public function chooseLevel(ChooseLevelRequest $request): RedirectResponse
@@ -196,6 +215,8 @@ class AssessmentController extends Controller
 
         // Moment des questions libres et conclusion (seulement si la conversation est encore ouverte).
         $assessment->startQuestions();
+        // Message vocal du résultat : prêt quand l'apprenant arrive sur la page de résultat.
+        LevelMessage::queue($assessment->level);
 
         return response()->json([
             'level' => $assessment->level->value,

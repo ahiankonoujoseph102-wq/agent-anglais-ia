@@ -322,6 +322,16 @@ return [
     */
     'speech' => [
         'peak_db' => -1.0,
+        // Message pas encore prêt quand l'élève touche « Écouter » : texte affiché, léger geste de Teacher Joe,
+        // lecture automatique dès qu'il est prêt. Jamais « Préparation du message… ».
+        'wait_poll_seconds' => 3,
+        'late_after_seconds' => 30,
+        'give_up_after_seconds' => 180,
+        'messages' => [
+            'instant' => 'Un instant…',
+            'late' => 'Le message arrive. Vous pouvez le lire juste en dessous : il démarrera tout seul.',
+            'unavailable' => 'Le message vocal n\'est pas disponible pour le moment. Vous pouvez le lire juste en dessous.',
+        ],
     ],
 
     /*

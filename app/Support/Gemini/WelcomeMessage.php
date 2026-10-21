@@ -288,6 +288,34 @@ class WelcomeMessage
     }
 
     /**
+     * Fait préparer la salutation de cet apprenant (son prénom) APRÈS la réponse, dès l'ouverture d'un accès : à
+     * la page de bienvenue, tout le message est prêt. Jamais d'erreur visible.
+     */
+    public static function queueOpening(User $user): void
+    {
+        if ($user->welcomed_at !== null || SpeechProviders::available() === []) {
+            return;
+        }
+
+        $id = $user->getKey();
+
+        defer(static function () use ($id) {
+            try {
+                // Relu : l'accès vient d'être ouvert (relations déjà chargées sans lui).
+                $user = User::query()->find($id);
+                $texts = $user === null ? null : self::texts($user);
+                $provider = $texts === null ? null : self::providerFor($texts);
+
+                if ($provider !== null) {
+                    app(self::class)->get($texts['opening'], $provider, opening: true);
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        });
+    }
+
+    /**
      * Nombre de morceaux audio : l'ouverture et les paragraphes.
      */
     public static function count(array $texts): int

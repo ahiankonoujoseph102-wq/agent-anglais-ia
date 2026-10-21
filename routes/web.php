@@ -112,6 +112,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/resultat', 'result')->middleware('throttle:10,1')->name('result');
         Route::post('/fin', 'finish')->middleware('throttle:10,1')->name('finish');
         Route::get('/message-vocal', 'voice')->middleware('throttle:10,1')->name('voice');
+        Route::get('/message-vocal/etat', 'voiceStatus')->middleware('throttle:40,1')->name('voice.status');
         Route::put('/niveau', 'chooseLevel')->name('level');
     });
 

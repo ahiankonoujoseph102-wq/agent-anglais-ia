@@ -118,7 +118,8 @@ class AssessmentEndingTest extends TestCase
         $this->actingAs($user)->postJson('/evaluation/resultat', ['level' => 'B2', 'feedback' => 'Très bien.'])->assertOk();
 
         $this->actingAs($user)->postJson('/evaluation/fin')->assertOk()->assertJsonPath('level', 'B2');
-        Http::assertNotSent(fn (Request $request) => str_ends_with($request->url(), '/interactions'));
+        // Aucune estimation (le message vocal du résultat, lui, peut se préparer).
+        Http::assertNotSent(fn (Request $request) => str_ends_with($request->url(), '/interactions') && str_contains(json_encode($request->data()), 'beach'));
     }
 
     public function test_transcript_is_capped(): void
