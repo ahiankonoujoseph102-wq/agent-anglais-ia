@@ -19,6 +19,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Tests\Concerns\BuildsPrograms;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\TestCase;
 
 /**
@@ -28,7 +29,7 @@ use Tests\TestCase;
  */
 class LiveProvidersTest extends TestCase
 {
-    use BuildsPrograms, RefreshDatabase;
+    use BuildsPrograms, IgnoresSignalSilence, RefreshDatabase;
 
     private const GEMINI_KEY = 'cle-gemini-secrete';
 

@@ -12,6 +12,7 @@ use App\Support\Curriculum\LessonBoards;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\Feature\Program\LessonBoardTest;
 use Tests\TestCase;
 
@@ -22,7 +23,7 @@ use Tests\TestCase;
  */
 class AssessmentQuestionsTest extends TestCase
 {
-    use RefreshDatabase;
+    use IgnoresSignalSilence, RefreshDatabase;
 
     protected function setUp(): void
     {

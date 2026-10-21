@@ -369,7 +369,9 @@ async function heartbeat() {
 
     const tokens = takeTokens();
     const transcript = takeTranscript();
-    const result = await post(urls.signal, { ...tokens, ...transcript });
+    // Connexion avec le professeur coupée : le serveur met le temps de séance en pause.
+    const link = state.everReady ? { connected: state.connected } : {};
+    const result = await post(urls.signal, { ...tokens, ...transcript, ...link });
 
     if (!result.ok) {
         // Le signal sera renvoyé avec les jetons (et les sous-titres) au prochain passage.
@@ -1839,6 +1841,8 @@ function onClose(event) {
         return;
     }
 
+    // Le serveur le sait tout de suite : le temps de séance est mis en pause jusqu'au retour de la connexion.
+    heartbeat();
     logEvent('provider_error', `${state.transport?.provider ?? ''} : connexion fermée${event.code ? ` (${event.code})` : ''}${event.reason ? `, ${event.reason}` : ''}`.slice(0, 200));
 
     if (/quota|exhausted|rate limit/i.test(event.reason ?? '')) {

@@ -164,7 +164,7 @@ class AssessmentController extends Controller
         $assessment = $this->current($request);
 
         $assessment->appendTranscript($request->transcript());
-        $assessment->recordSignal($request->inputTokens(), $request->outputTokens());
+        $assessment->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected());
         $active = $assessment->closeIfOver();
 
         return response()->json([

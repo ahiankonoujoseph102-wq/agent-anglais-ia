@@ -15,11 +15,12 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Tests\Concerns\HasCourses;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\TestCase;
 
 class CourseSessionTest extends TestCase
 {
-    use HasCourses, RefreshDatabase;
+    use HasCourses, IgnoresSignalSilence, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -188,13 +189,17 @@ class CourseSessionTest extends TestCase
 
     public function test_an_abandoned_session_is_closed_by_the_scheduler_task(): void
     {
+        // Silence du navigateur tenu pour une coupure, comme sur le site.
+        config(['platform.live.disconnect_after_seconds' => 30]);
+
         $this->fakeGemini();
         $user = $this->learner();
         $lesson = $this->storedLesson($user);
         $this->actingAs($user)->postJson(route('courses.connect', $lesson))->assertOk();
 
-        // Navigateur disparu : plus de signal et le jeton a expiré.
-        $this->travel(6)->minutes();
+        // Navigateur disparu : plus de signal, le jeton a expiré, et il n'est pas revenu pendant les 10 minutes de
+        // coupure permises.
+        $this->travel(12)->minutes();
         Artisan::call('live:close-stale');
 
         $session = CourseSession::sole();

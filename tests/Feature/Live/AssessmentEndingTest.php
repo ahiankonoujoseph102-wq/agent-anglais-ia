@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\TestCase;
 
 /**
@@ -17,7 +18,7 @@ use Tests\TestCase;
  */
 class AssessmentEndingTest extends TestCase
 {
-    use RefreshDatabase;
+    use IgnoresSignalSilence, RefreshDatabase;
 
     /** Réponse simulée du modèle texte (null = niveau B1 estimé). */
     private mixed $textResponse = null;

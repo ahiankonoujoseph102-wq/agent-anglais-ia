@@ -266,6 +266,13 @@ return [
     'live' => [
         'heartbeat_seconds' => 15,
         'stale_after_seconds' => 60,
+        // Coupure de connexion : le temps de séance est mis en pause (IsLiveConversation). Une coupure compte sur un
+        // signal explicite du navigateur (connexion avec le professeur perdue), ou au-delà de ce temps sans aucun
+        // signal ; au plus « disconnect_pause_max_seconds » de coupure par séance, ensuite le temps compte de nouveau
+        // et la séance se termine si le navigateur ne revient pas. Le bouton « Pause » de l'élève n'est PAS une
+        // coupure : le temps continue (pause_max_seconds).
+        'disconnect_after_seconds' => 30,
+        'disconnect_pause_max_seconds' => 600,
         // Demi-duplex : le micro n'est pas envoyé pendant la voix du professeur, ni
         // pendant ce délai après (sa voix ne doit pas revenir par le haut-parleur).
         'echo_guard_ms' => 400,

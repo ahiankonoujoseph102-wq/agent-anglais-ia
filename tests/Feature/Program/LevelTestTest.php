@@ -14,11 +14,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Tests\Concerns\BuildsPrograms;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\TestCase;
 
 class LevelTestTest extends TestCase
 {
-    use BuildsPrograms, RefreshDatabase;
+    use BuildsPrograms, IgnoresSignalSilence, RefreshDatabase;
 
     protected function setUp(): void
     {

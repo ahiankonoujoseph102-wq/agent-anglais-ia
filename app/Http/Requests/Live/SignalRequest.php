@@ -19,12 +19,21 @@ class SignalRequest extends FormRequest
             'output_tokens' => ['nullable', 'integer', 'min:0', 'max:10000000'],
             // Sous-titres de l'évaluation depuis le signal précédent (repli si le temps finit sans verdict).
             'transcript' => ['nullable', 'string', 'max:8000'],
+            // Connexion avec le professeur : false = coupée (le temps de séance est mis en pause), true = revenue.
+            'connected' => ['nullable', 'boolean'],
         ];
     }
 
     public function transcript(): ?string
     {
         return $this->validated('transcript');
+    }
+
+    public function connected(): ?bool
+    {
+        $connected = $this->validated('connected');
+
+        return $connected === null ? null : (bool) $connected;
     }
 
     public function inputTokens(): int

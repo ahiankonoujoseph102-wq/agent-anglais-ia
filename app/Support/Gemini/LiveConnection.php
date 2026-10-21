@@ -50,6 +50,13 @@ class LiveConnection
     {
         $current = $conversation?->liveProvider();
 
+        if ($conversation !== null && $conversation->isInProgress()) {
+            // Reconnexion : la coupure éventuelle est comptée (le temps était en pause), la fin est repoussée d'autant.
+            $conversation->markReconnected();
+            $conversation->save();
+            $deadline = $conversation->deadline();
+        }
+
         if ($failed !== null && in_array($failed, LiveProviders::all(), true)) {
             LiveLog::failure($failed, 'Connexion du navigateur', 'Connexion impossible avant la première parole.');
         }

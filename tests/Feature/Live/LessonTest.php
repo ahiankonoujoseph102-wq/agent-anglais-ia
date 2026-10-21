@@ -12,11 +12,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Tests\Concerns\BuildsPrograms;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\TestCase;
 
 class LessonTest extends TestCase
 {
-    use BuildsPrograms, RefreshDatabase;
+    use BuildsPrograms, IgnoresSignalSilence, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -175,14 +176,18 @@ class LessonTest extends TestCase
 
     public function test_abandoned_lesson_is_charged_until_its_token_expired(): void
     {
+        // Silence du navigateur tenu pour une coupure, comme sur le site.
+        config(['platform.live.disconnect_after_seconds' => 30]);
+
         $user = $this->subscriber();
         $this->actingAs($user)->postJson('/seance/connexion')->assertOk();
 
-        $this->travel(1)->minutes();
+        $this->travel(15)->seconds();
         $this->actingAs($user)->postJson('/seance/signal')->assertOk();
 
-        // Le navigateur disparaît. Son jeton restait valable 5 minutes : tout ce temps est décompté.
-        $this->travel(10)->minutes();
+        // Le navigateur disparaît (et ne revient pas pendant les 10 minutes de coupure permises). Son jeton restait
+        // valable 5 minutes : tout ce temps est décompté.
+        $this->travel(12)->minutes();
         $this->artisan('live:close-stale')->assertSuccessful();
 
         $lesson = $this->lesson($user);

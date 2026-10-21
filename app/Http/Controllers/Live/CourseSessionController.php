@@ -97,7 +97,7 @@ class CourseSessionController extends Controller
     {
         $session = $this->latestSession($request->user());
 
-        $session->recordSignal($request->inputTokens(), $request->outputTokens());
+        $session->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected());
         $active = $session->closeIfOver();
 
         return response()->json([

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Concerns\BuildsPrograms;
 use Tests\Concerns\HasCourses;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\TestCase;
 
 /**
@@ -24,7 +25,7 @@ use Tests\TestCase;
  */
 class DailyTimeTest extends TestCase
 {
-    use BuildsPrograms, HasCourses, RefreshDatabase;
+    use BuildsPrograms, HasCourses, IgnoresSignalSilence, RefreshDatabase;
 
     protected function setUp(): void
     {

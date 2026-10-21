@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\BuildsPrograms;
 use Tests\Concerns\ConfiguresPayments;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\TestCase;
 
 /**
@@ -24,7 +25,7 @@ use Tests\TestCase;
  */
 class ProvisionalAccessTest extends TestCase
 {
-    use BuildsPrograms;
+    use BuildsPrograms, IgnoresSignalSilence;
     use ConfiguresPayments;
     use RefreshDatabase;
 
