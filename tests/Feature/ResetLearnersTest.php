@@ -74,13 +74,13 @@ class ResetLearnersTest extends TestCase
         $user->assessment()->create(['status' => AssessmentStatus::Completed, 'started_at' => now()->subDay(), 'ended_at' => now()->subDay()->addMinutes(5), 'allowed_seconds' => 300, 'used_seconds' => 300, 'level' => $level]);
     }
 
-    private function payment(User $user, PaymentStatus $status = PaymentStatus::Pending): Payment
+    private function payment(User $user, PaymentStatus $status = PaymentStatus::Pending, string $plan = 'essentiel'): Payment
     {
-        $plan = Plan::find('essentiel');
+        $plan = Plan::find($plan);
         $payment = $user->payments()->create([
             'plan' => $plan->key, 'plan_name' => $plan->name, 'daily_minutes' => $plan->dailyMinutes, 'duration_days' => $plan->durationDays,
             'amount' => $plan->price, 'currency' => 'FCFA', 'country' => 'TG', 'operator' => 'flooz', 'operator_name' => 'Flooz',
-            'recipient_number' => '+228 90 00 00 22', 'proof_path' => 'payment-proofs/'.$user->id.'.png',
+            'recipient_number' => '+228 90 00 00 22', 'proof_path' => 'payment-proofs/'.$user->id.'-'.$plan->key.'.png',
         ]);
         $payment->forceFill(['status' => $status])->save();
 
@@ -205,5 +205,117 @@ class ResetLearnersTest extends TestCase
         $this->artisan('app:restore-learners', ['file' => $backup])->expectsOutputToContain('existent déjà')->assertFailed();
         $this->assertSame($before, $lines());
         $this->artisan('app:restore-learners', ['file' => 'backups/inconnue.json.gz'])->assertFailed();
+    }
+
+    /**
+     * Paiements de test : un paiement validé d'Ama (abonnement payé en cours, capture, alerte) et un paiement refusé
+     * de Kofi. L'administrateur a aussi un paiement validé : jamais touché.
+     *
+     * @return array{validated: Payment, rejected: Payment, subscription: Subscription, alert: int, admin: Payment}
+     */
+    private function seedTestPayments(): array
+    {
+        $this->ama->forceFill(['phone' => '+22890112390'])->save();
+        $subscription = Subscription::factory()->for($this->ama)->create();
+        $validated = $this->payment($this->ama, PaymentStatus::Validated);
+        $validated->forceFill(['subscription_id' => $subscription->id, 'transaction_key' => 'TX-SECRET-123'])->save();
+        $rejected = $this->payment($this->kofi, PaymentStatus::Rejected, 'semaine');
+        $admin = $this->payment($this->admin, PaymentStatus::Validated);
+
+        foreach ([$validated, $rejected, $admin] as $payment) {
+            Storage::disk('local')->put($payment->proof_path, 'capture');
+        }
+
+        $alert = DB::table('admin_alerts')->insertGetId(['kind' => 'payment_captured', 'channel' => 'mail', 'status' => 'sent', 'title' => 'Nouveau paiement : 7 500 FCFA', 'payment_id' => $validated->id, 'created_at' => now()]);
+
+        return ['validated' => $validated, 'rejected' => $rejected, 'subscription' => $subscription, 'alert' => $alert, 'admin' => $admin];
+    }
+
+    public function test_without_the_option_test_payments_still_refuse_the_reset(): void
+    {
+        $this->seedTestPayments();
+
+        $this->artisan('app:reset-learners')
+            ->expectsOutputToContain('Remise à zéro impossible')
+            ->expectsOutputToContain('ajoutez --include-test-payments')
+            ->assertFailed();
+        $this->reset()->assertFailed();
+        $this->reset(['--confirm' => 'EFFACER 2 COMPTES ET 2 PAIEMENTS'])->assertFailed();
+
+        $this->assertSame(3, Payment::count());
+        $this->assertSame(3, DB::table('assessments')->count());
+    }
+
+    public function test_the_simulation_lists_the_test_payments_without_any_secret(): void
+    {
+        $this->seedTestPayments();
+
+        $this->artisan('app:reset-learners', ['--include-test-payments' => true])
+            ->expectsOutputToContain('Paiements de test effacés (validés et refusés), avec leurs abonnements et leurs captures : 2.')
+            ->expectsOutputToContain('7'."\u{202F}".'500'."\u{00A0}".'FCFA · Essentiel · Validé · Ama · …2390')
+            ->expectsOutputToContain('Semaine · Refusé · Kofi · …')
+            ->doesntExpectOutputToContain('TX-SECRET-123')
+            ->doesntExpectOutputToContain('22890112390')
+            ->doesntExpectOutputToContain('payment-proofs')
+            ->expectsOutputToContain('Simulation : rien n\'a été effacé.')
+            ->expectsOutputToContain('--force --confirm="EFFACER 2 COMPTES ET 2 PAIEMENTS" --include-test-payments')
+            ->assertSuccessful();
+
+        $this->assertSame(3, Payment::count());
+    }
+
+    public function test_with_the_option_test_payments_their_subscriptions_and_captures_are_erased_then_restored(): void
+    {
+        ['validated' => $validated, 'rejected' => $rejected, 'subscription' => $subscription, 'alert' => $alert, 'admin' => $admin] = $this->seedTestPayments();
+        $options = ['--include-test-payments' => true];
+
+        // La confirmation doit compter les paiements.
+        $this->reset($options)->expectsOutputToContain('--confirm="EFFACER 2 COMPTES ET 2 PAIEMENTS"')->assertFailed();
+        $this->assertSame(3, Payment::count());
+
+        $this->reset($options + ['--confirm' => 'EFFACER 2 COMPTES ET 2 PAIEMENTS'])->expectsOutputToContain('Remise à zéro faite')->assertSuccessful();
+
+        $this->assertSame([$admin->id], Payment::query()->pluck('id')->all(), 'seul le paiement de l\'administrateur reste');
+        $this->assertFalse(Subscription::query()->whereKey($subscription->id)->exists());
+        $this->assertNull($this->ama->fresh()->activeSubscription);
+        $this->assertSame(1, Subscription::query()->granted()->count(), 'accès offert en cours gardé');
+        Storage::disk('local')->assertMissing($validated->proof_path);
+        Storage::disk('local')->assertMissing($rejected->proof_path);
+        Storage::disk('local')->assertExists($admin->proof_path);
+        $this->assertSame(1, DB::table('admin_alerts')->count(), 'ligne du journal gardée');
+        $this->assertNull(DB::table('admin_alerts')->where('id', $alert)->value('payment_id'));
+        // Plus aucun paiement d'apprenant dans les comptes : l'historique ne montre que celui de l'administrateur.
+        $this->assertSame(0, Payment::query()->where('user_id', '!=', $this->admin->id)->count());
+
+        $backup = Storage::disk('local')->files(LearnerReset::BACKUP_DIRECTORY)[0];
+        Storage::disk('local')->assertExists(substr($backup, 0, -8).'/'.$validated->proof_path);
+
+        $this->artisan('app:restore-learners', ['file' => $backup])->assertSuccessful();
+
+        $this->assertSame(3, Payment::count());
+        $this->assertSame($subscription->id, $validated->fresh()->subscription_id);
+        $this->assertSame(PaymentStatus::Validated, $validated->fresh()->status);
+        $this->assertSame('TX-SECRET-123', $validated->fresh()->transaction_key);
+        $this->assertNotNull($this->ama->fresh()->activeSubscription);
+        Storage::disk('local')->assertExists($validated->proof_path);
+        Storage::disk('local')->assertExists($rejected->proof_path);
+        $this->assertSame($validated->id, DB::table('admin_alerts')->where('id', $alert)->value('payment_id'));
+    }
+
+    public function test_a_pending_proof_or_a_provisional_access_still_refuse_with_the_option(): void
+    {
+        $this->seedTestPayments();
+        $pending = $this->payment($this->kofi, PaymentStatus::Pending, 'intensif');
+
+        $this->reset(['--include-test-payments' => true, '--confirm' => 'EFFACER 2 COMPTES ET 2 PAIEMENTS'])
+            ->expectsOutputToContain('en attente de vérification')
+            ->assertFailed();
+        $pending->delete();
+
+        $provisional = Subscription::factory()->for($this->kofi)->create(['status' => SubscriptionStatus::Provisional, 'provisional_until' => now()->addHours(5)]);
+        $this->reset(['--include-test-payments' => true, '--confirm' => 'EFFACER 2 COMPTES ET 2 PAIEMENTS'])->assertFailed();
+        $provisional->delete();
+
+        $this->assertSame(3, Payment::count());
     }
 }

@@ -401,12 +401,19 @@ Les commandes de l'onglet **Commands** ne peuvent poser aucune question et s'arr
 
 ## 13 bis. Remettre les apprenants à zéro (après une grosse amélioration de Teacher Joe)
 
-Les apprenants gardent leur compte et leur mot de passe ; leur évaluation, leur programme, leurs séances, leurs conversations, « Mes cours » et leurs attestations sont effacés, et ils repassent l'évaluation gratuite. Les paiements et les captures ne sont **jamais** effacés, l'administrateur n'est jamais touché, les accès offerts en cours sont gardés.
+Les apprenants gardent leur compte et leur mot de passe ; leur évaluation, leur programme, leurs séances, leurs conversations, « Mes cours » et leurs attestations sont effacés, et ils repassent l'évaluation gratuite. Sans option, les paiements et les captures ne sont **jamais** effacés ; l'administrateur n'est jamais touché ; les accès offerts en cours sont gardés.
 
 1. **Avant** : dans l'administration, **Paiements en attente** doit être vide (validez ou refusez chaque capture). La commande refuse tant qu'il reste un paiement validé, un abonnement payé ou un accès provisoire en cours, une capture en attente ou une séance en cours.
 2. Onglet **Commands** : `php artisan app:reset-learners`. C'est une **simulation** : rien n'est effacé. Lisez les nombres, et la dernière ligne, qui donne la commande exacte à lancer (avec le nom de la base et le nombre de comptes).
 3. Lancez la commande donnée, par exemple `php artisan app:reset-learners --database=… --force --confirm="EFFACER 12 COMPTES" --notify`. `--notify` invite par e-mail ceux qui ont une adresse à refaire leur évaluation gratuite (envoi chaque heure, dans la limite d'e-mails du jour ; suivi dans **Alertes**). Ajoutez `--include-granted` seulement pour retirer aussi les accès offerts en cours.
 4. La commande affiche le nom de la **sauvegarde** faite avant l'effacement (dans le bucket privé, dossier `backups/`). Pour tout remettre : `php artisan app:restore-learners` suivi de ce nom. Rien n'est écrasé : si un apprenant a déjà repassé son évaluation, la restauration est refusée.
+
+**Avant le lancement seulement : effacer aussi vos paiements de test.** Si la simulation refuse à cause de « paiements validés » et d'« abonnements payés » qui ne sont QUE vos essais :
+
+1. Simulation : `php artisan app:reset-learners --include-test-payments`. Elle liste chaque paiement validé ou refusé des apprenants (date, montant, formule, statut, prénom et 4 derniers chiffres du numéro). Vérifiez qu'ils sont TOUS à vous : un vrai paiement serait effacé aussi.
+2. Lancez la ligne donnée par la simulation, par exemple `php artisan app:reset-learners --database=talkami --force --confirm="EFFACER 85 COMPTES ET 5 PAIEMENTS" --include-test-payments --notify`. Le nombre de paiements fait partie de la confirmation.
+3. Sont effacés en plus : ces paiements, tous les abonnements payés des apprenants (ceux qui en avaient un perdent leur accès : « Offrir un accès » pour en redonner un) et les captures. Les lignes du journal **Alertes** sont gardées, sans lien vers ces paiements. Tout est dans la sauvegarde et revient avec `app:restore-learners`. Une capture en attente, un accès provisoire en cours ou une séance en cours refusent toujours.
+4. Après le lancement, ne plus jamais utiliser `--include-test-payments` : une capture effacée pourrait être envoyée et acceptée de nouveau.
 
 ---
 
