@@ -133,3 +133,22 @@ test('micro fermé pour signaler la fin du tour : « audioStreamEnd », le moyen
 
     assert.deepEqual(ws.sent.at(-1), { realtimeInput: { audioStreamEnd: true } });
 });
+
+test('séance reprise chez Google après un autre fournisseur : les derniers échanges partent avec l\'indication de reprise, une fois', () => {
+    const transport = new GeminiTransport({ websocket_url: 'wss://x', setup: {} }, {}, { WebSocketImpl: FakeSocket });
+    transport.connect();
+    const ws = FakeSocket.last;
+    ws.open();
+    ws.sent.length = 0;
+
+    transport.sendContext('CONVERSATION SO FAR: Learner: Hello.');
+    assert.deepEqual(ws.sent, [], 'rien n\'est envoyé seul (le professeur parlerait)');
+
+    transport.sendText('Resume.');
+    transport.sendText('Next.');
+
+    assert.deepEqual(ws.sent, [
+        { realtimeInput: { text: 'CONVERSATION SO FAR: Learner: Hello.\n\nResume.' } },
+        { realtimeInput: { text: 'Next.' } },
+    ]);
+});

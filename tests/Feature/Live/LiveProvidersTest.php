@@ -336,18 +336,50 @@ class LiveProvidersTest extends TestCase
         $this->actingAs($other)->postJson('/seance/connexion')->assertJsonPath('provider', 'openai')->assertJsonPath('resumed', true);
     }
 
-    public function test_gemini_refused_during_a_reconnection_ends_cleanly_with_the_time_used_counted(): void
+    public function test_gemini_refusing_a_reconnection_continues_the_same_lesson_at_openai(): void
     {
         $user = $this->subscriber();
         $this->actingAs($user)->postJson('/seance/connexion')->assertJsonPath('provider', 'gemini');
         $this->travel(4)->minutes();
         $this->gemini = 429;
 
+        // Refus de reconnexion chez Gemini (pas une simple lenteur) : la MÊME séance continue chez OpenAI.
+        $this->actingAs($user)->postJson('/seance/connexion', ['handle' => 'reprise-gemini'])
+            ->assertOk()
+            ->assertJsonPath('provider', 'openai')
+            ->assertJsonPath('resumed', true)
+            ->assertJsonPath('remaining_seconds', 660);
+
+        $lesson = $this->lesson($user);
+        $this->assertSame('openai', $lesson->live_provider);
+        $this->assertSame(1, Lesson::query()->count(), 'la même séance continue, rien n\'est compté deux fois');
+        $this->assertSame(240, $lesson->elapsedUntil(now()));
+    }
+
+    public function test_every_provider_refusing_a_reconnection_ends_cleanly_with_the_time_used_counted(): void
+    {
+        $user = $this->subscriber();
+        $this->actingAs($user)->postJson('/seance/connexion')->assertJsonPath('provider', 'gemini');
+        $this->travel(4)->minutes();
+        $this->gemini = 429;
+        config(['services.openai.key' => null]);
+
         $this->actingAs($user)->postJson('/seance/connexion')->assertStatus(503);
 
-        $this->assertSame(0, $this->sentToOpenAi(), 'jamais de changement de fournisseur en cours de séance');
+        $this->assertSame(0, $this->sentToOpenAi());
         $this->actingAs($user)->postJson('/seance/fin')->assertOk();
         $this->assertSame(240, $this->lesson($user)->used_seconds);
+    }
+
+    public function test_a_slow_network_never_changes_the_provider_in_the_middle_of_a_lesson(): void
+    {
+        $user = $this->subscriber();
+        $this->actingAs($user)->postJson('/seance/connexion')->assertJsonPath('provider', 'gemini');
+        $this->travel(4)->minutes();
+
+        // Le navigateur n'a pas pu joindre Gemini (réseau lent), mais Gemini accepte : on reste chez Gemini.
+        $this->actingAs($user)->postJson('/seance/connexion', ['failed' => 'gemini'])->assertJsonPath('provider', 'gemini');
+        $this->assertSame(0, $this->sentToOpenAi());
     }
 
     public function test_a_reconnection_at_openai_opens_a_new_call_and_hangs_up_the_old_one(): void

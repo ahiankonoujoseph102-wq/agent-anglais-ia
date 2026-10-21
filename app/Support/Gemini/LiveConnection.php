@@ -67,14 +67,20 @@ class LiveConnection
             // Rien n'a été dit : la séance peut encore commencer chez le fournisseur suivant (s'il y en a un).
             $providers = LiveProviders::ordered([$current]) ?: [$current];
         } else {
-            // Jamais de changement en cours de séance.
-            $providers = [$current];
+            // En cours de séance : le même fournisseur. Le suivant seulement s'il REFUSE la reconnexion (jamais pour
+            // une simple lenteur ni un réseau d'apprenant) ; le navigateur lui redonne les derniers échanges.
+            $providers = [$current, ...LiveProviders::ordered([$current])];
         }
 
         $last = null;
 
         foreach ($providers as $provider) {
             try {
+                if ($current !== null && $provider !== $current) {
+                    // La reprise d'une conversation Gemini ne vaut que chez le fournisseur qui l'a donnée.
+                    $setup['sessionResumption'] = (object) [];
+                }
+
                 return $this->open($provider, $setup, $deadline);
             } catch (GeminiUnavailable $e) {
                 LiveLog::failure($provider, 'Création du jeton', $e->getMessage(), $e->httpStatus, $e->quotaExceeded);

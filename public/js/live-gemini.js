@@ -147,12 +147,20 @@ export class GeminiTransport {
 
     sendText(text) {
         if (text) {
-            this.send({ realtimeInput: { text } });
+            // Derniers échanges d'une séance reprise ici après un autre fournisseur : envoyés avec l'indication.
+            const context = this.context;
+            this.context = null;
+            this.send({ realtimeInput: { text: context ? `${context}\n\n${text}` : text } });
         }
     }
 
-    /** Le contexte d'une conversation reprise est gardé par Google (sessionResumption) : rien à renvoyer. */
-    sendContext() {}
+    /**
+     * Le contexte d'une conversation reprise chez Google est gardé (sessionResumption). Seule une séance commencée
+     * chez un autre fournisseur en a besoin : il part avec la première indication (reprise).
+     */
+    sendContext(text) {
+        this.context = text || null;
+    }
 
     sendFunctionResult(call, response) {
         this.send({ toolResponse: { functionResponses: [{ id: call.id, name: call.name, response }] } });

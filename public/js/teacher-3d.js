@@ -81,6 +81,11 @@ export const EXPRESSIONS = {
         morphs: { mouthSmileLeft: 0.25, mouthSmileRight: 0.25, browInnerUp: 0.3, eyeWideLeft: 0.15, eyeWideRight: 0.15 },
         head: [0.05, 0, -0.06], lean: 0.05, gesture: 'raiseLeft', duration: 4.5,
     },
+    // Attente de sa réponse (« Un instant… ») : léger sourire et petit hochement, sans geste des bras.
+    waiting: {
+        morphs: { mouthSmileLeft: 0.35, mouthSmileRight: 0.35, browInnerUp: 0.15 },
+        head: [0.02, 0, 0.03], nod: 0.05, duration: 2.2,
+    },
     thinking: {
         morphs: { browDownLeft: 0.35, browOuterUpRight: 0.45, mouthPucker: 0.15, mouthSmileRight: 0.2 },
         head: [-0.03, 0.08, 0.08], gaze: [-0.12, -0.15], duration: 2.5,

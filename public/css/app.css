@@ -657,6 +657,9 @@ main { overflow-x: clip; }
 .face-eyes { fill: #1d1410; animation: blink 5s infinite; transform-origin: 100px 92px; }
 .face-brows { fill: none; stroke: #2b1a12; stroke-width: 4; stroke-linecap: round; }
 .face-mouth { fill: #4a1f1a; }
+/* Attente de la réponse (« Un instant… ») : petit hochement du visage simple. */
+[data-waiting] .face { animation: nod 1.2s ease-in-out 2; transform-origin: 50% 80%; }
+@keyframes nod { 0%, 100% { transform: none; } 40% { transform: translateY(3px) rotate(1deg); } }
 @keyframes blink { 0%, 96%, 100% { transform: scaleY(1); } 98% { transform: scaleY(.1); } }
 /* Professeur 3D (remplace le visage SVG quand il est chargé) */
 .teacher-3d { padding: 0; overflow: hidden; background: var(--c-bg-warm); }

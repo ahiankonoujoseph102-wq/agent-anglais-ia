@@ -43,12 +43,31 @@ class LiveLayoutTest extends TestCase
         $this->assertStringContainsString('id="nudge"', $html);
         $this->assertStringContainsString('Relancer Teacher Joe', $html);
         $this->assertStringContainsString('data-turn-watch="', $html);
-        // Délais du navigateur (config/platform.php → live) : fin de tour, « réfléchit… », solution.
-        $this->assertStringContainsString('"end_of_turn_seconds":2,"no_answer_seconds":8,"stuck_seconds":20,"voice_stuck_seconds":4', $html);
+        // Délais du navigateur (config/platform.php → live) : fin de tour, « Un instant… », connexion lente, relance.
+        preg_match("/data-audio='([^']*)'/", $html, $match);
+        $audio = json_decode(html_entity_decode($match[1]), true);
+        $this->assertSame([2, 2, 8, 20, 4], [$audio['end_of_turn_seconds'], $audio['instant_seconds'], $audio['no_answer_seconds'], $audio['stuck_seconds'], $audio['voice_stuck_seconds']]);
+        $this->assertSame('Un instant…', $audio['messages']['instant']);
+        $this->assertSame('La connexion est un peu lente, Teacher Joe arrive…', $audio['messages']['slow']);
+        $this->assertSame('Teacher Joe ne répond pas. Touchez « Relancer Teacher Joe » pour reprendre.', $audio['messages']['stuck']);
+        $this->assertSame('Teacher Joe revient, un instant…', $audio['messages']['reconnecting']);
+        $this->assertSame('Teacher Joe n\'est pas joignable pour le moment. Réessayez dans quelques minutes, ou écrivez-nous sur WhatsApp.', $audio['messages']['unavailable']);
+        $this->assertStringContainsString('Reprendre la séance', $html);
+        $this->assertStringContainsString('id="whatsapp-help"', $html);
+    }
 
+    public function test_waiting_never_says_thinking_loading_or_processing_nor_a_provider_name(): void
+    {
+        $texts = implode(' ', config('platform.live.messages'));
         $script = file_get_contents(public_path('js/live-session.js'));
-        $this->assertStringContainsString('réfléchit, un instant…', $script);
-        $this->assertStringContainsString('ne répond pas. Touchez « Relancer', $script);
+        // Textes visibles du script : chaînes entre apostrophes ou accents graves (les commentaires ne comptent pas).
+        preg_match_all("/(?<!\\/\\/ )(['`])((?:(?!\\1).)*?)\\1/u", $script, $strings);
+        $visible = $texts.' '.implode(' ', $strings[2]);
+
+        $this->assertDoesNotMatchRegularExpression('/réfléchit|chargement|traitement|Préparation du message|Se reconnecter/iu', $visible);
+        $this->assertDoesNotMatchRegularExpression('/google|gemini|openai|chatgpt/i', $texts);
+        $this->assertStringContainsString("teacher?.expression('waiting')", $script);
+        $this->assertStringContainsString('waiting: {', file_get_contents(public_path('js/teacher-3d.js')));
     }
 
     public function test_teacher_joe_arrives_with_tips_then_the_transcript_goes_under_him_on_a_computer(): void

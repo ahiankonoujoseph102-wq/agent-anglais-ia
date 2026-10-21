@@ -203,8 +203,10 @@ const STOP_FADE = 0.015;
 const MAX_AUTO_RECONNECTS = 2;
 // Retard ajouté à la voix du professeur (lecture labiale du professeur 3D).
 const OUTPUT_DELAY = 0.08;
-// Après la fin de parole de l'apprenant : au-delà, on affiche « réfléchit… ».
-const THINKING_AFTER_MS = 1300;
+// Textes de l'attente et des coupures (config/platform.php → live.messages).
+const WAIT = audioConfig.messages ?? {};
+// Après la fin de parole de l'apprenant : au-delà, « Un instant… » et un léger geste du professeur.
+const THINKING_AFTER_MS = (audioConfig.instant_seconds ?? 2) * 1000;
 // Sans réponse du professeur pendant ce temps, on rend la parole à l'apprenant.
 const THINKING_MAX_MS = 12000;
 // OpenAI : voix encore dans le tampon de gigue du navigateur après la fin de l'envoi, en secondes.
@@ -217,7 +219,7 @@ const STREAM_MUTE = 0.4;
 const TURN_TEXTS = {
     speaking: `${teacherName} parle…`,
     listening: 'À vous de parler',
-    thinking: `${teacherName} réfléchit…`,
+    thinking: WAIT.instant ?? 'Un instant…',
     paused: 'Conversation en pause',
     muted: 'Micro coupé',
     ending: 'Fin de la conversation…',
@@ -229,13 +231,15 @@ const MESSAGES = {
     micInsecure: 'Votre navigateur ne permet pas d\'utiliser le micro sur cette page. Ouvrez le site avec une adresse sécurisée (https) dans Chrome, Firefox ou Safari à jour.',
     micOther: 'Le micro n\'a pas pu être activé. Fermez les autres applications qui l\'utilisent, puis réessayez.',
     network: 'Impossible de joindre le serveur. Vérifiez votre connexion internet, puis réessayez.',
-    cut: 'La connexion avec le professeur a été coupée. Vérifiez votre connexion internet, puis appuyez sur « Se reconnecter ».',
-    counted: 'Le temps déjà utilisé est compté. Touchez « Se reconnecter » pour réessayer, ou relancez la séance un peu plus tard.',
+    cut: WAIT.cut,
+    counted: 'Le temps déjà utilisé est compté. Touchez « Reprendre la séance » pour réessayer, ou relancez la séance un peu plus tard.',
+    unavailable: WAIT.unavailable,
+    reconnecting: WAIT.reconnecting,
     quota: 'Le professeur a atteint sa limite de conversations gratuites pour le moment. Réessayez un peu plus tard : votre temps non utilisé reste disponible.',
     pauseTooLong: 'La pause a duré trop longtemps : la conversation est terminée. Le temps déjà utilisé est décompté.',
-    thinking: `${teacherName} réfléchit, un instant…`,
-    stuck: `${teacherName} ne répond pas. Touchez « Relancer ${teacherName} », ou répétez votre dernière phrase.`,
-    nudged: `${teacherName} va vous répondre…`,
+    slow: WAIT.slow,
+    stuck: WAIT.stuck,
+    nudged: WAIT.nudged,
 };
 
 const state = {
@@ -1269,7 +1273,7 @@ function watchTurn() {
     const waiting = state.turns.waiting(now);
 
     if (waiting === 'thinking' && state.turns.warnOnce('thinking')) {
-        showWaitNote(MESSAGES.thinking, false);
+        showWaitNote(MESSAGES.slow, false);
         logEvent('no_answer', `${audioConfig.no_answer_seconds ?? 8} secondes`);
     } else if (waiting === 'stuck' && !state.nudgedAt && state.turns.warnOnce('stuck')) {
         showWaitNote(MESSAGES.stuck, true);
@@ -1319,7 +1323,10 @@ async function connect({ planned = false, failed = null } = {}) {
             return; // La connexion actuelle continue jusqu'à l'expiration de son jeton.
         }
 
-        const message = result.data.quota ? MESSAGES.quota : (result.data.message || MESSAGES.network);
+        // Aucun fournisseur ne répond : message clair et WhatsApp, jamais le nom d'un fournisseur.
+        const unavailable = result.status === 503 && MESSAGES.unavailable;
+        const message = unavailable ? MESSAGES.unavailable : (result.data.quota ? MESSAGES.quota : (result.data.message || MESSAGES.network));
+        document.getElementById('whatsapp-help')?.toggleAttribute('hidden', !unavailable);
 
         if (result.status === 409 || result.status === 403) {
             finish('refused', message);
@@ -1331,7 +1338,16 @@ async function connect({ planned = false, failed = null } = {}) {
     }
 
     const isResume = state.everReady;
+    // Le fournisseur a refusé la reconnexion : la même séance continue chez le suivant.
+    const switched = isResume && state.config?.provider !== undefined && result.data.provider !== state.config.provider;
     state.config = result.data;
+    document.getElementById('whatsapp-help')?.setAttribute('hidden', '');
+
+    if (switched) {
+        state.resumeHandle = null;
+        logEvent('reconnect', `bascule vers ${result.data.provider}`);
+        setStatus(MESSAGES.reconnecting ?? 'Reconnexion…');
+    }
 
     if (board && state.config.phases) {
         board.tracker ??= new BoardTracker(board.view.items());
@@ -1355,7 +1371,7 @@ async function connect({ planned = false, failed = null } = {}) {
     setRemaining(state.config.remaining_seconds);
 
     const transport = createTransport(state.config);
-    transport.handlers = handlersFor(transport, { planned, isResume });
+    transport.handlers = handlersFor(transport, { planned, isResume, switched });
 
     if (transport.streamsAudio) {
         try {
@@ -1371,7 +1387,7 @@ async function connect({ planned = false, failed = null } = {}) {
 
 /**
  * Première connexion impossible : rien n'a commencé, on peut réessayer. En cours de séance : bouton
- * « Se reconnecter » (même fournisseur), le temps déjà utilisé est compté.
+ * « Reprendre la séance », le temps de séance est en pause pendant la coupure.
  */
 function connectionFailed(message) {
     if (!state.everReady) {
@@ -1400,7 +1416,7 @@ function createTransport(config) {
  * Ce que l'écran fait de chaque événement d'un fournisseur. Les événements d'une ancienne connexion
  * (renouvellement, reconnexion) sont ignorés.
  */
-function handlersFor(transport, { planned, isResume }) {
+function handlersFor(transport, { planned, isResume, switched = false }) {
     const current = () => transport === state.transport;
 
     return {
@@ -1431,8 +1447,9 @@ function handlersFor(transport, { planned, isResume }) {
             // Nouvelle connexion : flux du micro remis à zéro.
             state.gate = new MicGate({ guard: (state.config.echo_guard_ms ?? 400) / 1000 });
 
-            // Nouvel appel OpenAI après une coupure : OpenAI ne garde rien, on lui redonne les derniers échanges.
-            if (isResume && !planned && transport.streamsAudio && state.history.trim() !== '') {
+            // Nouvel appel OpenAI après une coupure (OpenAI ne garde rien), ou séance reprise chez un autre
+            // fournisseur : on lui redonne les derniers échanges.
+            if (isResume && !planned && (transport.streamsAudio || switched) && state.history.trim() !== '') {
                 transport.sendContext('CONVERSATION SO FAR (context only, the connection was cut; do not greet again and do not repeat it):'
                     + `${state.history}\n${state.end.hasVerdict ? 'The result has ALREADY been saved: never call the function again.' : ''}`);
             }
@@ -1665,7 +1682,7 @@ function sendText(text) {
 }
 
 /**
- * Indication au professeur, qui va répondre : « réfléchit… » en attendant sa voix.
+ * Indication au professeur, qui va répondre : « Un instant… » en attendant sa voix.
  */
 function cue(text) {
     // Après le verdict, aucune indication : elle relançait l'annonce du niveau et une question.
@@ -1857,7 +1874,7 @@ function onClose(event) {
         state.autoReconnects++;
         state.turns.reset();
         logEvent('reconnect', 'automatique');
-        setStatus('Connexion perdue, reconnexion…');
+        setStatus(MESSAGES.reconnecting ?? 'Reconnexion…');
         setTimeout(() => connect(), 1500);
 
         return;
@@ -2012,6 +2029,14 @@ function renderTurn() {
     if (ui.turn.dataset.turn !== turn || !ui.turnText.textContent) {
         ui.turn.dataset.turn = turn;
         ui.turnText.textContent = TURN_TEXTS[turn];
+
+        // Attente de sa réponse : léger geste (hochement, sourire), jamais d'écran qui « charge ».
+        if (turn === 'thinking') {
+            teacher?.expression('waiting');
+        }
+
+        // Visage simple : même petit hochement (CSS).
+        root.toggleAttribute('data-waiting', turn === 'thinking');
     }
 
     ui.interrupt.hidden = turn !== 'speaking';
@@ -2186,7 +2211,7 @@ ui.resume.addEventListener('click', () => {
     ui.resume.hidden = true;
     state.autoReconnects = 0;
     state.turns.reset();
-    logEvent('reconnect', 'bouton « Se reconnecter »');
+    logEvent('reconnect', 'bouton « Reprendre la séance »');
     connect();
 });
 

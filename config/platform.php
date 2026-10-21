@@ -292,10 +292,24 @@ return [
         // depuis ce temps et le fournisseur n'a ni clos le tour ni commencé à répondre (bruit de fond, longue
         // réponse) : le navigateur signale lui-même la fin du tour (Gemini : audioStreamEnd ; OpenAI : silence).
         'end_of_turn_seconds' => 2,
-        // Aucune voix du professeur ce temps après la fin de la parole : « Teacher Joe réfléchit, un instant… ».
+        // Attente de la réponse : ce temps après la fin de la parole, « Un instant… » et un léger geste de Teacher Joe
+        // (hochement, sourire).
+        'instant_seconds' => 2,
+        // Toujours aucune voix du professeur : « La connexion est un peu lente, Teacher Joe arrive… ».
         'no_answer_seconds' => 8,
         // Toujours rien : message et bouton « Relancer Teacher Joe ».
         'stuck_seconds' => 20,
+        // Textes de l'attente et des coupures (marqueur :teacher). Jamais « réfléchit », « chargement » ni
+        // « traitement », jamais un nom de fournisseur.
+        'messages' => [
+            'instant' => 'Un instant…',
+            'slow' => 'La connexion est un peu lente, :teacher arrive…',
+            'stuck' => ':teacher ne répond pas. Touchez « Relancer :teacher » pour reprendre.',
+            'nudged' => ':teacher va vous répondre…',
+            'reconnecting' => ':teacher revient, un instant…',
+            'cut' => 'La connexion avec :teacher a été coupée. Vérifiez votre connexion internet, puis touchez « Reprendre la séance ».',
+            'unavailable' => ':teacher n\'est pas joignable pour le moment. Réessayez dans quelques minutes, ou écrivez-nous sur WhatsApp.',
+        ],
         // OpenAI : voix annoncée mais plus rien d'audible depuis ce temps (fin de voix perdue) : micro rouvert.
         'voice_stuck_seconds' => 4,
     ],

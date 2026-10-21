@@ -102,7 +102,7 @@ export class TurnWatch {
      * @param {number} endOfTurnMs   voix de l'apprenant finie depuis ce temps sans fin de tour du fournisseur :
      *                               le navigateur la signale lui-même
      * @param {number} minSpeechMs   parole trop courte (toux, bruit) : jamais de fin de tour signalée
-     * @param {number} noAnswerMs    aucune voix du professeur ce temps après la fin de parole : « réfléchit… »
+     * @param {number} noAnswerMs    aucune voix du professeur ce temps après la fin de parole : connexion lente
      * @param {number} stuckMs       toujours rien : solution proposée (« Relancer »)
      * @param {number} lateMs        une réplique de l'apprenant transcrite jusqu'à ce temps après son tour lui appartient
      */

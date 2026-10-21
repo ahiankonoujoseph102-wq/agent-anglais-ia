@@ -6,9 +6,11 @@
         'voice_gain' => (float) config('platform.live.voice_gain'),
         'silent_mic_seconds' => (int) config('platform.live.silent_mic_seconds'),
         'end_of_turn_seconds' => (float) config('platform.live.end_of_turn_seconds'),
+        'instant_seconds' => (float) config('platform.live.instant_seconds'),
         'no_answer_seconds' => (float) config('platform.live.no_answer_seconds'),
         'stuck_seconds' => (float) config('platform.live.stuck_seconds'),
         'voice_stuck_seconds' => (float) config('platform.live.voice_stuck_seconds'),
+        'messages' => array_map(fn ($text) => str_replace(':teacher', config('avatar.model.name'), $text), config('platform.live.messages')),
     ];
 
     // LA SUITE à la fin de la conversation (<x-next-step>, montrée par live-session.js, avant le résumé) :
@@ -111,6 +113,11 @@
         {{-- Colonne des commandes. Avant le début : « Commencer » tout de suite sous le professeur. --}}
         <div class="live-panel">
             <div id="error" class="alert alert-error" role="alert" hidden></div>
+            {{-- Professeur injoignable (aucun fournisseur) : écrire à l'équipe. --}}
+            @php($helpWhatsapp = \App\Support\SiteSettings::contact()['whatsapp'] ?? null)
+            @if ($helpWhatsapp)
+                <a id="whatsapp-help" class="btn btn-whatsapp btn-block" href="{{ \App\Support\WhatsApp::url($helpWhatsapp) }}" target="_blank" rel="noopener" hidden><x-icon name="whatsapp" /> Écrire sur WhatsApp</a>
+            @endif
 
             @if ($next)
                 <x-next-step hidden :title="$next['title']" :text="$next['text']" :href="$next['href']" :label="$next['label']" :icon="$next['icon']">
@@ -136,13 +143,13 @@
                 <div id="status" class="live-status" role="status">Prêt</div>
             </div>
 
-            {{-- Tour de parole : « Teacher Joe parle… », « À vous de parler », « Teacher Joe réfléchit… ». --}}
+            {{-- Tour de parole : « Teacher Joe parle… », « À vous de parler », « Un instant… ». --}}
             <div id="turn" class="live-turn" data-turn="listening" role="status" aria-live="polite" hidden>
                 <span class="live-turn-dot" aria-hidden="true"></span>
                 <span id="turn-text"></span>
             </div>
 
-            {{-- Aucune réponse 8 secondes après la fin de la parole : message clair, puis « Relancer » (turn-watch.js). --}}
+            {{-- Aucune réponse 8 secondes après la fin de la parole : connexion lente, puis « Relancer » (turn-watch.js). --}}
             <div id="wait-note" class="alert alert-warning live-wait" role="status" hidden>
                 <x-icon name="hourglass" />
                 <div>
@@ -204,7 +211,7 @@
             @endif
 
             <div class="live-actions">
-                <button type="button" id="resume" class="btn btn-block btn-lg" hidden><x-icon name="refresh" /> Se reconnecter</button>
+                <button type="button" id="resume" class="btn btn-block btn-lg" hidden><x-icon name="refresh" /> Reprendre la séance</button>
                 <button type="button" id="stop" class="btn btn-light btn-block" hidden>Terminer</button>
                 <a id="back" href="{{ $urls['done'] }}" @class(['btn btn-block', 'btn-light' => $mode !== 'assessment']) hidden>{{ match ($mode) { 'assessment' => 'Voir mon résultat complet', 'course' => 'Retour à ma leçon', default => 'Retour à mon espace' } }}</a>
             </div>
