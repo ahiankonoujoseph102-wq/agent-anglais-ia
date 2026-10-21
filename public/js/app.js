@@ -51,7 +51,6 @@ const standalone = window.matchMedia('(display-mode: standalone)').matches || na
 const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const touch = window.matchMedia('(pointer: coarse)').matches;
 const reminderModule = script?.dataset.installReminder ? import(script.dataset.installReminder).catch(() => null) : Promise.resolve(null);
-let deferredPrompt = null;
 
 function storage() {
     try {
@@ -109,13 +108,44 @@ function toast(text) {
     document.querySelector('main .container')?.prepend(box);
 }
 
-// Android (Chrome, Edge, Samsung Internet) : le navigateur propose l'installation.
+// Android (Chrome, Edge, Samsung Internet) : le navigateur propose l'installation de la VRAIE application (sur Android,
+// Chrome la place dans la liste des applications). L'invitation est gardée dès le <head> (window.installPrompt, voir
+// le gabarit) : sans elle, « Installer » ne pourrait que montrer des explications, et le menu du navigateur risque de
+// créer un simple raccourci. Chrome ne la donne qu'après un premier toucher et quelques secondes sur la page.
+let deferredPrompt = window.installPrompt ?? null;
+// Sans invitation au bout de ce délai (navigateur qui n'en propose pas) : bandeau et page mènent aux explications.
+const PROMPT_WAIT_MS = 45000;
+
+function installReady(event) {
+    deferredPrompt = event;
+    window.installPrompt = event;
+    document.querySelectorAll('[data-install-now]').forEach((button) => button.removeAttribute('hidden'));
+    document.querySelectorAll('[data-install-wait]').forEach((note) => note.setAttribute('hidden', ''));
+    showBanner();
+}
+
 window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
-    deferredPrompt = event;
-    document.querySelectorAll('[data-install-now]').forEach((button) => button.removeAttribute('hidden'));
-    showBanner();
+    installReady(event);
 });
+
+if (deferredPrompt) {
+    installReady(deferredPrompt);
+}
+
+async function markInstalled() {
+    hideBanner();
+    deferredPrompt = null;
+    window.installPrompt = null;
+    document.documentElement.classList.add('is-installed');
+
+    const reminder = await reminderModule;
+    const store = storage();
+
+    if (reminder && store) {
+        reminder.write(store, { ...(reminder.read(store, Date.now()) ?? {}), installed: true });
+    }
+}
 
 // Tout bouton ou lien d'installation : la fenêtre du navigateur si elle est disponible, sinon la page d'explications.
 document.addEventListener('click', async (event) => {
@@ -128,6 +158,9 @@ document.addEventListener('click', async (event) => {
     event.preventDefault();
     const promptEvent = deferredPrompt;
     deferredPrompt = null;
+    window.installPrompt = null;
+    // Une invitation ne sert qu'une fois : le bouton se cache, le navigateur en redonnera une plus tard.
+    document.querySelectorAll('[data-install-now]').forEach((button) => button.setAttribute('hidden', ''));
     promptEvent.prompt();
     const { outcome } = await promptEvent.userChoice;
 
@@ -137,23 +170,35 @@ document.addEventListener('click', async (event) => {
 });
 
 window.addEventListener('appinstalled', async () => {
-    hideBanner();
-    deferredPrompt = null;
-    document.documentElement.classList.add('is-installed');
-
-    const reminder = await reminderModule;
-    const store = storage();
-
-    if (reminder && store) {
-        reminder.write(store, { ...(reminder.read(store, Date.now()) ?? {}), installed: true });
-    }
-
+    await markInstalled();
     toast(script?.dataset.installedMessage || 'L\'application est installée : retrouvez-la sur votre écran d\'accueil.');
 });
 
-// iPhone et iPad (Safari), et téléphones dont le navigateur ne propose rien : le bandeau mène aux explications.
-if (ios || touch) {
+// Application déjà installée sur ce téléphone (Chrome Android, manifeste « related_applications ») : plus de proposition.
+navigator.getInstalledRelatedApps?.().then((apps) => {
+    if (apps.length > 0) {
+        markInstalled();
+    }
+}).catch(() => {});
+
+// iPhone et iPad (Safari) : le bandeau mène aux explications (Safari n'a pas d'invitation).
+// Android : le bandeau attend l'invitation du navigateur (il ouvre alors directement la fenêtre d'installation) ;
+// seulement si elle ne vient pas, il mène aux explications.
+if (ios) {
+    document.querySelectorAll('[data-install-wait]').forEach((note) => note.setAttribute('hidden', ''));
     showBanner();
+} else if (touch || document.querySelector('[data-install-wait]')) {
+    setTimeout(() => {
+        if (deferredPrompt) {
+            return;
+        }
+
+        document.querySelectorAll('[data-install-wait]').forEach((note) => note.classList.add('is-late'));
+
+        if (touch) {
+            showBanner();
+        }
+    }, PROMPT_WAIT_MS);
 }
 
 banner?.querySelector('[data-install-close]')?.addEventListener('click', dismissBanner);

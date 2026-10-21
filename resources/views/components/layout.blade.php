@@ -57,12 +57,16 @@
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
     <link rel="icon" href="{{ asset('icons/favicon-96.png') }}" type="image/png" sizes="96x96">
     <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="{{ config('platform.brand.short_name') ?: config('platform.name') }}">
     <link rel="preload" href="{{ asset('fonts/sora-2.000-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ Asset::url('css/tokens.css') }}">
     <link rel="stylesheet" href="{{ Asset::url('css/app.css') }}">
-    <script>document.documentElement.classList.add('js');if(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)document.documentElement.classList.add('is-standalone');</script>
+    {{-- Dès le <head> : classe « js », application ouverte depuis l'écran d'accueil, et invitation d'installation de
+         Chrome gardée AVANT le chargement de app.js (sinon elle peut être perdue, et « Installer » ne ferait plus que
+         des explications : voir public/js/app.js). --}}
+    <script>document.documentElement.classList.add('js');if(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)document.documentElement.classList.add('is-standalone');addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.installPrompt=e;document.documentElement.classList.add('can-install');});</script>
     <script type="module" src="{{ Asset::url('js/app.js') }}" data-sw="{{ asset('sw.js') }}" data-install-reminder="{{ Asset::url('js/install-reminder.js') }}" data-installed-message="{{ config('platform.name') }} est installée : retrouvez {{ config('avatar.model.name') }} sur votre écran d'accueil."></script>
     @stack('head')
 </head>

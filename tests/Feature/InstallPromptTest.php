@@ -38,7 +38,16 @@ class InstallPromptTest extends TestCase
                 ->assertSeeText("Installer l'application")
                 ->assertSeeText('Installez Talkami pour retrouver Teacher Joe en un geste')
                 ->assertSeeText('Sur Android')
-                ->assertSeeText("« Installer l'application » ou « Ajouter à l'écran d'accueil »")
+                ->assertSeeText("Touchez « Installer l'application ». Si vous voyez seulement « Ajouter à l'écran d'accueil », touchez-le, puis choisissez « Installer », jamais « Créer un raccourci ».")
+                ->assertSeeText('parmi les applications de votre téléphone')
+                // Ancien raccourci : comment le retirer avant d'installer la vraie application.
+                ->assertSeeText('Vous avez déjà une icône Talkami avec le petit logo de Chrome ?')
+                ->assertSeeText('Appuyez longuement sur l\'icône, puis touchez « Supprimer »')
+                // En attendant la proposition du navigateur, puis si elle ne vient pas.
+                ->assertSee('data-install-wait', false)
+                ->assertSeeText('le bouton « Installer maintenant » va apparaître')
+                ->assertSeeText('Votre navigateur ne propose pas l\'installation directe')
+                ->assertSeeText('Talkami est installée : vous la trouverez parmi les applications de votre téléphone')
                 ->assertSeeText('Sur iPhone et iPad')
                 ->assertSeeText('Touchez « Partager »')
                 ->assertSeeText("Touchez « Sur l'écran d'accueil »")

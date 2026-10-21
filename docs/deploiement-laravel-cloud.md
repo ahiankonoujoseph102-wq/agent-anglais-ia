@@ -368,6 +368,17 @@ Commande `php artisan schedule:list` : elle affiche les cinq tâches et leur pro
 
 Pour une attestation : téléchargez-en une depuis le compte d'un apprenant qui a réussi un bilan de niveau ; le PDF est alors enregistré dans le dossier `attestations/` du même bucket, et `app:check-deployment` l'ajoute à son décompte « Attestations enregistrées ».
 
+### 12.3 bis Installer Talkami comme une vraie application sur Android (Pixel 6)
+
+Une vraie application apparaît **parmi les applications du téléphone** (et dans Réglages, Applis), avec son icône **sans** le petit logo de Chrome. Une icône avec le logo de Chrome n'est qu'un raccourci vers le site.
+
+1. **Retirer l'ancien raccourci** : appui long sur l'icône Talkami, puis **Supprimer** (ou glissez-la vers « Supprimer »).
+2. **Remettre le site à zéro dans Chrome** : Chrome, ⋮, **Paramètres**, **Paramètres des sites**, **Toutes les données de sites**, `talkami.laravel.cloud` (ou votre domaine), **Effacer et réinitialiser**. Cela efface aussi un ancien refus d'installation.
+3. Ouvrez le site dans Chrome, connectez-vous, **touchez la page** puis attendez une trentaine de secondes : Chrome ne propose l'installation qu'après un toucher et quelques secondes.
+4. Touchez **Installer** (bandeau en bas, Menu ou page « Installer l'application ») : la fenêtre de Chrome « Installer l'application » s'ouvre, avec les captures de Talkami. Touchez **Installer**. Si vous passez par le menu ⋮ et ne voyez que « Ajouter à l'écran d'accueil », touchez-le puis choisissez **Installer**, jamais « Créer un raccourci ».
+5. Vous devez voir, après quelques secondes : le message « Talkami est installée », Talkami dans la liste des applications et dans Réglages, Applis, et dans Chrome, à l'adresse `chrome://webapks`, une ligne pour Talkami.
+6. Si c'est encore un raccourci : ouvrez `chrome://webapks` et faites une capture d'écran. Liste vide : Chrome n'a pas pu fabriquer l'application chez Google (il crée alors un raccourci sans rien dire) ; vérifiez que Chrome et « Services Google Play » sont à jour, puis recommencez depuis l'étape 1.
+
 ### 12.4 Les limites d'envoi de « Mes cours » (PDF de 20 mégaoctets, lecture d'une minute)
 
 La documentation de Laravel Cloud ne dit ni la taille maximale d'un envoi ni la durée maximale d'une page : il faut les essayer sur le site en ligne.

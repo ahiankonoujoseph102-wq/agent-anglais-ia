@@ -20,15 +20,32 @@
         <div>{{ $platform }} est déjà installée sur ce téléphone : vous l'avez ouverte depuis votre écran d'accueil.</div>
     </div>
 
+    {{-- Juste installée (événement « appinstalled », public/js/app.js) : où la trouver. --}}
+    <div class="alert alert-success install-success" role="status">
+        <x-icon name="check-circle" />
+        <div>{{ $platform }} est installée : vous la trouverez parmi les applications de votre téléphone, avec son icône.</div>
+    </div>
+
     <section class="card rise install-steps" style="--i: 1" aria-labelledby="install-android" data-install-link-item>
         <h2 id="install-android">Sur Android (Chrome, Samsung Internet)</h2>
-        {{-- Affiché seulement quand le navigateur propose l'installation (public/js/app.js). --}}
+        {{-- Affiché seulement quand le navigateur propose l'installation (public/js/app.js) : il ouvre sa fenêtre. --}}
         <button type="button" class="btn btn-accent btn-block btn-lg" data-install-button data-install-now hidden><x-icon name="download" /> Installer maintenant</button>
-        <p class="muted">En trois gestes :</p>
+        {{-- En attendant la proposition du navigateur (avec JavaScript seulement). --}}
+        <p class="install-wait muted" data-install-wait role="status">
+            <span class="install-wait-soon">Touchez la page et patientez quelques secondes : le bouton « Installer maintenant » va apparaître.</span>
+            <span class="install-wait-late">Votre navigateur ne propose pas l'installation directe : suivez les étapes ci-dessous.</span>
+        </p>
+        <p class="muted">Ou par le menu du navigateur :</p>
         <ol class="install-list">
             <li>Touchez le menu du navigateur <strong>⋮</strong>, en haut à droite.</li>
-            <li>Touchez « Installer l'application » ou « Ajouter à l'écran d'accueil ».</li>
-            <li>Confirmez : l'icône de {{ $platform }} apparaît sur votre écran d'accueil.</li>
+            <li>Touchez « Installer l'application ». Si vous voyez seulement « Ajouter à l'écran d'accueil », touchez-le, puis choisissez « Installer », jamais « Créer un raccourci ».</li>
+            <li>Confirmez avec « Installer » : après quelques secondes, {{ $platform }} apparaît parmi les applications de votre téléphone.</li>
+        </ol>
+        <h3 class="install-sub">Vous avez déjà une icône {{ $platform }} avec le petit logo de Chrome ?</h3>
+        <p class="muted">C'est un simple raccourci vers le site, pas l'application. Retirez-le d'abord :</p>
+        <ol class="install-list">
+            <li>Appuyez longuement sur l'icône, puis touchez « Supprimer » (ou faites-la glisser vers « Supprimer »).</li>
+            <li>Revenez sur cette page et touchez « Installer maintenant ».</li>
         </ol>
     </section>
 
@@ -41,5 +58,5 @@
         </ol>
     </section>
 
-    <p class="muted small next-step">L'application ne prend presque pas de place : c'est le même site, ouvert en plein écran, sans barre d'adresse. Vos séances, votre programme et vos cours restent les mêmes.</p>
+    <p class="muted small next-step">L'application ne prend presque pas de place : c'est le même site, ouvert en plein écran, sans barre d'adresse, avec son icône parmi vos applications. Vos séances, votre programme et vos cours restent les mêmes.</p>
 </x-layout>
