@@ -44,7 +44,7 @@ const { TranscriptRecorder } = await import(root.dataset.transcript);
 // Mesure des tours de parole (délai de réponse), fin de tour de secours, attente d'une réponse.
 const { VoiceActivity, TurnWatch, learnerMetrics, teacherMetrics } = await import(root.dataset.turnWatch);
 // Tableau de la séance du jour : élément expliqué et étape en cours, d'après la voix du professeur.
-const { BoardTracker, BoardView } = root.dataset.lessonBoard ? await import(root.dataset.lessonBoard) : {};
+const { BoardTracker, BoardView, phaseNote } = root.dataset.lessonBoard ? await import(root.dataset.lessonBoard) : {};
 // Secondes, pour la fin automatique.
 const clock = () => performance.now() / 1000;
 const MIC_PREFERENCE = 'mic-device';
@@ -240,6 +240,8 @@ const MESSAGES = {
 
 const state = {
     config: null,
+    // Textes de la carte « La suite » selon le résultat (niveau trouvé, bilan réussi ou à repasser).
+    next: null,
     // Adaptateur du fournisseur en cours (live-gemini.js ou live-openai.js).
     transport: null,
     // Une connexion a été prête au moins une fois (sinon : rien n'a commencé).
@@ -664,6 +666,63 @@ async function flushAllTranscript() {
             break;
         }
     }
+}
+
+/**
+ * Séance du jour : bref bandeau sous le professeur quand la séance passe à un autre temps (pratique, conversation,
+ * bilan). Visible sans faire défiler, annoncé aux lecteurs d'écran, jamais de bouton : c'est le professeur qui mène.
+ */
+let phaseNoteTimer = null;
+
+function showPhaseNote(phase) {
+    const text = phaseNote?.(phase, teacherName);
+    const note = $('phase-note');
+
+    if (!note || !text || state.ending) {
+        return;
+    }
+
+    note.querySelector('[data-phase-note-text]').textContent = text;
+    note.hidden = false;
+    clearTimeout(phaseNoteTimer);
+    phaseNoteTimer = setTimeout(() => { note.hidden = true; }, 10000);
+}
+
+/**
+ * Fin de l'étape : la carte « La suite » (phrase courte + UN bouton orange) apparaît en haut de la colonne des
+ * commandes, AVANT le résumé, et la page y descend doucement (saut direct si l'élève a demandé moins d'animations),
+ * focus sur son titre. Jamais pendant que le professeur parle : seulement quand la conversation est finie.
+ */
+function showNext({ title, text, href, label } = {}) {
+    const next = $('suite');
+
+    if (!next) {
+        ui.back.hidden = false;
+
+        return;
+    }
+
+    if (title) {
+        next.querySelector('h2').textContent = title;
+    }
+
+    if (text) {
+        next.querySelector('.next-step-text').textContent = text;
+    }
+
+    const button = next.querySelector('.btn-next');
+
+    if (href) {
+        button.href = href;
+    }
+
+    if (label) {
+        button.querySelector('[data-next-label]').textContent = label;
+    }
+
+    next.hidden = false;
+    $('phase-note')?.setAttribute('hidden', '');
+    window.goTo ? window.goTo(next) : next.scrollIntoView();
 }
 
 function showOutcome(html) {
@@ -1654,6 +1713,8 @@ function showAssessmentResult(level, label, feedback) {
         + `<p>${escapeHtml(feedback)}</p>`);
     // Les formules s'affichent juste en dessous du résultat (bouton orange).
     ui.plans?.removeAttribute('hidden');
+    // À la fin de la conversation, la carte « La suite » rappelle le niveau trouvé.
+    state.next = { ...state.next, title: `Votre niveau : ${level}` };
 }
 
 async function handleFunctionCall(call) {
@@ -1704,6 +1765,20 @@ async function handleFunctionCall(call) {
         }
     } else if (call.name === 'record_level_test_result' && mode === 'level_test') {
         const result = await post(urls.result, args);
+
+        if (result.ok && result.data.passed && result.data.next_level) {
+            state.next = {
+                title: `Bilan réussi : niveau ${result.data.level} validé !`,
+                text: `Votre programme ${result.data.next_level} est prêt : continuez avec ${teacherName}.`,
+                label: `Commencer mon programme ${result.data.next_level}`,
+            };
+        } else if (result.ok && !result.data.passed) {
+            state.next = {
+                title: 'Bilan à repasser',
+                text: 'Revoyez les unités à reprendre dans votre programme, puis repassez le bilan.',
+                label: 'Revoir les unités à reprendre',
+            };
+        }
 
         if (result.ok && result.data.passed) {
             showOutcome(`<h2>Bilan réussi : niveau ${escapeHtml(result.data.level)} validé !</h2>`
@@ -1847,7 +1922,11 @@ function tick() {
     // Séance du jour : étape affichée sur le tableau, et UNE relance douce vers la conversation si elle tarde.
     if (board?.tracker && state.config.phases) {
         const elapsed = lessonElapsed();
-        board.view.setPhase(board.tracker.phase(elapsed), state.config.phases?.merged);
+        const phase = board.tracker.phase(elapsed);
+
+        if (board.view.setPhase(phase, state.config.phases?.merged)) {
+            showPhaseNote(phase);
+        }
 
         if (!board.nudged && state.connected && !state.paused && state.config.cues?.conversation
             && board.tracker.needsConversationNudge(elapsed) && !teacherSpeaking() && !state.generating) {
@@ -2045,7 +2124,6 @@ async function finish(reason, message = '') {
     ui.micWarning.hidden = true;
     ui.waitNote.hidden = true;
     navigator.mediaDevices?.removeEventListener?.('devicechange', refreshMicrophones);
-    ui.back.hidden = false;
     setStatus(reason === 'time' ? 'Temps écoulé' : 'Terminé');
 
     if (message) {
@@ -2076,6 +2154,14 @@ async function finish(reason, message = '') {
 
     state.config = state.config && { ...state.config, warning_seconds: 0 };
     setRemaining(0);
+
+    // La suite : en haut de la colonne, avant le résumé (texte adapté au résultat : niveau, bilan réussi…).
+    // Conversation jamais commencée (connexion refusée) : seulement le lien de retour.
+    if (state.config && state.everReady) {
+        showNext(state.next ?? {});
+    } else {
+        ui.back.hidden = false;
+    }
 }
 
 ui.start.addEventListener('click', start);

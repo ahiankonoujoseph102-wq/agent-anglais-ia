@@ -16,6 +16,21 @@ export const PHASE_LABELS = {
 };
 
 /**
+ * Annonce affichée sous le professeur quand la séance change de temps (aucun bouton : c'est lui qui mène la
+ * séance). « :teacher » = nom du professeur.
+ */
+export const PHASE_NOTES = {
+    practice: 'Maintenant : la pratique. Répétez et complétez les phrases avec :teacher.',
+    conversation: 'Maintenant : la conversation. Parlez avec :teacher en réutilisant la leçon.',
+    summary: 'Maintenant : le bilan. :teacher résume ce que vous avez appris aujourd\'hui.',
+};
+
+/** Texte de l'annonce d'un temps, ou null (début de la séance : rien à annoncer). */
+export function phaseNote(phase, teacher) {
+    return PHASE_NOTES[phase]?.replaceAll(':teacher', teacher) ?? null;
+}
+
+/**
  * Texte comparable : minuscules, sans accents, sans apostrophes (« let's » = « lets ») ni ponctuation.
  */
 export function normalizeSpeech(text) {
@@ -222,17 +237,21 @@ export class BoardView {
         }
     }
 
+    /** Change l'étape affichée ; vrai si elle a changé (la séance passe à un autre temps). */
     setPhase(phase, merged = false) {
         if (phase === this.lastPhase) {
-            return;
+            return false;
         }
 
+        const changed = this.lastPhase !== null;
         this.lastPhase = phase;
         this.root.dataset.phase = phase;
 
         if (this.phaseEl) {
             this.phaseEl.textContent = phase === 'lesson' && merged ? 'Leçon et pratique' : this.labels[phase];
         }
+
+        return changed;
     }
 
     label(id) {

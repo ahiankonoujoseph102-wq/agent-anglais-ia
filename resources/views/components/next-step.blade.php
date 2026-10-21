@@ -15,7 +15,7 @@
         <p class="next-step-text">{{ $text }}</p>
     @endif
     <a class="btn btn-accent btn-lg btn-block btn-next" href="{{ $href }}">
-        @if ($icon)<x-icon :name="$icon" /> @endif{{ $label }}@unless ($icon) <x-icon name="arrow-right" />@endunless
+        @if ($icon)<x-icon :name="$icon" /> @endif<span data-next-label>{{ $label }}</span>@unless ($icon) <x-icon name="arrow-right" />@endunless
     </a>
     @if (trim($slot) !== '')
         <div class="next-step-more">{{ $slot }}</div>

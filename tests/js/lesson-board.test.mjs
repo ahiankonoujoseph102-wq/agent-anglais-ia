@@ -1,7 +1,7 @@
 // Tableau de la séance du jour (public/js/lesson-board.js). Lancé par tests/Feature/JavaScriptTest.php.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { BoardTracker, keysFor, normalizeSpeech } from '../../public/js/lesson-board.js';
+import { BoardTracker, BoardView, keysFor, normalizeSpeech, phaseNote } from '../../public/js/lesson-board.js';
 
 const phases = {
     phrases: { practice: "Now, let's practice!", conversation: "Now, let's talk!", summary: "Let's sum up!" },
@@ -86,4 +86,24 @@ test('une seule relance douce vers la conversation, une minute après l\'heure p
     assert.equal(board.needsConversationNudge(480 + 70), false);
     // Pendant le bilan, plus de relance.
     assert.equal(new BoardTracker(items, phases).needsConversationNudge(790), false);
+});
+
+test('changement de temps : annonce courte avec le nom du professeur, rien au début de la séance', () => {
+    assert.equal(phaseNote('lesson', 'Teacher Joe'), null);
+    assert.equal(phaseNote('practice', 'Teacher Joe'), 'Maintenant : la pratique. Répétez et complétez les phrases avec Teacher Joe.');
+    assert.match(phaseNote('conversation', 'Teacher Joe'), /^Maintenant : la conversation\. Parlez avec Teacher Joe/);
+    assert.match(phaseNote('summary', 'Teacher Joe'), /^Maintenant : le bilan\. Teacher Joe résume/);
+    assert.doesNotMatch(Object.values(['practice', 'conversation', 'summary'].map((p) => phaseNote(p, 'X'))).join(' '), /\bmin\b/);
+});
+
+test('le tableau dit quand la séance passe à un autre temps (pas au premier affichage)', () => {
+    const root = { dataset: {}, querySelector: () => null, querySelectorAll: () => [] };
+    const view = new BoardView(root);
+
+    assert.equal(view.setPhase('lesson'), false);
+    assert.equal(view.setPhase('lesson'), false);
+    assert.equal(view.setPhase('practice'), true);
+    assert.equal(root.dataset.phase, 'practice');
+    assert.equal(view.setPhase('practice'), false);
+    assert.equal(view.setPhase('summary'), true);
 });
