@@ -12,6 +12,7 @@ use App\Models\Subscription;
 use App\Models\User;
 use App\Support\Live\LiveLog;
 use App\Support\Live\LiveProviders;
+use App\Support\Live\OpenAiRealtime;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
@@ -196,6 +197,9 @@ class LiveProvidersTest extends TestCase
                 && $fields['sdp'] === "v=0\r\no=- offre\r\n"
                 && $session['model'] === 'gpt-realtime-2.1-mini'
                 && $session['audio']['output']['voice'] === 'cedar'
+                // Vitesse de la voix selon le niveau (A2 : 0,85), en plus des consignes de débit.
+                && $session['audio']['output']['speed'] === 0.85
+                && str_contains($session['instructions'], (string) config('teacher.pace.levels.A2'))
                 && $session['audio']['input']['turn_detection'] === ['type' => 'server_vad', 'threshold' => 0.6, 'prefix_padding_ms' => 300, 'silence_duration_ms' => 1200, 'create_response' => true, 'interrupt_response' => true]
                 && $session['audio']['input']['transcription']['model'] === 'gpt-4o-mini-transcribe'
                 // EXACTEMENT les consignes données à Gemini (personnage, leçon, fiche du site, situation).
@@ -206,6 +210,65 @@ class LiveProvidersTest extends TestCase
                 && $tool['parameters']['properties']['errors']['items']['type'] === 'object'
                 && $tool['parameters']['properties']['lesson_status']['enum'] === ['completed', 'repeat'];
         });
+    }
+
+    /**
+     * Session envoyée à OpenAI au dernier appel ouvert.
+     *
+     * @return array<string, mixed>
+     */
+    private function lastOpenAiSession(): array
+    {
+        $request = Http::recorded(fn (Request $request) => str_ends_with($request->url(), '/realtime/calls'))->last()[0];
+
+        return json_decode(collect($request->data())->pluck('contents', 'name')['session'], true);
+    }
+
+    public function test_the_openai_voice_speed_follows_the_level_and_the_assessment_starts_slowly(): void
+    {
+        $this->gemini = 429;
+
+        // Évaluation : niveau inconnu, même pour un compte qui a déjà un niveau.
+        $assessed = User::factory()->level(Level::C1)->create();
+        $url = $this->actingAs($assessed)->postJson('/evaluation/connexion')->assertJsonPath('provider', 'openai')->json('call_url');
+        $this->actingAs($assessed)->postJson($url, ['sdp' => "v=0\r\no=- offre\r\n"])->assertOk();
+        $this->assertSame(0.9, $this->lastOpenAiSession()['audio']['output']['speed']);
+        $this->assertStringContainsString((string) config('teacher.pace.levels.unknown'), $this->lastOpenAiSession()['instructions']);
+
+        // Séance du jour C1 : vitesse naturelle.
+        $advanced = User::factory()->level(Level::C1)->create();
+        Subscription::factory()->for($advanced)->forPlan('essentiel')->create();
+        $this->buildProgram($advanced);
+        $url = $this->actingAs($advanced)->postJson('/seance/connexion')->assertJsonPath('provider', 'openai')->json('call_url');
+        $this->actingAs($advanced)->postJson($url, ['sdp' => "v=0\r\no=- offre\r\n"])->assertOk();
+        $this->assertEquals(1.0, $this->lastOpenAiSession()['audio']['output']['speed']);
+    }
+
+    public function test_the_speed_comes_from_the_configuration_and_stays_in_the_allowed_range(): void
+    {
+        $this->assertSame(0.85, OpenAiRealtime::speed('A1'));
+        $this->assertSame(0.92, OpenAiRealtime::speed('B1'));
+        $this->assertSame(0.9, OpenAiRealtime::speed('inconnu'), 'niveau inconnu : valeur de l\'évaluation');
+
+        config(['services.openai.realtime_speed' => ['unknown' => 0.1, 'A1' => 3]]);
+        $this->assertSame(0.25, OpenAiRealtime::speed('unknown'));
+        $this->assertSame(1.5, OpenAiRealtime::speed('A1'));
+
+        // Aucune vitesse réglée : rien n'est envoyé (vitesse normale d'OpenAI).
+        config(['services.openai.realtime_speed' => []]);
+        $this->assertNull(OpenAiRealtime::speed('A1'));
+        $this->assertArrayNotHasKey('speed', OpenAiRealtime::session(['systemInstruction' => ['parts' => [['text' => 'x']]]], 'A1')['audio']['output']);
+    }
+
+    public function test_gemini_gets_no_speed_setting_only_the_pace_instructions(): void
+    {
+        $user = $this->subscriber();
+        $this->actingAs($user)->postJson('/seance/connexion')->assertJsonPath('provider', 'gemini');
+        $setup = Http::recorded(fn (Request $request) => str_ends_with($request->url(), '/auth_tokens'))->first()[0]['bidiGenerateContentSetup'];
+
+        $this->assertSame(['voiceConfig'], array_keys($setup['generationConfig']['speechConfig']));
+        $this->assertStringNotContainsString('speed', json_encode($setup['generationConfig']));
+        $this->assertStringContainsString((string) config('teacher.pace.levels.A2'), $setup['systemInstruction']['parts'][0]['text']);
     }
 
     public function test_the_call_address_is_single_use_and_personal(): void

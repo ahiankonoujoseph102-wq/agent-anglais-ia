@@ -181,6 +181,10 @@ return [
         'tts_model' => env('OPENAI_TTS_MODEL') ?: 'gpt-4o-mini-tts',
         // Cedar : voix masculine, posée et chaleureuse, recommandée par OpenAI pour la meilleure qualité.
         'tts_voice' => env('OPENAI_TTS_VOICE') ?: 'cedar',
+        // Vitesse des messages vocaux (bienvenue, résultat de l'évaluation) : paramètre speed de /audio/speech
+        // (0,25 à 4, 1 = normal ; documentation lue le 21 octobre 2026). Messages en français : juste un peu plus
+        // calme que la normale. Changer cette valeur fait préparer de nouveaux fichiers (empreinte).
+        'tts_speed' => (float) (env('OPENAI_TTS_SPEED') ?: 0.95),
         // Pause entre deux demandes pendant la préparation, en secondes (limites bien plus larges que Gemini).
         'tts_spacing_seconds' => 1,
         // Environ 0,015 $ par minute de voix générée (tarif publié pour gpt-4o-mini-tts).
@@ -194,6 +198,19 @@ return [
         // Source : developers.openai.com/api/docs/models et /api/docs/guides/realtime-webrtc (octobre 2026).
         'realtime_model' => env('OPENAI_REALTIME_MODEL') ?: 'gpt-realtime-2.1-mini',
         'realtime_voice' => env('OPENAI_REALTIME_VOICE') ?: 'cedar',
+        // Vitesse de la voix selon le niveau de l'élève (audio.output.speed : 0,25 à 1,5, 1 = normal ; traitement de
+        // l'audio après coup, documentation lue le 21 octobre 2026). « unknown » : évaluation gratuite (niveau pas encore
+        // connu). Pas en dessous de 0,85 : la voix deviendrait traînante ; le vrai ralentissement vient des consignes
+        // (teacher.pace). Gemini Live n'a aucun réglage de vitesse.
+        'realtime_speed' => [
+            'unknown' => 0.9,
+            'A1' => 0.85,
+            'A2' => 0.85,
+            'B1' => 0.92,
+            'B2' => 0.95,
+            'C1' => 1.0,
+            'C2' => 1.0,
+        ],
         'realtime_transcription_model' => env('OPENAI_REALTIME_TRANSCRIPTION_MODEL') ?: 'gpt-4o-mini-transcribe',
         // Transcription de la voix de l'apprenant chez OpenAI (sous-titres « Vous » et texte des conversations) :
         // facturée à part, au tarif du modèle de transcription (gpt-4o-mini-transcribe : 0,003 $ par minute de voix
