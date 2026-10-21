@@ -112,8 +112,8 @@ return [
             'end_sensitivity' => env('GEMINI_END_OF_SPEECH_SENSITIVITY', 'END_SENSITIVITY_HIGH'),
             // Son gardé avant le début détecté de la parole, en millisecondes.
             'prefix_padding_ms' => (int) env('GEMINI_PREFIX_PADDING_MS', 300),
-            // Silence nécessaire pour considérer que l'apprenant a fini de parler.
-            'silence_duration_ms' => (int) env('GEMINI_SILENCE_DURATION_MS', 1200),
+            // Silence nécessaire pour considérer que l'apprenant a fini de parler : voir services.live.silence_ms
+            // (réglé selon le niveau, commun à Gemini et à OpenAI).
         ],
         // Tâches en texte (rédaction de messages, présentation du programme) :
         // modèle léger et économique, appelé depuis le serveur (API Interactions).
@@ -169,6 +169,15 @@ return [
         'switch_window_seconds' => 120,
         // Coût estimé par minute de séance, pour la page « Consommation » (Gemini : 0 en mode gratuit).
         'gemini_cost_per_minute' => (float) env('GEMINI_LIVE_COST_PER_MINUTE', 0),
+        // Silence attendu avant de considérer que l'élève a fini de parler, en millisecondes, selon le niveau (fixé au
+        // début de la séance, chez Gemini et chez OpenAI). Google recommande 500 à 800 (valeur interne d'environ 800 ;
+        // au-delà, la réponse arrive plus tard : ai.google.dev/gemini-api/docs/live-guide, lu le 21 octobre 2026).
+        // A1 et A2 : un peu plus, les débutants hésitent. « unknown » : évaluation gratuite.
+        'silence_ms' => [
+            'A1' => (int) env('LIVE_BEGINNER_SILENCE_MS', 1000),
+            'A2' => (int) env('LIVE_BEGINNER_SILENCE_MS', 1000),
+            'default' => (int) env('LIVE_SILENCE_MS', 800),
+        ],
     ],
 
     // OpenAI : secours de la synthèse vocale (API Audio, « speech »), du modèle texte (API Responses) et des
@@ -218,12 +227,13 @@ return [
         // Teacher Joe est transcrite avec sa réponse, sans modèle en plus. « false », « 0 », « off » ou « no » la coupent.
         'realtime_input_transcription' => ! in_array(env('OPENAI_REALTIME_INPUT_TRANSCRIPTION'), [false, '0', 'off', 'no'], true),
         // Réflexion du modèle (modèles « 2 » et suivants) : minimal, low, medium ; vide : réglage d'OpenAI.
-        'realtime_reasoning' => env('OPENAI_REALTIME_REASONING', 'low'),
-        // Détection de parole peu sensible, comme chez Gemini : 1,2 seconde de silence avant la réponse.
+        // « minimal » : la réponse la plus rapide (réflexion du modèle réduite au minimum).
+        'realtime_reasoning' => env('OPENAI_REALTIME_REASONING', 'minimal'),
+        // Détection de parole peu sensible, comme chez Gemini ; silence attendu : le même que chez Gemini (selon le
+        // niveau, services.live.silence_ms, repris de la configuration de la séance).
         'realtime_vad' => [
             'threshold' => (float) env('OPENAI_REALTIME_VAD_THRESHOLD', 0.6),
             'prefix_padding_ms' => (int) env('GEMINI_PREFIX_PADDING_MS', 300),
-            'silence_duration_ms' => (int) env('GEMINI_SILENCE_DURATION_MS', 1200),
         ],
         // Environ 0,04 $ par minute de séance avec gpt-realtime-2.1-mini (audio 10 $ / 20 $ le million de
         // jetons, contexte relu en cache, transcription comprise) : estimation pour « Consommation ».

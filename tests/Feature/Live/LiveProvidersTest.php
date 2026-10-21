@@ -200,8 +200,10 @@ class LiveProvidersTest extends TestCase
                 // Vitesse de la voix selon le niveau (A2 : 0,85), en plus des consignes de débit.
                 && $session['audio']['output']['speed'] === 0.85
                 && str_contains($session['instructions'], (string) config('teacher.pace.levels.A2'))
-                && $session['audio']['input']['turn_detection'] === ['type' => 'server_vad', 'threshold' => 0.6, 'prefix_padding_ms' => 300, 'silence_duration_ms' => 1200, 'create_response' => true, 'interrupt_response' => true]
+                && $session['audio']['input']['turn_detection'] === ['type' => 'server_vad', 'threshold' => 0.6, 'prefix_padding_ms' => 300, 'silence_duration_ms' => 1000, 'create_response' => true, 'interrupt_response' => true]
                 && $session['audio']['input']['transcription']['model'] === 'gpt-4o-mini-transcribe'
+                // Réponse la plus rapide : réflexion du modèle réduite au minimum.
+                && $session['reasoning'] === ['effort' => 'minimal']
                 // EXACTEMENT les consignes données à Gemini (personnage, leçon, fiche du site, situation).
                 && str_contains($session['instructions'], 'SITE GUIDE (in French)')
                 && $session['instructions'] === $gemini['systemInstruction']['parts'][0]['text']

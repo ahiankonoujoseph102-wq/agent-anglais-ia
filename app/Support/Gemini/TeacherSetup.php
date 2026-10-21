@@ -134,6 +134,7 @@ class TeacherSetup
                 ],
             ]],
             $resumeHandle,
+            self::paceLevel('lesson', $user),
         );
     }
 
@@ -155,6 +156,7 @@ class TeacherSetup
             ]),
             [],
             $resumeHandle,
+            self::paceLevel('course', $user),
         );
     }
 
@@ -200,6 +202,7 @@ class TeacherSetup
                 ],
             ]],
             $resumeHandle,
+            self::paceLevel('level_test', $user),
         );
     }
 
@@ -309,7 +312,7 @@ class TeacherSetup
      * @param  array<int, array<string, mixed>>  $functions
      * @return array<string, mixed>
      */
-    private static function setup(string $instructions, array $functions, ?string $resumeHandle): array
+    private static function setup(string $instructions, array $functions, ?string $resumeHandle, string $paceLevel = 'unknown'): array
     {
         // Pas de fonction d'expression (set_expression) : les appels de fonction de l'API Live sont
         // synchrones, le modèle s'arrête puis reprend la parole et répète sa dernière phrase. Les
@@ -330,7 +333,7 @@ class TeacherSetup
             'systemInstruction' => ['parts' => [['text' => $instructions]]],
             // Séance sans bilan (« Mes cours ») : aucune fonction déclarée.
             'tools' => $functions === [] ? null : [['functionDeclarations' => $functions]],
-            'realtimeInputConfig' => self::realtimeInputConfig(),
+            'realtimeInputConfig' => self::realtimeInputConfig($paceLevel),
             // Sous-titres : transcription de ce que dit l'apprenant et le professeur.
             'inputAudioTranscription' => (object) [],
             'outputAudioTranscription' => (object) [],
@@ -342,13 +345,23 @@ class TeacherSetup
     }
 
     /**
+     * Silence attendu avant de considérer que l'élève a fini de parler (services.live.silence_ms), selon le niveau.
+     */
+    public static function silenceMs(string $paceLevel): int
+    {
+        $silence = (array) config('services.live.silence_ms');
+
+        return max(300, (int) ($silence[$paceLevel] ?? $silence['default'] ?? 800));
+    }
+
+    /**
      * Détection de la parole de l'apprenant par Google (config services.gemini.activity_detection).
      * Le professeur peut toujours être interrompu par une vraie prise de parole
      * (bouton « Interrompre le professeur ») : le navigateur coupe le micro pendant sa voix.
      *
      * @return array<string, mixed>
      */
-    private static function realtimeInputConfig(): array
+    private static function realtimeInputConfig(string $paceLevel): array
     {
         $detection = config('services.gemini.activity_detection');
 
@@ -358,7 +371,7 @@ class TeacherSetup
                 'startOfSpeechSensitivity' => $detection['start_sensitivity'],
                 'endOfSpeechSensitivity' => $detection['end_sensitivity'],
                 'prefixPaddingMs' => (int) $detection['prefix_padding_ms'],
-                'silenceDurationMs' => (int) $detection['silence_duration_ms'],
+                'silenceDurationMs' => self::silenceMs($paceLevel),
             ],
             'activityHandling' => 'START_OF_ACTIVITY_INTERRUPTS',
         ];

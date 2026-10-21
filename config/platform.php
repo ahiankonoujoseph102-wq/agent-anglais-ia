@@ -284,7 +284,7 @@ return [
         // Fin de tour (public/js/turn-watch.js) : la voix de l'apprenant, mesurée dans le navigateur, est finie
         // depuis ce temps et le fournisseur n'a ni clos le tour ni commencé à répondre (bruit de fond, longue
         // réponse) : le navigateur signale lui-même la fin du tour (Gemini : audioStreamEnd ; OpenAI : silence).
-        'end_of_turn_seconds' => 3,
+        'end_of_turn_seconds' => 2,
         // Aucune voix du professeur ce temps après la fin de la parole : « Teacher Joe réfléchit, un instant… ».
         'no_answer_seconds' => 8,
         // Toujours rien : message et bouton « Relancer Teacher Joe ».

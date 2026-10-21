@@ -44,7 +44,7 @@ class LiveLayoutTest extends TestCase
         $this->assertStringContainsString('Relancer Teacher Joe', $html);
         $this->assertStringContainsString('data-turn-watch="', $html);
         // Délais du navigateur (config/platform.php → live) : fin de tour, « réfléchit… », solution.
-        $this->assertStringContainsString('"end_of_turn_seconds":3,"no_answer_seconds":8,"stuck_seconds":20,"voice_stuck_seconds":4', $html);
+        $this->assertStringContainsString('"end_of_turn_seconds":2,"no_answer_seconds":8,"stuck_seconds":20,"voice_stuck_seconds":4', $html);
 
         $script = file_get_contents(public_path('js/live-session.js'));
         $this->assertStringContainsString('réfléchit, un instant…', $script);
