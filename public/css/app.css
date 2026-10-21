@@ -406,6 +406,16 @@ main { overflow-x: clip; }
 .next-card-eyebrow { display: inline-block; margin-bottom: var(--space-2); padding: 4px 12px; border-radius: var(--radius-pill); background: var(--c-accent); color: var(--c-on-accent); font-size: var(--fs-sm); font-weight: var(--fw-heavy); }
 .next-card-note { display: flex; gap: var(--space-2); align-items: flex-start; margin: var(--space-4) 0 0 !important; padding: var(--space-3); border-radius: var(--radius); background: var(--c-on-dark-glow); border: 1px solid var(--c-on-dark-line); }
 .next-card-note .icon { flex: none; margin-top: 2px; color: var(--c-accent); }
+/* La suite d'une étape (<x-next-step>) : phrase, UN bouton orange d'au moins 56 pixels, actions secondaires discrètes. */
+.next-card.next-step-card { display: block; margin: 0 0 var(--space-5); scroll-margin-top: 84px; }
+.next-step-card h2 { margin: 0 0 var(--space-2); font-size: var(--fs-lg); }
+.next-step-card h2:focus { outline: none; }
+.next-step-text { margin: 0 0 var(--space-4); }
+.btn-next { min-height: 56px; }
+.next-step-more { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2) var(--space-4); margin-top: var(--space-3); font-size: var(--fs-sm); }
+.next-step-more .btn { background: transparent; color: var(--c-on-dark); box-shadow: inset 0 0 0 2px var(--c-on-dark-line); min-height: 48px; }
+.next-step-more .btn:hover, .next-step-more .btn:focus-visible { background: var(--c-on-dark-glow); color: var(--c-on-dark); }
+.next-step-more a:not(.btn) { display: inline-flex; align-items: center; min-height: 48px; font-weight: var(--fw-bold); }
 .stats.stats-main { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: var(--space-4); }
 .stats-main .stat { padding: var(--space-3); }
 /* Téléphone : deux colonnes étroites, l'icône au-dessus du libellé (le libellé ne se coupe plus mot par mot). */

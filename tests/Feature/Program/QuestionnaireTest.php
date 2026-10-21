@@ -42,7 +42,7 @@ class QuestionnaireTest extends TestCase
         foreach ($steps as $step => $answers) {
             $this->actingAs($user)
                 ->post(route('program.questionnaire.store', $step), array_merge($answers, $overrides[$step] ?? []))
-                ->assertRedirect($step < 4 ? route('program.questionnaire', $step + 1) : route('program.show'));
+                ->assertRedirect($step < 4 ? route('program.questionnaire', $step + 1) : route('program.show').'#suite');
         }
     }
 

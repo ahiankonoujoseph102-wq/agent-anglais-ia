@@ -19,7 +19,7 @@
                     Une fois vérifié, il reste valable jusqu'au {{ $provisional->ends_at->translatedFormat('j F Y') }}.
                 </div>
             </div>
-            <a class="btn btn-accent btn-block btn-lg" href="{{ route('lesson.show') }}"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
+            <a class="btn btn-accent btn-block btn-lg btn-next" href="{{ route('lesson.show') }}"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
             <a class="btn btn-light btn-block next-step" href="{{ route('dashboard') }}">Aller à mon espace</a>
         @elseif ($payment->status === PaymentStatus::Pending)
             <div class="status-head">
@@ -32,9 +32,11 @@
                     ({{ \Illuminate\Support\Str::lcfirst($hours) }}) et vous serez informé ici, ainsi que dans votre espace,
                     dès que votre formule est activée.
                 </p>
+                <p class="muted">En attendant, vous n'avez rien d'autre à faire : vous pouvez revenir à votre espace.</p>
+                <a class="btn btn-accent btn-block btn-lg btn-next" href="{{ route('dashboard') }}">Revenir à mon espace <x-icon name="arrow-right" /></a>
                 @if ($whatsappUrl)
-                    <p>Pour aller plus vite, vous pouvez aussi nous prévenir sur WhatsApp.</p>
-                    <a class="btn btn-block btn-whatsapp btn-lg" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Prévenir sur WhatsApp</a>
+                    <p class="next-step">Pour aller plus vite, vous pouvez aussi nous prévenir sur WhatsApp.</p>
+                    <a class="btn btn-block btn-whatsapp" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Prévenir sur WhatsApp</a>
                 @endif
             </div>
         @elseif ($payment->status === PaymentStatus::Validated)
@@ -52,7 +54,7 @@
                     @endif.
                 </div>
             </div>
-            <a class="btn btn-block btn-lg" href="{{ route('dashboard') }}">Aller à mon espace <x-icon name="arrow-right" /></a>
+            <a class="btn btn-accent btn-block btn-lg btn-next" href="{{ route('dashboard') }}">Aller à mon espace <x-icon name="arrow-right" /></a>
         @else
             <div class="status-head">
                 <span class="icon-bubble icon-bubble-danger"><x-icon name="alert" /></span>

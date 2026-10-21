@@ -37,7 +37,7 @@ class AssessmentResetTest extends TestCase
     {
         $html = $this->actingAs($user->fresh())->get('/espace')->assertOk()
             ->assertSee('Passez votre évaluation gratuite')
-            ->assertSee('class="btn btn-accent btn-lg btn-block"', false)
+            ->assertSee('class="btn btn-accent btn-lg btn-block btn-next"', false)
             ->assertSee('Pas encore évalué')
             ->assertDontSee('Choisir ma formule')
             ->getContent();
