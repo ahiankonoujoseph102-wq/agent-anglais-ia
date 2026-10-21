@@ -301,9 +301,9 @@ class WelcomeMessage
      */
     public static function path(string $text, SpeechProvider $provider, bool $opening = false): string
     {
-        $hash = substr(sha1(implode('|', [
-            $provider->model(), $provider->voice(), $text, config('teacher.welcome.style'),
-        ])), 0, 20);
+        $hash = substr(sha1(implode('|', array_filter([
+            $provider->model(), $provider->voice(), $text, config('teacher.welcome.style'), $provider->settings(),
+        ], fn ($part) => $part !== ''))), 0, 20);
 
         return self::DIRECTORY.'/'.($opening ? self::OPENINGS.'/' : '').$provider->name().'-'.$provider->voice().'-'.$hash.'.wav';
     }

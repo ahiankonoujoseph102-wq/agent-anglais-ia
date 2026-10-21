@@ -48,9 +48,9 @@ class LevelMessage
      */
     private static function legacyName(Level $level, SpeechProvider $provider): string
     {
-        $hash = substr(sha1(implode('|', [
-            $provider->model(), $provider->voice(), self::text($level), config('teacher.level_messages.style'),
-        ])), 0, 16);
+        $hash = substr(sha1(implode('|', array_filter([
+            $provider->model(), $provider->voice(), self::text($level), config('teacher.level_messages.style'), $provider->settings(),
+        ], fn ($part) => $part !== ''))), 0, 16);
 
         return $provider->voice().'-'.$hash.'.wav';
     }

@@ -41,4 +41,13 @@ abstract class SpeechProvider
      * @throws SpeechFailed
      */
     abstract public function synthesize(string $text, string $style, string $label = 'Synthèse vocale', ?int $timeout = null): string;
+
+    /**
+     * Réglages de la voix qui changent l'audio (vitesse…), ajoutés à l'empreinte des fichiers : un réglage modifié
+     * fait préparer de nouveaux fichiers. Vide : aucun réglage (l'empreinte reste celle d'avant).
+     */
+    public function settings(): string
+    {
+        return '';
+    }
 }

@@ -221,7 +221,7 @@ return [
     // à la main, jamais un nombre de leçons, aucune fonction qui n'existe pas. Changer un texte change le
     // nom de son fichier audio : l'ancien n'est plus jamais joué (préparer le nouveau dans « Diagnostic de la voix »).
     'welcome' => [
-        'style' => 'a warm, joyful and professional male teacher welcoming a new learner, speaking French clearly at a calm, natural pace, with a smile in the voice; the few English words are pronounced in clear English',
+        'style' => 'a warm, joyful and professional male teacher welcoming a new learner, speaking French clearly and calmly, never fast, with a short pause between sentences and a smile in the voice; the few English words are pronounced slowly and clearly',
         // Ouverture propre à l'apprenant : :greeting (Bonjour ou Bonsoir), :english (Good morning ou Good evening), :name (prénom).
         'opening' => ':greeting :name ! :english, :name !',
         'paragraphs' => [
@@ -243,7 +243,7 @@ return [
     // privé, joué seulement quand l'apprenant touche « Écouter :teacher ». Aussi affiché en texte.
     // Aucune promesse de résultat garanti, aucun chiffre.
     'level_messages' => [
-        'style' => 'a warm, enthusiastic and reassuring male teacher speaking French clearly, with a smile in the voice, at a natural pace',
+        'style' => 'a warm, enthusiastic and reassuring male teacher speaking French clearly and calmly, never fast, with a smile in the voice; the few English words are pronounced slowly and clearly',
         'texts' => [
             'A1' => 'Bravo, vous avez fait le premier pas ! Votre niveau est A1, débutant. C\'est un très bon point de départ. Ensemble, nous allons apprendre les phrases utiles de tous les jours : vous présenter, demander votre chemin, faire vos achats. Chaque jour, vous parlez, et je corrige vos erreurs avec vous. Choisissez votre formule juste en dessous : je vous attends pour notre première séance !',
             'A2' => 'Bravo ! Votre niveau est A2, élémentaire. Vous avez déjà de bonnes bases : vous comprenez des phrases simples et vous savez parler de vous. Maintenant, nous allons gagner en assurance : parler plus longtemps, avec moins d\'hésitations, au marché, au travail ou avec un visiteur anglophone. Choisissez votre formule juste en dessous, et commençons dès aujourd\'hui !',

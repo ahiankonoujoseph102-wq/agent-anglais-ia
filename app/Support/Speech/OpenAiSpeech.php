@@ -75,6 +75,19 @@ class OpenAiSpeech extends SpeechProvider
         return $wav;
     }
 
+    /** Vitesse de la voix des messages (services.openai.tts_speed, 0,25 à 4, 1 = normal), ou null. */
+    public function speed(): ?float
+    {
+        $speed = config('services.openai.tts_speed');
+
+        return is_numeric($speed) ? round(max(0.25, min(4.0, (float) $speed)), 2) : null;
+    }
+
+    public function settings(): string
+    {
+        return $this->speed() !== null ? 'speed='.$this->speed() : '';
+    }
+
     private function request(string $text, string $style, int $timeout): string
     {
         $key = config('services.openai.key');
@@ -86,6 +99,11 @@ class OpenAiSpeech extends SpeechProvider
         $started = hrtime(true);
         $elapsed = fn () => (int) round((hrtime(true) - $started) / 1e6);
         $body = ['model' => $this->model(), 'voice' => $this->voice(), 'input' => $text, 'response_format' => 'pcm'];
+
+        // Débit calme des messages : réglage de vitesse d'OpenAI, en plus du ton (instructions).
+        if (($speed = $this->speed()) !== null) {
+            $body['speed'] = $speed;
+        }
 
         // Les consignes de ton ne sont acceptées que par les modèles « gpt-… » (pas par tts-1).
         if ($style !== '' && str_starts_with($this->model(), 'gpt-')) {

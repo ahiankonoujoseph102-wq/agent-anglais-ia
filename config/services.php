@@ -181,6 +181,10 @@ return [
         'tts_model' => env('OPENAI_TTS_MODEL') ?: 'gpt-4o-mini-tts',
         // Cedar : voix masculine, posée et chaleureuse, recommandée par OpenAI pour la meilleure qualité.
         'tts_voice' => env('OPENAI_TTS_VOICE') ?: 'cedar',
+        // Vitesse des messages vocaux (bienvenue, résultat de l'évaluation) : paramètre speed de /audio/speech
+        // (0,25 à 4, 1 = normal ; documentation lue le 21 octobre 2026). Messages en français : juste un peu plus
+        // calme que la normale. Changer cette valeur fait préparer de nouveaux fichiers (empreinte).
+        'tts_speed' => (float) (env('OPENAI_TTS_SPEED') ?: 0.95),
         // Pause entre deux demandes pendant la préparation, en secondes (limites bien plus larges que Gemini).
         'tts_spacing_seconds' => 1,
         // Environ 0,015 $ par minute de voix générée (tarif publié pour gpt-4o-mini-tts).
