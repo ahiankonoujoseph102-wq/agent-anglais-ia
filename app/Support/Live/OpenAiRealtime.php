@@ -2,6 +2,7 @@
 
 namespace App\Support\Live;
 
+use App\Support\Gemini\TeacherSetup;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -68,7 +69,8 @@ class OpenAiRealtime
                         'type' => 'server_vad',
                         'threshold' => (float) $vad['threshold'],
                         'prefix_padding_ms' => (int) $vad['prefix_padding_ms'],
-                        'silence_duration_ms' => (int) $vad['silence_duration_ms'],
+                        // Même silence que chez Gemini (selon le niveau, TeacherSetup::silenceMs).
+                        'silence_duration_ms' => (int) ($setup['realtimeInputConfig']['automaticActivityDetection']['silenceDurationMs'] ?? TeacherSetup::silenceMs($paceLevel)),
                         'create_response' => true,
                         'interrupt_response' => true,
                     ],

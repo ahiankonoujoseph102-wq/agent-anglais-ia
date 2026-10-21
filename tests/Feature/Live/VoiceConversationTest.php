@@ -37,7 +37,7 @@ class VoiceConversationTest extends TestCase
                     'startOfSpeechSensitivity' => 'START_SENSITIVITY_LOW',
                     'endOfSpeechSensitivity' => 'END_SENSITIVITY_HIGH',
                     'prefixPaddingMs' => 300,
-                    'silenceDurationMs' => 1200,
+                    'silenceDurationMs' => 800,
                 ],
                 'activityHandling' => 'START_OF_ACTIVITY_INTERRUPTS',
             ];
@@ -52,7 +52,7 @@ class VoiceConversationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('echo_guard_ms', 450)
             ->assertJsonPath('pause_max_seconds', 90)
-            ->assertJsonPath('setup.realtimeInputConfig.automaticActivityDetection.silenceDurationMs', 1200);
+            ->assertJsonPath('setup.realtimeInputConfig.automaticActivityDetection.silenceDurationMs', 800);
 
         $this->assertStringContainsString('Do not greet them again', $response->json('cues.pause_resume'));
         $this->assertStringContainsString('Do not greet the learner again', $response->json('cues.resume'));
@@ -88,17 +88,25 @@ class VoiceConversationTest extends TestCase
         $this->assertStringContainsString('id="mic-select"', $html);
         $this->assertStringContainsString('Nous ne vous entendons pas. Vérifiez votre micro. Si des écouteurs ou une enceinte Bluetooth sont connectés, portez-les ou déconnectez-les.', $html);
         $this->assertStringContainsString('js/mic-input.js', $html);
-        $this->assertStringContainsString("data-audio='{\"echo_cancellation\":false,\"voice_gain\":2.5,\"silent_mic_seconds\":8,\"end_of_turn_seconds\":3,\"no_answer_seconds\":8,\"stuck_seconds\":20,\"voice_stuck_seconds\":4}'", $html);
+        $this->assertStringContainsString("data-audio='{\"echo_cancellation\":false,\"echo_cancellation_android\":false,\"voice_gain\":2.5,\"silent_mic_seconds\":8,\"end_of_turn_seconds\":2,\"instant_seconds\":2,\"no_answer_seconds\":8,\"stuck_seconds\":20,\"voice_stuck_seconds\":4,\"messages\":{", $html);
     }
 
     public function test_voice_gain_and_echo_cancellation_defaults(): void
     {
-        $this->assertSame(2.0, config('platform.live.voice_gain'));
+        $this->assertSame(2.5, config('platform.live.voice_gain'));
         $this->assertTrue(config('platform.live.echo_cancellation'));
+        $this->assertFalse(config('platform.live.echo_cancellation_android'), 'sur Android : jamais le mode appel par défaut');
 
         $config = file_get_contents(config_path('platform.php'));
+        $this->assertStringContainsString("env('LIVE_VOICE_GAIN')", $config);
         $this->assertStringContainsString("env('GEMINI_VOICE_GAIN')", $config);
         $this->assertStringContainsString("env('LIVE_ECHO_CANCELLATION')", $config);
+        $this->assertStringContainsString("env('LIVE_ECHO_CANCELLATION_ANDROID')", $config);
+
+        // Le navigateur choisit le réglage d'Android d'après l'appareil.
+        $script = file_get_contents(public_path('js/live-session.js'));
+        $this->assertStringContainsString('/Android/i.test(navigator.userAgent', $script);
+        $this->assertStringContainsString('echoCancellation: ECHO_CANCELLATION', $script);
     }
 
     public function test_empty_or_explicit_environment_values_are_read_safely(): void
@@ -118,19 +126,26 @@ class VoiceConversationTest extends TestCase
 
         try {
             // Variables vides (comme dans .env.example) : valeurs par défaut, jamais une voix muette.
-            $live = $read(['GEMINI_VOICE_GAIN' => '', 'LIVE_ECHO_CANCELLATION' => '']);
-            $this->assertSame(2.0, $live['voice_gain']);
+            $live = $read(['LIVE_VOICE_GAIN' => '', 'GEMINI_VOICE_GAIN' => '', 'LIVE_ECHO_CANCELLATION' => '', 'LIVE_ECHO_CANCELLATION_ANDROID' => '']);
+            $this->assertSame(2.5, $live['voice_gain']);
             $this->assertTrue($live['echo_cancellation']);
+            $this->assertFalse($live['echo_cancellation_android']);
 
-            $live = $read(['GEMINI_VOICE_GAIN' => '3', 'LIVE_ECHO_CANCELLATION' => 'false']);
+            // L'ancienne variable est encore lue ; la nouvelle l'emporte.
+            $live = $read(['GEMINI_VOICE_GAIN' => '3', 'LIVE_ECHO_CANCELLATION' => 'false', 'LIVE_ECHO_CANCELLATION_ANDROID' => 'true']);
             $this->assertSame(3.0, $live['voice_gain']);
             $this->assertFalse($live['echo_cancellation']);
+            $this->assertTrue($live['echo_cancellation_android']);
 
-            $live = $read(['GEMINI_VOICE_GAIN' => '0', 'LIVE_ECHO_CANCELLATION' => 'true']);
-            $this->assertSame(2.0, $live['voice_gain']);
+            $live = $read(['LIVE_VOICE_GAIN' => '1.5', 'GEMINI_VOICE_GAIN' => '3']);
+            $this->assertSame(1.5, $live['voice_gain']);
+
+            $live = $read(['LIVE_VOICE_GAIN' => '0', 'GEMINI_VOICE_GAIN' => '0', 'LIVE_ECHO_CANCELLATION' => 'true', 'LIVE_ECHO_CANCELLATION_ANDROID' => 'no']);
+            $this->assertSame(2.5, $live['voice_gain']);
             $this->assertTrue($live['echo_cancellation']);
+            $this->assertFalse($live['echo_cancellation_android']);
         } finally {
-            $read(['GEMINI_VOICE_GAIN' => null, 'LIVE_ECHO_CANCELLATION' => null]);
+            $read(['LIVE_VOICE_GAIN' => null, 'GEMINI_VOICE_GAIN' => null, 'LIVE_ECHO_CANCELLATION' => null, 'LIVE_ECHO_CANCELLATION_ANDROID' => null]);
         }
     }
 }

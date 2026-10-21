@@ -12,6 +12,7 @@ use App\Support\Alerts\AdminAlerts;
 use App\Support\Alerts\AlertBuilder;
 use App\Support\Duration;
 use App\Support\Gemini\ProofReader;
+use App\Support\Gemini\WelcomeMessage;
 use App\Support\Money;
 use App\Support\PaymentChecks;
 use App\Support\PaymentCountry;
@@ -159,8 +160,9 @@ class PaymentController extends Controller
             $payment = $this->createPayment($user, $plan, $country, $operator, $path, $checks->asDuplicate(), $analysis, null);
         }
 
-        if ($payment->checksPassed()) {
-            $payment->grantProvisional();
+        if ($payment->checksPassed() && $payment->grantProvisional() !== null) {
+            // Accès ouvert : la salutation de bienvenue (son prénom) se prépare après la réponse.
+            WelcomeMessage::queueOpening($user);
         }
 
         // Alerte de l'administrateur (notification et e-mail), envoyée APRÈS la réponse : l'apprenant n'attend rien.

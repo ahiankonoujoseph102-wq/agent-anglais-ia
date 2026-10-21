@@ -25,7 +25,7 @@ class RealtimeCallController extends Controller
         $data = Cache::pull('live-call:'.$ticket);
 
         if (! is_array($data) || (int) $data['user_id'] !== (int) $request->user()->id) {
-            return response()->json(['message' => 'Cette connexion a expiré. Touchez « Se reconnecter ».'], 410);
+            return response()->json(['message' => 'Cette connexion a expiré. Touchez « Reprendre la séance ».'], 410);
         }
 
         $conversation = $data['class'] !== null ? $data['class']::query()->find($data['id']) : null;

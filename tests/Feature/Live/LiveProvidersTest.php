@@ -19,6 +19,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Tests\Concerns\BuildsPrograms;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\TestCase;
 
 /**
@@ -28,7 +29,7 @@ use Tests\TestCase;
  */
 class LiveProvidersTest extends TestCase
 {
-    use BuildsPrograms, RefreshDatabase;
+    use BuildsPrograms, IgnoresSignalSilence, RefreshDatabase;
 
     private const GEMINI_KEY = 'cle-gemini-secrete';
 
@@ -200,8 +201,10 @@ class LiveProvidersTest extends TestCase
                 // Vitesse de la voix selon le niveau (A2 : 0,85), en plus des consignes de débit.
                 && $session['audio']['output']['speed'] === 0.85
                 && str_contains($session['instructions'], (string) config('teacher.pace.levels.A2'))
-                && $session['audio']['input']['turn_detection'] === ['type' => 'server_vad', 'threshold' => 0.6, 'prefix_padding_ms' => 300, 'silence_duration_ms' => 1200, 'create_response' => true, 'interrupt_response' => true]
+                && $session['audio']['input']['turn_detection'] === ['type' => 'server_vad', 'threshold' => 0.6, 'prefix_padding_ms' => 300, 'silence_duration_ms' => 1000, 'create_response' => true, 'interrupt_response' => true]
                 && $session['audio']['input']['transcription']['model'] === 'gpt-4o-mini-transcribe'
+                // Réponse la plus rapide : réflexion du modèle réduite au minimum.
+                && $session['reasoning'] === ['effort' => 'minimal']
                 // EXACTEMENT les consignes données à Gemini (personnage, leçon, fiche du site, situation).
                 && str_contains($session['instructions'], 'SITE GUIDE (in French)')
                 && $session['instructions'] === $gemini['systemInstruction']['parts'][0]['text']
@@ -333,18 +336,50 @@ class LiveProvidersTest extends TestCase
         $this->actingAs($other)->postJson('/seance/connexion')->assertJsonPath('provider', 'openai')->assertJsonPath('resumed', true);
     }
 
-    public function test_gemini_refused_during_a_reconnection_ends_cleanly_with_the_time_used_counted(): void
+    public function test_gemini_refusing_a_reconnection_continues_the_same_lesson_at_openai(): void
     {
         $user = $this->subscriber();
         $this->actingAs($user)->postJson('/seance/connexion')->assertJsonPath('provider', 'gemini');
         $this->travel(4)->minutes();
         $this->gemini = 429;
 
+        // Refus de reconnexion chez Gemini (pas une simple lenteur) : la MÊME séance continue chez OpenAI.
+        $this->actingAs($user)->postJson('/seance/connexion', ['handle' => 'reprise-gemini'])
+            ->assertOk()
+            ->assertJsonPath('provider', 'openai')
+            ->assertJsonPath('resumed', true)
+            ->assertJsonPath('remaining_seconds', 660);
+
+        $lesson = $this->lesson($user);
+        $this->assertSame('openai', $lesson->live_provider);
+        $this->assertSame(1, Lesson::query()->count(), 'la même séance continue, rien n\'est compté deux fois');
+        $this->assertSame(240, $lesson->elapsedUntil(now()));
+    }
+
+    public function test_every_provider_refusing_a_reconnection_ends_cleanly_with_the_time_used_counted(): void
+    {
+        $user = $this->subscriber();
+        $this->actingAs($user)->postJson('/seance/connexion')->assertJsonPath('provider', 'gemini');
+        $this->travel(4)->minutes();
+        $this->gemini = 429;
+        config(['services.openai.key' => null]);
+
         $this->actingAs($user)->postJson('/seance/connexion')->assertStatus(503);
 
-        $this->assertSame(0, $this->sentToOpenAi(), 'jamais de changement de fournisseur en cours de séance');
+        $this->assertSame(0, $this->sentToOpenAi());
         $this->actingAs($user)->postJson('/seance/fin')->assertOk();
         $this->assertSame(240, $this->lesson($user)->used_seconds);
+    }
+
+    public function test_a_slow_network_never_changes_the_provider_in_the_middle_of_a_lesson(): void
+    {
+        $user = $this->subscriber();
+        $this->actingAs($user)->postJson('/seance/connexion')->assertJsonPath('provider', 'gemini');
+        $this->travel(4)->minutes();
+
+        // Le navigateur n'a pas pu joindre Gemini (réseau lent), mais Gemini accepte : on reste chez Gemini.
+        $this->actingAs($user)->postJson('/seance/connexion', ['failed' => 'gemini'])->assertJsonPath('provider', 'gemini');
+        $this->assertSame(0, $this->sentToOpenAi());
     }
 
     public function test_a_reconnection_at_openai_opens_a_new_call_and_hangs_up_the_old_one(): void

@@ -33,6 +33,8 @@ class CourseSession extends Model
             'status' => LessonStatus::class,
             'last_seen_at' => 'datetime',
             'token_expires_at' => 'datetime',
+            'disconnected_at' => 'datetime',
+            'paused_seconds' => 'integer',
             'connections' => 'integer',
             'input_tokens' => 'integer',
             'output_tokens' => 'integer',

@@ -5,11 +5,12 @@ namespace Tests\Feature\Course;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\HasCourses;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\TestCase;
 
 class CourseAdminTest extends TestCase
 {
-    use HasCourses, RefreshDatabase;
+    use HasCourses, IgnoresSignalSilence, RefreshDatabase;
 
     public function test_the_learner_sheet_shows_the_lessons_read_only(): void
     {

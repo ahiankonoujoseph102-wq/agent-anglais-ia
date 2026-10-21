@@ -159,7 +159,8 @@ class VoicePreparationTest extends TestCase
         $this->assertSame(SpeechFailed::TIMEOUT, $failure['kind']);
         $this->assertSame('Délai d\'attente dépassé', $failure['reason']);
         $this->assertNotNull($failure['duration_ms']);
-        $this->assertStringStartsWith('Bienvenue, paragraphe', $failure['label']);
+        // Les messages du résultat de l'évaluation sont préparés d'abord.
+        $this->assertStringStartsWith('Résultat de l\'évaluation, niveau', $failure['label']);
     }
 
     public function test_a_storage_failure_stops_the_preparation(): void
@@ -184,8 +185,8 @@ class VoicePreparationTest extends TestCase
 
         $this->assertSame(3, $result['generated']);
         $this->assertSame('budget', $result['stopped']);
-        // Aucun message n'est encore complet : tous restent à finir.
-        $this->assertStringContainsString('Il en reste '.self::messages().' : le temps accordé est écoulé', SpeechPreparer::summary($result));
+        // Les messages du résultat (un seul morceau) d'abord : 3 sont complets, les autres restent à finir.
+        $this->assertStringContainsString('Il en reste '.(self::messages() - 3).' : le temps accordé est écoulé', SpeechPreparer::summary($result));
     }
 
     public function test_raw_pcm_audio_is_wrapped_in_a_wav_header(): void

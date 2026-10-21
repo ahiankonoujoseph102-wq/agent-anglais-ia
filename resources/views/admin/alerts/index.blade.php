@@ -84,11 +84,25 @@
             @endunless
         </p>
         <p>
-            Aujourd'hui : <strong>{{ $mailQuota['used'] }} {{ $mailQuota['used'] > 1 ? 'e-mails' : 'e-mail' }} sur {{ $mailQuota['limit'] }}</strong> (documents et alertes ensemble) ·
+            Aujourd'hui : <strong>{{ $mailQuota['used'] }} {{ $mailQuota['used'] > 1 ? 'e-mails' : 'e-mail' }} sur {{ $mailQuota['limit'] }}</strong> (documents, invitations et alertes ensemble) ·
             documents envoyés : {{ $reviewMail['sent'] }}, en échec : {{ $reviewMail['failed'] }}, non envoyés (limite) : {{ $reviewMail['quota'] }}.
         </p>
         <p class="muted small">Au plus {{ $mailQuota['reviews'] }} e-mails de documents par jour : les {{ $mailQuota['limit'] - $mailQuota['reviews'] }} derniers restent gardés pour vos alertes. Au-delà, le document reste téléchargeable et vous êtes prévenu une fois dans la journée.</p>
     </section>
+
+    @if ($invitations['total'] > 0)
+        <section class="card" id="invitations">
+            <h2>Invitations à refaire l'évaluation</h2>
+            <p>
+                Envoyées : <strong>{{ $invitations['sent'] }}</strong> ·
+                restantes : <strong>{{ $invitations['pending'] }}</strong> ·
+                en échec : {{ $invitations['failed'] }} ·
+                sans adresse e-mail : {{ $invitations['no_email'] }} ·
+                aujourd'hui : {{ $invitations['today'] }}
+            </p>
+            <p class="muted small">Après une remise à zéro (app:reset-learners --notify). Envoyées chaque heure, dans la même marge que les documents de révision : les e-mails gardés pour vos alertes ne sont jamais pris. Les comptes sans adresse e-mail ne reçoivent rien.</p>
+        </section>
+    @endif
 
     <section class="card" id="journal">
         <h2>Dernières alertes</h2>

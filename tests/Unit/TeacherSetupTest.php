@@ -140,7 +140,7 @@ class TeacherSetupTest extends TestCase
     {
         config([
             'services.gemini.activity_detection.prefix_padding_ms' => 250,
-            'services.gemini.activity_detection.silence_duration_ms' => 1500,
+            'services.live.silence_ms' => ['A1' => 1100, 'A2' => 1100, 'default' => 1500],
         ]);
 
         foreach ([
@@ -156,6 +156,13 @@ class TeacherSetupTest extends TestCase
             $this->assertSame(250, $detection['prefixPaddingMs']);
             $this->assertSame(1500, $detection['silenceDurationMs']);
         }
+
+        // Débutant (A1, A2) : un peu plus de silence avant de répondre ; jamais pour l'évaluation (niveau inconnu).
+        $beginner = new User(['name' => 'Afi']);
+        $beginner->level = Level::A1;
+        $this->assertSame(1100, TeacherSetup::lesson($beginner, 15)['realtimeInputConfig']['automaticActivityDetection']['silenceDurationMs']);
+        $this->assertSame(1100, TeacherSetup::course($beginner, 10, 'Lesson')['realtimeInputConfig']['automaticActivityDetection']['silenceDurationMs']);
+        $this->assertSame(1500, TeacherSetup::assessment($beginner, 5)['realtimeInputConfig']['automaticActivityDetection']['silenceDurationMs']);
     }
 
     public function test_teacher_greets_once_asks_one_question_and_waits(): void

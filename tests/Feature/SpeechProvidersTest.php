@@ -14,6 +14,7 @@ use App\Support\Gemini\VoiceSampler;
 use App\Support\Gemini\WelcomeMessage;
 use App\Support\PrivateStorage;
 use App\Support\Speech\GeminiSpeech;
+use App\Support\Speech\Loudness;
 use App\Support\Speech\OpenAiSpeech;
 use App\Support\Speech\SpeechProviders;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -72,9 +73,10 @@ class SpeechProvidersTest extends TestCase
         ]];
     }
 
+    /** Voix d'OpenAI telle qu'elle est gardée : enveloppée en WAV, crête à −1 décibel (Loudness). */
     private static function openAiWav(): string
     {
-        return (string) VoiceSampler::toWav(self::OPENAI_PCM, 'audio/pcm;rate=24000');
+        return Loudness::normalize((string) VoiceSampler::toWav(self::OPENAI_PCM, 'audio/pcm;rate=24000'));
     }
 
     /**
@@ -176,10 +178,15 @@ class SpeechProvidersTest extends TestCase
 
     public function test_a_message_started_at_gemini_is_prepared_entirely_at_openai_never_mixed(): void
     {
-        // Gemini dit 3 paragraphes du premier message, puis atteint sa limite du jour.
-        $this->fake(Http::sequence()
-            ->push(self::geminiSpeech())->push(self::geminiSpeech())->push(self::geminiSpeech())
-            ->whenEmpty(Http::response(self::geminiDailyQuota(), 429)));
+        // Gemini dit les messages du résultat (préparés d'abord) et 3 paragraphes du premier message de bienvenue,
+        // puis atteint sa limite du jour.
+        $sequence = Http::sequence();
+
+        for ($i = 0; $i < count(LevelMessage::all()) + 3; $i++) {
+            $sequence->push(self::geminiSpeech());
+        }
+
+        $this->fake($sequence->whenEmpty(Http::response(self::geminiDailyQuota(), 429)));
 
         app(SpeechPreparer::class)->run(3600);
 
@@ -187,7 +194,7 @@ class SpeechProvidersTest extends TestCase
         $this->assertSame(3, $first->readyCount(app(GeminiSpeech::class)));
         // Le message entier (8 paragraphes, pas seulement les 5 manquants) est préparé chez OpenAI.
         $this->assertTrue($first->isCompleteAt(new OpenAiSpeech));
-        $this->assertSame(self::pieces(), $this->sentTo('openai'));
+        $this->assertSame(count(WelcomeMessage::commonParagraphs()), $this->sentTo('openai'));
         $this->assertSame('openai', $first->provider()->name());
 
         // À l'écoute : salutation ET paragraphes avec la seule voix d'OpenAI.
@@ -354,7 +361,8 @@ class SpeechProvidersTest extends TestCase
 
         $this->assertSame(1, SpeechSynthesis::query()->where('provider', 'gemini')->count());
         $openai = SpeechSynthesis::query()->where('provider', 'openai');
-        $this->assertSame(self::pieces(), (clone $openai)->count());
+        // Le premier message préparé (résultat de l'évaluation, un seul morceau) est complet chez Gemini.
+        $this->assertSame(self::pieces() - 1, (clone $openai)->count());
         $row = $openai->first();
         $this->assertSame(3000, $row->audio_milliseconds);
         $this->assertSame('cedar', $row->voice);
@@ -363,7 +371,7 @@ class SpeechProvidersTest extends TestCase
 
         $this->actingAs(User::factory()->admin()->create())->get(route('admin.usage.index'))->assertOk()
             ->assertSee('Synthèse vocale des messages')
-            ->assertSeeInOrder(['Gemini (Google)', '1', 'OpenAI', (string) self::pieces()]);
+            ->assertSeeInOrder(['Gemini (Google)', '1', 'OpenAI', (string) (self::pieces() - 1)]);
     }
 
     /* ---------- Anciens fichiers et diagnostic ---------- */

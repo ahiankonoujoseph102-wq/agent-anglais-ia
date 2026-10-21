@@ -28,6 +28,7 @@ class SiteGuide
             ':platform' => (string) config('platform.name'),
             ':teacher' => (string) config('avatar.model.name'),
             ':assessment' => Duration::format((int) config('platform.assessment.max_minutes') * 60),
+            ':disconnect_rule' => (string) config('platform.live.disconnect_rule'),
             // Après le verdict : mini-leçon découverte, questions et conclusion ; durée totale de l'évaluation.
             ':after_verdict' => Duration::format(Assessment::afterVerdictSeconds()),
             ':assessment_total' => Duration::format(Assessment::totalMinutes() * 60),

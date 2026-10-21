@@ -101,6 +101,40 @@ class LevelMessage
     }
 
     /**
+     * Le message de ce niveau est-il prêt à être joué tout de suite (fichier gardé chez son fournisseur) ?
+     */
+    public static function ready(Level $level): bool
+    {
+        try {
+            $message = self::message($level);
+            $provider = $message->provider();
+
+            return $provider !== null && $message->isCompleteAt($provider);
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Fait préparer le message de ce niveau APRÈS la réponse (verdict de l'évaluation, page de résultat), s'il
+     * manque : l'apprenant le trouve prêt. Jamais d'erreur visible.
+     */
+    public static function queue(Level $level): void
+    {
+        if (self::ready($level) || SpeechProviders::available() === []) {
+            return;
+        }
+
+        defer(static function () use ($level) {
+            try {
+                app(self::class)->get($level);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        });
+    }
+
+    /**
      * Renomme les messages de Gemini gardés avant le choix du fournisseur : ils ne sont pas redemandés.
      */
     public static function adoptLegacyFiles(): int

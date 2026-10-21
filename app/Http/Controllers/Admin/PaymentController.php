@@ -6,6 +6,7 @@ use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\RejectPaymentRequest;
 use App\Models\Payment;
+use App\Support\Gemini\WelcomeMessage;
 use App\Support\Money;
 use App\Support\PaymentCountry;
 use Illuminate\Database\Eloquent\Builder;
@@ -91,6 +92,8 @@ class PaymentController extends Controller
     {
         try {
             $subscription = $payment->approve($request->user());
+            // Accès ouvert : la salutation de bienvenue (son prénom) se prépare après la réponse.
+            WelcomeMessage::queueOpening($payment->user);
         } catch (LogicException $e) {
             return back()->with('status', $e->getMessage());
         }

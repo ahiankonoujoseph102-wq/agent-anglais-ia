@@ -266,31 +266,76 @@ return [
     'live' => [
         'heartbeat_seconds' => 15,
         'stale_after_seconds' => 60,
+        // Coupure de connexion : le temps de séance est mis en pause (IsLiveConversation). Une coupure compte sur un
+        // signal explicite du navigateur (connexion avec le professeur perdue), ou au-delà de ce temps sans aucun
+        // signal ; au plus « disconnect_pause_max_seconds » de coupure par séance, ensuite le temps compte de nouveau
+        // et la séance se termine si le navigateur ne revient pas. Le bouton « Pause » de l'élève n'est PAS une
+        // coupure : le temps continue (pause_max_seconds).
+        'disconnect_after_seconds' => 30,
+        // LA phrase de cette règle, reprise telle quelle partout (écran de séance, conseils, foire aux questions,
+        // fiche du site ; le message vocal de bienvenue la dit aussi) : tests/Feature/DisconnectionRuleTextTest.php.
+        'disconnect_rule' => 'Si la connexion est coupée, reprenez votre séance dès que possible : le temps de la coupure est mis en pause, vous ne perdez pas de minutes.',
+        'disconnect_pause_max_seconds' => 600,
         // Demi-duplex : le micro n'est pas envoyé pendant la voix du professeur, ni
         // pendant ce délai après (sa voix ne doit pas revenir par le haut-parleur).
         'echo_guard_ms' => 400,
         // Le temps continue pendant une pause ; au-delà de cette durée, la conversation se termine.
         'pause_max_seconds' => 120,
         // Volume de la voix du professeur (1 = tel quel). Un limiteur empêche toute saturation.
-        // Variable absente, vide ou nulle : 2 (une voix muette n'est jamais voulue).
-        'voice_gain' => (float) env('GEMINI_VOICE_GAIN') ?: 2.0,
-        // Annulation d'écho du navigateur. Sur Android, Chrome passe alors le téléphone en mode
-        // « communication » : la voix suit le volume d'appel, souvent plus bas. Le demi-duplex
-        // empêche déjà l'écho ; à couper (false) seulement après un essai sans écho sur téléphone.
-        // Seules les valeurs « false », « 0 », « off » ou « no » la coupent ; absente ou vide : activée.
+        // LIVE_VOICE_GAIN (l'ancienne GEMINI_VOICE_GAIN est encore lue) ; absente, vide ou nulle : 2,5 (une voix
+        // muette n'est jamais voulue).
+        'voice_gain' => (float) (env('LIVE_VOICE_GAIN') ?: env('GEMINI_VOICE_GAIN')) ?: 2.5,
+        // Annulation d'écho du navigateur. Sur Android, Chrome passe alors le téléphone en mode « communication » :
+        // la voix suit le volume d'APPEL, souvent bien plus bas. Le demi-duplex (micro fermé pendant la voix du
+        // professeur) empêche déjà l'écho : coupée par défaut sur Android, gardée ailleurs. Seules les valeurs
+        // « false », « 0 », « off » ou « no » la coupent, « true », « 1 », « on » ou « yes » l'activent.
         'echo_cancellation' => ! in_array(env('LIVE_ECHO_CANCELLATION'), [false, '0', 'off', 'no'], true),
+        'echo_cancellation_android' => in_array(env('LIVE_ECHO_CANCELLATION_ANDROID'), [true, '1', 'on', 'yes'], true),
         // Sans aucun son capté pendant ce temps alors que c'est à l'apprenant de parler : message.
         'silent_mic_seconds' => 8,
         // Fin de tour (public/js/turn-watch.js) : la voix de l'apprenant, mesurée dans le navigateur, est finie
         // depuis ce temps et le fournisseur n'a ni clos le tour ni commencé à répondre (bruit de fond, longue
         // réponse) : le navigateur signale lui-même la fin du tour (Gemini : audioStreamEnd ; OpenAI : silence).
-        'end_of_turn_seconds' => 3,
-        // Aucune voix du professeur ce temps après la fin de la parole : « Teacher Joe réfléchit, un instant… ».
+        'end_of_turn_seconds' => 2,
+        // Attente de la réponse : ce temps après la fin de la parole, « Un instant… » et un léger geste de Teacher Joe
+        // (hochement, sourire).
+        'instant_seconds' => 2,
+        // Toujours aucune voix du professeur : « La connexion est un peu lente, Teacher Joe arrive… ».
         'no_answer_seconds' => 8,
         // Toujours rien : message et bouton « Relancer Teacher Joe ».
         'stuck_seconds' => 20,
+        // Textes de l'attente et des coupures (marqueur :teacher). Jamais « réfléchit », « chargement » ni
+        // « traitement », jamais un nom de fournisseur.
+        'messages' => [
+            'instant' => 'Un instant…',
+            'slow' => 'La connexion est un peu lente, :teacher arrive…',
+            'stuck' => ':teacher ne répond pas. Touchez « Relancer :teacher » pour reprendre.',
+            'nudged' => ':teacher va vous répondre…',
+            'reconnecting' => ':teacher revient, un instant…',
+            'cut' => ':rule Vérifiez votre connexion internet, puis touchez « Reprendre la séance ».',
+            'cut_again' => ':rule Touchez « Reprendre la séance » pour réessayer, ou relancez la séance un peu plus tard.',
+            'unavailable' => ':teacher n\'est pas joignable pour le moment. Réessayez dans quelques minutes, ou écrivez-nous sur WhatsApp.',
+        ],
         // OpenAI : voix annoncée mais plus rien d'audible depuis ce temps (fin de voix perdue) : micro rouvert.
         'voice_stuck_seconds' => 4,
+    ],
+
+    /*
+    | Messages vocaux préparés (bienvenue, résultat de l'évaluation) : crête de l'audio, en décibels (0 = plein
+    | volume). Chaque fichier y est amené à l'enregistrement (App\Support\Speech\Loudness).
+    */
+    'speech' => [
+        'peak_db' => -1.0,
+        // Message pas encore prêt quand l'élève touche « Écouter » : texte affiché, léger geste de Teacher Joe,
+        // lecture automatique dès qu'il est prêt. Jamais « Préparation du message… ».
+        'wait_poll_seconds' => 3,
+        'late_after_seconds' => 30,
+        'give_up_after_seconds' => 180,
+        'messages' => [
+            'instant' => 'Un instant…',
+            'late' => 'Le message arrive. Vous pouvez le lire juste en dessous : il démarrera tout seul.',
+            'unavailable' => 'Le message vocal n\'est pas disponible pour le moment. Vous pouvez le lire juste en dessous.',
+        ],
     ],
 
     /*

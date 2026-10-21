@@ -24,7 +24,12 @@
                     </div>
                 @endif
 
-                <div class="result-voice" data-level-message>
+                {{-- Préparé à part : @json coupe son expression aux virgules. --}}
+                @php($voiceWait = config('platform.speech.messages') + ['poll_seconds' => config('platform.speech.wait_poll_seconds'), 'late_seconds' => config('platform.speech.late_after_seconds'), 'give_up_seconds' => config('platform.speech.give_up_after_seconds')])
+                <div class="result-voice" data-level-message
+                     data-status-url="{{ route('assessment.voice.status') }}"
+                     data-voice-wait="{{ Asset::url('js/voice-wait.js') }}"
+                     data-wait='@json($voiceWait)'>
                     <button type="button" class="btn btn-outline" data-level-play aria-pressed="false">
                         <span data-play-label><x-icon name="play" /> Écouter {{ $teacher }}</span>
                         <span data-pause-label hidden><x-icon name="pause" /> Mettre en pause</span>
@@ -32,7 +37,7 @@
                     <audio preload="none" data-level-audio data-src="{{ route('assessment.voice') }}"></audio>
                     <p class="muted small" data-level-status role="status" hidden></p>
                 </div>
-                <details class="result-transcript">
+                <details class="result-transcript" data-level-text>
                     <summary>Lire le message de {{ $teacher }}</summary>
                     <p>{{ $messageText }}</p>
                 </details>

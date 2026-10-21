@@ -14,6 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\Concerns\BuildsPrograms;
 use Tests\Concerns\HasCourses;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\TestCase;
 
 /**
@@ -22,7 +23,7 @@ use Tests\TestCase;
  */
 class GrantedAccessTest extends TestCase
 {
-    use BuildsPrograms, HasCourses, RefreshDatabase;
+    use BuildsPrograms, HasCourses, IgnoresSignalSilence, RefreshDatabase;
 
     private User $admin;
 

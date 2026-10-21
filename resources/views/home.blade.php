@@ -295,7 +295,7 @@
             </details>
             <details>
                 <summary><x-icon name="mic" /><span>Comment se passe une séance ?</span></summary>
-                <p>{{ $teacher }} annonce la durée au début, et la séance se passe en quatre temps. La leçon : il vous enseigne les phrases, les mots et la règle du jour, écrits au tableau sur votre écran. La pratique : vous répétez et vous construisez vos phrases. La conversation : vous utilisez la leçon dans une situation de votre vie. Le bilan : ce que vous savez faire maintenant et une phrase à retenir. Il parle d'abord anglais, à votre niveau ; le français sert de filet de sécurité quand vous ne comprenez pas.</p>
+                <p>{{ $teacher }} annonce la durée au début, et la séance se passe en quatre temps. La leçon : il vous enseigne les phrases, les mots et la règle du jour, écrits au tableau sur votre écran. La pratique : vous répétez et vous construisez vos phrases. La conversation : vous utilisez la leçon dans une situation de votre vie. Le bilan : ce que vous savez faire maintenant et une phrase à retenir. Il parle d'abord anglais, à votre niveau ; le français sert de filet de sécurité quand vous ne comprenez pas. {{ config('platform.live.disconnect_rule') }}</p>
             </details>
             <details>
                 <summary><x-icon name="help" /><span>Puis-je poser mes questions en français ?</span></summary>

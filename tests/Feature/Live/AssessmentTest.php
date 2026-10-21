@@ -8,11 +8,12 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Tests\Concerns\IgnoresSignalSilence;
 use Tests\TestCase;
 
 class AssessmentTest extends TestCase
 {
-    use RefreshDatabase;
+    use IgnoresSignalSilence, RefreshDatabase;
 
     /** Réponse simulée de l'API Gemini (null = jeton délivré). */
     private mixed $geminiResponse = null;

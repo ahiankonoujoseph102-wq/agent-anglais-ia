@@ -156,7 +156,7 @@ async function run() {
         ui.play.disabled = true;
         ui.start.hidden = true;
         ui.controls.hidden = false;
-        ui.status.textContent = 'Préparation du message…';
+        ui.status.textContent = 'Un instant…';
         ui.status.hidden = false;
 
         try {
@@ -172,7 +172,7 @@ async function run() {
         const Context = window.AudioContext || window.webkitAudioContext;
         const context = new Context({ latencyHint: 'playback' });
 
-        // Voix → volume (GEMINI_VOICE_GAIN) → limiteur → sortie. Le professeur 3D écoute la sortie
+        // Voix → volume (LIVE_VOICE_GAIN) → limiteur → sortie. Le professeur 3D écoute la sortie
         // avant le petit retard ajouté au haut-parleur : sa bouche a le temps de se préparer.
         const boost = context.createGain();
         boost.gain.value = audioConfig.voice_gain;

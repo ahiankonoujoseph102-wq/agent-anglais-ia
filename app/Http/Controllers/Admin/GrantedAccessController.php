@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OfferAccessRequest;
 use App\Models\User;
 use App\Support\AccessGrant;
+use App\Support\Gemini\WelcomeMessage;
 use App\Support\Plan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,8 @@ class GrantedAccessController extends Controller
             $request->days(),
             $request->validated('note'),
         );
+        // Accès ouvert : la salutation de bienvenue (son prénom) se prépare après la réponse.
+        WelcomeMessage::queueOpening($user);
 
         return redirect()->to(route('admin.users.show', $user).'#acces-offert')->with('status', 'Accès offert : formule '.$subscription->plan_name.' jusqu\'au '.$subscription->ends_at->translatedFormat('j F Y \à H:i').'.');
     }

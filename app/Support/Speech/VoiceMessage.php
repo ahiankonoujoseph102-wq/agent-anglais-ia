@@ -97,8 +97,6 @@ final class VoiceMessage
     {
         $wav = $provider->synthesize($piece['text'], $this->style, $piece['label'], $timeout);
 
-        VoiceSampler::store($this->path($piece['text'], $provider), $wav, $piece['label'], $provider);
-
-        return $wav;
+        return VoiceSampler::store($this->path($piece['text'], $provider), $wav, $piece['label'], $provider);
     }
 }

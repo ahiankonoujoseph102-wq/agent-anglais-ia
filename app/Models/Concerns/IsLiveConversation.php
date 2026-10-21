@@ -10,16 +10,24 @@ use Illuminate\Support\Carbon;
  * Règles de temps communes à l'évaluation et aux séances (conversations vocales).
  *
  * Une conversation se déroule d'un seul tenant : le temps consommé est le temps
- * écoulé depuis son début, plafonné à la durée autorisée. Chaque instant pendant
- * lequel un jeton éphémère valide existait est décompté, ce qui empêche de
- * parler sans être compté en coupant simplement les signaux du navigateur.
+ * écoulé depuis son début, MOINS les coupures de connexion, plafonné à la durée
+ * autorisée. Si la connexion est coupée, le temps de séance est mis en pause :
+ * l'élève ne perd pas de minutes (signal explicite du navigateur, ou plus de
+ * « live.disconnect_after_seconds » sans aucun signal ; au plus
+ * « live.disconnect_pause_max_seconds » de coupure par séance). La fin autorisée,
+ * les jetons et le raccrochage de l'appel OpenAI sont repoussés d'autant. Le
+ * bouton « Pause » de l'élève n'est pas une coupure : le temps continue.
  *
  * Colonnes attendues : started_at, ended_at, allowed_seconds, used_seconds,
  * last_seen_at, token_expires_at, connections, input_tokens, output_tokens,
- * live_provider (gemini ou openai), live_call_id (appel OpenAI en cours).
+ * live_provider (gemini ou openai), live_call_id (appel OpenAI en cours),
+ * paused_seconds (coupures déjà comptées), disconnected_at (coupure en cours).
  */
 trait IsLiveConversation
 {
+    /** Séance abandonnée en cours de clôture : la coupure en cours ne compte plus. */
+    protected bool $pauseClosed = false;
+
     /**
      * Chez OpenAI, le serveur raccroche lui-même l'appel dès que la conversation est close (limite de
      * temps, fin, refus du paiement, navigateur disparu) : la coupure ne dépend pas du navigateur.
@@ -66,7 +74,83 @@ trait IsLiveConversation
      */
     public function deadline(): Carbon
     {
-        return $this->started_at->copy()->addSeconds($this->allowed_seconds);
+        return $this->started_at->copy()->addSeconds($this->allowed_seconds + $this->pausedSeconds() + $this->openPauseSeconds(now()));
+    }
+
+    /** Coupures déjà comptées, en secondes. */
+    public function pausedSeconds(): int
+    {
+        return (int) ($this->getAttributes()['paused_seconds'] ?? 0);
+    }
+
+    /** Ce qui reste de coupure possible dans cette séance, en secondes. */
+    public function pauseAllowance(): int
+    {
+        return max(0, (int) config('platform.live.disconnect_pause_max_seconds') - $this->pausedSeconds());
+    }
+
+    /**
+     * Début de la coupure en cours : signalée par le navigateur, ou, sans signal explicite, son dernier signal
+     * s'il se tait depuis plus de « disconnect_after_seconds » à l'instant donné (plus d'internet du tout).
+     */
+    public function pauseStart(?Carbon $at = null): ?Carbon
+    {
+        if ($this->pauseClosed || ! $this->isInProgress()) {
+            return null;
+        }
+
+        if ($this->disconnected_at !== null) {
+            return $this->disconnected_at;
+        }
+
+        $at ??= now();
+        $lastSeen = $this->last_seen_at ?? $this->started_at;
+
+        return $lastSeen->diffInSeconds($at, false) > (int) config('platform.live.disconnect_after_seconds') ? $lastSeen : null;
+    }
+
+    /** Durée de la coupure en cours jusqu'à l'instant donné (0 sans coupure), dans la limite permise. */
+    public function openPauseSeconds(Carbon $at): int
+    {
+        $start = $this->pauseStart($at);
+
+        if ($start === null) {
+            return 0;
+        }
+
+        return max(0, min($this->pauseAllowance(), (int) floor($start->diffInSeconds($at, false))));
+    }
+
+    public function isDisconnected(): bool
+    {
+        return $this->pauseStart() !== null;
+    }
+
+    /**
+     * La connexion avec le professeur est perdue (signal explicite du navigateur) : le temps est mis en pause.
+     */
+    public function markDisconnected(?Carbon $at = null): void
+    {
+        if ($this->isInProgress() && $this->pauseStart($at) === null && $this->pauseAllowance() > 0) {
+            $this->disconnected_at = $at ?? now();
+        }
+    }
+
+    /**
+     * La connexion est revenue (signal du navigateur ou nouvelle connexion) : la coupure en cours, signalée ou
+     * déduite d'un long silence, est ajoutée aux coupures comptées.
+     */
+    public function markReconnected(?Carbon $at = null): void
+    {
+        $at ??= now();
+
+        if (! $this->isInProgress()) {
+            return;
+        }
+
+        $this->paused_seconds = $this->pausedSeconds() + $this->openPauseSeconds($at);
+        $this->disconnected_at = null;
+        $this->last_seen_at = $at;
     }
 
     public function remainingSeconds(): int
@@ -83,7 +167,8 @@ trait IsLiveConversation
      */
     public function elapsedUntil(Carbon $at): int
     {
-        $seconds = (int) floor($this->started_at->diffInSeconds($at, false));
+        // Les coupures de connexion ne comptent pas.
+        $seconds = (int) floor($this->started_at->diffInSeconds($at, false)) - $this->pausedSeconds() - $this->openPauseSeconds($at);
 
         return max(0, min($this->allowed_seconds, $seconds));
     }
@@ -94,8 +179,11 @@ trait IsLiveConversation
     public function isStale(): bool
     {
         $lastSeen = $this->last_seen_at ?? $this->started_at;
+        // Le navigateur peut revenir après une coupure (ce qui reste de coupure possible dans la séance) : la
+        // séance n'est close qu'ensuite.
+        $wait = (int) config('platform.live.stale_after_seconds') + $this->pauseAllowance();
 
-        return $lastSeen->lt(now()->subSeconds((int) config('platform.live.stale_after_seconds')))
+        return $lastSeen->lt(now()->subSeconds($wait))
             && ($this->token_expires_at === null || $this->token_expires_at->isPast());
     }
 
@@ -103,9 +191,16 @@ trait IsLiveConversation
      * Enregistre un signal du navigateur : temps consommé et jetons utilisés.
      * Les jetons arrivés après la clôture sont tout de même comptés.
      */
-    public function recordSignal(int $inputTokens = 0, int $outputTokens = 0): void
+    public function recordSignal(int $inputTokens = 0, int $outputTokens = 0, ?bool $connected = null): void
     {
         if ($this->isInProgress()) {
+            // Connexion avec le professeur perdue ou revenue (signal du navigateur), ou long silence du navigateur.
+            if ($connected === false) {
+                $this->markDisconnected();
+            } elseif ($connected === true || $this->disconnected_at === null) {
+                $this->markReconnected();
+            }
+
             $this->last_seen_at = now();
             $this->used_seconds = $this->elapsedUntil(now());
         }
@@ -132,11 +227,15 @@ trait IsLiveConversation
         }
 
         if ($this->isStale()) {
-            // Décompté jusqu'au dernier signal ou à l'expiration du dernier jeton.
+            // Le navigateur n'est jamais revenu : décompté jusqu'à son dernier signal ou à l'expiration du dernier
+            // jeton (on ne parle pas sans être compté en coupant simplement les signaux). La coupure en cours ne
+            // compte que si l'élève revient.
             $lastSeen = $this->last_seen_at ?? $this->started_at;
             $tokenEnd = $this->token_expires_at ?? $this->started_at;
+            $this->disconnected_at = null;
+            $this->pauseClosed = true;
 
-            $this->finish($lastSeen->max($tokenEnd), interrupted: true);
+            $this->finish($lastSeen->max($tokenEnd)->min($this->deadline()), interrupted: true);
 
             return false;
         }

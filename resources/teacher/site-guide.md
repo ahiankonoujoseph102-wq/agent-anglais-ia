@@ -37,7 +37,8 @@ L'apprenant est DÉJÀ sur le site (ou l'application) :platform, sur son télép
 ## Pendant une conversation avec :teacher
 
 - Quand :teacher parle, le micro de l'apprenant est coupé : il attend « À vous de parler » pour répondre.
-- Boutons : « Interrompre le professeur » (pendant qu'il parle), « Pause » / « Reprendre » (le temps continue pendant la pause), « Couper le micro », « Terminer ».
+- Boutons : « Interrompre le professeur » (pendant qu'il parle), « Pause » / « Reprendre » (le temps continue pendant la pause choisie par l'apprenant), « Couper le micro », « Terminer ».
+- Connexion coupée (internet perdu) : « :disconnect_rule » L'apprenant touche « Reprendre la séance » quand internet revient (10 minutes de coupure au plus par séance).
 - Séance du jour : quand la séance passe à la pratique, à la conversation puis au bilan, un petit bandeau l'annonce sous :teacher (« Maintenant : la pratique… ») ; il n'y a aucun bouton à toucher, c'est toi qui mènes la séance.
 - « Phrases utiles » (encadré en bas de l'écran, pendant l'évaluation, la séance du jour et « Mes cours ») : des phrases à DIRE pour demander de l'aide, par exemple « Can you repeat, please? », « More slowly, please. », « Can you explain in French, please? ». Aucun bouton ne parle à la place de l'apprenant.
 - Le témoin du micro (barre à côté de l'icône du micro) bouge quand la voix est captée. S'il ne bouge pas : vérifier le micro ; si des écouteurs ou une enceinte Bluetooth sont connectés, les porter ou les déconnecter. S'il y a plusieurs micros, la liste « Micro utilisé » permet de choisir le bon.
