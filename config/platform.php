@@ -272,6 +272,9 @@ return [
         // et la séance se termine si le navigateur ne revient pas. Le bouton « Pause » de l'élève n'est PAS une
         // coupure : le temps continue (pause_max_seconds).
         'disconnect_after_seconds' => 30,
+        // LA phrase de cette règle, reprise telle quelle partout (écran de séance, conseils, foire aux questions,
+        // fiche du site ; le message vocal de bienvenue la dit aussi) : tests/Feature/DisconnectionRuleTextTest.php.
+        'disconnect_rule' => 'Si la connexion est coupée, votre temps de séance est mis en pause : vous ne perdez pas de minutes.',
         'disconnect_pause_max_seconds' => 600,
         // Demi-duplex : le micro n'est pas envoyé pendant la voix du professeur, ni
         // pendant ce délai après (sa voix ne doit pas revenir par le haut-parleur).
@@ -309,7 +312,8 @@ return [
             'stuck' => ':teacher ne répond pas. Touchez « Relancer :teacher » pour reprendre.',
             'nudged' => ':teacher va vous répondre…',
             'reconnecting' => ':teacher revient, un instant…',
-            'cut' => 'La connexion avec :teacher a été coupée. Vérifiez votre connexion internet, puis touchez « Reprendre la séance ».',
+            'cut' => 'La connexion avec :teacher a été coupée. :rule Vérifiez votre connexion internet, puis touchez « Reprendre la séance ».',
+            'cut_again' => ':rule Touchez « Reprendre la séance » pour réessayer, ou relancez la séance un peu plus tard.',
             'unavailable' => ':teacher n\'est pas joignable pour le moment. Réessayez dans quelques minutes, ou écrivez-nous sur WhatsApp.',
         ],
         // OpenAI : voix annoncée mais plus rien d'audible depuis ce temps (fin de voix perdue) : micro rouvert.

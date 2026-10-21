@@ -11,7 +11,7 @@
         'no_answer_seconds' => (float) config('platform.live.no_answer_seconds'),
         'stuck_seconds' => (float) config('platform.live.stuck_seconds'),
         'voice_stuck_seconds' => (float) config('platform.live.voice_stuck_seconds'),
-        'messages' => array_map(fn ($text) => str_replace(':teacher', config('avatar.model.name'), $text), config('platform.live.messages')),
+        'messages' => array_map(fn ($text) => strtr($text, [':teacher' => config('avatar.model.name'), ':rule' => config('platform.live.disconnect_rule')]), config('platform.live.messages')),
     ];
 
     // LA SUITE à la fin de la conversation (<x-next-step>, montrée par live-session.js, avant le résumé) :

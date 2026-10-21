@@ -232,7 +232,7 @@ const MESSAGES = {
     micOther: 'Le micro n\'a pas pu être activé. Fermez les autres applications qui l\'utilisent, puis réessayez.',
     network: 'Impossible de joindre le serveur. Vérifiez votre connexion internet, puis réessayez.',
     cut: WAIT.cut,
-    counted: 'Le temps déjà utilisé est compté. Touchez « Reprendre la séance » pour réessayer, ou relancez la séance un peu plus tard.',
+    cutAgain: WAIT.cut_again,
     unavailable: WAIT.unavailable,
     reconnecting: WAIT.reconnecting,
     quota: 'Le professeur a atteint sa limite de conversations gratuites pour le moment. Réessayez un peu plus tard : votre temps non utilisé reste disponible.',
@@ -1405,7 +1405,7 @@ function connectionFailed(message) {
         ui.start.disabled = false;
     } else {
         setStatus('Connexion coupée');
-        showError(`${message} ${MESSAGES.counted}`);
+        showError(`${message} ${MESSAGES.cutAgain}`);
         ui.resume.hidden = false;
     }
 }

@@ -92,8 +92,10 @@ return [
         // le mode gratuit de Google est utilisé.
         'tts_cost_per_minute' => (float) env('GEMINI_TTS_COST_PER_MINUTE', 0),
         // Durée de vie maximale d'un jeton (et donc d'une connexion), en minutes.
-        // Tout le temps de validité d'un jeton est décompté, même si le navigateur
-        // disparaît : une valeur courte limite la perte en cas de coupure.
+        // Une séance jamais reprise (navigateur disparu) est décomptée jusqu'à
+        // l'expiration de son dernier jeton : une valeur courte limite cette perte.
+        // Si la connexion est coupée puis revient, le temps de séance est mis en
+        // pause (IsLiveConversation) : aucune minute perdue.
         // La connexion Live dure de toute façon environ 10 min : le navigateur
         // en redemande une, en reprenant la conversation, tant qu'il reste du temps.
         'token_minutes' => (int) env('GEMINI_TOKEN_MINUTES', 5),
