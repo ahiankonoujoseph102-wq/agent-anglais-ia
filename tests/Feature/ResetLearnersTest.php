@@ -2,20 +2,25 @@
 
 namespace Tests\Feature;
 
+use App\Console\Commands\ResetLearners;
 use App\Enums\AssessmentStatus;
 use App\Enums\LessonStatus;
 use App\Enums\Level;
 use App\Enums\PaymentStatus;
 use App\Enums\SubscriptionStatus;
+use App\Models\LearnerInvitation;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\LearnerReset;
 use App\Support\Plan;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\PendingCommand;
+use RuntimeException;
 use Tests\Concerns\BuildsPrograms;
 use Tests\Concerns\HasCourses;
 use Tests\TestCase;
@@ -251,7 +256,7 @@ class ResetLearnersTest extends TestCase
         $this->seedTestPayments();
 
         $this->artisan('app:reset-learners', ['--include-test-payments' => true])
-            ->expectsOutputToContain('Paiements de test effacés (validés et refusés), avec leurs abonnements et leurs captures : 2.')
+            ->expectsOutputToContain('Paiements de test à effacer (validés et refusés), avec leurs abonnements et leurs captures : 2.')
             ->expectsOutputToContain('7'."\u{202F}".'500'."\u{00A0}".'FCFA · Essentiel · Validé · Ama · …2390')
             ->expectsOutputToContain('Semaine · Refusé · Kofi · …')
             ->doesntExpectOutputToContain('TX-SECRET-123')
@@ -317,5 +322,131 @@ class ResetLearnersTest extends TestCase
         $provisional->delete();
 
         $this->assertSame(3, Payment::count());
+    }
+
+    public function test_running_the_same_command_again_after_a_reset_says_there_is_nothing_to_erase(): void
+    {
+        $this->seedTestPayments();
+        $options = ['--include-test-payments' => true, '--confirm' => 'EFFACER 2 COMPTES ET 2 PAIEMENTS', '--notify' => true];
+        $this->reset($options)->expectsOutputToContain('Remise à zéro faite.')->assertSuccessful();
+        DB::table('learner_invitations')->where('user_id', $this->ama->id)->update(['status' => LearnerInvitation::SENT, 'sent_at' => now()]);
+        $invitations = DB::table('learner_invitations')->orderBy('id')->get()->toArray();
+
+        // La même ligne relancée (double toucher, relance de l'onglet) : ni échec, ni sauvegarde vide, ni invitation remise en file.
+        $this->reset($options)
+            ->expectsOutputToContain('6 fichier(s) et 2 paiement(s) effacés ; invitations : 0 mise(s) en file, 2 sans adresse e-mail. Sauvegarde : backups/remise-a-zero-')
+            ->expectsOutputToContain('Rien à effacer : aucune donnée d\'apprenant à remettre à zéro. Cette exécution n\'a rien effacé. Ne relancez pas la remise à zéro.')
+            ->expectsOutputToContain('Invitations : rien n\'est remis en file.')
+            ->doesntExpectOutputToContain('Confirmation absente')
+            ->assertSuccessful();
+        // La confirmation que demanderait une base vide n'efface rien de plus.
+        $this->reset($options + ['--confirm' => 'EFFACER 2 COMPTES ET 0 PAIEMENTS'])->expectsOutputToContain('Rien à effacer')->assertSuccessful();
+        $this->artisan('app:reset-learners', ['--include-test-payments' => true])->expectsOutputToContain('Rien à effacer')->assertSuccessful();
+
+        $this->assertCount(1, LearnerReset::backups(), 'aucune nouvelle sauvegarde');
+        $this->assertEquals($invitations, DB::table('learner_invitations')->orderBy('id')->get()->toArray());
+    }
+
+    public function test_a_second_run_at_the_same_time_is_refused_and_erases_nothing(): void
+    {
+        $lock = Cache::lock(ResetLearners::LOCK, 60);
+        $this->assertTrue($lock->get());
+
+        $this->reset()->expectsOutputToContain('Une remise à zéro est déjà en cours : Cette exécution n\'a rien effacé.')->assertFailed();
+        $this->assertSame(3, DB::table('assessments')->count());
+        // La simulation reste possible.
+        $this->artisan('app:reset-learners')->assertSuccessful();
+
+        $lock->release();
+        $this->reset()->assertSuccessful();
+        $this->assertTrue(Cache::lock(ResetLearners::LOCK, 1)->get(), 'verrou libéré après la remise à zéro');
+    }
+
+    public function test_the_confirmation_is_checked_again_just_before_the_backup(): void
+    {
+        // Les données ont changé depuis la simulation : un nouvel apprenant s'est inscrit.
+        $reset = new LearnerReset;
+        User::factory()->create();
+
+        try {
+            $reset->run('EFFACER 2 COMPTES');
+            $this->fail('La confirmation aurait dû être refusée.');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('écrivez --confirm="EFFACER 3 COMPTES"', $e->getMessage());
+        }
+
+        Storage::disk('local')->assertMissing(LearnerReset::BACKUP_DIRECTORY);
+        $this->assertSame(3, DB::table('assessments')->count());
+        $this->assertNull(LearnerReset::last());
+    }
+
+    public function test_refusals_say_that_this_run_erased_nothing_and_success_gives_the_real_numbers(): void
+    {
+        $this->reset(['--confirm' => 'EFFACER 9 COMPTES'])->expectsOutputToContain('Cette exécution n\'a rien effacé.')->assertFailed();
+        $this->reset(['--database' => 'autre_base'])->expectsOutputToContain('Cette exécution n\'a rien effacé.')->assertFailed();
+        $files = count((new LearnerReset)->files());
+
+        $this->reset()
+            ->expectsOutputToContain('Remise à zéro faite.')
+            ->expectsOutputToContain('Niveaux et messages de bienvenue remis à zéro : 2 compte(s).')
+            ->expectsOutputToContain('  assessments : 2')
+            ->expectsOutputToContain("Fichiers effacés : {$files}.")
+            ->expectsOutputToContain('Vérifier la sauvegarde : php artisan app:inspect-backup backups/remise-a-zero-')
+            ->expectsOutputToContain('Ne relancez pas cette commande')
+            ->assertSuccessful();
+
+        $last = LearnerReset::last();
+        $this->assertSame(2, $last['levels']);
+        $this->assertSame($files, $last['files']);
+        $this->assertNull($last['invitations']);
+        $this->assertSame(LearnerReset::backups()[0], $last['backup']);
+    }
+
+    public function test_a_file_that_resists_after_the_erasure_is_reported_as_such(): void
+    {
+        $fake = Storage::disk('local');
+        Storage::set('local', new class($fake->getDriver(), $fake->getAdapter(), $fake->getConfig()) extends FilesystemAdapter
+        {
+            public function delete($paths)
+            {
+                return false;
+            }
+        });
+
+        $this->reset()
+            ->expectsOutputToContain('Remise à zéro faite.')
+            ->expectsOutputToContain('L\'effacement a eu lieu, mais')
+            ->expectsOutputToContain('  - attestations/CODE123.pdf')
+            ->assertFailed();
+
+        $this->assertSame(1, DB::table('assessments')->count(), 'les données ont bien été effacées');
+        $this->assertNotNull(LearnerReset::last());
+    }
+
+    public function test_the_backup_can_be_inspected_without_changing_anything(): void
+    {
+        $this->artisan('app:inspect-backup')->expectsOutputToContain('Sauvegardes sur le disque privé : 0.')->expectsOutputToContain('Aucune remise à zéro enregistrée.')->assertSuccessful();
+
+        $this->seedTestPayments();
+        $this->reset(['--include-test-payments' => true, '--confirm' => 'EFFACER 2 COMPTES ET 2 PAIEMENTS'])->assertSuccessful();
+        $backup = LearnerReset::backups()[0];
+        $before = [Storage::disk('local')->allFiles(), array_map(fn ($table) => DB::table($table)->count(), LearnerReset::TABLES)];
+
+        $this->artisan('app:inspect-backup')
+            ->expectsOutputToContain("Sauvegarde : {$backup}")
+            ->expectsOutputToContain('Paiements : 2.')
+            ->expectsOutputToContain('Évaluations : 2.')
+            ->expectsOutputToContain("Comptes d'apprenants : 2 (avec un niveau : 2")
+            ->expectsOutputToContain('copies manquantes dans la sauvegarde : 0.')
+            ->expectsOutputToContain('Invitations de ces comptes aujourd\'hui : aucune.')
+            ->assertSuccessful();
+        $this->artisan('app:inspect-backup', ['file' => $backup])->expectsOutputToContain('Évaluations : 2.')->assertSuccessful();
+        $this->artisan('app:inspect-backup', ['file' => 'backups/inconnue.json.gz'])->assertFailed();
+
+        $this->assertSame($before, [Storage::disk('local')->allFiles(), array_map(fn ($table) => DB::table($table)->count(), LearnerReset::TABLES)]);
+
+        // Remise en place : notée dans la dernière remise à zéro.
+        $this->artisan('app:restore-learners', ['file' => $backup])->assertSuccessful();
+        $this->artisan('app:reset-learners', ['--include-test-payments' => true])->expectsOutputToContain('(sauvegarde remise en place le')->assertSuccessful();
     }
 }

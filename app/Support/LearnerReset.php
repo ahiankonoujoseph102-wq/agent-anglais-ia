@@ -6,11 +6,14 @@ use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
 use App\Models\Payment;
+use App\Models\Setting;
 use App\Support\Gemini\WelcomeMessage;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
+use Throwable;
 
 /**
  * Remise à zéro des apprenants (commande app:reset-learners, restauration par app:restore-learners).
@@ -32,6 +35,9 @@ use RuntimeException;
 class LearnerReset
 {
     public const BACKUP_DIRECTORY = 'backups';
+
+    /** Réglage (table settings) qui garde la dernière remise à zéro faite. */
+    public const LAST_RESET_KEY = 'learner_reset.last';
 
     /** Tables effacées, dans l'ordre de l'effacement (les dépendantes d'abord). */
     public const TABLES = [
@@ -224,15 +230,79 @@ class LearnerReset
         return "EFFACER {$accounts} COMPTES".($payments === null ? '' : " ET {$payments} PAIEMENTS");
     }
 
+    /** Confirmation attendue pour ce plan (les paiements de test en font partie avec l'option). */
+    public function confirmationFor(array $plan): string
+    {
+        return self::confirmation($plan['accounts'], $this->includeTestPayments ? count($plan['payments']) : null);
+    }
+
+    /** Plus rien à effacer : aucune ligne, aucun fichier, aucun niveau ni message de bienvenue (remise à zéro déjà faite). */
+    public static function isEmpty(array $plan): bool
+    {
+        return array_sum($plan['rows']) === 0 && $plan['files'] === 0 && $plan['levels'] === 0;
+    }
+
     /**
-     * Sauvegarde, puis effacement. Renvoie le chemin de la sauvegarde.
+     * Dernière remise à zéro faite (enregistrée dans la même transaction que l'effacement : si elle existe,
+     * l'effacement a eu lieu), ou null.
      *
-     * @return array{backup: string, rows: array<string, int>, files: int, users: list<int>}
+     * @return array{at: string, backup: string, accounts: int, levels: int, rows: int, files: int, payments: int, invitations: array{queued: int, no_email: int, already_sent: int}|null}|null
      */
-    public function run(): array
+    public static function last(): ?array
+    {
+        $value = Setting::get(self::LAST_RESET_KEY);
+        $data = $value === null ? null : json_decode($value, true);
+
+        return is_array($data) ? $data : null;
+    }
+
+    /** Une ligne lisible sur la dernière remise à zéro (heure de l'application), ou null. */
+    public static function lastSummary(): ?string
+    {
+        $last = self::last();
+
+        if ($last === null) {
+            return null;
+        }
+
+        $at = Carbon::parse($last['at'])->timezone(config('app.timezone'))->format('d/m/Y à H:i');
+        $invitations = $last['invitations'] === null
+            ? 'aucune invitation demandée'
+            : "invitations : {$last['invitations']['queued']} mise(s) en file, {$last['invitations']['no_email']} sans adresse e-mail";
+
+        $restored = isset($last['restored_at'])
+            ? ' (sauvegarde remise en place le '.Carbon::parse($last['restored_at'])->timezone(config('app.timezone'))->format('d/m/Y à H:i').')'
+            : '';
+
+        return "Dernière remise à zéro faite le {$at} : {$last['levels']} niveau(x) remis à zéro, {$last['rows']} ligne(s), {$last['files']} fichier(s) et {$last['payments']} paiement(s) effacés ; {$invitations}. Sauvegarde : {$last['backup']}{$restored}.";
+    }
+
+    /**
+     * Sauvegarde, puis effacement. La confirmation est recalculée et vérifiée ICI, juste avant la sauvegarde : une
+     * confirmation qui ne correspond plus aux données (par exemple après une première exécution) n'efface rien.
+     * Tout ce qui lève une exception a lieu AVANT l'effacement ou l'annule (transaction) : une exception veut
+     * toujours dire « rien n'a été effacé ». Après l'effacement, un fichier qui ne s'efface pas est seulement noté
+     * (« file_errors »). Les invitations (« notify ») et le repère de la dernière remise à zéro sont écrits dans la
+     * même transaction que l'effacement.
+     *
+     * @return array{backup: string, rows: array<string, int>, files: int, file_errors: list<string>, levels: int, payments: int, users: list<int>, invitations: array{queued: int, no_email: int, already_sent: int}|null}
+     */
+    public function run(string $confirmation, bool $notify = false): array
     {
         if ($this->blockers() !== []) {
             throw new RuntimeException(implode(' ', $this->blockers()));
+        }
+
+        $plan = $this->plan();
+
+        if (self::isEmpty($plan)) {
+            throw new RuntimeException('Rien à effacer : la remise à zéro est déjà faite.');
+        }
+
+        $expected = $this->confirmationFor($plan);
+
+        if ($confirmation !== $expected) {
+            throw new RuntimeException("Confirmation absente ou inexacte : écrivez --confirm=\"{$expected}\".");
         }
 
         $disk = PrivateStorage::disk();
@@ -269,12 +339,14 @@ class LearnerReset
         }
 
         if (! $disk->put($name.'.json.gz', (string) gzencode((string) json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), 9))) {
-            throw new RuntimeException('La sauvegarde n\'a pas pu être écrite sur le disque privé : rien n\'a été effacé.');
+            throw new RuntimeException('La sauvegarde n\'a pas pu être écrite sur le disque privé.');
         }
 
-        // 2. Effacement, d'un seul tenant.
+        // 2. Effacement, d'un seul tenant, avec les invitations et le repère de la dernière remise à zéro.
         $rows = [];
-        DB::transaction(function () use ($queries, $ids, $data, &$rows) {
+        $levels = 0;
+        $invitations = null;
+        DB::transaction(function () use ($queries, $ids, $data, $name, $files, $notify, &$rows, &$levels, &$invitations) {
             DB::table('course_lessons')->whereIn('user_id', $ids)->update(['current_part_id' => null]);
             DB::table('admin_alerts')->whereIn('id', array_column($data['alert_links'], 'id'))->update(['payment_id' => null]);
 
@@ -287,26 +359,64 @@ class LearnerReset
                 }
             }
 
-            DB::table('users')->whereIn('id', $ids)->update(['level' => null, 'welcomed_at' => null]);
+            $touched = DB::table('users')->whereIn('id', $ids)->where(fn ($query) => $query->whereNotNull('level')->orWhereNotNull('welcomed_at'));
+            $levels = (clone $touched)->count();
+            $touched->update(['level' => null, 'welcomed_at' => null]);
+
+            if ($notify) {
+                $invitations = LearnerInvitations::queue($ids);
+            }
+
+            Setting::put(self::LAST_RESET_KEY, (string) json_encode([
+                'at' => now()->toIso8601String(),
+                'backup' => $name.'.json.gz',
+                'accounts' => count($ids),
+                'levels' => $levels,
+                'rows' => array_sum($rows),
+                'files' => count($files),
+                'payments' => $rows['payments'],
+                'invitations' => $invitations,
+            ], JSON_UNESCAPED_UNICODE));
         });
 
+        // 3. Fichiers : l'effacement a eu lieu, un fichier qui résiste est seulement noté (il est dans la sauvegarde).
+        $fileErrors = [];
+
         foreach ($files as $file) {
-            $disk->delete($file);
+            try {
+                if (! $disk->delete($file) && $disk->exists($file)) {
+                    $fileErrors[] = $file;
+                }
+            } catch (Throwable) {
+                $fileErrors[] = $file;
+            }
         }
 
         // Salutations de bienvenue (une par prénom) : refaites à la prochaine ouverture d'un accès.
-        $disk->deleteDirectory(WelcomeMessage::DIRECTORY.'/'.WelcomeMessage::OPENINGS);
+        try {
+            $disk->deleteDirectory(WelcomeMessage::DIRECTORY.'/'.WelcomeMessage::OPENINGS);
+        } catch (Throwable) {
+            // Sans conséquence : elles seraient seulement refaites plus tard.
+        }
 
-        return ['backup' => $name.'.json.gz', 'rows' => $rows, 'files' => count($files), 'users' => $ids];
+        return [
+            'backup' => $name.'.json.gz',
+            'rows' => $rows,
+            'files' => count($files) - count($fileErrors),
+            'file_errors' => $fileErrors,
+            'levels' => $levels,
+            'payments' => $rows['payments'],
+            'users' => $ids,
+            'invitations' => $invitations,
+        ];
     }
 
     /**
-     * Remet en place une sauvegarde : lignes (mêmes identifiants), niveau et bienvenue des comptes, liens des
-     * paiements, fichiers. Refusée si une ligne existe déjà (rien n'est écrasé).
+     * Contenu d'une sauvegarde (lecture seule).
      *
-     * @return array{rows: array<string, int>, files: int}
+     * @return array<string, mixed>
      */
-    public static function restore(string $path): array
+    public static function readBackup(string $path): array
     {
         $disk = PrivateStorage::disk();
 
@@ -320,8 +430,35 @@ class LearnerReset
             throw new RuntimeException('Format de sauvegarde inconnu.');
         }
 
+        return $data;
+    }
+
+    /**
+     * Sauvegardes du disque privé, de la plus ancienne à la plus récente.
+     *
+     * @return list<string>
+     */
+    public static function backups(): array
+    {
+        $files = array_values(array_filter(PrivateStorage::disk()->files(self::BACKUP_DIRECTORY), fn (string $file) => str_ends_with($file, '.json.gz')));
+        sort($files);
+
+        return $files;
+    }
+
+    /**
+     * Remet en place une sauvegarde : lignes (mêmes identifiants), niveau et bienvenue des comptes, liens des
+     * paiements, fichiers. Refusée si une ligne existe déjà (rien n'est écrasé).
+     *
+     * @return array{rows: array<string, int>, files: int}
+     */
+    public static function restore(string $path): array
+    {
+        $disk = PrivateStorage::disk();
+        $data = self::readBackup($path);
+
         $rows = [];
-        DB::transaction(function () use ($data, &$rows) {
+        DB::transaction(function () use ($data, $path, &$rows) {
             // Ordre inverse de l'effacement : les tables dont les autres dépendent d'abord.
             foreach (array_reverse(self::TABLES) as $table) {
                 $lines = $data['tables'][$table] ?? [];
@@ -355,6 +492,13 @@ class LearnerReset
 
             foreach ($data['alert_links'] ?? [] as $link) {
                 DB::table('admin_alerts')->where('id', $link['id'])->whereNull('payment_id')->update(['payment_id' => $link['payment_id']]);
+            }
+
+            // Dernière remise à zéro : notée « remise en place ».
+            $last = self::last();
+
+            if ($last !== null && $last['backup'] === $path) {
+                Setting::put(self::LAST_RESET_KEY, (string) json_encode(['restored_at' => now()->toIso8601String()] + $last, JSON_UNESCAPED_UNICODE));
             }
         });
 
