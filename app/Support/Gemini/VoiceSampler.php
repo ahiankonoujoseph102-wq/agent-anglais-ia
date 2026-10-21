@@ -4,6 +4,7 @@ namespace App\Support\Gemini;
 
 use App\Support\PrivateStorage;
 use App\Support\Speech\GeminiSpeech;
+use App\Support\Speech\Loudness;
 use App\Support\Speech\SpeechProvider;
 use App\Support\Speech\SpeechUsage;
 use Illuminate\Http\Client\ConnectionException;
@@ -66,9 +67,7 @@ class VoiceSampler
         $label = 'Essai des voix : '.$voice;
         $wav = $this->synthesize($voice, $script['text'], $script['style'], $label);
 
-        self::store(self::path($voice), $wav, $label);
-
-        return $wav;
+        return self::store(self::path($voice), $wav, $label);
     }
 
     /**
@@ -97,12 +96,16 @@ class VoiceSampler
     }
 
     /**
-     * Garde un fichier audio sur le disque privé. Un échec d'écriture (droits, bucket) est journalisé.
+     * Garde un fichier audio sur le disque privé et le renvoie tel qu'il est gardé (volume harmonisé). Un échec
+     * d'écriture (droits, bucket) est journalisé.
      *
      * @throws SpeechFailed
      */
-    public static function store(string $path, string $wav, string $label, ?SpeechProvider $provider = null): void
+    public static function store(string $path, string $wav, string $label, ?SpeechProvider $provider = null): string
     {
+        // Même volume pour tous les messages : crête à −1 décibel.
+        $wav = Loudness::normalize($wav);
+
         try {
             $written = PrivateStorage::disk()->put($path, $wav);
         } catch (\Throwable $e) {
@@ -116,6 +119,8 @@ class VoiceSampler
 
             throw $failure;
         }
+
+        return $wav;
     }
 
     private function request(string $voice, string $text, string $style, int $timeout): string

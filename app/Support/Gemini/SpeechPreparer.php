@@ -2,11 +2,14 @@
 
 namespace App\Support\Gemini;
 
+use App\Support\PrivateStorage;
+use App\Support\Speech\Loudness;
 use App\Support\Speech\SpeechFiles;
 use App\Support\Speech\SpeechProvider;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\VoiceMessage;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Sleep;
 
 /**
@@ -99,6 +102,17 @@ class SpeechPreparer
             LevelMessage::adoptLegacyFiles();
         } catch (\Throwable) {
             // Rien de grave : ils seront simplement préparés de nouveau.
+        }
+
+        // Fichiers préparés avant la normalisation du volume : amenés une fois à la même crête.
+        try {
+            $normalized = self::normalizeStoredFiles();
+
+            if ($normalized > 0) {
+                $report("Volume des messages déjà préparés harmonisé : {$normalized} fichier(s).");
+            }
+        } catch (\Throwable) {
+            // Rien de grave : nouvel essai à la prochaine préparation.
         }
 
         if ($providers === []) {
@@ -219,6 +233,35 @@ class SpeechPreparer
      *
      * @param  array{generated: int, stopped: ?string, error: ?string, exhausted?: list<string>, keys?: list<string>, welcome: array{ready: int, total: int}, levels: array{ready: int, total: int}}  $result
      */
+    /**
+     * Amène une fois les messages déjà gardés à la crête de Loudness (fichiers d'avant la normalisation).
+     */
+    public static function normalizeStoredFiles(): int
+    {
+        $key = 'speech-loudness:'.Loudness::targetDb();
+
+        if (Cache::get($key)) {
+            return 0;
+        }
+
+        $disk = PrivateStorage::disk();
+        $count = 0;
+
+        foreach (array_keys(SpeechFiles::index([WelcomeMessage::DIRECTORY, LevelMessage::DIRECTORY])) as $path) {
+            $wav = (string) $disk->get($path);
+            $normalized = Loudness::normalize($wav);
+
+            if ($normalized !== $wav) {
+                $disk->put($path, $normalized);
+                $count++;
+            }
+        }
+
+        Cache::forever($key, true);
+
+        return $count;
+    }
+
     public static function summary(array $result): string
     {
         $welcome = $result['welcome'];

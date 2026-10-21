@@ -14,6 +14,7 @@ use App\Support\Gemini\VoiceSampler;
 use App\Support\Gemini\WelcomeMessage;
 use App\Support\PrivateStorage;
 use App\Support\Speech\GeminiSpeech;
+use App\Support\Speech\Loudness;
 use App\Support\Speech\OpenAiSpeech;
 use App\Support\Speech\SpeechProviders;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -72,9 +73,10 @@ class SpeechProvidersTest extends TestCase
         ]];
     }
 
+    /** Voix d'OpenAI telle qu'elle est gardée : enveloppée en WAV, crête à −1 décibel (Loudness). */
     private static function openAiWav(): string
     {
-        return (string) VoiceSampler::toWav(self::OPENAI_PCM, 'audio/pcm;rate=24000');
+        return Loudness::normalize((string) VoiceSampler::toWav(self::OPENAI_PCM, 'audio/pcm;rate=24000'));
     }
 
     /**

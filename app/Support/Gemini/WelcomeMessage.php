@@ -344,7 +344,7 @@ class WelcomeMessage
 
                 try {
                     $wav = $provider->synthesize($text, (string) config('teacher.welcome.style'), 'Bienvenue, salutation', (int) config('services.gemini.tts_listen_timeout'));
-                    VoiceSampler::store($path, $wav, 'Bienvenue, salutation', $provider);
+                    $wav = VoiceSampler::store($path, $wav, 'Bienvenue, salutation', $provider);
                 } catch (GeminiUnavailable) {
                     // Cause déjà journalisée ; aucune nouvelle demande pendant quelques minutes.
                     Cache::put($failed, true, self::RETRY_AFTER);

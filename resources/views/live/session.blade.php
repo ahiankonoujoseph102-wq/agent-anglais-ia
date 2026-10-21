@@ -3,6 +3,7 @@
     // Réglages audio lus par public/js/live-session.js (config/platform.php → live).
     $audio = [
         'echo_cancellation' => (bool) config('platform.live.echo_cancellation'),
+        'echo_cancellation_android' => (bool) config('platform.live.echo_cancellation_android'),
         'voice_gain' => (float) config('platform.live.voice_gain'),
         'silent_mic_seconds' => (int) config('platform.live.silent_mic_seconds'),
         'end_of_turn_seconds' => (float) config('platform.live.end_of_turn_seconds'),

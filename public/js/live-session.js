@@ -827,8 +827,14 @@ function saveMicrophone(id) {
     } catch { /* stockage indisponible : le choix vaut pour cette page */ }
 }
 
+// Annulation d'écho : coupée par défaut sur Android (elle y passe le téléphone en mode appel, voix bien plus basse).
+const ECHO_CANCELLATION = /Android/i.test(navigator.userAgent ?? '')
+    ? audioConfig.echo_cancellation_android ?? false
+    : audioConfig.echo_cancellation;
+
 /**
- * Ouvre le micro. L'annulation d'écho est réglable (config platform.live.echo_cancellation) ;
+ * Ouvre le micro. L'annulation d'écho est réglable (config platform.live.echo_cancellation, et
+ * echo_cancellation_android sur Android) ;
  * réduction de bruit et gain automatique toujours demandés. Le micro choisi est
  * « préféré » au démarrage (s'il a disparu, un autre est pris) et « exigé » quand
  * l'apprenant le choisit dans la liste.
@@ -836,7 +842,7 @@ function saveMicrophone(id) {
 async function openMicrophone(deviceId, exact) {
     const audio = {
         channelCount: 1,
-        echoCancellation: audioConfig.echo_cancellation,
+        echoCancellation: ECHO_CANCELLATION,
         noiseSuppression: true,
         autoGainControl: true,
     };
@@ -849,7 +855,7 @@ async function openMicrophone(deviceId, exact) {
     const settings = stream.getAudioTracks()[0]?.getSettings?.() ?? {};
     console.debug('Micro : réglages obtenus', settings);
 
-    if (audioConfig.echo_cancellation && settings.echoCancellation === false) {
+    if (ECHO_CANCELLATION && settings.echoCancellation === false) {
         console.warn('Micro : annulation d\'écho indisponible, le demi-duplex reste seul actif.');
     }
 
