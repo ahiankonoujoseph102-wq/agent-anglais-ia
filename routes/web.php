@@ -52,6 +52,8 @@ Route::get('/contact', ContactController::class)->name('contact');
 // Pages publiques du référencement : formules et prix, « À propos », une page par pays de paiement.
 Route::get('/formules', [PageController::class, 'plans'])->name('plans');
 Route::get('/a-propos', [PageController::class, 'about'])->name('about');
+// Installer l'application : explications pour Android et iPhone (lien du Menu et du pied de page, sans JavaScript).
+Route::view('/installer-l-application', 'pages.install')->name('install');
 Route::get('/apprendre-anglais/{country}', [PageController::class, 'country'])->whereIn('country', CountryPage::slugs())->name('country');
 // Confidentialité : ce que le site garde, pourquoi, combien de temps, et comment en demander la suppression.
 Route::view('/confidentialite', 'privacy')->name('privacy');

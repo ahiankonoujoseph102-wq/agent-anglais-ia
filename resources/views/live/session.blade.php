@@ -10,6 +10,28 @@
         'stuck_seconds' => (float) config('platform.live.stuck_seconds'),
         'voice_stuck_seconds' => (float) config('platform.live.voice_stuck_seconds'),
     ];
+
+    // LA SUITE à la fin de la conversation (<x-next-step>, montrée par live-session.js, avant le résumé) :
+    // UN bouton orange, une phrase qui dit ce qui attend l'élève, les retours en liens discrets.
+    $teacherName = config('avatar.model.name');
+    $next = match ($mode) {
+        'assessment' => auth()->user()?->activeSubscription
+            ? ['title' => 'Évaluation terminée', 'text' => 'Votre niveau est enregistré : retrouvez votre programme dans votre espace.', 'href' => route('dashboard'), 'label' => 'Aller à mon espace', 'icon' => null]
+            : ['title' => 'Évaluation terminée', 'text' => 'Choisissez votre formule pour commencer votre programme avec '.$teacherName.'.', 'href' => route('payment.plans'), 'label' => 'Choisir ma formule', 'icon' => null],
+        'lesson' => ['title' => 'Bravo, séance terminée !', 'text' => 'Votre résumé est juste en dessous. Votre prochaine leçon vous attend dans votre programme.', 'href' => route('program.show').'#suite', 'label' => 'Voir ma prochaine leçon', 'icon' => null],
+        'course' => ['title' => 'Séance terminée', 'text' => 'Votre document de révision se prépare : vous le trouverez sur la page de la leçon dans quelques minutes.', 'href' => $urls['done'].'#documents', 'label' => 'Voir mon document de révision', 'icon' => 'file-text'],
+        'level_test' => ['title' => 'Bilan terminé', 'text' => 'Votre résultat est enregistré : la suite vous attend dans votre programme.', 'href' => route('program.show').'#suite', 'label' => 'Voir mon programme', 'icon' => null],
+        default => null,
+    };
+    $nextBack = match ($mode) {
+        'assessment' => ['href' => $urls['done'], 'label' => 'Voir mon résultat complet'],
+        'course' => ['href' => route('dashboard'), 'label' => 'Aller à mon espace'],
+        'lesson', 'level_test' => ['href' => route('dashboard'), 'label' => 'Retour à mon espace'],
+        default => null,
+    };
+    // Invitation à installer l'application : à la fin de l'évaluation et de la toute première séance.
+    $installHint = $mode === 'assessment'
+        || ($mode === 'lesson' && ! auth()->user()?->lessons()->where('used_seconds', '>=', (int) config('teacher.working_together.held_seconds', 120))->exists());
 @endphp
 <x-layout :title="$title" focus>
     <div id="live" class="live"
@@ -66,6 +88,11 @@
             </div>
             <button type="button" id="teacher3d-toggle" class="btn btn-link teacher3d-toggle" hidden></button>
 
+            @if ($mode === 'lesson')
+                {{-- Changement de temps de la séance (pratique, conversation, bilan) : bref bandeau, aucun bouton. --}}
+                <p id="phase-note" class="phase-note" role="status" hidden><x-icon name="arrow-right" /> <span data-phase-note-text></span></p>
+            @endif
+
             {{-- Séance du jour : le tableau, sous Teacher Joe sur téléphone (replié), déplacé à droite sur grand écran. --}}
             @if (! empty($board))
                 <div id="board-home"><x-live-board :board="$board" :translations="$boardTranslations ?? 'show'" /></div>
@@ -84,6 +111,13 @@
         {{-- Colonne des commandes. Avant le début : « Commencer » tout de suite sous le professeur. --}}
         <div class="live-panel">
             <div id="error" class="alert alert-error" role="alert" hidden></div>
+
+            @if ($next)
+                <x-next-step hidden :title="$next['title']" :text="$next['text']" :href="$next['href']" :label="$next['label']" :icon="$next['icon']">
+                    @if ($nextBack)<a href="{{ $nextBack['href'] }}">{{ $nextBack['label'] }}</a>@endif
+                    @if ($installHint)<x-install-hint />@endif
+                </x-next-step>
+            @endif
 
             <div id="intro" class="card">
                 <p class="intro-text">{{ $intro }}</p>

@@ -192,7 +192,7 @@ class SubmitPaymentTest extends TestCase
         $page = $this->actingAs($user)->get(route('payment.show', $payment))
             ->assertOk()
             ->assertSee('Nous vérifions votre paiement')
-            ->assertSee('vous serez informé')
+            ->assertSee('active votre formule : vous n\'avez rien d\'autre à faire', false)
             ->assertSee('Prévenir sur WhatsApp')
             // L'apprenant ne voit jamais quelle règle a échoué.
             ->assertDontSee('pas de réponse de l\'IA', false);

@@ -2,7 +2,7 @@
  * Petits comportements communs à toutes les pages (module ES, sans bibliothèque) :
  *   - service worker (cache des fichiers statiques, page hors connexion) ;
  *   - apparition douce des blocs .reveal quand ils arrivent à l'écran ;
- *   - bouton « Installer l'application » (Android) et explication pour iPhone ;
+ *   - proposition d'installer l'application (calendrier de rappel, liens, explication pour iPhone) ;
  *   - bouton « œil » des champs mot de passe (afficher / masquer) ;
  *   - message de confirmation en haut de la page (bouton « Fermer ») ;
  *   - fenêtre de confirmation intégrée des actions graves (jamais de fenêtre du navigateur) ;
@@ -40,26 +40,44 @@ if (blocks.length && 'IntersectionObserver' in window) {
 
 /* ---------- Installation de l'application ---------- */
 
-const DISMISSED = 'install-dismissed';
+/*
+ * Bandeau (#install) : affiché selon le calendrier de public/js/install-reminder.js (jamais fermé : affiché ; fermé :
+ * revient 1 jour, 3 jours, puis une semaine après). Liens « Installer l'application » (Menu, pied de page, page
+ * /installer-l-application) : toujours là, sauf dans l'application installée (classe is-standalone posée dans le
+ * <head>) ; ils ouvrent la fenêtre d'installation du navigateur quand il la propose, sinon la page d'explications.
+ */
 const banner = document.getElementById('install');
-const buttons = document.querySelectorAll('[data-install-button]');
 const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const touch = window.matchMedia('(pointer: coarse)').matches;
+const reminderModule = script?.dataset.installReminder ? import(script.dataset.installReminder).catch(() => null) : Promise.resolve(null);
 let deferredPrompt = null;
 
-function dismissed() {
+function storage() {
     try {
-        return localStorage.getItem(DISMISSED) === '1';
+        return window.localStorage;
     } catch {
-        return false;
+        return null;
     }
 }
 
 // Petite barre juste au-dessus de la barre du bas : la page garde de la place pour elle (classe sur <body>).
-function showBanner() {
-    if (!banner || standalone || dismissed()) {
+async function showBanner() {
+    if (!banner || standalone || !banner.hidden) {
         return;
     }
 
+    const reminder = await reminderModule;
+    const store = storage();
+    const state = reminder && store ? reminder.read(store, Date.now()) : undefined;
+
+    if (state === undefined || !reminder.isDue(state, Date.now())) {
+        return;
+    }
+
+    banner.querySelector('[data-install-android]')?.toggleAttribute('hidden', ios);
+    banner.querySelector('[data-install-ios]')?.toggleAttribute('hidden', !ios);
+    banner.querySelector('[data-install-button]')?.toggleAttribute('hidden', ios);
     banner.removeAttribute('hidden');
     document.body.classList.add('has-install-bar');
 }
@@ -69,55 +87,76 @@ function hideBanner() {
     document.body.classList.remove('has-install-bar');
 }
 
-// Fermée ou application installée : cachée pour de bon.
-function dismiss() {
+// Fermée : elle reviendra plus tard (1 jour, 3 jours, puis une semaine), jamais à chaque visite.
+async function dismissBanner() {
     hideBanner();
 
-    try {
-        localStorage.setItem(DISMISSED, '1');
-    } catch { /* stockage indisponible */ }
+    const reminder = await reminderModule;
+    const store = storage();
+
+    if (reminder && store) {
+        reminder.write(store, reminder.dismiss(reminder.read(store, Date.now()), Date.now()));
+    }
+}
+
+/** Message bref en haut de l'écran (même présentation que les messages du serveur). */
+function toast(text) {
+    const box = document.createElement('div');
+    box.className = 'toast';
+    box.setAttribute('role', 'status');
+    box.style.setProperty('--toast-delay', '7s');
+    box.textContent = text;
+    document.querySelector('main .container')?.prepend(box);
 }
 
 // Android (Chrome, Edge, Samsung Internet) : le navigateur propose l'installation.
 window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     deferredPrompt = event;
-    buttons.forEach((button) => button.removeAttribute('hidden'));
-
+    document.querySelectorAll('[data-install-now]').forEach((button) => button.removeAttribute('hidden'));
     showBanner();
 });
 
-buttons.forEach((button) => button.addEventListener('click', async () => {
-    if (!deferredPrompt) {
+// Tout bouton ou lien d'installation : la fenêtre du navigateur si elle est disponible, sinon la page d'explications.
+document.addEventListener('click', async (event) => {
+    const trigger = event.target.closest?.('[data-install-button], [data-install-link]');
+
+    if (!trigger || !deferredPrompt) {
         return;
     }
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    event.preventDefault();
+    const promptEvent = deferredPrompt;
     deferredPrompt = null;
-    buttons.forEach((b) => b.setAttribute('hidden', ''));
+    promptEvent.prompt();
+    const { outcome } = await promptEvent.userChoice;
 
-    if (outcome === 'accepted') {
-        dismiss();
+    if (outcome !== 'accepted') {
+        dismissBanner();
     }
-}));
-
-window.addEventListener('appinstalled', () => {
-    buttons.forEach((button) => button.setAttribute('hidden', ''));
-    dismiss();
 });
 
-// iPhone et iPad (Safari) : pas d'invite automatique, on explique la marche à suivre.
-const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+window.addEventListener('appinstalled', async () => {
+    hideBanner();
+    deferredPrompt = null;
+    document.documentElement.classList.add('is-installed');
 
-if (banner && ios && !standalone && !dismissed()) {
-    banner.querySelector('[data-install-android]')?.setAttribute('hidden', '');
-    banner.querySelector('[data-install-ios]')?.removeAttribute('hidden');
-    banner.querySelector('[data-install-button]')?.setAttribute('hidden', '');
+    const reminder = await reminderModule;
+    const store = storage();
+
+    if (reminder && store) {
+        reminder.write(store, { ...(reminder.read(store, Date.now()) ?? {}), installed: true });
+    }
+
+    toast(script?.dataset.installedMessage || 'L\'application est installée : retrouvez-la sur votre écran d\'accueil.');
+});
+
+// iPhone et iPad (Safari), et téléphones dont le navigateur ne propose rien : le bandeau mène aux explications.
+if (ios || touch) {
     showBanner();
 }
 
-banner?.querySelector('[data-install-close]')?.addEventListener('click', dismiss);
+banner?.querySelector('[data-install-close]')?.addEventListener('click', dismissBanner);
 
 /* ---------- Afficher / masquer le mot de passe ---------- */
 

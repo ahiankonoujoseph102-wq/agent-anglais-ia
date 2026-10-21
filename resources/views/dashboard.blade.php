@@ -20,7 +20,7 @@
                 Parlez {{ $assessmentMinutes }} minutes avec {{ config('avatar.model.name') }} pour connaître votre niveau
                 d'anglais, puis découvrez une première leçon et posez vos questions. C'est gratuit et sans engagement.
             </p>
-            <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-lg btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
+            <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-lg btn-block btn-next"><x-icon name="mic" /> Commencer mon évaluation gratuite</a>
         @elseif ($pendingPayment && ! $subscription)
             <h2 id="next-step-title">Nous vérifions votre paiement</h2>
             <p>
@@ -76,7 +76,9 @@
                 <p>{{ \App\Support\DailyTime::remainingSentence((int) $remainingSeconds) }} Ce temps est partagé entre la séance orale et « Mes cours ».</p>
                 <a href="{{ route('lesson.show') }}" class="btn btn-lg btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
             @else
-                <p>{{ \App\Support\DailyTime::EXHAUSTED }}</p>
+                {{-- Temps du jour épuisé : rien à lancer, la suite est de relire sa dernière séance. --}}
+                <p>{{ \App\Support\DailyTime::EXHAUSTED }} En attendant, relisez votre dernière séance et votre devoir.</p>
+                <a href="{{ route('lessons.history') }}" class="btn btn-lg btn-block btn-next"><x-icon name="book" /> Revoir ma dernière séance</a>
             @endif
             @if ($lastLesson?->summary)
                 <h3 class="next-step">Dernière séance</h3>

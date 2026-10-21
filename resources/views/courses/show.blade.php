@@ -112,6 +112,10 @@
                 <x-icon name="info" />
                 <div>{{ \App\Support\DailyTime::EXHAUSTED }}</div>
             </div>
+            @if ($reviewSessions->isNotEmpty())
+                {{-- Temps du jour épuisé : la suite est de relire ses documents de révision. --}}
+                <a href="#documents" class="btn btn-accent btn-block btn-lg btn-next next-step"><x-icon name="file-text" /> Revoir mes documents de révision</a>
+            @endif
         @else
             <a href="{{ route('courses.session', $course) }}" class="btn btn-accent btn-block btn-lg"><x-icon name="mic" /> Parler avec {{ $teacher }}</a>
             <p class="muted small next-step">

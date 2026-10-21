@@ -10,6 +10,19 @@
         <a class="btn btn-outline" href="{{ route('program.answers.edit', [$program, 1]) }}"><x-icon name="target" /> Modifier mes objectifs</a>
     </div>
 
+    {{-- La suite : TOUJOURS avant la présentation et les chiffres (visible sans faire défiler). --}}
+    @if ($program->status === ProgramStatus::LevelTestDue)
+        <x-next-step class="rise"
+            title="Bravo, vous avez terminé les 12 unités !"
+            text="Passez le bilan oral de fin de niveau avec {{ config('avatar.model.name') }} : vous obtiendrez votre attestation et passerez au niveau suivant."
+            :href="route('level-test.show')" label="Passer mon bilan de fin de niveau" icon="award" />
+    @elseif ($current)
+        <x-next-step class="rise"
+            :title="$firstLesson ? 'Votre programme est prêt' : 'Votre prochaine leçon'"
+            :text="'Unité '.$current->unit_number.' · '.$units[$current->unit_number]->title.' — leçon '.$current->lesson_number.' : '.$current->focusLabel().'. Situation : '.$current->situation()->title.'.'.($current->highlighted ? ' Choisie pour vous.' : '')"
+            :href="route('lesson.show')" :label="$firstLesson ? 'Commencer ma première leçon' : 'Commencer la séance'" icon="mic" />
+    @endif
+
     @if (! empty($program->content['intro']))
         <div class="card card-soft rise"><p>{{ $program->content['intro'] }}</p></div>
     @endif
@@ -37,24 +50,6 @@
         </div>
     </div>
 
-    @if ($program->status === ProgramStatus::LevelTestDue)
-        <div class="card next-card next-step reveal">
-            <h2>Bravo, vous avez terminé les 12 unités !</h2>
-            <p>Passez le bilan oral de fin de niveau avec le professeur.</p>
-            <a class="btn btn-block btn-lg" href="{{ route('level-test.show') }}"><x-icon name="award" /> Passer mon bilan de fin de niveau</a>
-        </div>
-    @elseif ($current)
-        <section class="card next-card next-step reveal">
-            <h2>Prochaine leçon</h2>
-            <p>
-                <strong>Unité {{ $current->unit_number }} · {{ $units[$current->unit_number]->title }}</strong><br>
-                Leçon {{ $current->lesson_number }} : {{ $current->focusLabel() }}<br>
-                Situation : {{ $current->situation()->title }}
-                @if ($current->highlighted) <span class="badge badge-accent" title="Liée à votre objectif ou à votre métier"><x-icon name="sparkle" /> pour vous</span> @endif
-            </p>
-            <a class="btn btn-lg btn-block" href="{{ route('lesson.show') }}"><x-icon name="mic" /> Commencer la séance</a>
-        </section>
-    @endif
 
     <h2 class="next-step reveal">Mon calendrier</h2>
     @if ($upcoming->isEmpty())

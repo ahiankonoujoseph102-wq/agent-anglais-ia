@@ -47,6 +47,7 @@ class ProgramController extends Controller
             'current' => $current,
             'upcoming' => $lessons->where('status', ProgramLessonStatus::Pending)->take(10),
             'progress' => $program->progressPercent(),
+            'firstLesson' => $lessons->where('status', ProgramLessonStatus::Completed)->isEmpty(),
         ]);
     }
 
@@ -118,7 +119,7 @@ class ProgramController extends Controller
         $builder->build($user, $user->level ?? Level::A1, $all);
         $request->session()->forget(self::SESSION_KEY);
 
-        return to_route('program.show')->with('status', 'Votre programme personnel est prêt !');
+        return redirect()->to(route('program.show').'#suite')->with('status', 'Votre programme personnel est prêt !');
     }
 
     /**
