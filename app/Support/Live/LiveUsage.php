@@ -3,6 +3,7 @@
 namespace App\Support\Live;
 
 use App\Models\Assessment;
+use App\Models\ConversationLine;
 use App\Models\CourseSession;
 use App\Models\Lesson;
 use App\Models\LevelTest;
@@ -16,6 +17,57 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final class LiveUsage
 {
+    /**
+     * Délai de réponse de Teacher Joe (fin de la parole de l'élève → premier son de sa réponse), mesuré à chaque
+     * réplique par le navigateur (metrics.delay_ms), sur les derniers jours : médiane et 90 % par fournisseur.
+     * Sert à mesurer l'effet des réglages de latence (services.*.activity_detection, réflexion du modèle).
+     *
+     * @return array<string, array{count: int, median: int|null, p90: int|null}>
+     */
+    public static function replyDelays(int $days = 7): array
+    {
+        $lines = ConversationLine::query()
+            ->where('speaker', 'teacher')
+            ->whereNotNull('metrics')
+            ->where('created_at', '>=', now()->subDays($days))
+            ->latest('id')
+            ->limit(20000)
+            ->get(['speaker', 'conversation_type', 'conversation_id', 'metrics']);
+
+        // Fournisseur de chaque séance (choisi au début, colonne live_provider).
+        $providers = [];
+
+        foreach ($lines->groupBy('conversation_type') as $type => $group) {
+            $class = Transcripts::TYPES[$type] ?? null;
+
+            if ($class !== null) {
+                $providers[$type] = $class::query()->whereKey($group->pluck('conversation_id')->unique()->all())->pluck('live_provider', 'id')->all();
+            }
+        }
+
+        $delays = array_fill_keys(LiveProviders::all(), []);
+
+        foreach ($lines as $line) {
+            $delay = $line->delayMs();
+            $provider = $providers[$line->conversation_type][$line->conversation_id] ?? null;
+
+            if ($delay !== null && $delay >= 0 && isset($delays[$provider])) {
+                $delays[$provider][] = $delay;
+            }
+        }
+
+        return array_map(function (array $values): array {
+            sort($values);
+            $count = count($values);
+
+            return [
+                'count' => $count,
+                'median' => $count === 0 ? null : (int) $values[intdiv($count - 1, 2)],
+                'p90' => $count === 0 ? null : (int) $values[(int) ceil(0.9 * $count) - 1],
+            ];
+        }, $delays);
+    }
+
     /**
      * @return array<string, array{count: int, seconds: int, cost: float}>
      */

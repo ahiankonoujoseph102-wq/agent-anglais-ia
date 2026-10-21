@@ -77,6 +77,25 @@
         Les coûts d'après les jetons (en haut, par apprenant et par séance) comptent chaque séance au tarif de son fournisseur.
     </p>
 
+    {{-- Délai de réponse de Teacher Joe : fin de la parole de l'élève → premier son de sa réponse (7 derniers jours). --}}
+    <h2 class="next-step" id="delai-de-reponse">Délai de réponse de {{ config('avatar.model.name') }}</h2>
+    <div class="stats">
+        @foreach ($replyDelays as $provider => $delay)
+            <div class="stat" data-reply-delay="{{ $provider }}">
+                <div class="label">{{ \App\Support\Live\LiveProviders::label($provider) }}</div>
+                <div class="value">{{ $delay['median'] !== null ? \App\Support\Live\Transcripts::seconds($delay['median']) : 'aucune mesure' }}</div>
+                <div class="detail">
+                    @if ($delay['count'] > 0)
+                        délai médian · 9 réponses sur 10 en {{ \App\Support\Live\Transcripts::seconds($delay['p90']) }} au plus · {{ $delay['count'] }} {{ $delay['count'] > 1 ? 'réponses mesurées' : 'réponse mesurée' }}
+                    @else
+                        aucune réponse mesurée ces 7 derniers jours
+                    @endif
+                </div>
+            </div>
+        @endforeach
+    </div>
+    <p class="muted small">Mesuré dans le navigateur de l'élève, de la fin de sa parole au premier son de la réponse, sur les 7 derniers jours. Objectif : moins de 2 secondes.</p>
+
     {{-- Synthèse vocale des messages (bienvenue, résultat de l'évaluation, essais) : jamais mélangée aux conversations. --}}
     <h2 class="next-step">Synthèse vocale des messages</h2>
     <div class="stats">
