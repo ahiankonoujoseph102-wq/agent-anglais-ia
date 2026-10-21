@@ -42,9 +42,10 @@ class NavigationTest extends TestCase
         // « Mes cours » est dans le Menu (complément facultatif), jamais dans la barre du bas.
         $expected = ['Mon espace', 'Mon programme', 'Mes séances', 'Mes cours', 'Mon compte', 'Aide', 'Déconnexion'];
 
-        // Menu compact sans JavaScript (<details>) et navigation complète : mêmes liens.
+        // Menu compact sans JavaScript (<details>) et navigation complète : mêmes liens ; le Menu propose en plus
+        // « Installer l'application » (sur ordinateur : lien du pied de page).
         $this->assertSame(1, $xpath->query('//details[@data-menu]/summary')->length);
-        $this->assertSame($expected, $this->labels($xpath, '//nav[contains(@class,"menu-panel")]//a | //nav[contains(@class,"menu-panel")]//button'));
+        $this->assertSame(array_merge(array_slice($expected, 0, 6), ["Installer l'application", 'Déconnexion']), $this->labels($xpath, '//nav[contains(@class,"menu-panel")]//a | //nav[contains(@class,"menu-panel")]//button'));
         $this->assertSame($expected, $this->labels($xpath, '//nav[contains(@class,"nav-desktop")]//a | //nav[contains(@class,"nav-desktop")]//button'));
 
         // Barre du bas et page courante signalée partout.

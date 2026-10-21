@@ -252,7 +252,7 @@ class DesignFinishTest extends TestCase
         $this->actingAs($user)->get(route('account.edit'))->assertOk()->assertSee('+228 79 16 23 90');
     }
 
-    public function test_install_bar_sits_above_the_bottom_bar_and_stays_hidden_once_closed_or_installed(): void
+    public function test_install_bar_sits_above_the_bottom_bar_comes_back_on_schedule_and_never_once_installed(): void
     {
         $css = self::css();
         $this->assertStringContainsString('.install { position: fixed;', $css);
@@ -262,9 +262,11 @@ class DesignFinishTest extends TestCase
         $this->assertStringContainsString('.has-tabbar .site-footer { padding-bottom: calc(var(--tabbar) + var(--space-6)', $css);
 
         $script = (string) file_get_contents(public_path('js/app.js'));
-        $this->assertStringContainsString('if (!banner || standalone || dismissed()) {', $script);
-        $this->assertMatchesRegularExpression("/addEventListener\('appinstalled', \(\) => \{[^}]*dismiss\(\);/s", $script);
-        $this->assertStringContainsString("localStorage.setItem(DISMISSED, '1')", $script);
+        // Fermée : elle revient selon le calendrier (public/js/install-reminder.js) ; installée : plus jamais.
+        $this->assertStringContainsString('if (!banner || standalone || !banner.hidden) {', $script);
+        $this->assertStringContainsString('if (state === undefined || !reminder.isDue(state, Date.now())) {', $script);
+        $this->assertStringContainsString('reminder.write(store, reminder.dismiss(reminder.read(store, Date.now()), Date.now()));', $script);
+        $this->assertStringContainsString('installed: true', $script);
 
         $this->get('/')->assertSee('<span class="install-more">', false);
     }

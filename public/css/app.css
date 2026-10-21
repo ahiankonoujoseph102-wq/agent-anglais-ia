@@ -130,7 +130,6 @@ code { overflow-wrap: anywhere; font-size: .95em; background: var(--c-bg-warm); 
 .footer-list li { display: flex; gap: var(--space-2); align-items: flex-start; }
 .footer-list .icon { margin-top: 2px; color: var(--c-on-dark-muted); }
 .footer-links { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: 0; padding: 0; list-style: none; }
-.footer-install { color: inherit; padding: 0; font-size: inherit; }
 .footer-bottom { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-1) var(--space-4); border-top: 1px solid var(--c-on-dark-line); margin-top: var(--space-6); padding-top: var(--space-4); }
 .footer-bottom p { margin: 0; }
 .footer-signature { color: var(--c-on-dark-muted); letter-spacing: .01em; }
@@ -534,7 +533,16 @@ main { overflow-x: clip; }
 .has-install-bar .site-footer { padding-bottom: calc(var(--space-6) + 64px + env(safe-area-inset-bottom)); }
 .has-install-bar.has-tabbar .site-footer { padding-bottom: calc(var(--tabbar) + var(--space-6) + 64px + env(safe-area-inset-bottom)); }
 .install .btn { min-height: 40px; padding: 8px 14px; }
-.install .install-close { background: none; border: 0; padding: 6px; color: var(--c-muted); cursor: pointer; border-radius: 50%; min-height: 0; }
+.install .install-close { background: none; border: 0; padding: 6px; color: var(--c-muted); cursor: pointer; border-radius: 50%; min-height: 44px; min-width: 44px; display: grid; place-items: center; }
+.install p a { font-weight: var(--fw-bold); }
+/* Page « Installer l'application ». */
+.install-done { display: none; }
+.is-standalone .install-done { display: flex; }
+.install-steps h2 { font-size: var(--fs-lg); }
+.install-list { margin: var(--space-3) 0 0; padding-left: 1.4em; display: grid; gap: var(--space-2); }
+.install-list .icon { vertical-align: -3px; color: var(--c-accent-strong); }
+/* Application installée (ouverte depuis l'écran d'accueil) : plus aucun lien ni invitation à l'installer. */
+.is-standalone [data-install-link], .is-standalone [data-install-link-item], .is-standalone [data-install-hint], .is-installed [data-install-hint] { display: none !important; }
 
 /* ---------- Pagination (vues par défaut de Laravel) ---------- */
 

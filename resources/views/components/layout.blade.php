@@ -9,6 +9,10 @@
     // Barre du bas (téléphone) : apprenant connecté, hors écran de conversation (focus).
     $tabbar = $user && ! $isAdminPage && ! $focus && ! $user->must_change_password;
     $tab = fn (string ...$patterns) => request()->routeIs(...$patterns) ? 'is-active' : null;
+    // Proposition d'installer l'application (bandeau) : accueil, et toutes les pages de l'apprenant connecté, jamais
+    // pendant une séance avec le professeur, sur la page de bienvenue ni dans l'administration (public/js/app.js
+    // décide ensuite : calendrier de rappel, application déjà installée).
+    $installBar = $install || ($tabbar && ! request()->routeIs('welcome.*', 'install'));
     // Référencement : seules les pages publiques (App\Support\Seo::INDEXABLE_ROUTES) sont indexées.
     $indexable ??= Seo::indexable();
     $pageTitle = $title ? $title.' · '.config('platform.name') : config('platform.name').' · '.config('platform.brand.home_title');
@@ -58,8 +62,8 @@
     <link rel="preload" href="{{ asset('fonts/sora-2.000-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ Asset::url('css/tokens.css') }}">
     <link rel="stylesheet" href="{{ Asset::url('css/app.css') }}">
-    <script>document.documentElement.classList.add('js');</script>
-    <script type="module" src="{{ Asset::url('js/app.js') }}" data-sw="{{ asset('sw.js') }}"></script>
+    <script>document.documentElement.classList.add('js');if(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)document.documentElement.classList.add('is-standalone');</script>
+    <script type="module" src="{{ Asset::url('js/app.js') }}" data-sw="{{ asset('sw.js') }}" data-install-reminder="{{ Asset::url('js/install-reminder.js') }}" data-installed-message="{{ config('platform.name') }} est installée : retrouvez {{ config('avatar.model.name') }} sur votre écran d'accueil."></script>
     @stack('head')
 </head>
 <body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage, 'is-admin-user' => $user?->isAdmin()]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
@@ -114,6 +118,7 @@
                                 @endif
                             </a>
                         @endforeach
+                        <a href="{{ route('install') }}" data-install-link @if (request()->routeIs('install')) aria-current="page" @endif><x-icon name="download" /> <span>Installer l'application</span></a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit"><x-icon name="logout" /> <span>Déconnexion</span></button>
@@ -161,8 +166,8 @@
 
             {{ $slot }}
 
-            @if ($install)
-                {{-- Installation de l'application : affiché par public/js/app.js quand c'est possible. --}}
+            @if ($installBar)
+                {{-- Installation de l'application : affiché par public/js/app.js quand c'est le moment. --}}
                 <div class="install" id="install" hidden>
                     <span class="icon-bubble icon-bubble-primary"><x-icon name="download" /></span>
                     <p data-install-android>
@@ -172,8 +177,9 @@
                     <p data-install-ios hidden>
                         <strong>Ajouter à l'écran d'accueil</strong>
                         Sur iPhone : touchez « Partager » <x-icon name="share" label="Partager" />, puis « Sur l'écran d'accueil ».
+                        <a href="{{ route('install') }}">Voir comment faire</a>
                     </p>
-                    <button type="button" class="btn" data-install-button>Installer</button>
+                    <a href="{{ route('install') }}" class="btn" data-install-button>Installer</a>
                     <button type="button" class="install-close" data-install-close title="Fermer"><x-icon name="close" label="Fermer" /></button>
                 </div>
             @endif
@@ -214,7 +220,7 @@
                     <li><a href="{{ route('contact') }}">Contact</a></li>
                     <li><a href="{{ route('about') }}">À propos</a></li>
                     <li><a href="{{ route('privacy') }}">Confidentialité</a></li>
-                    <li><button type="button" class="btn btn-link footer-install" data-install-button hidden>Installer l'application</button></li>
+                    <li data-install-link-item><a href="{{ route('install') }}" data-install-link>Installer l'application</a></li>
                 </ul>
                 @guest
                     {{-- Visiteurs (et moteurs de recherche) : les pages « Apprendre l'anglais » de chaque pays. --}}
