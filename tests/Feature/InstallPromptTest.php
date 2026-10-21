@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AssessmentStatus;
+use App\Enums\LessonStatus;
 use App\Enums\Level;
 use App\Models\Subscription;
 use App\Models\User;
@@ -85,5 +87,35 @@ class InstallPromptTest extends TestCase
         // Application ouverte depuis l'écran d'accueil : classe posée dès le <head>, liens et invitations cachés.
         $this->assertStringContainsString("document.documentElement.classList.add('is-standalone')", $html);
         $this->assertStringContainsString('.is-standalone [data-install-link], .is-standalone [data-install-link-item], .is-standalone [data-install-hint]', file_get_contents(public_path('css/app.css')));
+    }
+
+    public function test_a_short_invitation_comes_at_the_end_of_the_assessment_and_of_the_first_lesson_only(): void
+    {
+        $hint = 'Installez Talkami pour retrouver Teacher Joe en un geste.';
+
+        // Fin de l'évaluation : dans la carte « La suite », APRÈS le bouton principal.
+        $html = $this->actingAs(User::factory()->create())->get('/evaluation')->assertOk()->getContent();
+        $this->assertSame(1, preg_match('/<section[^>]*id="suite".*?<\/section>/s', $html, $card));
+        $this->assertStringContainsString($hint, $card[0]);
+        $this->assertGreaterThan(strpos($card[0], 'btn-next'), strpos($card[0], 'data-install-hint'));
+        $this->assertStringContainsString('href="'.route('install').'" data-install-link>Installer l\'application</a>', $card[0]);
+
+        // Première séance : oui ; après une séance faite : non.
+        $user = $this->subscriber();
+        $this->actingAs($user)->get('/seance')->assertOk()->assertSee($hint);
+        $user->lessons()->create(['date' => today()->subDay(), 'started_at' => now()->subDay(), 'allowed_seconds' => 900, 'used_seconds' => 600, 'status' => LessonStatus::Completed]);
+        $this->actingAs($user->fresh())->get('/seance')->assertOk()->assertDontSee($hint);
+    }
+
+    public function test_the_result_page_invites_to_install_under_the_main_button(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill(['level' => Level::B1])->save();
+        $user->assessment()->create(['status' => AssessmentStatus::Completed, 'level' => Level::B1, 'allowed_seconds' => 300, 'used_seconds' => 300, 'started_at' => now()->subHour(), 'ended_at' => now()->subHour()]);
+
+        $html = $this->actingAs($user)->get('/evaluation')->assertOk()->getContent();
+        $this->assertSame(1, substr_count($html, 'data-install-hint'));
+        $this->assertGreaterThan(strpos($html, 'btn-next'), strpos($html, 'data-install-hint'));
+        $this->assertLessThan(strpos($html, "L'avis de") ?: strpos($html, 'data-level-play'), strpos($html, 'data-install-hint'));
     }
 }

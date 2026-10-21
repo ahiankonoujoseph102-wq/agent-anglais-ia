@@ -14,4 +14,5 @@
 <div class="result-next" id="suite">
     <p class="result-next-text">{{ $nextText }}</p>
     <a class="btn btn-accent btn-lg btn-next" href="{{ $nextHref }}">{{ $nextLabel }} <x-icon name="arrow-right" /></a>
+    <x-install-hint />
 </div>

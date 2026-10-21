@@ -535,6 +535,11 @@ main { overflow-x: clip; }
 .install .btn { min-height: 40px; padding: 8px 14px; }
 .install .install-close { background: none; border: 0; padding: 6px; color: var(--c-muted); cursor: pointer; border-radius: 50%; min-height: 44px; min-width: 44px; display: grid; place-items: center; }
 .install p a { font-weight: var(--fw-bold); }
+/* Invitation à installer, sous le bouton principal : une ligne discrète, jamais à sa place. */
+.install-hint { display: flex; align-items: flex-start; gap: var(--space-2); flex-basis: 100%; margin: var(--space-2) 0 0; font-size: var(--fs-sm); text-align: left; }
+.install-hint .icon { flex: none; margin-top: 3px; color: var(--c-accent-strong); }
+.install-hint a { display: inline-block; font-weight: var(--fw-bold); padding: 6px 0; }
+.next-card .install-hint .icon { color: var(--c-accent); }
 /* Page « Installer l'application ». */
 .install-done { display: none; }
 .is-standalone .install-done { display: flex; }

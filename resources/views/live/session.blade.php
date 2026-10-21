@@ -29,6 +29,9 @@
         'lesson', 'level_test' => ['href' => route('dashboard'), 'label' => 'Retour à mon espace'],
         default => null,
     };
+    // Invitation à installer l'application : à la fin de l'évaluation et de la toute première séance.
+    $installHint = $mode === 'assessment'
+        || ($mode === 'lesson' && ! auth()->user()?->lessons()->where('used_seconds', '>=', (int) config('teacher.working_together.held_seconds', 120))->exists());
 @endphp
 <x-layout :title="$title" focus>
     <div id="live" class="live"
@@ -112,6 +115,7 @@
             @if ($next)
                 <x-next-step hidden :title="$next['title']" :text="$next['text']" :href="$next['href']" :label="$next['label']" :icon="$next['icon']">
                     @if ($nextBack)<a href="{{ $nextBack['href'] }}">{{ $nextBack['label'] }}</a>@endif
+                    @if ($installHint)<x-install-hint />@endif
                 </x-next-step>
             @endif
 
