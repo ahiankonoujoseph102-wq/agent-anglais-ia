@@ -28,11 +28,9 @@
             </div>
             <div class="card">
                 <p>
-                    Merci ! Votre capture est bien arrivée. Notre équipe vérifie votre paiement
-                    ({{ \Illuminate\Support\Str::lcfirst($hours) }}) et vous serez informé ici, ainsi que dans votre espace,
-                    dès que votre formule est activée.
+                    Merci ! Votre capture est bien arrivée. Notre équipe la vérifie ({{ \Illuminate\Support\Str::lcfirst($hours) }})
+                    et active votre formule : vous n'avez rien d'autre à faire.
                 </p>
-                <p class="muted">En attendant, vous n'avez rien d'autre à faire : vous pouvez revenir à votre espace.</p>
                 <a class="btn btn-accent btn-block btn-lg btn-next" href="{{ route('dashboard') }}">Revenir à mon espace <x-icon name="arrow-right" /></a>
                 @if ($whatsappUrl)
                     <p class="next-step">Pour aller plus vite, vous pouvez aussi nous prévenir sur WhatsApp.</p>
