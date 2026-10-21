@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
+use App\Models\Payment;
 use App\Support\Gemini\WelcomeMessage;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Query\Builder;
@@ -22,7 +23,10 @@ use RuntimeException;
  * « includeGranted »), les données communes (tableaux des leçons, messages vocaux) et les journaux.
  *
  * Refusé tant qu'un apprenant a un paiement validé, un abonnement payé en cours, un accès provisoire en cours, une
- * capture en attente de vérification ou une séance en cours. Tout ce qui est effacé est d'abord sauvegardé sur le
+ * capture en attente de vérification ou une séance en cours. Avant le lancement seulement, « includeTestPayments »
+ * (option --include-test-payments) lève les deux premiers refus : les paiements validés et refusés des apprenants
+ * (des essais), tous leurs abonnements payés et leurs captures sont alors effacés aussi (sauvegardés d'abord), et les
+ * lignes du journal des alertes perdent leur lien vers ces paiements (gardées). Tout ce qui est effacé est d'abord sauvegardé sur le
  * disque privé : backups/remise-a-zero-AAAA-MM-JJ-HHMM.json.gz et les fichiers dans le dossier du même nom.
  */
 class LearnerReset
@@ -33,13 +37,13 @@ class LearnerReset
     public const TABLES = [
         'course_reviews', 'course_sessions', 'course_pages', 'course_parts', 'course_lessons',
         'conversation_events', 'conversation_lines', 'learner_errors', 'attestations', 'lessons', 'level_tests',
-        'program_lessons', 'programs', 'assessments', 'subscriptions',
+        'program_lessons', 'programs', 'assessments', 'payments', 'subscriptions',
     ];
 
     /** Séances en direct (une séance ouverte bloque la remise à zéro). */
     private const LIVE_TABLES = ['assessments', 'lessons', 'level_tests', 'course_sessions'];
 
-    public function __construct(private bool $includeGranted = false) {}
+    public function __construct(private bool $includeGranted = false, private bool $includeTestPayments = false) {}
 
     /** @return list<int> */
     public function learnerIds(): array
@@ -67,8 +71,13 @@ class LearnerReset
         $live = array_sum(array_map(fn (string $table) => $count(DB::table($table)->whereIn('user_id', $ids)
             ->whereNotNull('started_at')->whereNull('ended_at')), self::LIVE_TABLES));
 
+        // Paiements de test, effacés avec l'option : plus un refus.
+        if ($this->includeTestPayments) {
+            $validated = $paid = 0;
+        }
+
         if ($validated > 0) {
-            $reasons[] = "{$validated} paiement(s) validé(s) : des apprenants ont payé, la remise à zéro est refusée.";
+            $reasons[] = "{$validated} paiement(s) validé(s) : des apprenants ont payé, la remise à zéro est refusée. S'il ne s'agit que de vos paiements de test, ajoutez --include-test-payments pour les voir, puis les effacer aussi.";
         }
 
         if ($paid > 0) {
@@ -106,6 +115,12 @@ class LearnerReset
             if ($this->includeGranted) {
                 $query->orWhereNotNull('granted_days');
             }
+
+            // Paiements de test : tous les abonnements payés aussi, même en cours (jamais un accès provisoire en cours,
+            // qui refuse la remise à zéro).
+            if ($this->includeTestPayments) {
+                $query->orWhere(fn ($paid) => $paid->whereNull('granted_days')->where('status', '!=', SubscriptionStatus::Provisional->value));
+            }
         });
 
         return [
@@ -123,6 +138,8 @@ class LearnerReset
             'program_lessons' => DB::table('program_lessons')->whereIn('program_id', $byUser('programs')->select('id')),
             'programs' => $byUser('programs'),
             'assessments' => $byUser('assessments'),
+            // Paiements validés et refusés des apprenants, seulement avec l'option (jamais une capture en attente).
+            'payments' => $byUser('payments')->whereIn('status', $this->includeTestPayments ? [PaymentStatus::Validated->value, PaymentStatus::Rejected->value] : []),
             'subscriptions' => $subscriptions,
         ];
     }
@@ -143,6 +160,13 @@ class LearnerReset
             }
         }
 
+        // Captures des paiements de test.
+        foreach ($this->queries()['payments']->whereNotNull('proof_path')->pluck('proof_path') as $proof) {
+            if ($disk->exists($proof)) {
+                $files[] = $proof;
+            }
+        }
+
         foreach ($this->queries()['attestations']->pluck('code') as $code) {
             if ($disk->exists("attestations/{$code}.pdf")) {
                 $files[] = "attestations/{$code}.pdf";
@@ -155,7 +179,7 @@ class LearnerReset
     /**
      * Simulation : ce qui serait effacé et ce qui est gardé.
      *
-     * @return array{accounts: int, rows: array<string, int>, files: int, levels: int, pending_proofs: int, granted_kept: int, granted_removed: int, blockers: list<string>}
+     * @return array{accounts: int, rows: array<string, int>, files: int, levels: int, pending_proofs: int, granted_kept: int, granted_removed: int, payments: list<array{date: string, amount: string, plan: string, status: string, learner: string}>, blockers: list<string>}
      */
     public function plan(): array
     {
@@ -171,13 +195,33 @@ class LearnerReset
             'pending_proofs' => DB::table('payments')->whereIn('user_id', $ids)->where('status', PaymentStatus::Pending->value)->count(),
             'granted_kept' => $this->includeGranted ? 0 : $granted,
             'granted_removed' => $this->includeGranted ? $granted : 0,
+            'payments' => $this->testPayments(),
             'blockers' => $this->blockers(),
         ];
     }
 
-    public static function confirmation(int $accounts): string
+    /**
+     * Paiements de test effacés (avec l'option), pour que l'administrateur vérifie que ce sont bien ses essais : date
+     * (heure de l'application), montant, formule, statut, prénom et 4 derniers chiffres du numéro du compte. Jamais
+     * de capture, de numéro de transaction ni de numéro complet.
+     *
+     * @return list<array{date: string, amount: string, plan: string, status: string, learner: string}>
+     */
+    public function testPayments(): array
     {
-        return "EFFACER {$accounts} COMPTES";
+        return Payment::query()->whereIn('id', $this->queries()['payments']->select('id'))->with('user')->orderBy('created_at')->get()
+            ->map(fn (Payment $payment) => [
+                'date' => $payment->created_at->timezone(config('app.timezone'))->format('d/m/Y H:i'),
+                'amount' => Money::format($payment->amount),
+                'plan' => (string) $payment->plan_name,
+                'status' => $payment->status->label(),
+                'learner' => Greeting::firstName((string) $payment->user?->name).' · …'.substr(preg_replace('/\D/', '', (string) $payment->user?->phone), -4),
+            ])->all();
+    }
+
+    public static function confirmation(int $accounts, ?int $payments = null): string
+    {
+        return "EFFACER {$accounts} COMPTES".($payments === null ? '' : " ET {$payments} PAIEMENTS");
     }
 
     /**
@@ -206,9 +250,14 @@ class LearnerReset
             'created_at' => now()->toIso8601String(),
             'database' => DB::connection()->getDatabaseName(),
             'include_granted' => $this->includeGranted,
+            'include_test_payments' => $this->includeTestPayments,
+            // Lignes du journal des alertes liées aux paiements de test : gardées, sans le lien.
+            'alert_links' => DB::table('admin_alerts')->whereIn('payment_id', (clone $queries['payments'])->select('id'))
+                ->get(['id', 'payment_id'])->map(fn ($row) => (array) $row)->all(),
             'users' => DB::table('users')->whereIn('id', $ids)->get(['id', 'level', 'welcomed_at'])->map(fn ($row) => (array) $row)->all(),
             // Liens des paiements gardés vers les abonnements effacés (remis à vide par la base).
             'payment_links' => DB::table('payments')->whereIn('subscription_id', (clone $queries['subscriptions'])->select('id'))
+                ->whereNotIn('id', (clone $queries['payments'])->select('id'))
                 ->get(['id', 'subscription_id'])->map(fn ($row) => (array) $row)->all(),
             'tables' => array_map(fn ($query) => (clone $query)->get()->map(fn ($row) => (array) $row)->all(), $queries),
             'files' => $files,
@@ -225,8 +274,9 @@ class LearnerReset
 
         // 2. Effacement, d'un seul tenant.
         $rows = [];
-        DB::transaction(function () use ($queries, $ids, &$rows) {
+        DB::transaction(function () use ($queries, $ids, $data, &$rows) {
             DB::table('course_lessons')->whereIn('user_id', $ids)->update(['current_part_id' => null]);
+            DB::table('admin_alerts')->whereIn('id', array_column($data['alert_links'], 'id'))->update(['payment_id' => null]);
 
             foreach (self::TABLES as $table) {
                 $keys = (clone $queries[$table])->pluck('id')->all();
@@ -301,6 +351,10 @@ class LearnerReset
 
             foreach ($data['payment_links'] as $link) {
                 DB::table('payments')->where('id', $link['id'])->whereNull('subscription_id')->update(['subscription_id' => $link['subscription_id']]);
+            }
+
+            foreach ($data['alert_links'] ?? [] as $link) {
+                DB::table('admin_alerts')->where('id', $link['id'])->whereNull('payment_id')->update(['payment_id' => $link['payment_id']]);
             }
         });
 

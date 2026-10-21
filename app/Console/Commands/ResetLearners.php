@@ -22,16 +22,18 @@ class ResetLearners extends Command
         {--force : Effacer pour de vrai (sinon : simulation)}
         {--confirm= : Confirmation exacte : « EFFACER N COMPTES » (N = nombre de comptes d\'apprenants)}
         {--include-granted : Retirer aussi les accès offerts en cours (gardés par défaut)}
+        {--include-test-payments : Avant le lancement : effacer aussi les paiements validés et refusés des apprenants (vos essais), leurs abonnements et leurs captures}
         {--notify : Inviter par e-mail les apprenants remis à zéro à refaire leur évaluation gratuite}';
 
     protected $description = 'Remet à zéro les apprenants (évaluation, programme, séances…) ; simulation sans --force';
 
     public function handle(): int
     {
-        $reset = new LearnerReset((bool) $this->option('include-granted'));
+        $testPayments = (bool) $this->option('include-test-payments');
+        $reset = new LearnerReset((bool) $this->option('include-granted'), $testPayments);
         $plan = $reset->plan();
         $connected = (string) DB::connection()->getDatabaseName();
-        $expected = LearnerReset::confirmation($plan['accounts']);
+        $expected = LearnerReset::confirmation($plan['accounts'], $testPayments ? count($plan['payments']) : null);
 
         $this->line('Base connectée : '.$connected);
         $this->line("Comptes d'apprenants : {$plan['accounts']} (les administrateurs ne sont jamais touchés).");
@@ -43,7 +45,18 @@ class ResetLearners extends Command
         }
 
         $this->line("Fichiers effacés (Mes cours, documents de révision, attestations) : {$plan['files']}.");
-        $this->line('Gardé : comptes, sessions, paiements et captures, données communes, journaux.');
+        if ($testPayments) {
+            $this->line('Paiements de test effacés (validés et refusés), avec leurs abonnements et leurs captures : '.count($plan['payments']).'. Vérifiez que ce sont bien vos essais :');
+
+            foreach ($plan['payments'] as $payment) {
+                $this->line("  {$payment['date']} · {$payment['amount']} · {$payment['plan']} · {$payment['status']} · {$payment['learner']}");
+            }
+
+            $this->line('Gardé : comptes, sessions, données communes, journaux (lignes des alertes gardées, sans lien vers ces paiements).');
+        } else {
+            $this->line('Gardé : comptes, sessions, paiements et captures, données communes, journaux.');
+        }
+
         $this->line($this->option('include-granted')
             ? "Accès offerts en cours retirés : {$plan['granted_removed']}."
             : "Accès offerts en cours gardés : {$plan['granted_kept']} (--include-granted pour les retirer).");
@@ -61,7 +74,7 @@ class ResetLearners extends Command
 
         if (! $this->option('force')) {
             $this->info('Simulation : rien n\'a été effacé.');
-            $this->line("Pour effacer : php artisan app:reset-learners --database={$connected} --force --confirm=\"{$expected}\"".($this->option('include-granted') ? ' --include-granted' : '').($this->option('notify') ? ' --notify' : ''));
+            $this->line("Pour effacer : php artisan app:reset-learners --database={$connected} --force --confirm=\"{$expected}\"".($testPayments ? ' --include-test-payments' : '').($this->option('include-granted') ? ' --include-granted' : '').($this->option('notify') ? ' --notify' : ''));
 
             return self::SUCCESS;
         }
