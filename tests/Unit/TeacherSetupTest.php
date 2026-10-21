@@ -24,6 +24,7 @@ class TeacherSetupTest extends TestCase
             'teacher.correction' => '',
             'teacher.listening' => '',
             'teacher.american_english' => '',
+            'teacher.pace.rules' => '',
             'teacher.level_test' => 'Test of :minutes minutes.',
         ]);
 
@@ -236,21 +237,18 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('« "I am living in Lomé" se dit plutôt "I live in Lomé" »', $text);
         $this->assertStringContainsString('how the learner reacts to your corrections and help, and how much French they needed', $text);
         $this->assertStringNotContainsString('LAST RESORT', $text);
-        $this->assertStringContainsString('start slowly, then adapt to the level you perceive', $text);
+        $this->assertStringContainsString('at the pace given in SPEAKING PACE (start slowly, then adapt)', $text);
+        $this->assertStringContainsString(config('teacher.pace.levels.unknown'), $text);
     }
 
     public function test_pace_follows_the_level_and_lessons_take_more_time_to_correct(): void
     {
-        $this->assertStringContainsString('PACE: slow', config('teacher.level_guidance.A1'));
-        $this->assertStringContainsString('PACE: slow', config('teacher.level_guidance.A2'));
-        $this->assertStringContainsString('PACE: moderate', config('teacher.level_guidance.B1'));
-        $this->assertStringContainsString('PACE: natural', config('teacher.level_guidance.B2'));
         $this->assertStringContainsString('Clarity first: articulate every word, never swallow words, one idea per sentence.', config('teacher.persona'));
 
         $user = new User(['name' => 'Afi']);
         $user->level = Level::A2;
         $lesson = TeacherSetup::instructions('lesson', $user, 15);
-        $this->assertStringContainsString('slow and clear articulation', config('teacher.lesson_language.A2'));
+        $this->assertStringContainsString(config('teacher.pace.levels.A2'), $lesson);
         $this->assertStringContainsString('a clue first (\'Almost! Listen: …?\'), the right form only if the learner does not find it, then \'Say it again.\'', $lesson);
         $this->assertStringContainsString(config('teacher.lesson_language.A2'), $lesson);
         $this->assertStringNotContainsString(config('teacher.level_guidance.A2'), $lesson);

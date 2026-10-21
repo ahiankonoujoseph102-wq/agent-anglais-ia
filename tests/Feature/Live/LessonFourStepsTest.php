@@ -109,7 +109,7 @@ class LessonFourStepsTest extends TestCase
         $expected = [
             'A1' => 'short French confirmation of the meaning (« Ça veut dire … »), then go straight back to English',
             'A2' => 'French only if the learner has not understood after one rephrasing in simpler English',
-            'B1' => 'English only, at a moderate pace. French only as a last resort, for a difficult word or rule.',
+            'B1' => 'English only. French only as a last resort, for a difficult word or rule.',
             'B2' => 'Everything in English',
             'C2' => 'Everything in English',
         ];

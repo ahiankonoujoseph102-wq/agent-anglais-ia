@@ -230,6 +230,25 @@ class TeacherSetup
     }
 
     /**
+     * Règle de débit (config teacher.pace) avec la ligne du niveau de l'élève ; évaluation gratuite : niveau inconnu
+     * (commencer lentement, puis s'adapter aux réponses).
+     */
+    public static function pace(string $kind, User $user): string
+    {
+        $level = self::paceLevel($kind, $user);
+
+        return str_replace(':level_pace', (string) config("teacher.pace.levels.{$level}", config('teacher.pace.levels.unknown')), trim((string) config('teacher.pace.rules')));
+    }
+
+    /**
+     * Niveau qui règle le débit (consignes et vitesse de la voix chez OpenAI) : « unknown » pendant l'évaluation.
+     */
+    public static function paceLevel(string $kind, User $user): string
+    {
+        return $kind === 'assessment' ? 'unknown' : ($user->level?->value ?? 'unknown');
+    }
+
+    /**
      * Consignes complètes : personnage + niveau + déroulé propre à la conversation.
      */
     /**
@@ -241,6 +260,8 @@ class TeacherSetup
 
         $text = implode("\n\n", array_filter([
             trim((string) config('teacher.persona')),
+            // Débit selon le niveau (seule règle de débit), toutes les conversations, chez les deux fournisseurs.
+            self::pace($kind, $user),
             // L'évaluation gratuite et « Mes cours » ont leurs propres règles de langue ; la séance du jour a les siennes
             // (anglais d'abord, teacher.lesson_language, insérées par le marqueur :language de teacher.lesson).
             in_array($kind, ['assessment', 'course', 'lesson'], true) ? '' : (string) config("teacher.level_guidance.{$level}", ''),
