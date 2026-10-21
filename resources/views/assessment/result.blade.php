@@ -16,6 +16,7 @@
                 <span class="eyebrow">Évaluation terminée</span>
                 <h1 id="niveau">Votre niveau : <span class="result-level">{{ $found->value }}</span></h1>
                 <p class="result-label">{{ $found->label() }}</p>
+                @include('assessment.result-next')
                 @if ($assessment->feedback)
                     <div class="result-opinion">
                         <h2 class="result-opinion-title">L'avis de {{ $teacher }}</h2>
@@ -24,7 +25,7 @@
                 @endif
 
                 <div class="result-voice" data-level-message>
-                    <button type="button" class="btn btn-lg" data-level-play aria-pressed="false">
+                    <button type="button" class="btn btn-outline" data-level-play aria-pressed="false">
                         <span data-play-label><x-icon name="play" /> Écouter {{ $teacher }}</span>
                         <span data-pause-label hidden><x-icon name="pause" /> Mettre en pause</span>
                     </button>
@@ -39,20 +40,10 @@
                 <span class="eyebrow">Évaluation terminée</span>
                 <h1 id="niveau">Nous n'avons pas pu mesurer votre niveau</h1>
                 <p class="result-feedback">L'évaluation s'est arrêtée avant que {{ $teacher }} ait assez entendu votre anglais. Choisissez ci-dessous le niveau qui vous ressemble, ou écrivez-nous sur WhatsApp depuis la page « Aide ».</p>
+                @include('assessment.result-next')
             @endif
         </div>
     </section>
-
-    @if ($hasSubscription)
-        <div class="card next-card reveal">
-            <span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span>
-            <div>
-                <h2>Votre accès est ouvert</h2>
-                <p>Retrouvez votre programme et votre séance du jour dans votre espace.</p>
-            </div>
-            <a class="btn btn-accent" href="{{ route('dashboard') }}">Aller à mon espace <x-icon name="arrow-right" /></a>
-        </div>
-    @endif
 
     {{--
         Sans abonnement : « Voici votre première leçon », le tableau de la première leçon du niveau (unité 1, leçon 1 ;

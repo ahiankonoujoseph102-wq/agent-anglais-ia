@@ -588,6 +588,10 @@ main { overflow-x: clip; }
 .result-level { color: var(--c-accent-strong); }
 .result-label { margin: var(--space-1) 0 var(--space-3); font-size: var(--fs-lg); font-weight: var(--fw-heavy); color: var(--c-heading); }
 .result-feedback { max-width: 60ch; margin: 0 auto var(--space-4); }
+/* La suite, dans le haut du résultat : phrase et bouton orange avant l'avis, le tableau et les formules. */
+.result-next { display: grid; justify-items: center; gap: var(--space-3); max-width: 60ch; margin: 0 auto var(--space-5); padding: var(--space-4); border-radius: var(--radius); background: var(--c-accent-soft); }
+.result-next-text { margin: 0; font-weight: var(--fw-bold); color: var(--c-heading); }
+.result-next .btn-next { width: 100%; max-width: 420px; }
 .result-voice { display: grid; justify-items: center; gap: var(--space-2); }
 .result-voice [hidden] { display: none; }
 .result-transcript { margin-top: var(--space-3); max-width: 60ch; margin-inline: auto; text-align: left; }

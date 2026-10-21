@@ -215,4 +215,34 @@ class AssessmentResultPageTest extends TestCase
             $this->assertDoesNotMatchRegularExpression('/certificat|diplôme|garanti/iu', $text);
         }
     }
+
+    public function test_the_next_step_comes_first_with_one_orange_button(): void
+    {
+        $html = $this->actingAs($this->assessed())->get('/evaluation')->assertOk()->getContent();
+
+        $this->assertSame(1, substr_count($html, 'btn-next'));
+        $this->assertMatchesRegularExpression('/<div class="result-next" id="suite">\s*<p class="result-next-text">Votre programme A2 vous attend : choisissez votre formule pour commencer avec Teacher Joe\.<\/p>\s*<a class="btn btn-accent btn-lg btn-next" href="#formules">Choisir ma formule/', $html);
+        // Avant l'avis de Teacher Joe, le bouton d'écoute, la première leçon et les formules.
+        $this->assertLessThan(strpos($html, "L'avis de"), strpos($html, 'id="suite"'));
+        $this->assertLessThan(strpos($html, 'data-level-play'), strpos($html, 'id="suite"'));
+        $this->assertLessThan(strpos($html, 'id="formules"'), strpos($html, 'id="suite"'));
+        // « Écouter Teacher Joe » devient secondaire.
+        $this->assertStringContainsString('class="btn btn-outline" data-level-play', $html);
+    }
+
+    public function test_with_access_open_the_next_step_is_the_learner_space_and_without_level_choosing_one(): void
+    {
+        $user = $this->assessed();
+        Subscription::factory()->for($user)->forPlan('essentiel')->create();
+        $user->forceFill(['welcomed_at' => now()])->save();
+
+        $html = $this->actingAs($user)->get('/evaluation')->assertOk()->getContent();
+        $this->assertSame(1, substr_count($html, 'btn-next'));
+        $this->assertStringContainsString('class="btn btn-accent btn-lg btn-next" href="'.route('dashboard').'">Aller à mon espace', $html);
+        $this->assertStringNotContainsString('Votre accès est ouvert</h2>', $html);
+
+        $this->actingAs($this->assessed(null))->get('/evaluation')->assertOk()
+            ->assertSee('href="#autre-niveau">Choisir mon niveau', false)
+            ->assertSee('id="autre-niveau"', false);
+    }
 }
