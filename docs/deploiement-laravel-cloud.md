@@ -152,8 +152,10 @@ Dans **Settings, General** (section **Environment variables**), ajoutez les vari
 | `GEMINI_API_VERSION` | Version de l'API Gemini Live. | `v1alpha` |
 | `GEMINI_TEXT_MODEL` | Modèle texte léger (programme, messages). | `gemini-3.5-flash-lite` |
 | `GEMINI_VOICE_NAME` | Voix du professeur par défaut. Facultative : absente, c'est **Achird** (voix masculine). Une voix choisie dans l'administration (« Essai des voix ») la remplace. Si une ancienne variable `GEMINI_VOICE` existe, supprimez-la : elle n'est plus lue. | absente |
-| `GEMINI_VOICE_GAIN` | Volume de la voix du professeur (1 = tel quel ; un limiteur évite toute saturation). Facultative. | absente (2) |
-| `LIVE_ECHO_CANCELLATION` | Annulation d'écho du navigateur. Facultative. Mettre `false` seulement si, après essai sur téléphone, la voix est trop basse et qu'aucun écho ne revient (voir CLAUDE.md). | absente (true) |
+| `LIVE_VOICE_GAIN` | Volume de la voix de Teacher Joe pendant les séances et le message de bienvenue (1 = tel quel ; un limiteur évite toute saturation). Facultative. L'ancienne `GEMINI_VOICE_GAIN` est encore lue si `LIVE_VOICE_GAIN` est absente. | absente (2,5) |
+| `LIVE_ECHO_CANCELLATION` | Annulation d'écho du navigateur sur ordinateur et iPhone. Facultative. | absente (activée) |
+| `LIVE_ECHO_CANCELLATION_ANDROID` | Annulation d'écho sur Android. Coupée par défaut : elle passe le téléphone en mode appel, la voix devient bien plus basse ; le demi-duplex (micro fermé pendant la voix de Teacher Joe) empêche déjà l'écho. Mettre `true` seulement si un écho revient sur un téléphone Android. | absente (coupée) |
+| `LIVE_SILENCE_MS`, `LIVE_BEGINNER_SILENCE_MS` | Silence, en millisecondes, après lequel Teacher Joe considère que l'élève a fini de parler : `LIVE_SILENCE_MS` pour B1 à C2 et l'évaluation, `LIVE_BEGINNER_SILENCE_MS` pour A1 et A2 (débutants qui hésitent). Plus court = réponses plus rapides, mais un élève qui hésite peut être coupé. Facultatives. L'ancienne `GEMINI_SILENCE_DURATION_MS` n'est plus lue : supprimez-la si elle existe. | absentes (800 et 1000) |
 | `GEMINI_TTS_MODEL` | Modèle de synthèse vocale (« Essai des voix », message de bienvenue, message du résultat de l'évaluation). Facultative. Si « Diagnostic de la voix » signale une erreur 404 sur le modèle, mettez ici le nom exact du modèle de synthèse vocale donné par Google AI Studio, puis **Deploy**. | absente |
 | `GEMINI_TTS_TIMEOUT` | Délai d'attente d'une demande de synthèse vocale pendant la préparation, en secondes. Facultative. | absente (60) |
 | `OPENAI_API_KEY` | Clé OpenAI (compte prépayé) : **secours** de la synthèse vocale des messages (bienvenue, résultat de l'évaluation), du modèle texte (lecture des captures de paiement et de « Mes cours », estimation du niveau, rédactions) et des **séances orales en direct** (évaluation, séance du jour, « Mes cours », bilan de niveau) quand Gemini atteint sa limite, est en panne ou trop lent. Facultative : absente, OpenAI est simplement ignoré (les séances orales en direct restent alors chez Gemini seul). À coller seulement dans Laravel Cloud, jamais ailleurs. | absente |
@@ -220,7 +222,7 @@ Sur un téléphone, on ne peut pas lancer d'ordinateur local : on demande la cl�
 
 ## 9. Activer le planificateur de tâches (Scheduler)
 
-Le projet a sept tâches automatiques (la sixième, `payments:alert-expiring`, tourne toutes les dix minutes : voir l'étape 10 ter) : fermeture des séances abandonnées (chaque minute), préparation des documents de révision de « Mes cours » (chaque minute, trois séances au plus à chaque passage, jamais deux passages en même temps), fin des abonnements (chaque heure), préparation des messages vocaux qui manquent encore (chaque heure, aucune demande à Google quand tout est prêt), effacement du texte des conversations de plus de 90 jours (chaque nuit à 3 heures 10) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
+Le projet a huit tâches automatiques (la sixième, `payments:alert-expiring`, tourne toutes les dix minutes : voir l'étape 10 ter ; la huitième, `learners:send-invitations`, envoie chaque heure les invitations d'une remise à zéro, voir l'étape 13 bis, et ne fait rien sinon) : fermeture des séances abandonnées (chaque minute), préparation des documents de révision de « Mes cours » (chaque minute, trois séances au plus à chaque passage, jamais deux passages en même temps), fin des abonnements (chaque heure), préparation des messages vocaux qui manquent encore (chaque heure, aucune demande à Google quand tout est prêt), effacement du texte des conversations de plus de 90 jours (chaque nuit à 3 heures 10) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
 
 1. Sur le canvas, touchez la carte **App** (le cluster de l'application).
 2. Activez l'interrupteur **Scheduler**.
@@ -391,8 +393,20 @@ La documentation de Laravel Cloud ne dit ni la taille maximale d'un envoi ni la 
 | Voir les tâches planifiées | Onglet **Commands** | `php artisan schedule:list` |
 | Clore à la main les séances abandonnées | Onglet **Commands** | `php artisan live:close-stale` |
 | Faire expirer les abonnements à la main | Onglet **Commands** | `php artisan subscriptions:expire` |
+| Remettre les apprenants à zéro (simulation) | Onglet **Commands** | `php artisan app:reset-learners` |
+| Remettre les apprenants à zéro (pour de vrai) | Onglet **Commands** | voir l'étape 13 bis |
+| Revenir en arrière après une remise à zéro | Onglet **Commands** | `php artisan app:restore-learners backups/remise-a-zero-….json.gz` |
 
 Les commandes de l'onglet **Commands** ne peuvent poser aucune question et s'arrêtent après 30 minutes.
+
+## 13 bis. Remettre les apprenants à zéro (après une grosse amélioration de Teacher Joe)
+
+Les apprenants gardent leur compte et leur mot de passe ; leur évaluation, leur programme, leurs séances, leurs conversations, « Mes cours » et leurs attestations sont effacés, et ils repassent l'évaluation gratuite. Les paiements et les captures ne sont **jamais** effacés, l'administrateur n'est jamais touché, les accès offerts en cours sont gardés.
+
+1. **Avant** : dans l'administration, **Paiements en attente** doit être vide (validez ou refusez chaque capture). La commande refuse tant qu'il reste un paiement validé, un abonnement payé ou un accès provisoire en cours, une capture en attente ou une séance en cours.
+2. Onglet **Commands** : `php artisan app:reset-learners`. C'est une **simulation** : rien n'est effacé. Lisez les nombres, et la dernière ligne, qui donne la commande exacte à lancer (avec le nom de la base et le nombre de comptes).
+3. Lancez la commande donnée, par exemple `php artisan app:reset-learners --database=… --force --confirm="EFFACER 12 COMPTES" --notify`. `--notify` invite par e-mail ceux qui ont une adresse à refaire leur évaluation gratuite (envoi chaque heure, dans la limite d'e-mails du jour ; suivi dans **Alertes**). Ajoutez `--include-granted` seulement pour retirer aussi les accès offerts en cours.
+4. La commande affiche le nom de la **sauvegarde** faite avant l'effacement (dans le bucket privé, dossier `backups/`). Pour tout remettre : `php artisan app:restore-learners` suivi de ce nom. Rien n'est écrasé : si un apprenant a déjà repassé son évaluation, la restauration est refusée.
 
 ---
 
