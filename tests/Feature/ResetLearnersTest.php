@@ -33,6 +33,9 @@ class ResetLearnersTest extends TestCase
 
     private User $admin;
 
+    /** Première page de la leçon « Mes cours » d'Ama (identifiants différents d'une base à l'autre). */
+    private string $page;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -46,7 +49,8 @@ class ResetLearnersTest extends TestCase
         $program = $this->buildProgram($this->ama);
         $lesson = $this->ama->lessons()->create(['program_id' => $program->id, 'date' => today(), 'allowed_seconds' => 900, 'used_seconds' => 600, 'status' => LessonStatus::Completed, 'started_at' => now()->subHour(), 'ended_at' => now()->subMinutes(50)]);
         DB::table('conversation_lines')->insert(['user_id' => $this->ama->id, 'conversation_type' => 'lesson', 'conversation_id' => $lesson->id, 'position' => 1, 'speaker' => 'teacher', 'text' => 'Hello!', 'spoken_at' => now()->subHour(), 'created_at' => now(), 'updated_at' => now()]);
-        $this->storedLesson($this->ama);
+        $this->page = "courses/{$this->ama->id}/{$this->storedLesson($this->ama)->id}/page-1.jpg";
+        Storage::disk('local')->assertExists($this->page);
         $attestation = $this->ama->attestations()->create(['level' => Level::A1, 'code' => 'CODE123', 'issued_at' => now()->subWeek()]);
         Storage::disk('local')->put("attestations/{$attestation->code}.pdf", 'pdf');
         Subscription::factory()->for($this->ama)->expired()->create(['status' => SubscriptionStatus::Expired]);
@@ -157,7 +161,7 @@ class ResetLearnersTest extends TestCase
         $this->assertSame(1, Subscription::query()->granted()->count(), 'accès offert en cours gardé');
         $this->assertSame(0, Subscription::query()->where('user_id', $this->ama->id)->count(), 'abonnement terminé effacé');
 
-        Storage::disk('local')->assertMissing("courses/{$this->ama->id}/1/page-1.jpg");
+        Storage::disk('local')->assertMissing($this->page);
         Storage::disk('local')->assertMissing('attestations/CODE123.pdf');
         Storage::disk('local')->assertMissing('welcome-messages/openings/gemini-Achird-abc.wav');
         Storage::disk('local')->assertExists('welcome-messages/gemini-Achird-commun.wav');
@@ -194,7 +198,7 @@ class ResetLearnersTest extends TestCase
         $this->assertSame($before, $lines());
         $this->assertSame(Level::A2, $this->ama->fresh()->level);
         $this->assertSame($cancelled->id, $refused->fresh()->subscription_id);
-        Storage::disk('local')->assertExists("courses/{$this->ama->id}/1/page-1.jpg");
+        Storage::disk('local')->assertExists($this->page);
         Storage::disk('local')->assertExists('attestations/CODE123.pdf');
 
         // Une seconde fois : refusé, rien d'écrasé.
