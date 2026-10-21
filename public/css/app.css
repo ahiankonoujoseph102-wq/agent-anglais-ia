@@ -543,6 +543,15 @@ main { overflow-x: clip; }
 /* Page « Installer l'application ». */
 .install-done { display: none; }
 .is-standalone .install-done { display: flex; }
+.install-success { display: none; }
+.is-installed:not(.is-standalone) .install-success { display: flex; }
+/* Attente de la proposition du navigateur : seulement avec JavaScript, ni sur iPhone (aucune proposition), ni une fois prête. */
+.install-wait { display: none; margin: 0 0 var(--space-3); }
+.js .install-wait:not([hidden]) { display: block; }
+.can-install .install-wait, .is-installed .install-wait { display: none !important; }
+.install-wait-late, .install-wait.is-late .install-wait-soon { display: none; }
+.install-wait.is-late .install-wait-late { display: inline; }
+.install-sub { font-size: var(--fs-md); margin: var(--space-5) 0 var(--space-1); }
 .install-steps h2 { font-size: var(--fs-lg); }
 .install-list { margin: var(--space-3) 0 0; padding-left: 1.4em; display: grid; gap: var(--space-2); }
 .install-list .icon { vertical-align: -3px; color: var(--c-accent-strong); }

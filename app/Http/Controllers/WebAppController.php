@@ -11,6 +11,16 @@ use Illuminate\Http\Response;
  */
 class WebAppController extends Controller
 {
+    /**
+     * Captures d'écran de la fenêtre d'installation de Chrome sur Android (fenêtre « riche », qui montre clairement
+     * qu'on installe une application). Faites avec un compte de démonstration : aucune donnée personnelle, aucune marque
+     * d'intelligence artificielle. Fichiers produits EN LOCAL par tools/brand/app-screenshots.mjs.
+     */
+    public const SCREENSHOTS = [
+        'images/app/ecran-mon-espace.webp' => 'Mon espace : la prochaine étape et le temps du jour',
+        'images/app/ecran-seance.webp' => 'La séance du jour avec :teacher et le tableau',
+    ];
+
     public function manifest(): JsonResponse
     {
         $name = config('platform.name');
@@ -21,7 +31,24 @@ class WebAppController extends Controller
             'purpose' => $purpose,
         ];
 
+        $screenshots = [];
+
+        foreach (self::SCREENSHOTS as $file => $label) {
+            $size = @getimagesize(public_path($file));
+
+            if ($size !== false) {
+                $screenshots[] = [
+                    'src' => asset($file),
+                    'sizes' => "{$size[0]}x{$size[1]}",
+                    'type' => 'image/webp',
+                    'form_factor' => 'narrow',
+                    'label' => str_replace(':teacher', (string) config('avatar.model.name'), $label),
+                ];
+            }
+        }
+
         return response()->json([
+            // Identité de l'application : ne JAMAIS la changer (ce serait une autre application pour le téléphone).
             'id' => '/',
             'name' => $name,
             'short_name' => config('platform.brand.short_name') ?: $name,
@@ -42,6 +69,10 @@ class WebAppController extends Controller
                 $icons('icon-512.png', 512, 'any'),
                 $icons('icon-maskable-512.png', 512, 'maskable'),
             ],
+            'screenshots' => $screenshots,
+            // Permet au site de savoir que l'application est déjà installée (navigator.getInstalledRelatedApps).
+            'related_applications' => [['platform' => 'webapp', 'url' => route('manifest')]],
+            'prefer_related_applications' => false,
         ], 200, ['Content-Type' => 'application/manifest+json'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 

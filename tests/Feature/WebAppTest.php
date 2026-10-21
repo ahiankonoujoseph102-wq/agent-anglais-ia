@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\WebAppController;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Route as RouteDefinition;
@@ -46,6 +47,61 @@ class WebAppTest extends TestCase
         $this->assertArrayHasKey('192x192 any', $sizes);
         $this->assertArrayHasKey('512x512 any', $sizes);
         $this->assertArrayHasKey('512x512 maskable', $sizes);
+    }
+
+    public function test_manifest_lets_android_install_a_real_application_with_its_icons_and_screenshots(): void
+    {
+        $manifest = $this->get('/manifest.webmanifest')->assertOk()->json();
+        $origin = url('/').'/';
+
+        // Identité de l'application : jamais changée (sinon le téléphone y verrait une autre application).
+        $this->assertSame('/', $manifest['id']);
+        $this->assertStringStartsWith($manifest['scope'], $manifest['start_url']);
+        $this->assertContains('standalone', $manifest['display_override']);
+        $this->assertFalse($manifest['prefer_related_applications']);
+        $this->assertSame([['platform' => 'webapp', 'url' => route('manifest')]], $manifest['related_applications']);
+
+        // Icônes et captures : même origine que le site, fichiers présents, tailles exactes, vrais PNG / WebP.
+        foreach ([...$manifest['icons'], ...$manifest['screenshots']] as $image) {
+            $this->assertStringStartsWith($origin, $image['src']);
+            $file = public_path(Str::after($image['src'], $origin));
+            $this->assertFileExists($file);
+            [$width, $height, $type] = getimagesize($file);
+            $this->assertSame($image['sizes'], "{$width}x{$height}");
+            $this->assertSame($image['type'], image_type_to_mime_type($type));
+        }
+
+        // Fenêtre d'installation « riche » de Chrome sur Android : captures de téléphone, proportions acceptées.
+        $this->assertCount(count(WebAppController::SCREENSHOTS), $manifest['screenshots']);
+        $this->assertGreaterThanOrEqual(2, count($manifest['screenshots']));
+
+        foreach ($manifest['screenshots'] as $screenshot) {
+            [$width, $height] = array_map('intval', explode('x', $screenshot['sizes']));
+            $this->assertSame('narrow', $screenshot['form_factor']);
+            $this->assertLessThanOrEqual(2.3, max($width, $height) / min($width, $height));
+            $this->assertGreaterThanOrEqual(320, min($width, $height));
+            $this->assertNotEmpty($screenshot['label']);
+            $this->assertStringNotContainsString(':teacher', $screenshot['label']);
+        }
+
+        $this->assertStringContainsString('Teacher Joe', $manifest['screenshots'][1]['label']);
+    }
+
+    public function test_pages_keep_the_install_invitation_from_the_head_before_any_script(): void
+    {
+        $html = $this->get('/')->assertOk()->getContent();
+        $head = Str::before($html, '</head>');
+
+        $this->assertStringContainsString('<meta name="mobile-web-app-capable" content="yes">', $head);
+        // L'invitation de Chrome est gardée par le script en ligne, AVANT le chargement de app.js.
+        $capture = strpos($head, "addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.installPrompt=e;");
+        $this->assertNotFalse($capture);
+        $this->assertLessThan(strpos($head, 'js/app.js'), $capture);
+        // app.js la reprend, et la page ne demande plus jamais de raccourci.
+        $script = file_get_contents(public_path('js/app.js'));
+        $this->assertStringContainsString('let deferredPrompt = window.installPrompt ?? null;', $script);
+        $this->assertStringContainsString('promptEvent.prompt();', $script);
+        $this->assertStringContainsString('navigator.getInstalledRelatedApps', $script);
     }
 
     public function test_manifest_name_follows_the_platform_configuration(): void
