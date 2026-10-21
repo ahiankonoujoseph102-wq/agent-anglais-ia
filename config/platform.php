@@ -312,7 +312,7 @@ return [
             'stuck' => ':teacher ne répond pas. Touchez « Relancer :teacher » pour reprendre.',
             'nudged' => ':teacher va vous répondre…',
             'reconnecting' => ':teacher revient, un instant…',
-            'cut' => 'La connexion avec :teacher a été coupée. :rule Vérifiez votre connexion internet, puis touchez « Reprendre la séance ».',
+            'cut' => ':rule Vérifiez votre connexion internet, puis touchez « Reprendre la séance ».',
             'cut_again' => ':rule Touchez « Reprendre la séance » pour réessayer, ou relancez la séance un peu plus tard.',
             'unavailable' => ':teacher n\'est pas joignable pour le moment. Réessayez dans quelques minutes, ou écrivez-nous sur WhatsApp.',
         ],

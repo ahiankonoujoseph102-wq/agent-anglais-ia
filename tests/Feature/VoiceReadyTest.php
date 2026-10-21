@@ -91,6 +91,11 @@ class VoiceReadyTest extends TestCase
         $this->assertStringContainsString('data-status-url="'.route('assessment.voice.status').'"', $html);
         $this->assertStringContainsString('js/voice-wait.js', $html);
         $this->assertStringContainsString('data-level-text', $html);
+        // Textes lisibles par le navigateur (apostrophes comprises : « n'est pas disponible »).
+        preg_match("/data-wait='([^']*)'/", $html, $match);
+        $wait = json_decode(html_entity_decode($match[1]), true);
+        $this->assertSame(config('platform.speech.messages.unavailable'), $wait['unavailable']);
+        $this->assertSame(30, $wait['late_seconds']);
         $this->assertSame('Un instant…', config('platform.speech.messages.instant'));
         $this->assertSame('Le message arrive. Vous pouvez le lire juste en dessous : il démarrera tout seul.', config('platform.speech.messages.late'));
         $this->assertSame(30, config('platform.speech.late_after_seconds'));

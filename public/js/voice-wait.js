@@ -9,7 +9,8 @@
  *  - onGiveUp(): toujours pas prêt après « giveUpMs » : on arrête de demander
  */
 export class ReadyWatch {
-    constructor({ check, pollMs = 3000, lateMs = 30000, giveUpMs = 180000, onReady = () => {}, onLate = () => {}, onGiveUp = () => {}, schedule = setTimeout, now = Date.now }) {
+    constructor({ check, pollMs = 3000, lateMs = 30000, giveUpMs = 180000, onReady = () => {}, onLate = () => {}, onGiveUp = () => {}, schedule = (fn, ms) => setTimeout(fn, ms), now = () => Date.now() }) {
+        // setTimeout et Date.now enveloppés : appelés comme méthodes de l'objet, le navigateur les refuse.
         Object.assign(this, { check, pollMs, lateMs, giveUpMs, onReady, onLate, onGiveUp, schedule, now });
         this.startedAt = null;
         this.lateSaid = false;

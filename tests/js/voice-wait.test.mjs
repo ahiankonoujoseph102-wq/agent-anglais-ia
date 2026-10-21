@@ -70,3 +70,16 @@ test('un court silence en WAV pour déverrouiller le lecteur', () => {
     assert.equal(String.fromCharCode(...bytes.slice(8, 12)), 'WAVE');
     assert.ok(bytes.slice(44).every((byte) => byte === 0));
 });
+
+test('réglages par défaut : minuterie et horloge du navigateur utilisables comme méthodes', async () => {
+    let ready = false;
+    const watch = new ReadyWatch({ check: async () => false, pollMs: 5, onReady: () => { ready = true; } });
+    watch.start();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    watch.check = async () => true;
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    assert.equal(ready, true);
+    // Comme dans le navigateur : setTimeout appelé avec un autre « this » serait refusé.
+    assert.notEqual(watch.schedule, setTimeout);
+    assert.notEqual(watch.now, Date.now);
+});
