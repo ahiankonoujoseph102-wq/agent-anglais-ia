@@ -11,7 +11,9 @@
 <body>
 <div id="stage"></div>
 <script type="module">
-// Page ouverte par render.mjs dans Chromium sans écran : Teacher Joe (même module que les séances, en mode
+import { MOUTH_OPEN } from './lip-check.mjs';
+window.MOUTH_OPEN = MOUTH_OPEN;
+// Page ouverte par render.mjs dans Chromium sans écran : le professeur 3D (même module que les séances, en mode
 // « vidéo ») est animé image par image sur l'horloge de la vidéo ; sa bouche suit la voix, analysée dans un
 // contexte audio hors ligne arrêté à chaque image. Chaque image part en JPEG vers render.mjs (window.sendFrame).
 
@@ -45,26 +47,38 @@ window.renderVideo = async (job, audioUrl) => {
     const stage = document.getElementById('stage');
     stage.style.width = `${r.avatar_width}px`;
     stage.style.height = `${r.avatar_height}px`;
+    const classroom = r.scene === 'classroom';
 
     const { createTeacher3D } = await import('/js/teacher-3d.js');
     const teacher = await createTeacher3D({
         container: stage,
         config: {
             video: true,
-            scene: { mode: 'brand' },
+            // Salle de classe des séances (mêmes lumières, mur, fenêtre, bureau), tableau et fenêtre placés pour
+            // l'image verticale ; mâchoire plus ample ; lissage des bords réglable.
+            scene: { mode: classroom ? 'classroom' : 'brand' },
+            antialias: r.antialias,
+            jaw: r.jaw,
+            board: r.board,
+            window: r.window,
             lib: {
                 three: '/teacher3d/lib/three-teacher.min.js',
                 headaudio: '/teacher3d/lib/headaudio.min.js',
                 worklet: '/teacher3d/lib/headworklet.min.js',
                 lipsync: '/teacher3d/lib/lipsync-en.bin',
             },
-            model: { url: '/teacher3d/models/teacher-joe.glb', size: 0, ...job.avatar },
+            model: { url: '/teacher3d/models/teacher-joe.glb', size: 0, ...job.avatar, camera: r.camera ?? job.avatar.camera },
         },
     });
-    teacher.scene.background = new teacher.THREE.Color(r.background);
+
+    if (!classroom) {
+        teacher.scene.background = new teacher.THREE.Color(r.background);
+    }
+
     teacher.resize();
 
-    // Voix : contexte hors ligne à la fréquence du fichier, arrêté à chaque image.
+    // Voix : contexte hors ligne à la fréquence du fichier, arrêté à chaque image. La voix y est JOUÉE
+    // (source.start) : le professeur l'écoute comme en séance, sa bouche suit donc le vrai son, image par image.
     const bytes = await (await fetch(audioUrl)).arrayBuffer();
     // Fréquence lue dans l'en-tête WAV (préparé par Talkami : « fmt » juste après « WAVE »).
     const rate = new DataView(bytes).getUint32(24, true);
@@ -76,6 +90,7 @@ window.renderVideo = async (job, audioUrl) => {
     source.buffer = buffer;
     source.connect(context.destination);
     await teacher.attachAudio(context, source);
+    source.start(0);
     const lipSync = Boolean(teacher.audio?.headaudio);
 
     const audioSeconds = buffer.duration;
@@ -83,23 +98,49 @@ window.renderVideo = async (job, audioUrl) => {
     const frames = Math.ceil(total * fps);
     const closingAt = job.segments.find((s) => s.closing)?.start ?? audioSeconds;
     const canvas = teacher.renderer.domElement;
+    const samples = buffer.getChannelData(0);
+    const windowSize = Math.round(rate / fps);
     const dt = 1 / fps;
+    // Garde-fou des lèvres : énergie de la voix et ouverture réelle de la bouche, à chaque image.
+    const rms = [];
+    const open = [];
     let frame = 0;
+
+    const mouth = () => {
+        let value = 0;
+
+        for (const [name, weight] of Object.entries(window.MOUTH_OPEN)) {
+            const entry = teacher.morphs.get(name)?.[0];
+            value += entry ? entry[0].morphTargetInfluences[entry[1]] * weight : 0;
+        }
+
+        return value;
+    };
+
+    const energy = (t) => {
+        const end = Math.min(samples.length, Math.round(t * rate));
+        let sum = 0;
+
+        for (let i = Math.max(0, end - windowSize); i < end; i++) {
+            sum += samples[i] * samples[i];
+        }
+
+        return Math.sqrt(sum / windowSize);
+    };
 
     const shoot = async () => {
         const t = frame / fps;
 
-        if (frame === 0) {
-            teacher.expression('welcome');
-        } else if (Math.abs(t - closingAt) < dt / 2) {
+        // Sourire au début et à la fin, jamais le salut de la main (le bras sortirait du gros plan).
+        if (frame === 0 || Math.abs(t - closingAt) < dt / 2) {
             teacher.expression('happy');
-        } else if (Math.abs(t - (total - 1.6)) < dt / 2) {
-            teacher.expression('goodbye');
         }
 
         // Laisse arriver les formes de bouche envoyées par HeadAudio.
         await new Promise((resolve) => setTimeout(resolve, 0));
         teacher.step(dt);
+        rms.push(energy(t));
+        open.push(mouth());
         const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
         await window.sendFrame(await toBase64(blob));
         frame++;
@@ -123,7 +164,7 @@ window.renderVideo = async (job, audioUrl) => {
         await shoot();
     }
 
-    return { frames, total, lipSync };
+    return { frames, total, lipSync, rms, open };
 };
 </script>
 </body>

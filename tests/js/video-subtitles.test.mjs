@@ -1,7 +1,7 @@
 // Sous-titres des vidéos de leçon (tools/video/subtitles.mjs). Lancé par tests/Feature/JavaScriptTest.php.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assColor, assTime, buildAss, chunk, render, separator, words } from '../../tools/video/subtitles.mjs';
+import { assColor, assTime, buildAss, chunk, highlightSite, render, separator, words } from '../../tools/video/subtitles.mjs';
 
 const job = {
     title: 'Se présenter en anglais',
@@ -11,7 +11,7 @@ const job = {
         { subtitle: 'Pour dire votre nom : [en]My name is Afi.[/en]', start: 0, end: 3, closing: false },
         { subtitle: 'Pour aller plus loin, évaluez gratuitement votre niveau d\'anglais sur talkami.laravel.cloud.', start: 3.5, end: 7, closing: true },
     ],
-    render: { width: 1080, height: 1920, avatar_width: 720, avatar_height: 640, avatar_top: 340, accent: '#FF7A1A' },
+    render: { width: 1080, height: 1920, accent: '#FF7A1A', watermark: 'Nom du professeur', text: { title_top: 175, subtitle_top: 1180, side_margin: 120, site_size: 84 } },
 };
 
 test('les couleurs et les heures sont au format ASS', () => {
@@ -41,13 +41,21 @@ test('un long sous-titre est coupé en morceaux courts, de préférence après u
     assert.match(pieces[0].at(-1).word, /\.$/);
 });
 
-test('le fichier ASS a le titre, les sous-titres et la phrase de fin avec l\'adresse en orange', () => {
+test('le fichier ASS a le titre discret, le filigrane, les sous-titres et l\'adresse en gros et en orange', () => {
     const ass = buildAss(job, 8.2);
     assert.match(ass, /PlayResX: 1080/);
     assert.match(ass, /,Title,,0,0,0,,Se présenter en anglais/);
-    assert.match(ass, /,Brand,,0,0,0,,TALKAMI/);
-    assert.match(ass, /,End,,0,0,0,,Pour aller plus loin.*\{\\c&H001A7AFF&\}talkami\.laravel\.cloud/);
+    assert.match(ass, /,Mark,,0,0,0,,Nom du professeur/);
+    // Titre sous les onglets de TikTok, sous-titres sous le menton, marges contre les icônes de droite.
+    assert.match(ass, /Style: Title,Sora,46,.*,120,120,175,1/);
+    assert.match(ass, /Style: Sub,Sora,66,.*,120,120,1180,1/);
+    assert.match(ass, /,End,,0,0,0,,Pour aller plus loin.*\\N\{\\fs84\\c&H001A7AFF&\}talkami\.laravel\.cloud\{\\r\}\./);
     // Le dernier sous-titre ordinaire reste affiché jusqu'à la phrase suivante.
     assert.match(ass, /Dialogue: 0,0:00:00\.00,0:00:03\.50,Sub/);
     assert.ok(!ass.includes('[en]'));
+});
+
+test('l\'adresse du site est seule sur sa ligne, en gros, et rien ne change sans adresse', () => {
+    assert.equal(highlightSite('sur talkami.net.', 'talkami.net', '&H001A7AFF&', 84), 'sur\\N{\\fs84\\c&H001A7AFF&}talkami.net{\\r}.');
+    assert.equal(highlightSite('sans adresse', null, '&H001A7AFF&', 84), 'sans adresse');
 });

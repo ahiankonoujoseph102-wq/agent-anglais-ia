@@ -2,15 +2,17 @@
 //
 // 1. Demande à Talkami les vidéos dont la voix est prête (jeton TALKAMI_VIDEO_TOKEN).
 // 2. Pour chacune : Chromium sans écran (WebGL par le processeur) filme Teacher Joe image par image (render.html),
-//    ffmpeg ajoute le fond, les sous-titres (subtitles.mjs, police Sora) et la voix, et écrit un MP4 vertical
-//    1080 × 1920 (H.264 + AAC, compatible TikTok et WhatsApp).
-// 3. Dépose la vidéo dans le bucket privé (adresse signée donnée par Talkami) et prévient Talkami.
+//    ffmpeg ajoute les sous-titres (subtitles.mjs, police Sora) et la voix (compresseur léger, gain calculé d'après la
+//    sonie, limiteur : environ −14 LUFS), et écrit un MP4 vertical 1080 × 1920 (H.264 + AAC 128 kilobits par
+//    seconde, compatible TikTok et WhatsApp).
+// 3. Vérifie que la bouche a suivi la voix (lip-check.mjs) : sinon, la vidéo n'est PAS déposée (échec).
+// 4. Dépose la vidéo dans le bucket privé (adresse signée donnée par Talkami) et prévient Talkami (avec les mesures).
 //
 // Variables : TALKAMI_URL (adresse du site), TALKAMI_VIDEO_TOKEN (secret), VIDEO_COUNT (1 à 3), CHROME_PATH
 // (navigateur), VIDEO_PEEK=1 (dire seulement combien de vidéos attendent, sans rien prendre).
 // Essai en local, sans Talkami : node render.mjs --job=job.json --audio=voix.wav --out=video.mp4
 
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { mkdtemp, readFile, writeFile, rm, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -19,11 +21,14 @@ import { join, extname, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 import { buildAss } from './subtitles.mjs';
+import { lipCheck } from './lip-check.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../..');
 const PUBLIC = join(ROOT, 'public');
 const FONTS = join(ROOT, 'resources/pdf');
+// Voix : léger nettoyage et compresseur avant la mesure de la sonie (le gain est calculé après eux).
+const AUDIO_PRE = 'highpass=f=70,acompressor=threshold=-21dB:ratio=3:attack=5:release=120';
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream', '.wav': 'audio/wav', '.json': 'application/json', '.woff2': 'font/woff2' };
 
 const args = Object.fromEntries(process.argv.slice(2).map((arg) => arg.replace(/^--/, '').split('=')));
@@ -51,10 +56,10 @@ async function api(path, options = {}) {
 function serve(extra) {
     const server = createServer(async (request, response) => {
         const path = decodeURIComponent(new URL(request.url, 'http://local').pathname);
-        const file = path === '/__video/render.html' ? join(HERE, 'render.html')
-            : extra[path] ?? join(PUBLIC, path);
+        const own = { '/__video/render.html': join(HERE, 'render.html'), '/__video/lip-check.mjs': join(HERE, 'lip-check.mjs') };
+        const file = own[path] ?? extra[path] ?? join(PUBLIC, path);
 
-        if (!file.startsWith(PUBLIC) && !Object.values(extra).includes(file) && file !== join(HERE, 'render.html')) {
+        if (!file.startsWith(PUBLIC) && !Object.values(extra).includes(file) && !Object.values(own).includes(file)) {
             response.writeHead(403).end();
 
             return;
@@ -72,13 +77,35 @@ function serve(extra) {
     return new Promise((ok) => server.listen(0, '127.0.0.1', () => ok(server)));
 }
 
-function ffmpeg(job, workdir, audio, out, total) {
+/**
+ * Sonie intégrée (LUFS) et crête (dBFS) d'un fichier audio ou vidéo, mesurées par ffmpeg (ebur128), après un filtre
+ * facultatif.
+ */
+export function measureLoudness(file, filter = '') {
+    const run = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', file, '-af', `${filter ? `${filter},` : ''}ebur128=peak=true`, '-f', 'null', '-'], { encoding: 'utf8' });
+    const text = run.stderr ?? '';
+    const lufs = [...text.matchAll(/^\s+I:\s+(-?[\d.]+) LUFS/gm)].pop();
+    const peak = [...text.matchAll(/Peak:\s+(-?[\d.]+) dBFS/g)].pop();
+
+    return { lufs: lufs ? Number(lufs[1]) : null, peak: peak ? Number(peak[1]) : null };
+}
+
+/** Gain (dB) pour amener la voix à la sonie visée ; le limiteur en reprend un peu, compensé par « makeup ». */
+export function gainFor(measured, audio) {
+    if (measured === null || !Number.isFinite(measured)) {
+        return 0;
+    }
+
+    return Math.round(Math.min(24, Math.max(-12, audio.target_lufs - measured + (audio.limiter_makeup_db ?? 0))) * 10) / 10;
+}
+
+function ffmpeg(job, workdir, audio, out, total, gainDb) {
     const r = job.render;
     const scaledHeight = Math.round(r.avatar_height * (r.width / r.avatar_width));
     const filter = [
         `color=c=${r.background.replace('#', '0x')}:s=${r.width}x${r.height}:r=${r.fps}[bg]`,
         `[0:v]scale=${r.width}:${scaledHeight}:flags=lanczos[av]`,
-        `[bg][av]overlay=0:${r.avatar_top}:shortest=1[base]`,
+        `[bg][av]overlay=0:${r.avatar_top ?? 0}:shortest=1[base]`,
         `[base]ass=${join(workdir, 'subtitles.ass')}:fontsdir=${FONTS}[v]`,
     ].join(';');
 
@@ -88,7 +115,7 @@ function ffmpeg(job, workdir, audio, out, total) {
         '-i', audio,
         '-filter_complex', filter,
         '-map', '[v]', '-map', '1:a',
-        '-af', 'apad', '-t', total.toFixed(2),
+        '-af', `${AUDIO_PRE},volume=${gainDb}dB,alimiter=limit=${r.audio.limit}:attack=3:release=60:level=false,apad`, '-t', total.toFixed(2),
         '-c:v', 'libx264', '-preset', 'medium', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-r', String(r.fps), '-g', String(r.fps * 2),
         '-b:v', r.video_bitrate, '-maxrate', '1500k', '-bufsize', '3000k',
         '-c:a', 'aac', '-b:a', r.audio_bitrate, '-ar', '44100', '-ac', '1',
@@ -101,7 +128,7 @@ function ffmpeg(job, workdir, audio, out, total) {
     return { child, done };
 }
 
-/** Fabrique une vidéo : renvoie sa durée. */
+/** Fabrique une vidéo : renvoie sa durée et ses mesures (lèvres, son). Lèvres hors des seuils : erreur. */
 async function renderOne(browser, job, audioFile, out) {
     const workdir = await mkdtemp(join(tmpdir(), 'video-'));
     const server = await serve({ '/__video/voice.wav': audioFile });
@@ -136,15 +163,23 @@ async function renderOne(browser, job, audioFile, out) {
         const audioSeconds = await audioDuration(audioFile);
         const total = Math.max(job.duration, audioSeconds) + 1.2;
         await writeFile(join(workdir, 'subtitles.ass'), buildAss(job, total));
-        encoder = ffmpeg(job, workdir, audioFile, out, total);
+        const gainDb = gainFor(measureLoudness(audioFile, AUDIO_PRE).lufs, job.render.audio);
+        encoder = ffmpeg(job, workdir, audioFile, out, total, gainDb);
 
         const result = await page.evaluate(([j, url]) => window.renderVideo(j, url), [job, '/__video/voice.wav']);
         encoder.child.stdin.end();
         await encoder.done;
         await page.close();
-        log(`vidéo ${job.id} : ${result.frames} images, lèvres ${result.lipSync ? 'HeadAudio' : 'selon le volume'}, ${((Date.now() - started) / 1000).toFixed(0)} secondes.`);
 
-        return result.total;
+        const lips = lipCheck(result.rms, result.open, job.render.lips);
+        const sound = measureLoudness(out);
+        log(`vidéo ${job.id} : ${result.frames} images en ${((Date.now() - started) / 1000).toFixed(0)} secondes ; lèvres ${result.lipSync ? 'HeadAudio' : 'selon le volume'}, accord ${lips.correlation}, ouverture ${lips.open_speech} ; son ${sound.lufs} LUFS, crête ${sound.peak} dBFS (gain ${gainDb} dB).`);
+
+        if (!lips.ok) {
+            throw new Error(`Lèvres : ${lips.reason}. Vidéo non déposée.`);
+        }
+
+        return { total: result.total, lips, sound };
     } finally {
         server.close();
         await rm(workdir, { recursive: true, force: true });
@@ -189,7 +224,7 @@ async function local() {
     const browser = await launch();
 
     try {
-        const total = await renderOne(browser, job, resolve(args.audio), resolve(args.out ?? 'video.mp4'));
+        const { total } = await renderOne(browser, job, resolve(args.audio), resolve(args.out ?? 'video.mp4'));
         log(`Vidéo écrite : ${args.out ?? 'video.mp4'} (${total.toFixed(1)} secondes).`);
     } finally {
         await browser.close();
@@ -202,8 +237,13 @@ async function remote() {
     }
 
     if (process.env.VIDEO_PEEK === '1') {
-        const { waiting } = await (await api('/api/videos/travaux?apercu=1')).json();
+        const { waiting, blocked } = await (await api('/api/videos/travaux?apercu=1')).json();
         log(`Vidéos dont la voix est prête : ${waiting}.`);
+
+        if (blocked) {
+            log(`Fabrication bloquée : ${blocked}`);
+            process.exitCode = 1;
+        }
 
         if (process.env.GITHUB_OUTPUT) {
             await writeFile(process.env.GITHUB_OUTPUT, `waiting=${waiting}\n`, { flag: 'a' });
@@ -213,8 +253,15 @@ async function remote() {
     }
 
     const count = Math.max(1, Math.min(3, Number(process.env.VIDEO_COUNT || 3)));
-    const { jobs } = await (await api(`/api/videos/travaux?limit=${count}`)).json();
+    const { jobs, blocked } = await (await api(`/api/videos/travaux?limit=${count}`)).json();
     log(`Vidéos à fabriquer : ${jobs.length}.`);
+
+    if (blocked) {
+        log(`Fabrication bloquée : ${blocked}`);
+        process.exitCode = 1;
+
+        return;
+    }
 
     if (jobs.length === 0) {
         return;
@@ -232,7 +279,7 @@ async function remote() {
                 const audio = join(workdir, 'voice.wav');
                 await writeFile(audio, Buffer.from(await (await api(job.audio_url)).arrayBuffer()));
                 const out = join(workdir, 'video.mp4');
-                const total = await renderOne(browser, job, audio, out);
+                const { total, lips, sound } = await renderOne(browser, job, audio, out);
                 const size = (await stat(out)).size;
                 log(`vidéo ${job.id} : ${(size / 1048576).toFixed(1)} mégaoctets, envoi…`);
 
@@ -248,7 +295,7 @@ async function remote() {
                     throw new Error(`dépôt refusé (${upload.status})`);
                 }
 
-                await api(job.done_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ duration: total }) });
+                await api(job.done_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ duration: total, lips_correlation: lips.correlation, lips_open: lips.open_speech, loudness_lufs: sound.lufs, true_peak_db: sound.peak }) });
                 log(`vidéo ${job.id} : prête.`);
             } catch (error) {
                 failures++;
