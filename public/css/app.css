@@ -1376,3 +1376,13 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .review-invite { margin: var(--space-2) 0 0; }
 .review-invite .icon { width: 16px; height: 16px; vertical-align: -3px; margin-right: 4px; }
 .review-doc-line[data-review-when="ready"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+
+/* Page « Vidéos » de l'administration */
+.video-prepare { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-4); }
+.video-prepare label { font-weight: var(--fw-bold); }
+.video-prepare select { min-height: 48px; }
+.video-preview { display: block; width: 100%; max-width: 360px; aspect-ratio: 9 / 16; background: var(--c-primary); border-radius: var(--radius); margin-bottom: var(--space-3); }
+.video-caption { display: block; width: 100%; font: inherit; font-size: var(--fs-sm); padding: var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius); margin-bottom: var(--space-2); resize: vertical; }
+.video-published { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-4); }
+.video-published label { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: var(--fw-bold); min-height: 48px; }
+.video-published input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--c-accent); }

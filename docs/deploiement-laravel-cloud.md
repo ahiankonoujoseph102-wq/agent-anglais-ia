@@ -437,6 +437,55 @@ Les apprenants gardent leur compte et leur mot de passe ; leur évaluation, leur
 
 ---
 
+## 13 ter. Les vidéos de leçon de Teacher Joe (TikTok, chaîne WhatsApp)
+
+Chaque jour, le site prépare 3 vidéos (sujet, script, voix) ; GitHub les fabrique (image de Teacher Joe, sous-titres, MP4) et les dépose dans le bucket privé. Vous les retrouvez dans l'administration, onglet **« Vidéos »**. Tout se fait depuis Chrome sur le téléphone.
+
+### Étape 1 : créer le jeton secret (une seule fois)
+
+1. Laravel Cloud, votre application, onglet **Commands**.
+2. Tapez `php artisan videos:generate-token`, puis lancez la commande.
+3. Un jeton de 48 caractères s'affiche **une seule fois**. Appui long dessus, **Copier**. Ne l'envoyez à personne.
+
+### Étape 2 : le donner à Laravel Cloud
+
+1. Laravel Cloud, **Settings**, **General**, **Environment variables**.
+2. Ajoutez `VIDEO_UPLOAD_TOKEN` et collez le jeton comme valeur. Enregistrez.
+3. Touchez **Deploy** et attendez la fin du déploiement.
+
+### Étape 3 : le donner à GitHub (secret) et donner l'adresse du site (variable)
+
+1. Dans Chrome, ouvrez github.com, connectez-vous, ouvrez le dépôt **agent-anglais-ia**.
+2. Si le menu du dépôt n'apparaît pas, touchez les trois points en haut à droite de Chrome et cochez **Version pour ordinateur** : les réglages s'affichent alors comme sur un ordinateur.
+3. Touchez **Settings** (onglet du dépôt), puis dans la liste à gauche **Secrets and variables**, puis **Actions**.
+4. Onglet **Secrets**, bouton **New repository secret** : nom `TALKAMI_VIDEO_TOKEN`, valeur : collez le même jeton. Touchez **Add secret**.
+5. Onglet **Variables**, bouton **New repository variable** : nom `TALKAMI_URL`, valeur `https://talkami.laravel.cloud` (puis `https://talkami.net` au changement de domaine). Touchez **Add variable**.
+
+### Étape 4 : protéger votre facture GitHub
+
+Avatar en haut à droite, **Settings**, **Billing and licensing**, **Budgets and alerts** (ou **Spending limits**) : laissez **Actions à 0 $**. Si les minutes gratuites sont épuisées, GitHub s'arrête simplement jusqu'au mois suivant, sans rien facturer.
+
+### Étape 5 : les premières vidéos, tout de suite
+
+1. Administration, onglet **« Vidéos »**, choisissez « 3 vidéos », touchez **Préparer**.
+2. Attendez 5 à 10 minutes et rechargez la page : chaque vidéo doit afficher « Voix prête : en attente de fabrication ».
+3. GitHub, dépôt, onglet **Actions**, à gauche **« Vidéos de Teacher Joe »**, bouton **Run workflow**, choisissez 3, puis **Run workflow**.
+4. Comptez environ 10 à 15 minutes par vidéo. Ensuite, dans « Vidéos » : aperçu, **Télécharger**, **Copier le texte**.
+5. Sur TikTok, avant de publier : activez **« Contenu généré par IA »**. Après publication, cochez **Publiée**.
+
+Ensuite, c'est automatique : 3 vidéos sont ajoutées chaque matin à 4 heures 40 (heure de Lomé), GitHub les fabrique à 6 heures 30 (et repasse à 10 heures 30 pour celles qui n'étaient pas prêtes).
+
+### Changer de voix ou de fournisseur
+
+Variables de Laravel Cloud (puis **Deploy**) ; elles ne changent que les vidéos préparées ENSUITE :
+
+- `VIDEO_TTS_PROVIDERS` : ordre des fournisseurs de voix. `openai,gemini` pour essayer OpenAI d'abord, `openai` pour OpenAI seul.
+- `VIDEO_GEMINI_VOICE` : voix Gemini des vidéos (par exemple `Achird`, `Charon`, `Orus`, `Iapetus`) ; absente : la voix choisie dans « Essai des voix ».
+- `VIDEO_OPENAI_VOICE` : voix OpenAI des vidéos (par exemple `cedar`, `marin`, `ash`) ; absente : `cedar`.
+- `VIDEO_DURATION_SECONDS` : durée parlée visée (120 par défaut).
+
+Pour refaire une vidéo déjà prête avec la nouvelle voix : préparez simplement de nouvelles vidéos (un sujet n'est jamais refait).
+
 ## 14. Savoir si un déploiement a réussi ou échoué
 
 - Chaque fois que du code arrive sur `main` (par exemple après la fusion d'une pull request), Laravel Cloud démarre un déploiement tout seul : onglet **Deployments**.

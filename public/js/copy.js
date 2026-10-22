@@ -19,7 +19,7 @@ document.querySelectorAll('[data-copy]').forEach((button) => {
             area.remove();
         }
 
-        button.textContent = 'Numéro copié : ' + value;
+        button.textContent = button.dataset.copied ?? 'Numéro copié : ' + value;
         setTimeout(() => { button.textContent = label; }, 2500);
     });
 });

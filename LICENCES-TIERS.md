@@ -35,3 +35,8 @@ Licence (« Free ») vérifiée sur la page de la photo le 20 octobre 2026 ; auc
 | Fichiers | Photo | Auteur |
 |---|---|---|
 | `public/images/photos/etudiants-bibliotheque-*.webp` | <https://www.pexels.com/photo/people-on-the-table-reading-books-10744384/> | Peter Chikubula (<https://www.pexels.com/@peter-chikubula-157991289/>) |
+
+## Fabrication des vidéos (outil hors du site, GitHub Actions)
+
+- **Playwright (playwright-core)**, licence Apache 2.0, Microsoft Corporation : pilote Chromium sans écran dans `tools/video/` (installé par GitHub Actions, jamais servi par le site).
+- **FFmpeg**, licence LGPL ou GPL selon la compilation : installé par GitHub Actions pour assembler les vidéos (jamais dans le dépôt ni sur le site).

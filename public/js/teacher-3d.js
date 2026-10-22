@@ -262,10 +262,18 @@ class Teacher3D {
 
         // Page de bienvenue : fond aux couleurs de la marque (derrière le canevas transparent), sans salle de classe.
         this.brand = config.scene?.mode === 'brand';
+        // Vidéos de leçon (tools/video) : aucune boucle d'animation, chaque image est demandée par step(), image
+        // gardée pour être lue. Jamais utilisé par les séances ni par la page de bienvenue.
+        this.video = config.video === true;
 
-        const renderer = new THREE.WebGLRenderer({ antialias: (window.devicePixelRatio || 1) < 2, powerPreference: 'low-power', alpha: this.brand });
+        const renderer = new THREE.WebGLRenderer({
+            antialias: this.video || (window.devicePixelRatio || 1) < 2,
+            powerPreference: 'low-power',
+            alpha: this.brand,
+            preserveDrawingBuffer: this.video,
+        });
         renderer.outputColorSpace = THREE.SRGBColorSpace;
-        this.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+        this.pixelRatio = this.video ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
         renderer.setPixelRatio(this.pixelRatio);
         renderer.domElement.className = 'teacher3d-canvas';
         renderer.domElement.setAttribute('aria-hidden', 'true');
@@ -315,7 +323,17 @@ class Teacher3D {
 
         this.last = performance.now();
         this.frame = this.frame.bind(this);
-        this.raf = requestAnimationFrame(this.frame);
+        this.raf = this.video ? null : requestAnimationFrame(this.frame);
+    }
+
+    /**
+     * Mode vidéo : avance l'animation de « dt » secondes (horloge de la vidéo, jamais l'heure réelle) et dessine
+     * l'image. La voix branchée par attachAudio() est lue à l'instant où son contexte audio est arrêté.
+     */
+    step(dt) {
+        this.time += dt;
+        this.update(dt);
+        this.renderer.render(this.scene, this.camera);
     }
 
     /* ---------- Scène ---------- */
@@ -1107,7 +1125,10 @@ class Teacher3D {
 
     dispose() {
         this.failed = true;
-        cancelAnimationFrame(this.raf);
+        if (this.raf !== null) {
+            cancelAnimationFrame(this.raf);
+        }
+
         this.observer?.disconnect();
         this.detachAudio();
         this.scene?.traverse((object) => {
