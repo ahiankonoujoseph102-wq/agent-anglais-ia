@@ -1,0 +1,9 @@
+{
+    "name": "talkami-video",
+    "private": true,
+    "description": "Fabrication des vidéos de leçon de Teacher Joe (GitHub Actions) : Chromium sans écran et ffmpeg.",
+    "type": "module",
+    "dependencies": {
+        "playwright-core": "1.56.1"
+    }
+}
