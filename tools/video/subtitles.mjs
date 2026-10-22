@@ -121,20 +121,36 @@ export function separator(previous, word) {
     return /^[:;!?»]/.test(word) || /«$/.test(previous) ? '\\h' : ' ';
 }
 
-/** Adresse du site mise en valeur dans la phrase de fin. */
-function highlightSite(text, site, accent) {
-    return site ? text.replace(site, `{\\c${accent}}${site}{\\c${WHITE}}`) : text;
+/** Adresse du site mise en valeur dans la phrase de fin : seule sur sa ligne, en gros et en orange. */
+export function highlightSite(text, site, accent, size) {
+    if (!site || !text.includes(site)) {
+        return text;
+    }
+
+    const [before, after] = [text.slice(0, text.lastIndexOf(site)), text.slice(text.lastIndexOf(site) + site.length)];
+
+    return `${before.replace(/(\\h|\s)+$/, '')}\\N{\\fs${size}\\c${accent}}${site}{\\r}${after}`;
+}
+
+/** Couleur ASS avec transparence (0 = opaque, 255 = invisible). */
+function withAlpha(color, alpha) {
+    return color.replace('&H00', `&H${alpha.toString(16).padStart(2, '0').toUpperCase()}`);
 }
 
 /**
- * Fichier ASS complet d'une vidéo.
- * @param {object} job travail donné par Talkami (title, segments [{subtitle, start, end, closing}], site, platform, render)
+ * Fichier ASS complet d'une vidéo : titre discret en haut (sous les onglets de TikTok), nom du professeur en
+ * filigrane, sous-titres en gros sous le menton (marges qui évitent les icônes de droite de TikTok, rien dans le bas
+ * de l'image), adresse du site en gros à la fin.
+ * @param {object} job travail donné par Talkami (title, segments [{subtitle, start, end, closing}], site, render)
  * @param {number} total durée totale de la vidéo, en secondes
  */
 export function buildAss(job, total) {
     const r = job.render;
+    const t = r.text ?? {};
     const accent = assColor(r.accent);
-    const subtitleTop = r.avatar_top + Math.round(r.avatar_height * (r.width / r.avatar_width)) + 30;
+    const side = t.side_margin ?? 120;
+    const subtitleTop = t.subtitle_top ?? 1180;
+    const box = '&H70000000&';
     const lines = [
         '[Script Info]',
         'ScriptType: v4.00+',
@@ -145,16 +161,19 @@ export function buildAss(job, total) {
         '',
         '[V4+ Styles]',
         'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
-        `Style: Brand,Sora,40,${accent},${accent},&H00000000&,&H00000000&,-1,0,0,0,100,100,2,0,1,0,0,8,60,60,150,1`,
-        `Style: Title,Sora,62,${WHITE},${WHITE},&H00000000&,&H00000000&,-1,0,0,0,100,100,0,0,1,0,0,8,70,70,205,1`,
-        `Style: Sub,Sora,70,${WHITE},${WHITE},&H00000000&,&H80000000&,-1,0,0,0,100,100,0,0,1,3,0,8,60,60,${subtitleTop},1`,
-        `Style: End,Sora,66,${WHITE},${WHITE},&H00000000&,&H80000000&,-1,0,0,0,100,100,0,0,1,3,0,8,60,60,${subtitleTop},1`,
+        `Style: Title,Sora,${t.title_size ?? 46},${WHITE},${WHITE},${box},${box},-1,0,0,0,100,100,0,0,3,10,0,8,${side},${side},${t.title_top ?? 175},1`,
+        `Style: Mark,Sora,${t.watermark_size ?? 32},${withAlpha(WHITE, 0x40)},${WHITE},&H00000000&,&H00000000&,-1,0,0,0,100,100,1,0,1,0,0,9,0,${t.watermark_right ?? 140},${t.watermark_top ?? 700},1`,
+        `Style: Sub,Sora,${t.subtitle_size ?? 66},${WHITE},${WHITE},${box},${box},-1,0,0,0,100,100,0,0,3,14,0,8,${side},${side},${subtitleTop},1`,
+        `Style: End,Sora,${t.closing_size ?? 60},${WHITE},${WHITE},${box},${box},-1,0,0,0,100,100,0,0,3,14,0,8,${side},${side},${subtitleTop},1`,
         '',
         '[Events]',
         'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
-        `Dialogue: 0,${assTime(0)},${assTime(total)},Brand,,0,0,0,,${clean(job.platform).toUpperCase()}`,
         `Dialogue: 0,${assTime(0)},${assTime(total)},Title,,0,0,0,,${clean(job.title)}`,
     ];
+
+    if (r.watermark) {
+        lines.push(`Dialogue: 0,${assTime(0)},${assTime(total)},Mark,,0,0,0,,${clean(r.watermark)}`);
+    }
 
     job.segments.forEach((segment, index) => {
         const next = job.segments[index + 1];
@@ -163,7 +182,7 @@ export function buildAss(job, total) {
 
         if (segment.closing) {
             const plain = words(segment.subtitle.replace(/\[\/?en\]/g, '')).map(({ word }) => ({ word, en: false }));
-            const text = highlightSite(render(plain, accent), job.site, accent);
+            const text = highlightSite(render(plain, accent), job.site, accent, t.site_size ?? 84);
             lines.push(`Dialogue: 0,${assTime(segment.start)},${assTime(end)},End,,0,0,0,,${text}`);
 
             return;

@@ -267,7 +267,8 @@ class Teacher3D {
         this.video = config.video === true;
 
         const renderer = new THREE.WebGLRenderer({
-            antialias: this.video || (window.devicePixelRatio || 1) < 2,
+            // Vidéo : lissage des bords réglable (coûteux sans carte graphique).
+            antialias: this.video ? (config.antialias ?? true) : (window.devicePixelRatio || 1) < 2,
             powerPreference: 'low-power',
             alpha: this.brand,
             preserveDrawingBuffer: this.video,
@@ -374,9 +375,10 @@ class Teacher3D {
             this.board = new THREE.Group();
             room.add(this.board);
 
-            // Fenêtre ensoleillée.
-            box(0.56, 0.5, 0.01, '#bfe0f2', 0.66, 0.88, -0.605);
-            for (const [w, h, x, y] of [[0.6, 0.03, 0.66, 1.13], [0.6, 0.03, 0.66, 0.63], [0.03, 0.53, 0.37, 0.88], [0.03, 0.53, 0.95, 0.88], [0.02, 0.5, 0.66, 0.88], [0.56, 0.02, 0.66, 0.88]]) {
+            // Fenêtre ensoleillée (place réglable en vidéo seulement : config.window).
+            const { x: wx, y: wy, w: ww, h: wh } = (this.video && this.config.window) || { x: 0.66, y: 0.88, w: 0.56, h: 0.5 };
+            box(ww, wh, 0.01, '#bfe0f2', wx, wy, -0.605);
+            for (const [w, h, x, y] of [[ww + 0.04, 0.03, wx, wy + wh / 2], [ww + 0.04, 0.03, wx, wy - wh / 2], [0.03, wh + 0.03, wx - ww / 2 - 0.01, wy], [0.03, wh + 0.03, wx + ww / 2 + 0.01, wy], [0.02, wh, wx, wy], [ww, 0.02, wx, wy]]) {
                 box(w, h, 0.03, '#f6efe4', x, y, -0.59);
             }
         }
@@ -411,7 +413,11 @@ class Teacher3D {
         }
 
         const { THREE } = this;
-        const layout = boardLayout({ aspect: this.camera.aspect, distance, fov: this.camera.fov, target: this.config.model.camera.target });
+        // Vidéo : tableau à une place fixe (config.board : bords et lignes), plus large et lisible.
+        const fixed = this.video && this.config.board;
+        const layout = fixed
+            ? { left: fixed.left, right: fixed.right, bottom: fixed.bottom, top: fixed.top, lines: fixed.lines ?? BOARD_LINES }
+            : boardLayout({ aspect: this.camera.aspect, distance, fov: this.camera.fov, target: this.config.model.camera.target });
         const key = layout ? [layout.left, layout.right, layout.bottom, layout.top].map((v) => v.toFixed(3)).join() : 'none';
 
         if (key === this.boardKey) {
@@ -906,7 +912,7 @@ class Teacher3D {
         } else if (this.audio?.headaudio) {
             this.audio.headaudio.update(dt * 1000);
             // HeadAudio donne la forme de la bouche ; le volume ajoute l'amplitude de la mâchoire.
-            set('jawOpen', 0.3 * clamp((s.teacherLevel - 0.01) * 8));
+            set('jawOpen', (this.video ? this.config.jaw ?? 0.3 : 0.3) * clamp((s.teacherLevel - 0.01) * 8));
         } else {
             VISEMES.forEach((name) => { s.visemes[name] = approach(s.visemes[name], 0, 12, dt); });
         }

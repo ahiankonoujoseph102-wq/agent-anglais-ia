@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Support\Videos\LessonVideos;
+use App\Support\Videos\VideoSettings;
 use App\Support\Videos\VideoTopics;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -47,6 +48,10 @@ class PrepareVideos extends Command
                 $created = $videos->planToday();
                 $this->line("Vidéos ajoutées pour aujourd'hui : {$created}. Sujets encore jamais traités : ".VideoTopics::remaining().'.');
             }
+        }
+
+        if (($blocked = VideoSettings::blocked()) !== null) {
+            $this->warn($blocked);
         }
 
         $result = $videos->prepare((int) ($this->option('budget') ?: config('videos.prepare_budget')));

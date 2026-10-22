@@ -63,6 +63,13 @@ class LessonVideos
         $deadline = microtime(true) + $budget;
         $result = ['scripted' => 0, 'voiced' => 0, 'waiting' => 0];
 
+        // Sans adresse du site, la fin de la vidéo ne peut pas être écrite ni dite : rien n'est préparé.
+        if (VideoSettings::blocked() !== null) {
+            $result['waiting'] = LessonVideo::query()->whereIn('status', [LessonVideo::PLANNED, LessonVideo::SCRIPTED])->count();
+
+            return $result;
+        }
+
         $videos = LessonVideo::query()
             ->whereIn('status', [LessonVideo::PLANNED, LessonVideo::SCRIPTED])
             ->where(fn ($query) => $query->whereNull('next_attempt_at')->orWhere('next_attempt_at', '<=', now()))
@@ -81,6 +88,15 @@ class LessonVideos
 
                 $result['scripted'] += $video->wasChanged('script') ? 1 : 0;
 
+                // Vidéo à refaire (voix déjà là) : seule la fin est mise à jour, même script, même voix.
+                if ($video->audio_path !== null) {
+                    if ($this->refreshEnding($video, $deadline) === VideoVoice::DONE) {
+                        $result['voiced']++;
+                    }
+
+                    continue;
+                }
+
                 if ($this->voice->prepare($video, $deadline) === VideoVoice::DONE) {
                     $result['voiced']++;
                 }
@@ -93,6 +109,45 @@ class LessonVideos
         $result['waiting'] = LessonVideo::query()->whereIn('status', [LessonVideo::PLANNED, LessonVideo::SCRIPTED])->count();
 
         return $result;
+    }
+
+    /** Fin d'une vidéo à refaire : question du jour (écrite seulement si elle manque), puis la voix de la fin. */
+    private function refreshEnding(LessonVideo $video, float $deadline): string
+    {
+        $question = VideoScriptWriter::normalizeQuestion($video->script['question'] ?? null) ?? $this->writer->question($video);
+
+        if ($question === null) {
+            return $this->voice->failure($video, 'Question du jour : aucun fournisseur du modèle texte n\'a répondu correctement.');
+        }
+
+        return $this->voice->refreshEnding($video, $question, $deadline);
+    }
+
+    /**
+     * « Refaire la vidéo » : même sujet, même script, même voix ; la fin est remise à jour si besoin, puis la vidéo
+     * repart en fabrication. L'ancienne vidéo reste visible jusqu'à l'arrivée de la nouvelle. Aucun sujet consommé.
+     */
+    public function redo(LessonVideo $video): bool
+    {
+        if (! in_array($video->status, [LessonVideo::READY, LessonVideo::FAILED], true)) {
+            return false;
+        }
+
+        if ($video->audio_path === null) {
+            $this->retry($video);
+
+            return true;
+        }
+
+        $video->update(['status' => LessonVideo::SCRIPTED, 'attempts' => 0, 'next_attempt_at' => null, 'error' => null, 'render_started_at' => null]);
+
+        return true;
+    }
+
+    /** Toutes les vidéos d'aujourd'hui prêtes ou en échec. */
+    public function redoToday(): int
+    {
+        return LessonVideo::query()->whereDate('day', today())->get()->filter(fn (LessonVideo $video) => $this->redo($video))->count();
     }
 
     private function writeScript(LessonVideo $video): bool
@@ -130,7 +185,7 @@ class LessonVideos
     /** Vidéos que GitHub Actions peut prendre maintenant. */
     public function waiting(): int
     {
-        return $this->claimable()->count();
+        return VideoSettings::blocked() === null ? $this->claimable()->count() : 0;
     }
 
     /** @return Builder<LessonVideo> */
@@ -150,6 +205,17 @@ class LessonVideos
      */
     public function claim(int $limit): array
     {
+        if (VideoSettings::blocked() !== null) {
+            return [];
+        }
+
+        // Fin dépassée (adresse du site changée, ancienne fin) : la vidéo repart d'abord en préparation.
+        foreach ($this->claimable()->get() as $video) {
+            if (! VideoEnding::isCurrent($video->script ?? [])) {
+                $video->update(['status' => LessonVideo::SCRIPTED, 'render_started_at' => null]);
+            }
+        }
+
         $videos = DB::transaction(function () use ($limit) {
             $videos = $this->claimable()
                 ->orderBy('day')->orderBy('slot')
@@ -178,7 +244,7 @@ class LessonVideos
 
         foreach ($video->script['segments'] ?? [] as $index => $segment) {
             $timing = $video->timings['segments'][$index] ?? ['start' => 0, 'end' => 0];
-            $segments[] = ['subtitle' => $segment['subtitle'], 'closing' => (bool) ($segment['closing'] ?? false), 'start' => $timing['start'], 'end' => $timing['end']];
+            $segments[] = ['subtitle' => $segment['subtitle'], 'kind' => $segment['kind'] ?? null, 'closing' => (bool) ($segment['closing'] ?? false), 'start' => $timing['start'], 'end' => $timing['end']];
         }
 
         return [
@@ -188,12 +254,12 @@ class LessonVideos
             'duration' => (float) ($video->timings['duration'] ?? 0),
             'segments' => $segments,
             'platform' => (string) config('platform.name'),
-            'site' => VideoScriptWriter::site(),
+            'site' => VideoSettings::site(),
             'audio_url' => route('api.videos.audio', $video),
             'upload' => $this->uploadTarget($video),
             'done_url' => route('api.videos.done', $video),
             'failed_url' => route('api.videos.failed', $video),
-            'render' => config('videos.render'),
+            'render' => ['watermark' => VideoSettings::watermark()] + config('videos.render'),
             'avatar' => array_intersect_key(Avatar::clientConfig()['model'] ?? [], array_flip(['profile', 'camera', 'desk_height', 'resting_smile', 'voice_hz'])),
         ];
     }
@@ -224,7 +290,10 @@ class LessonVideos
     /**
      * Vidéo déposée : vérifiée sur le disque privé puis marquée « prête ».
      */
-    public function markReady(LessonVideo $video, ?float $duration = null): bool
+    /**
+     * @param  array{lips_correlation?: float|null, lips_open?: float|null, loudness_lufs?: float|null, true_peak_db?: float|null}  $measures
+     */
+    public function markReady(LessonVideo $video, ?float $duration = null, array $measures = []): bool
     {
         $disk = PrivateStorage::disk();
         $path = self::videoPath($video);
@@ -240,7 +309,9 @@ class LessonVideos
             'duration_seconds' => $duration !== null ? (int) ceil($duration) : $video->duration_seconds,
             'ready_at' => now(),
             'error' => null,
-        ]);
+            'attempts' => 0,
+            'render_started_at' => null,
+        ] + array_intersect_key($measures, array_flip(['lips_correlation', 'lips_open', 'loudness_lufs', 'true_peak_db'])));
 
         return true;
     }

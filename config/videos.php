@@ -29,7 +29,14 @@ return [
 
     // Fin obligatoire, dite et affichée. :site = adresse du site tirée de APP_URL (talkami.laravel.cloud, puis
     // talkami.net au changement de domaine, sans rien toucher ici).
-    'closing' => 'Pour aller plus loin, évaluez gratuitement votre niveau d\'anglais sur :site',
+    'closing' => 'Et pour aller plus loin, évaluez gratuitement votre niveau d\'anglais sur :site',
+
+    // Fin de CHAQUE vidéo, dans cet ordre, dite et sous-titrée (environ 10 à 12 secondes) : la question du jour
+    // (écrite avec le script, réponse en une phrase en commentaire), cette phrase pour s'abonner, puis « closing »
+    // avec l'adresse du site (réglage de la page « Vidéos » : sans elle, la fabrication est bloquée).
+    'ending' => [
+        'subscribe' => 'Si ça vous a aidé, abonnez-vous, aimez et partagez !',
+    ],
 
     // Rappel affiché au-dessus du texte de publication (obligation de TikTok pour un contenu généré par IA).
     'ai_label_reminder' => 'Avant de publier sur TikTok, activez « Contenu généré par IA » (Plus d\'options, puis « Étiquette de contenu IA »).',
@@ -49,6 +56,18 @@ return [
         'gap_ms' => 450,
         // Délai d'une demande, en secondes.
         'timeout' => 60,
+    ],
+
+    // Essai comparatif des voix (page « Vidéos ») : le même passage, en français avec des phrases en anglais, dit par
+    // chaque voix ; la voix choisie est gardée dans les réglages (table settings), sans redéploiement.
+    'voice_trial' => [
+        'voices' => [
+            'gemini' => ['Achird', 'Charon', 'Orus', 'Iapetus'],
+            'openai' => ['cedar', 'marin', 'ash'],
+        ],
+        'text' => 'Bonjour ! Aujourd\'hui, on apprend à se présenter en anglais. Pour dire votre nom, on dit : My name is Afi. Répétez après moi : My name is Afi. Attention : en français, on dit « j\'ai vingt-cinq ans ». Mais en anglais, on dit : I\'m twenty-five. Très bien ! Nice to meet you!',
+        // Nouveaux extraits par heure et par administrateur.
+        'per_hour' => 20,
     ],
 
     // Temps accordé à une préparation (videos:prepare), en secondes : la suite reprend au passage suivant.
@@ -71,19 +90,50 @@ return [
     // Taille maximale d'une vidéo reçue, en mégaoctets.
     'max_megabytes' => 60,
 
-    // Mise en page (lue par tools/video/render.mjs) : image finale, zone de Teacher Joe et rendu.
+    // Mise en page (lue par tools/video/render.mjs) : gros plan de Teacher Joe dans la salle de classe des séances,
+    // rendu plus petit puis agrandi (plus rapide sur GitHub), texte en pleine définition. Coordonnées du décor en
+    // mètres de la scène 3D (le visage est vers x = 0, y = 0,75 ; le mur à z = −0,6).
     'render' => [
         'width' => 1080,
         'height' => 1920,
         'fps' => 25,
-        // Teacher Joe est rendu plus petit puis agrandi (plus rapide sur GitHub) ; texte en pleine définition.
-        'avatar_width' => 720,
-        'avatar_height' => 640,
-        'avatar_top' => 340,
+        'scene' => 'classroom',
+        'avatar_width' => 540,
+        'avatar_height' => 960,
+        'avatar_top' => 0,
+        // Lissage des bords : coûteux sans carte graphique ; l'agrandissement adoucit déjà l'image.
+        'antialias' => false,
+        // Ouverture de la mâchoire selon le volume de la voix (0,3 en séance).
+        'jaw' => 0.45,
+        // Caméra : visage et épaules, regard vers la caméra (hauteur des yeux).
+        'camera' => ['target' => [0, 0.61, 0], 'half_height' => 0.40, 'half_width' => 0.32, 'eye_height' => 0.68],
+        // Tableau au-dessus de l'épaule gauche, assez large pour être lu sur téléphone ; fenêtre entière à droite.
+        'board' => ['left' => -0.37, 'right' => 0.09, 'bottom' => 0.945, 'top' => 1.08, 'lines' => ["Let's talk!"]],
+        'window' => ['x' => 0.31, 'y' => 0.99, 'w' => 0.14, 'h' => 0.28],
         'background' => '#0E2A5C',
         'accent' => '#FF7A1A',
-        // Débit vidéo visé : moins de 16 mégaoctets pour 2 minutes (WhatsApp).
-        'video_bitrate' => '850k',
-        'audio_bitrate' => '96k',
+        // Nom du professeur en filigrane, en petit (VIDEO_WATERMARK ; absente : config('avatar.model.name')).
+        'watermark' => env('VIDEO_WATERMARK') ?: null,
+        // Textes, en pixels de l'image finale : titre discret sous les onglets de TikTok, sous-titres sous le menton,
+        // marges qui évitent les icônes de droite, rien dans le bas de l'image (légende de TikTok).
+        'text' => [
+            'title_top' => 175,
+            'title_size' => 46,
+            'subtitle_top' => 1180,
+            'subtitle_size' => 66,
+            'closing_size' => 60,
+            'site_size' => 84,
+            'side_margin' => 120,
+            'watermark_top' => 700,
+            'watermark_right' => 140,
+            'watermark_size' => 36,
+        ],
+        'video_bitrate' => '900k',
+        'audio_bitrate' => '128k',
+        // Son : compresseur léger, gain calculé d'après la sonie (visée : −14 LUFS), limiteur (crête sous −1 dB
+        // après la compression AAC). La sonie finale est mesurée et montrée dans la page « Vidéos ».
+        'audio' => ['target_lufs' => -14, 'limit' => 0.8, 'limiter_makeup_db' => 0.8],
+        // Garde-fou des lèvres (tools/video/lip-check.mjs) : sinon, la vidéo n'est pas déposée.
+        'lips' => ['min_correlation' => 0.5, 'min_open' => 0.08],
     ],
 ];

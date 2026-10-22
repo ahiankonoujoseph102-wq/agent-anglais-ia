@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
  * Vidéo de leçon de Teacher Joe (App\Support\Videos\LessonVideos) : un sujet du programme des vidéos, son script,
  * sa voix (disque privé), puis la vidéo fabriquée par GitHub Actions. Un sujet n'est jamais traité deux fois.
  */
-#[Fillable(['topic_key', 'day', 'slot', 'level', 'title', 'status', 'script', 'caption', 'hashtags', 'text_provider', 'voice_provider', 'voice_name', 'timings', 'audio_path', 'video_path', 'duration_seconds', 'size_bytes', 'attempts', 'next_attempt_at', 'error', 'render_started_at', 'ready_at', 'published_at'])]
+#[Fillable(['topic_key', 'day', 'slot', 'level', 'title', 'status', 'script', 'caption', 'hashtags', 'text_provider', 'voice_provider', 'voice_name', 'timings', 'audio_path', 'video_path', 'duration_seconds', 'size_bytes', 'lips_correlation', 'lips_open', 'loudness_lufs', 'true_peak_db', 'attempts', 'next_attempt_at', 'error', 'render_started_at', 'ready_at', 'published_at'])]
 class LessonVideo extends Model
 {
     /** Sujet choisi, script à écrire. */
@@ -49,6 +49,10 @@ class LessonVideo extends Model
             'timings' => 'array',
             'duration_seconds' => 'integer',
             'size_bytes' => 'integer',
+            'lips_correlation' => 'float',
+            'lips_open' => 'float',
+            'loudness_lufs' => 'float',
+            'true_peak_db' => 'float',
             'attempts' => 'integer',
             'next_attempt_at' => 'datetime',
             'render_started_at' => 'datetime',

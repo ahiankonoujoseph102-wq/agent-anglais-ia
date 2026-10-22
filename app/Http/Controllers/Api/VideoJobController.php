@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LessonVideo;
 use App\Support\PrivateStorage;
 use App\Support\Videos\LessonVideos;
+use App\Support\Videos\VideoSettings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -19,11 +20,13 @@ class VideoJobController extends Controller
     public function jobs(Request $request, LessonVideos $videos): JsonResponse
     {
         // « apercu » : combien attendent, sans rien prendre (GitHub n'installe rien s'il n'y a rien à faire).
+        $blocked = VideoSettings::blocked();
+
         if ($request->boolean('apercu')) {
-            return response()->json(['waiting' => $videos->waiting()]);
+            return response()->json(['waiting' => $videos->waiting(), 'blocked' => $blocked]);
         }
 
-        return response()->json(['jobs' => $videos->claim((int) $request->integer('limit', (int) config('videos.per_day')))]);
+        return response()->json(['jobs' => $videos->claim((int) $request->integer('limit', (int) config('videos.per_day'))), 'blocked' => $blocked]);
     }
 
     public function audio(LessonVideo $video): StreamedResponse|JsonResponse
@@ -59,13 +62,21 @@ class VideoJobController extends Controller
 
     public function done(Request $request, LessonVideo $video, LessonVideos $videos): JsonResponse
     {
-        $data = $request->validate(['duration' => ['nullable', 'numeric', 'min:1', 'max:900']]);
+        $data = $request->validate([
+            'duration' => ['nullable', 'numeric', 'min:1', 'max:900'],
+            'lips_correlation' => ['nullable', 'numeric', 'between:-1,1'],
+            'lips_open' => ['nullable', 'numeric', 'between:0,5'],
+            'loudness_lufs' => ['nullable', 'numeric', 'between:-70,0'],
+            'true_peak_db' => ['nullable', 'numeric', 'between:-70,6'],
+        ]);
 
         if ($video->status !== LessonVideo::RENDERING) {
             return response()->json(['message' => 'Cette vidéo n\'est pas en fabrication.'], 409);
         }
 
-        if (! $videos->markReady($video, isset($data['duration']) ? (float) $data['duration'] : null)) {
+        $measures = array_map(fn ($value) => $value !== null ? (float) $value : null, array_diff_key($data, ['duration' => true]));
+
+        if (! $videos->markReady($video, isset($data['duration']) ? (float) $data['duration'] : null, $measures)) {
             return response()->json(['message' => 'Vidéo introuvable dans le stockage.'], 422);
         }
 
