@@ -216,12 +216,17 @@ new MutationObserver(() => {
 
 /* ---------- « Enregistrer ma séance » (vidéo fabriquée dans le navigateur, jamais envoyée) ---------- */
 
-const recording = { module: null, mimeType: null, armed: false, recorder: null, timer: null, url: null };
+const recording = { module: null, mimeType: null, armed: false, recorder: null, timer: null, url: null, downloaded: false, guard: null };
 const rec = {
     box: $('recorder'), start: $('record-start'), armed: $('record-armed'), live: $('record-live'),
     time: $('record-time'), stop: $('record-stop'), download: $('record-download'), size: $('record-size'),
-    unsupported: $('record-unsupported'),
+    unsupported: $('record-unsupported'), ready: $('record-ready'), saved: $('record-saved'),
 };
+
+/** Vidéo en jeu (enregistrement en cours, ou prête et pas téléchargée) : confirmation avant de quitter la page. */
+function guardVideo() {
+    recording.guard?.update({ recording: Boolean(recording.recorder), ready: Boolean(recording.url), downloaded: recording.downloaded });
+}
 
 // Chargé à part, sans retarder l'écran de la séance.
 if (rec.box && root.dataset.recorder) {
@@ -229,6 +234,21 @@ if (rec.box && root.dataset.recorder) {
         .then((module) => {
             recording.module = module;
             recording.mimeType = module.supportInfo();
+
+            return recording.mimeType && root.dataset.videoGuard ? import(root.dataset.videoGuard) : null;
+        })
+        .then((guard) => {
+            if (!guard) {
+                return;
+            }
+
+            const texts = JSON.parse(root.dataset.videoLeave || '{}');
+            recording.guard = new guard.VideoGuard({
+                ask: () => (window.askConfirmation
+                    ? window.askConfirmation({ title: texts.title, message: texts.message, confirm: texts.confirm })
+                    : Promise.resolve(null)),
+            });
+            guardVideo();
         })
         .catch((error) => console.warn('Enregistrement indisponible :', error))
         .finally(() => {
@@ -252,6 +272,14 @@ if (rec.box && root.dataset.recorder) {
                 rec.armed.hidden = !recording.armed;
             });
             rec.stop.addEventListener('click', () => stopRecording());
+            // Toucher « Télécharger ma vidéo » : la vidéo est gardée sur le téléphone, plus rien à protéger.
+            rec.download.addEventListener('click', () => {
+                recording.downloaded = true;
+                rec.ready.hidden = true;
+                rec.saved.hidden = false;
+                rec.box.classList.remove('is-ready');
+                guardVideo();
+            });
         });
 }
 
@@ -268,6 +296,17 @@ function placeRecorder() {
     const anchor = before ?? $('subtitles-home');
 
     if (!anchor) {
+        return;
+    }
+
+    // Vidéo prête après la fin de la séance : juste sous « La suite », là où la page descend, tant qu'elle n'est pas téléchargée.
+    const next = $('suite');
+
+    if (root.dataset.phase === 'done' && recording.url && !recording.downloaded && next && !next.hidden) {
+        if (next.nextElementSibling !== rec.box) {
+            next.after(rec.box, rec.unsupported);
+        }
+
         return;
     }
 
@@ -330,6 +369,7 @@ function startRecording() {
     rec.start.hidden = true;
     rec.armed.hidden = true;
     rec.live.hidden = false;
+    guardVideo();
     const render = () => { rec.time.textContent = recording.module.formatElapsed(recorder.elapsedSeconds); };
     render();
     recording.timer = setInterval(render, 1000);
@@ -358,6 +398,7 @@ async function stopRecording() {
 
     recording.recorder = null;
     linkTeacherToRecording();
+    guardVideo();
 
     if (!blob) {
         rec.unsupported.hidden = false;
@@ -372,6 +413,10 @@ async function stopRecording() {
     rec.download.download = recording.module.fileName(config.file_prefix, new Date(), recording.module.extensionFor(recording.mimeType));
     rec.size.textContent = recording.module.formatSize(blob.size);
     rec.download.hidden = false;
+    rec.ready.hidden = false;
+    rec.box.classList.add('is-ready');
+    guardVideo();
+    placeRecorder();
 }
 
 const INPUT_RATE = 16000;
@@ -909,6 +954,7 @@ function showNext({ title, text, href, label } = {}) {
 
     next.hidden = false;
     $('phase-note')?.setAttribute('hidden', '');
+    placeRecorder();
     window.goTo ? window.goTo(next) : next.scrollIntoView();
 }
 

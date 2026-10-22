@@ -755,6 +755,11 @@ main { overflow-x: clip; }
 .recorder-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--c-danger); animation: recorder-blink 1.2s ease-in-out infinite; }
 .recorder-stop { margin-left: auto; }
 #record-download { flex-wrap: wrap; justify-content: center; }
+.recorder-ready, .recorder-saved { display: flex; gap: var(--space-2); align-items: flex-start; margin: var(--space-3) 0 var(--space-2); font-weight: var(--fw-bold); }
+.recorder-ready { padding: var(--space-3); border: 1px solid var(--c-warning-line); border-radius: var(--radius); background: var(--c-warning-soft); color: var(--c-warning); }
+.recorder-saved { font-size: var(--fs-sm); font-weight: 400; color: var(--c-muted); }
+.recorder-ready .icon, .recorder-saved .icon { flex: none; margin-top: 3px; }
+.recorder.is-ready { margin-top: var(--space-4); }
 .recorder-size { flex-basis: 100%; font-size: var(--fs-sm); font-weight: 400; }
 #record-time { font-variant-numeric: tabular-nums; }
 @keyframes recorder-blink { 50% { opacity: 0.35; } }
