@@ -189,12 +189,135 @@ if (root.dataset.teacher3d && root.dataset.teacherView) {
     import(root.dataset.teacherView)
         .then(({ createTeacherView }) => {
             teacher = createTeacherView(root, JSON.parse(root.dataset.teacher3d));
+            linkTeacherToRecording();
 
             if (state.audio) {
                 teacher.attachAudio(state.audio.context, state.audio.output, state.audio.micBus);
             }
         })
         .catch((error) => console.warn('Professeur 3D indisponible :', error));
+}
+
+/* ---------- « Enregistrer ma séance » (vidéo fabriquée dans le navigateur, jamais envoyée) ---------- */
+
+const recording = { module: null, mimeType: null, armed: false, recorder: null, timer: null, url: null };
+const rec = {
+    box: $('recorder'), start: $('record-start'), armed: $('record-armed'), live: $('record-live'),
+    time: $('record-time'), stop: $('record-stop'), download: $('record-download'), size: $('record-size'),
+    unsupported: $('record-unsupported'),
+};
+
+// Chargé à part, sans retarder l'écran de la séance.
+if (rec.box && root.dataset.recorder) {
+    import(root.dataset.recorder)
+        .then((module) => {
+            recording.module = module;
+            recording.mimeType = module.supportInfo();
+        })
+        .catch((error) => console.warn('Enregistrement indisponible :', error))
+        .finally(() => {
+            if (!recording.mimeType) {
+                rec.unsupported.hidden = false;
+
+                return;
+            }
+
+            rec.box.hidden = false;
+            rec.start.addEventListener('click', () => {
+                if (state.audio) {
+                    startRecording();
+
+                    return;
+                }
+
+                // Avant « Commencer » : l'enregistrement démarrera avec la séance.
+                recording.armed = !recording.armed;
+                rec.start.setAttribute('aria-pressed', String(recording.armed));
+                rec.armed.hidden = !recording.armed;
+            });
+            rec.stop.addEventListener('click', () => stopRecording());
+        });
+}
+
+function linkTeacherToRecording() {
+    if (teacher) {
+        teacher.onRender = recording.recorder ? (canvas) => recording.recorder?.captureTeacher(canvas) : null;
+    }
+}
+
+function startRecording() {
+    if (!recording.mimeType || recording.recorder || !state.audio || state.ending) {
+        return;
+    }
+
+    const config = JSON.parse(root.dataset.recording);
+    const recorder = new recording.module.SessionRecorder(config, {
+        svg: root.querySelector('.teacher svg.face'),
+        mouth: ui.mouth,
+        mimeType: recording.mimeType,
+    });
+
+    try {
+        recorder.start({ context: state.audio.context, voiceNode: state.audio.analyser, micNode: state.audio.micBus });
+        recorder.learnerOpen(state.gateOpen !== false);
+    } catch (error) {
+        // Jamais bloquant : la séance continue, sans vidéo.
+        console.warn('Enregistrement impossible :', error);
+        recorder.stop();
+        rec.box.hidden = true;
+        rec.unsupported.hidden = false;
+
+        return;
+    }
+
+    recording.recorder = recorder;
+    recording.armed = false;
+    linkTeacherToRecording();
+    rec.start.hidden = true;
+    rec.armed.hidden = true;
+    rec.live.hidden = false;
+    const render = () => { rec.time.textContent = recording.module.formatElapsed(recorder.elapsedSeconds); };
+    render();
+    recording.timer = setInterval(render, 1000);
+}
+
+/** Arrête l'enregistrement (bouton, ou fin de la séance) et propose la vidéo. */
+async function stopRecording() {
+    const recorder = recording.recorder;
+
+    if (!recorder || recording.stopping) {
+        return;
+    }
+
+    recording.stopping = true;
+    clearInterval(recording.timer);
+    rec.live.hidden = true;
+    linkTeacherToRecording();
+
+    let blob = null;
+
+    try {
+        blob = await recorder.stop();
+    } catch (error) {
+        console.warn('Enregistrement interrompu :', error);
+    }
+
+    recording.recorder = null;
+    linkTeacherToRecording();
+
+    if (!blob) {
+        rec.unsupported.hidden = false;
+        rec.unsupported.textContent = 'La vidéo n\'a pas pu être enregistrée. Votre séance n\'est pas touchée.';
+
+        return;
+    }
+
+    const config = JSON.parse(root.dataset.recording);
+    recording.url = URL.createObjectURL(blob);
+    rec.download.href = recording.url;
+    rec.download.download = recording.module.fileName(config.file_prefix, new Date(), recording.module.extensionFor(recording.mimeType));
+    rec.size.textContent = recording.module.formatSize(blob.size);
+    rec.download.hidden = false;
 }
 
 const INPUT_RATE = 16000;
@@ -1030,6 +1153,7 @@ function noteGate(open, endingTurn) {
     }
 
     state.gateOpen = open;
+    recording.recorder?.learnerOpen(open);
 
     if (open) {
         logEvent('gate_opened');
@@ -1915,6 +2039,10 @@ async function start() {
         return;
     }
 
+    if (recording.armed) {
+        startRecording();
+    }
+
     // Connexion : la carte d'accueil reste, avec « Teacher Joe arrive… » et les conseils, jusqu'à la première réponse.
     setPhase('connecting');
 
@@ -2142,6 +2270,15 @@ async function finish(reason, message = '') {
 
     stopPlayback();
     teacher?.expression('goodbye');
+    // La vidéo s'arrête avec la séance, jamais après, et avant la fermeture du contexte audio.
+    stopRecording();
+    recording.armed = false;
+
+    if (rec.start) {
+        rec.start.hidden = true;
+        rec.armed.hidden = true;
+    }
+
     teacher?.detachAudio();
     state.audio?.stream.getTracks().forEach((track) => track.stop());
     state.audio?.context.close();

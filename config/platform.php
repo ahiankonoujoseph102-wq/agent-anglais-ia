@@ -321,6 +321,25 @@ return [
     ],
 
     /*
+    | « Enregistrer ma séance » : vidéo de la séance (Teacher Joe, sa voix et celle de l'apprenant) fabriquée
+    | ENTIÈREMENT dans le navigateur (public/js/session-recorder.js), jamais envoyée au serveur. Format vertical
+    | 9:16, MP4 si le navigateur sait le faire, sinon WebM. Mention discrète en bas : l'adresse du site (APP_URL).
+    | Lu par App\Support\SessionRecording.
+    */
+    'recording' => [
+        'enabled' => true,
+        // Évaluation gratuite et séance du jour seulement.
+        'modes' => ['assessment', 'lesson'],
+        'width' => 540,
+        'height' => 960,
+        'fps' => 24,
+        // Débits modestes : la vidéo reste dans la mémoire du téléphone jusqu'au téléchargement
+        // (environ 7 mégaoctets par minute).
+        'video_bits_per_second' => 900_000,
+        'audio_bits_per_second' => 96_000,
+    ],
+
+    /*
     | Messages vocaux préparés (bienvenue, résultat de l'évaluation) : crête de l'audio, en décibels (0 = plein
     | volume). Chaque fichier y est amené à l'enregistrement (App\Support\Speech\Loudness).
     */

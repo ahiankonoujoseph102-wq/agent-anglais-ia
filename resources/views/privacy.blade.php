@@ -29,6 +29,7 @@
             <li><strong>Des mesures techniques de ces conversations</strong> : l'heure où chacun a commencé et fini de parler (mesurée à partir du niveau sonore du micro, sans rien enregistrer du son), le temps de réponse de {{ $teacher }}, et les incidents (reconnexion, coupure, micro fermé, pause). Elles servent à repérer et corriger les lenteurs.</li>
         </ul>
         <p><strong>Votre voix n'est jamais enregistrée.</strong> Seul le texte de la conversation est gardé.</p>
+        <p>Si vous touchez « Enregistrer ma séance », la vidéo (avec votre voix et celle de {{ $teacher }}) est fabriquée et gardée sur votre téléphone uniquement : elle n'est jamais envoyée à {{ $platform }}. C'est vous qui décidez de la garder, de la partager ou de l'effacer.</p>
     </section>
 
     <section class="card privacy rise" aria-labelledby="privacy-use" style="--i: 2">

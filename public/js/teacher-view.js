@@ -96,6 +96,8 @@ export function createTeacherView(root, config) {
     let audio = null;
     let pendingExpression = null;
     let loadingPromise = null;
+    // « Enregistrer ma séance » : appelé avec le canevas 3D juste après chaque rendu.
+    let onRender = null;
 
     const view = {
         get active() {
@@ -122,6 +124,14 @@ export function createTeacherView(root, config) {
 
         learnerSpoke() {
             teacher?.learnerSpoke();
+        },
+
+        set onRender(callback) {
+            onRender = callback;
+
+            if (teacher) {
+                teacher.onrender = callback;
+            }
         },
     };
 
@@ -169,6 +179,7 @@ export function createTeacherView(root, config) {
         loadingPromise = withTimeout(attempt, LOAD_TIMEOUT_MS)
             .then((instance) => {
                 teacher = instance;
+                teacher.onrender = onRender;
                 teacher.onfail = () => {
                     loadingPromise = null;
                     fallback();
