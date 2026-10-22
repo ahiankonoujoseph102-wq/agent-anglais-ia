@@ -1,0 +1,271 @@
+<?php
+
+namespace App\Support\Videos;
+
+use App\Models\LessonVideo;
+use App\Support\Avatar;
+use App\Support\PrivateStorage;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Throwable;
+
+/**
+ * Vidéos de leçon : planification (sujets du jour), préparation (script puis voix, côté Laravel), travaux de
+ * fabrication donnés à GitHub Actions, réception de la vidéo. Rien ne bloque jamais une page de l'apprenant.
+ */
+class LessonVideos
+{
+    public function __construct(private VideoScriptWriter $writer, private VideoVoice $voice) {}
+
+    /**
+     * Ajoute jusqu'à « count » vidéos pour ce jour, avec les prochains sujets jamais traités. Renvoie le nombre créé
+     * (moins si le programme des sujets est épuisé).
+     */
+    public function plan(CarbonInterface $day, int $count): int
+    {
+        return DB::transaction(function () use ($day, $count) {
+            $slot = (int) LessonVideo::query()->whereDate('day', $day)->lockForUpdate()->max('slot');
+            $created = 0;
+
+            foreach (VideoTopics::next($count) as $topic) {
+                LessonVideo::query()->create([
+                    'topic_key' => $topic['key'],
+                    'day' => $day->toDateString(),
+                    'slot' => ++$slot,
+                    'level' => $topic['level'],
+                    'title' => $topic['title'],
+                    'status' => LessonVideo::PLANNED,
+                ]);
+                $created++;
+            }
+
+            return $created;
+        });
+    }
+
+    /** Vidéos du jour (config videos.per_day), seulement celles qui manquent. */
+    public function planToday(): int
+    {
+        $missing = (int) config('videos.per_day') - LessonVideo::query()->whereDate('day', today())->count();
+
+        return $missing > 0 ? $this->plan(today(), $missing) : 0;
+    }
+
+    /**
+     * Écrit les scripts et prépare les voix des vidéos en attente, jusqu'à la fin du temps accordé.
+     *
+     * @return array{scripted: int, voiced: int, waiting: int}
+     */
+    public function prepare(int $budget): array
+    {
+        $deadline = microtime(true) + $budget;
+        $result = ['scripted' => 0, 'voiced' => 0, 'waiting' => 0];
+
+        $videos = LessonVideo::query()
+            ->whereIn('status', [LessonVideo::PLANNED, LessonVideo::SCRIPTED])
+            ->where(fn ($query) => $query->whereNull('next_attempt_at')->orWhere('next_attempt_at', '<=', now()))
+            ->orderBy('day')->orderBy('slot')
+            ->get();
+
+        foreach ($videos as $video) {
+            if (microtime(true) + 20 > $deadline) {
+                break;
+            }
+
+            try {
+                if ($video->status === LessonVideo::PLANNED && ! $this->writeScript($video)) {
+                    continue;
+                }
+
+                $result['scripted'] += $video->wasChanged('script') ? 1 : 0;
+
+                if ($this->voice->prepare($video, $deadline) === VideoVoice::DONE) {
+                    $result['voiced']++;
+                }
+            } catch (Throwable $e) {
+                Log::warning('Vidéo de leçon : préparation interrompue.', ['video' => $video->id, 'error' => class_basename($e)]);
+                $video->update(['error' => 'Préparation interrompue ('.class_basename($e).').', 'next_attempt_at' => now()->addMinutes((int) config('videos.retry_minutes'))]);
+            }
+        }
+
+        $result['waiting'] = LessonVideo::query()->whereIn('status', [LessonVideo::PLANNED, LessonVideo::SCRIPTED])->count();
+
+        return $result;
+    }
+
+    private function writeScript(LessonVideo $video): bool
+    {
+        $written = $this->writer->write($video);
+
+        if ($written === null) {
+            $attempts = $video->attempts + 1;
+            $video->update([
+                'attempts' => $attempts,
+                'error' => 'Script : aucun fournisseur du modèle texte n\'a répondu correctement.',
+                'next_attempt_at' => now()->addMinutes((int) config('videos.retry_minutes')),
+                'status' => $attempts >= (int) config('videos.max_attempts') ? LessonVideo::FAILED : LessonVideo::PLANNED,
+            ]);
+
+            return false;
+        }
+
+        $script = $written['script'];
+        $video->update([
+            'status' => LessonVideo::SCRIPTED,
+            'script' => $script,
+            'title' => $script['title'],
+            'caption' => VideoScriptWriter::publication($script['caption'], $script['hashtags']),
+            'hashtags' => implode(' ', $script['hashtags']),
+            'text_provider' => $written['provider'],
+            'attempts' => 0,
+            'error' => null,
+            'next_attempt_at' => null,
+        ]);
+
+        return true;
+    }
+
+    /** Vidéos que GitHub Actions peut prendre maintenant. */
+    public function waiting(): int
+    {
+        return $this->claimable()->count();
+    }
+
+    /** @return Builder<LessonVideo> */
+    private function claimable()
+    {
+        $stale = now()->subMinutes((int) config('videos.render_timeout_minutes'));
+
+        return LessonVideo::query()->where(fn ($query) => $query->where('status', LessonVideo::VOICED)
+            ->orWhere(fn ($query) => $query->where('status', LessonVideo::RENDERING)->where('render_started_at', '<', $stale)));
+    }
+
+    /**
+     * Donne à GitHub Actions les vidéos à fabriquer (voix prête, ou fabrication abandonnée depuis longtemps) et les
+     * marque « en fabrication ».
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function claim(int $limit): array
+    {
+        $videos = DB::transaction(function () use ($limit) {
+            $videos = $this->claimable()
+                ->orderBy('day')->orderBy('slot')
+                ->limit(max(1, min(6, $limit)))
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($videos as $video) {
+                $video->update(['status' => LessonVideo::RENDERING, 'render_started_at' => now(), 'error' => null]);
+            }
+
+            return $videos;
+        });
+
+        return $videos->map(fn (LessonVideo $video) => $this->job($video))->all();
+    }
+
+    /**
+     * Ce que GitHub Actions doit savoir pour fabriquer une vidéo (aucune clé, aucune donnée d'apprenant).
+     *
+     * @return array<string, mixed>
+     */
+    public function job(LessonVideo $video): array
+    {
+        $segments = [];
+
+        foreach ($video->script['segments'] ?? [] as $index => $segment) {
+            $timing = $video->timings['segments'][$index] ?? ['start' => 0, 'end' => 0];
+            $segments[] = ['subtitle' => $segment['subtitle'], 'closing' => (bool) ($segment['closing'] ?? false), 'start' => $timing['start'], 'end' => $timing['end']];
+        }
+
+        return [
+            'id' => $video->id,
+            'title' => $video->title,
+            'level' => $video->level,
+            'duration' => (float) ($video->timings['duration'] ?? 0),
+            'segments' => $segments,
+            'platform' => (string) config('platform.name'),
+            'site' => VideoScriptWriter::site(),
+            'audio_url' => route('api.videos.audio', $video),
+            'upload' => $this->uploadTarget($video),
+            'done_url' => route('api.videos.done', $video),
+            'failed_url' => route('api.videos.failed', $video),
+            'render' => config('videos.render'),
+            'avatar' => array_intersect_key(Avatar::clientConfig()['model'] ?? [], array_flip(['profile', 'camera', 'desk_height', 'resting_smile', 'voice_hz'])),
+        ];
+    }
+
+    /** Chemin de la vidéo sur le disque privé. */
+    public static function videoPath(LessonVideo $video): string
+    {
+        return $video->folder().'/'.$video->downloadName();
+    }
+
+    /**
+     * Où déposer la vidéo : adresse signée du bucket (aucune limite de taille de Laravel Cloud), sinon l'API.
+     *
+     * @return array{method: string, url: string, headers: array<string, string>, direct: bool}
+     */
+    private function uploadTarget(LessonVideo $video): array
+    {
+        try {
+            $signed = PrivateStorage::disk()->temporaryUploadUrl(self::videoPath($video), now()->addMinutes((int) config('videos.upload_url_minutes')), ['ContentType' => 'video/mp4']);
+            $headers = array_map(fn ($value) => is_array($value) ? implode(', ', $value) : (string) $value, $signed['headers'] ?? []);
+
+            return ['method' => 'PUT', 'url' => $signed['url'], 'headers' => $headers + ['Content-Type' => 'video/mp4'], 'direct' => true];
+        } catch (Throwable) {
+            return ['method' => 'PUT', 'url' => route('api.videos.upload', $video), 'headers' => ['Content-Type' => 'video/mp4'], 'direct' => false];
+        }
+    }
+
+    /**
+     * Vidéo déposée : vérifiée sur le disque privé puis marquée « prête ».
+     */
+    public function markReady(LessonVideo $video, ?float $duration = null): bool
+    {
+        $disk = PrivateStorage::disk();
+        $path = self::videoPath($video);
+
+        if (! $disk->exists($path)) {
+            return false;
+        }
+
+        $video->update([
+            'status' => LessonVideo::READY,
+            'video_path' => $path,
+            'size_bytes' => (int) $disk->size($path),
+            'duration_seconds' => $duration !== null ? (int) ceil($duration) : $video->duration_seconds,
+            'ready_at' => now(),
+            'error' => null,
+        ]);
+
+        return true;
+    }
+
+    /** Fabrication ratée : la vidéo repart au prochain passage de GitHub, ou passe « en échec » après trop d'essais. */
+    public function markRenderFailed(LessonVideo $video, string $error): void
+    {
+        $attempts = $video->attempts + 1;
+        $video->update([
+            'status' => $attempts >= (int) config('videos.max_attempts') ? LessonVideo::FAILED : LessonVideo::VOICED,
+            'attempts' => $attempts,
+            'error' => mb_substr('Fabrication : '.$error, 0, 300),
+            'render_started_at' => null,
+        ]);
+    }
+
+    /** « Réessayer » de l'administration : la vidéo reprend là où elle s'était arrêtée. */
+    public function retry(LessonVideo $video): void
+    {
+        $status = match (true) {
+            $video->script === null => LessonVideo::PLANNED,
+            $video->audio_path === null => LessonVideo::SCRIPTED,
+            default => LessonVideo::VOICED,
+        };
+
+        $video->update(['status' => $status, 'attempts' => 0, 'next_attempt_at' => null, 'error' => null, 'render_started_at' => null]);
+    }
+}

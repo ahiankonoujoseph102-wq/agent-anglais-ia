@@ -48,3 +48,8 @@ Schedule::command('courses:prepare-reviews')->everyMinute()->withoutOverlapping(
 // Invitations à refaire l'évaluation gratuite (après app:reset-learners --notify) : par lots, dans la marge
 // d'e-mails du jour partagée avec les documents de révision (jamais les e-mails gardés pour les alertes).
 Schedule::command('learners:send-invitations')->hourly()->withoutOverlapping()->onOneServer();
+
+// Vidéos de leçon de Teacher Joe : sujets du jour chaque matin (heure de Lomé), puis scripts et voix au fil des
+// minutes. La fabrication de l'image se fait sur GitHub Actions (.github/workflows/videos.yml).
+Schedule::command('videos:prepare --plan')->dailyAt('04:40')->withoutOverlapping(10)->onOneServer();
+Schedule::command('videos:prepare')->everyMinute()->withoutOverlapping(10)->onOneServer();

@@ -18,6 +18,7 @@ final class TextRequest
         'encouragement' => 'Message aux apprenants inactifs',
         'board' => 'Tableaux des séances',
         'review' => 'Documents de révision (Mes cours)',
+        'video' => 'Scripts des vidéos de leçon',
         'diagnostic' => 'Essai du diagnostic',
     ];
 
