@@ -752,7 +752,15 @@ class Teacher3D {
             this.renderer.render(this.scene, this.camera);
         } catch (error) {
             this.fail(error);
+
+            return;
         }
+
+        // « Enregistrer ma séance » : l'image n'est lisible que juste après le rendu. Un échec ici ne touche
+        // jamais le professeur.
+        try {
+            this.onrender?.(this.renderer.domElement);
+        } catch { /* enregistrement seulement */ }
     }
 
     // Téléphone trop lent : on baisse la définition (sous 20 images/s), puis on

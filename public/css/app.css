@@ -724,6 +724,19 @@ main { overflow-x: clip; }
 .live-control > span { display: inline-flex; align-items: center; gap: var(--space-2); }
 .live-control-wide { grid-column: 1 / -1; }
 .live-control[aria-pressed="true"] { background: var(--c-accent); color: var(--c-on-accent); box-shadow: none; }
+/* « Enregistrer ma séance » : discret, sous les commandes ; point rouge pendant l'enregistrement. */
+.recorder { margin-bottom: var(--space-3); }
+.recorder #record-start[aria-pressed="true"] { border-color: var(--c-accent); }
+.recorder-armed, .recorder-note { margin: var(--space-2) 0 0; font-size: var(--fs-sm); color: var(--c-muted); }
+.recorder-live { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-3); border: 1px solid var(--c-danger-line); border-radius: var(--radius-lg); background: var(--c-danger-soft); color: var(--c-danger-strong); font-weight: var(--fw-bold); }
+.recorder-live[hidden], .recorder [hidden] { display: none; }
+.recorder-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--c-danger); animation: recorder-blink 1.2s ease-in-out infinite; }
+.recorder-stop { margin-left: auto; }
+#record-download { flex-wrap: wrap; justify-content: center; }
+.recorder-size { flex-basis: 100%; font-size: var(--fs-sm); font-weight: 400; }
+#record-time { font-variant-numeric: tabular-nums; }
+@keyframes recorder-blink { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .recorder-dot { animation: none; } }
 /* Paysage (téléphone couché) et ordinateur : le professeur à gauche, toujours entier à l'écran,
    les commandes à droite ; « Commencer » visible sans faire défiler. */
 @media (min-width: 900px), (orientation: landscape) and (max-height: 560px) {

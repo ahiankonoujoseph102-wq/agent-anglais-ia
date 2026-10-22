@@ -57,6 +57,10 @@
              data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"
              data-teacher3d='@json(\App\Support\Avatar::clientConfig())'
          @endif
+         @if (\App\Support\SessionRecording::enabled($mode))
+             data-recorder="{{ \App\Support\Asset::url('js/session-recorder.js') }}"
+             data-recording='@json(\App\Support\SessionRecording::clientConfig($mode))'
+         @endif
          data-teacher="svg"
          data-phase="intro"
          data-teacher-name="{{ config('avatar.model.name') }}">
@@ -198,6 +202,22 @@
                 </button>
             </div>
 
+            @if (\App\Support\SessionRecording::enabled($mode))
+                {{-- « Enregistrer ma séance » : vidéo fabriquée sur le téléphone (session-recorder.js), jamais envoyée.
+                     Caché sans JavaScript ; affiché seulement si le navigateur sait enregistrer. --}}
+                <section id="recorder" class="recorder" aria-label="Enregistrer ma séance" hidden>
+                    <button type="button" id="record-start" class="btn btn-outline btn-block" aria-pressed="false"><x-icon name="video" /> Enregistrer ma séance</button>
+                    <p id="record-armed" class="recorder-armed" hidden>L'enregistrement commencera dès que vous toucherez « Commencer ».</p>
+                    <div id="record-live" class="recorder-live" role="status" hidden>
+                        <span class="recorder-dot" aria-hidden="true"></span>
+                        <span>Enregistrement en cours <span id="record-time">0:00</span></span>
+                        <button type="button" id="record-stop" class="btn btn-light recorder-stop"><x-icon name="stop" /> Arrêter l'enregistrement</button>
+                    </div>
+                    <a id="record-download" class="btn btn-outline btn-block" href="#" hidden><x-icon name="download" /> Télécharger ma vidéo <span class="recorder-size">(<span id="record-size"></span>)</span></a>
+                    <p class="recorder-note">La vidéo reste sur votre téléphone : elle n'est jamais envoyée à {{ config('platform.name') }}. Elle s'arrête avec la séance.</p>
+                </section>
+                <p id="record-unsupported" class="recorder-note" hidden>L'enregistrement vidéo n'est pas possible sur ce navigateur. Votre séance fonctionne normalement.</p>
+            @endif
 
             <div id="subtitles-home"><div id="subtitles" class="subtitles" aria-live="polite" hidden></div></div>
 

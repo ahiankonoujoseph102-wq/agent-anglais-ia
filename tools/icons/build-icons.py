@@ -94,6 +94,9 @@ ICONS = {
     'file-text': 'file-text',
     'trash': 'trash-2',
     'plus': 'plus',
+    # « Enregistrer ma séance » (vidéo, arrêt).
+    'video': 'video',
+    'stop': 'square',
 }
 
 # Lucide ne dessine aucune marque : le logo WhatsApp (bulle et combiné) reste dessiné pour le site,
