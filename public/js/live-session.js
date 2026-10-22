@@ -302,7 +302,14 @@ function startRecording() {
         board: board ? boardEl : null,
         // Professeur 3D en chargement : la vidéo ne commence qu'avec sa première vraie image (couverture).
         waitForTeacher: root.dataset.teacher !== 'svg',
+        // Évaluation : le temps de l'écran, recopié dans le tableau neutre de la vidéo.
+        clock: () => ({ label: ui.timerLabel?.textContent ?? '', value: ui.timer?.textContent ?? '' }),
     });
+
+    // Verdict déjà affiché (enregistrement lancé pendant les questions) : la vidéo montre aussi le niveau.
+    if (state.revealed) {
+        recorder.revealLevel(state.revealed.level, state.revealed.label);
+    }
 
     try {
         recorder.start({ context: state.audio.context, voiceNode: state.audio.analyser, micNode: state.audio.micBus });
@@ -1904,6 +1911,9 @@ const AFTER_VERDICT = {
 };
 
 function showAssessmentResult(level, label, feedback) {
+    // Même instant dans la vidéo : le niveau n'y entre que par ici (jamais avant le verdict).
+    state.revealed = { level, label };
+    recording.recorder?.revealLevel(level, label);
     showOutcome(`<h2>Votre niveau : ${escapeHtml(level)}</h2>`
         + `<p><strong>${escapeHtml(label)}</strong></p>`
         + `<p>${escapeHtml(feedback)}</p>`);
