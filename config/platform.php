@@ -153,6 +153,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Demande d'avis par e-mail (app:send-feedback-request)
+    |--------------------------------------------------------------------------
+    |
+    | Envoyée UNE fois à chaque apprenant qui a une adresse e-mail valide (table feedback_requests). Les réponses
+    | arrivent à reply_to (FEEDBACK_REPLY_TO ; absente : l'adresse de la page « Confidentialité »). Comptes exclus :
+    | numéros de FEEDBACK_EXCLUDE_PHONES, séparés par des virgules (comptes de test). Dans la marge d'e-mails des
+    | documents de révision (courses.review.daily_emails, 280) moins keep_for_reviews gardés pour les documents du
+    | jour ; les e-mails des alertes de l'administrateur ne sont jamais pris. Pause entre deux e-mails : pause_ms.
+    |
+    */
+    'feedback' => [
+        'reply_to' => env('FEEDBACK_REPLY_TO') ?: null,
+        'exclude_phones' => array_values(array_filter(array_map('trim', explode(',', (string) env('FEEDBACK_EXCLUDE_PHONES', ''))))),
+        'keep_for_reviews' => 30,
+        'pause_ms' => 1000,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | « Mes cours » : l'apprenant apporte une leçon d'anglais, Teacher Joe la réexplique
     |--------------------------------------------------------------------------
     |
