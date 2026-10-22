@@ -38,10 +38,14 @@ final class SessionRecording
             'fps' => (int) config('platform.recording.fps'),
             'video_bits_per_second' => (int) config('platform.recording.video_bits_per_second'),
             'audio_bits_per_second' => (int) config('platform.recording.audio_bits_per_second'),
+            'board_share' => (float) config('platform.recording.board_share'),
+            'transition_ms' => (int) config('platform.recording.transition_ms'),
+            'board_sizes' => array_map('intval', (array) config('platform.recording.board_sizes')),
+            'camera_full' => config('platform.recording.camera_full'),
+            'camera_split' => config('platform.recording.camera_split'),
+            'frame_budget_ms' => (int) config('platform.recording.frame_budget_ms'),
             'mention' => self::mention(),
             'platform' => $platform,
-            'teacher' => (string) config('avatar.model.name'),
-            'title' => $mode === 'assessment' ? 'Évaluation gratuite' : 'Séance du jour',
             // Début du nom du fichier : « talkami-evaluation », « talkami-seance ».
             'file_prefix' => Str::slug($platform).'-'.($mode === 'assessment' ? 'evaluation' : 'seance'),
         ];

@@ -148,6 +148,8 @@ function showDiscoveryBoard(discovery) {
     board = { view: new BoardView(boardEl), tracker: null, nudged: false };
     board.tracker = new BoardTracker(board.view.items());
     placeBoard();
+    // Vidéo en cours : le tableau de la mini-leçon y apparaît aussi (écran partagé).
+    recording.recorder?.setBoard(boardEl);
 
     if (!boardEl.isConnected) {
         $('controls')?.before(boardEl);
@@ -241,7 +243,7 @@ if (rec.box && root.dataset.recorder) {
 
 function linkTeacherToRecording() {
     if (teacher) {
-        teacher.onRender = recording.recorder ? (canvas) => recording.recorder?.captureTeacher(canvas) : null;
+        teacher.onRender = recording.recorder ? (teacher3d) => recording.recorder?.captureTeacher(teacher3d) : null;
     }
 }
 
@@ -255,6 +257,8 @@ function startRecording() {
         svg: root.querySelector('.teacher svg.face'),
         mouth: ui.mouth,
         mimeType: recording.mimeType,
+        // Tableau de la séance, dessiné dans la vidéo même quand il est replié à l'écran.
+        board: board ? boardEl : null,
     });
 
     try {

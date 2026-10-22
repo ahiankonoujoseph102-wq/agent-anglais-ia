@@ -337,6 +337,21 @@ return [
         // (environ 7 mégaoctets par minute).
         'video_bits_per_second' => 900_000,
         'audio_bits_per_second' => 96_000,
+        // Écran partagé : le tableau de la séance en haut (part de la hauteur), Teacher Joe en dessous. Sans
+        // tableau (évaluation avant le verdict) : Teacher Joe sur toute la hauteur, transition douce entre les deux.
+        'board_share' => 0.45,
+        'transition_ms' => 700,
+        // Taille du texte anglais du tableau, en pixels : la plus grande où tout tient (de max à min), sinon les
+        // éléments autour de celui qui est expliqué, à la taille « window ».
+        'board_sizes' => ['max' => 34, 'min' => 24, 'window' => 28],
+        // Caméra de la VIDÉO seulement (l'écran de la séance garde config/avatar.php → camera) : point visé,
+        // demi-hauteur et demi-largeur visibles, en mètres. Plein cadre : du bureau à l'air au-dessus de la tête ;
+        // écran partagé : tête et épaules.
+        'camera_full' => ['target' => [0, 0.52, 0], 'half_height' => 0.4, 'half_width' => 0.26],
+        'camera_split' => ['target' => [0, 0.62, 0], 'half_height' => 0.3, 'half_width' => 0.32],
+        // Protection de la séance : au-delà de ce coût moyen par image (millisecondes), l'image de Teacher Joe dans
+        // la vidéo perd de la définition, puis une image sur deux (session-recorder.js → adaptQuality).
+        'frame_budget_ms' => 14,
     ],
 
     /*
