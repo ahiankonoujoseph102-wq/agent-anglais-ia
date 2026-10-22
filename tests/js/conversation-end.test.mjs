@@ -1,7 +1,7 @@
 // Fin automatique après le verdict (public/js/conversation-end.js). Lancé par tests/Feature/JavaScriptTest.php.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ConversationEnd, normalizeSpeech } from '../../public/js/conversation-end.js';
+import { ConversationEnd, levelRevealDue, mentionsLevel, normalizeSpeech } from '../../public/js/conversation-end.js';
 
 test('sans verdict, la conversation continue (jusqu\'au minuteur)', () => {
     const end = new ConversationEnd();
@@ -164,4 +164,32 @@ test('limite de temps : la phrase en cours finit (6 secondes au plus), puis coup
     const before = assessmentEnd(); // Pas encore de verdict : la limite des 5 minutes coupe tout de suite.
     assert.equal(before.timeUp(300, true), true);
     assert.equal(new ConversationEnd().timeUp(10, true), true, 'séance : coupure immédiate');
+});
+
+test('le niveau est repéré quand le professeur le dit, sous toutes ses formes transcrites', () => {
+    for (const text of ['Your level is A2.', 'your level is a 2', 'Level A-2!', 'Your level is A two.']) {
+        assert.equal(mentionsLevel(text, 'A2'), true, text);
+    }
+
+    assert.equal(mentionsLevel('Great job! Thank you for your answers.', 'A2'), false);
+    assert.equal(mentionsLevel('Your level is A1.', 'A2'), false);
+    assert.equal(mentionsLevel('C1 level', 'C1'), true);
+    assert.equal(mentionsLevel('anything', null), false);
+});
+
+test('le niveau n\'est jamais montré avant que le professeur le dise', () => {
+    const base = { receivedAt: 0, delayMs: 4000, maxMs: 12000 };
+
+    // Résultat reçu, rien dit : rien avant le délai, ni pendant qu'il parle, ni s'il n'a encore rien dit.
+    assert.equal(levelRevealDue({ ...base, now: 1000 }), false);
+    assert.equal(levelRevealDue({ ...base, now: 5000, spokeAfter: true, speaking: true }), false);
+    assert.equal(levelRevealDue({ ...base, now: 5000, spokeAfter: false }), false);
+    // Niveau repéré dans sa voix : montré à l'heure où ce son est joué, même avant le délai.
+    assert.equal(levelRevealDue({ ...base, now: 2400, heardAt: 2500, spokeAfter: true, speaking: true }), false);
+    assert.equal(levelRevealDue({ ...base, now: 2500, heardAt: 2500, spokeAfter: true, speaking: true }), true);
+    // Jamais repéré : après le délai, une fois qu'il a parlé puis s'est tu.
+    assert.equal(levelRevealDue({ ...base, now: 4000, spokeAfter: true, speaking: false }), true);
+    // Au plus tard : le maximum, dans tous les cas.
+    assert.equal(levelRevealDue({ ...base, now: 12000, spokeAfter: false, speaking: true }), true);
+    assert.equal(levelRevealDue({ ...base, now: 12000, heardAt: 20000 }), true);
 });

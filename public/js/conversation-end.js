@@ -25,6 +25,41 @@ export function normalizeSpeech(text) {
         .trim();
 }
 
+/**
+ * Le professeur dit-il le niveau dans ce texte (sa transcription) ? « A2 », « A 2 », « A-2 », « A two ».
+ */
+export function mentionsLevel(text, level) {
+    const match = /^([ABC])([12])$/.exec(String(level ?? '').toUpperCase());
+
+    if (!match) {
+        return false;
+    }
+
+    const word = match[2] === '1' ? 'one' : 'two';
+
+    return new RegExp(`\\b${match[1]}\\s*-?\\s*(${match[2]}|${word})\\b`, 'i').test(String(text ?? ''));
+}
+
+/**
+ * Évaluation : le niveau, reçu juste AVANT que le professeur l'annonce, n'est montré (écran et vidéo) que quand
+ * il le dit, jamais avant. Heures en millisecondes.
+ * - heardAt : moment où sa voix dit le niveau (repéré dans sa transcription, quand le son reçu jusque-là aura été
+ *   joué) : on montre à ce moment.
+ * - Niveau jamais repéré : après delayMs, seulement s'il a parlé depuis le résultat et s'est tu.
+ * - Dans tous les cas, au plus tard maxMs après le résultat.
+ */
+export function levelRevealDue({ now, receivedAt, delayMs, maxMs, heardAt = null, spokeAfter = false, speaking = false }) {
+    if (now - receivedAt >= maxMs) {
+        return true;
+    }
+
+    if (heardAt !== null) {
+        return now >= heardAt;
+    }
+
+    return now - receivedAt >= delayMs && spokeAfter && !speaking;
+}
+
 export class ConversationEnd {
     /**
      * @param {number} settle         silence après la dernière phrase avant de couper

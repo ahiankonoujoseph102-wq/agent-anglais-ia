@@ -34,7 +34,7 @@ const { listMicrophones, rms, meterLevel, SilenceWatch } = await import(root.dat
 // Réglages audio de la page (config/platform.php → live).
 const audioConfig = JSON.parse(root.dataset.audio);
 // Fin automatique après le verdict ; expressions du professeur 3D d'après ses paroles.
-const { ConversationEnd } = await import(root.dataset.conversationEnd);
+const { ConversationEnd, mentionsLevel, levelRevealDue } = await import(root.dataset.conversationEnd);
 const { CueTracker } = await import(root.dataset.teacherCues);
 // Adaptateurs des fournisseurs (même langage d'événements pour l'écran).
 const { GeminiTransport } = await import(root.dataset.liveGemini);
@@ -420,6 +420,10 @@ const MESSAGES = {
 };
 
 const state = {
+    // Évaluation : niveau reçu, en attente d'être montré quand le professeur le dit (scheduleLevelReveal).
+    pendingReveal: null,
+    // Niveau montré (pour une vidéo lancée après le verdict).
+    revealed: null,
     config: null,
     // Textes de la carte « La suite » selon le résultat (niveau trouvé, bilan réussi ou à repasser).
     next: null,
@@ -600,7 +604,7 @@ function renderTimer() {
 
     if (ui.timerLabel) {
         // Après le verdict de l'évaluation : le temps restant est celui du moment des questions.
-        ui.timerLabel.textContent = state.end.questions ? 'Vos questions' : 'Temps restant';
+        ui.timerLabel.textContent = state.end.questions && !state.pendingReveal ? 'Vos questions' : 'Temps restant';
     }
 
     ui.timer.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
@@ -1768,7 +1772,14 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
 
             state.spoke = true;
             state.learnerLine = null;
-            subtitle('teacher', text);
+
+            // Annonce du niveau : son texte arrive avant sa voix ; les sous-titres attendent le niveau.
+            if (state.pendingReveal) {
+                state.pendingReveal.held.push(text);
+                listenForLevel(text);
+            } else {
+                subtitle('teacher', text);
+            }
 
             // Phrase fixe de la conclusion : micro fermé, coupure une fois la voix terminée.
             if (state.end.teacherSaid(text, clock())) {
@@ -1923,6 +1934,62 @@ function showAssessmentResult(level, label, feedback) {
     state.next = { ...state.next, title: `Votre niveau : ${level}` };
 }
 
+/**
+ * Évaluation : le résultat arrive juste AVANT que le professeur annonce le niveau. L'écran et la vidéo (même appel,
+ * showAssessmentResult) le montrent quand sa voix le dit (repéré dans sa transcription, après le son déjà reçu),
+ * sinon level_reveal_delay_seconds après le résultat une fois qu'il s'est tu, et au plus tard
+ * level_reveal_max_seconds après. Fin de la conversation pendant l'attente : montré aussitôt (revealLevelNow).
+ * Ses sous-titres (texte reçu avant sa voix) attendent aussi : ils ne disent jamais le niveau avant l'écran.
+ */
+function scheduleLevelReveal(level, show) {
+    const delayMs = (state.config?.level_reveal_delay_seconds ?? 0) * 1000;
+    const maxMs = Math.max(delayMs, (state.config?.level_reveal_max_seconds ?? 0) * 1000);
+    const pending = { level, show, receivedAt: Date.now(), delayMs, maxMs, heardAt: null, spokeAfter: false, text: '', held: [], timer: null };
+    state.pendingReveal = pending;
+    pending.timer = setInterval(() => {
+        if (levelRevealDue({ ...pending, now: Date.now(), speaking: teacherSpeaking() })) {
+            revealLevelNow();
+        }
+    }, 100);
+
+    if (delayMs === 0) {
+        revealLevelNow();
+    }
+}
+
+/** Montre le niveau en attente (écran et vidéo au même instant). */
+function revealLevelNow() {
+    const pending = state.pendingReveal;
+
+    if (!pending) {
+        return;
+    }
+
+    clearInterval(pending.timer);
+    state.pendingReveal = null;
+    pending.show();
+    // Sous-titres retenus pendant l'annonce : affichés avec le niveau, jamais avant.
+    pending.held.forEach((text) => subtitle('teacher', text));
+}
+
+/** Paroles du professeur pendant l'attente : le niveau est-il dit ? */
+function listenForLevel(text) {
+    const pending = state.pendingReveal;
+
+    if (!pending || pending.heardAt !== null) {
+        return;
+    }
+
+    pending.spokeAfter = true;
+    pending.text += text;
+
+    if (mentionsLevel(pending.text, pending.level)) {
+        // Le son reçu jusqu'ici (qui contient le niveau) aura fini d'être joué à cette heure-là.
+        const ahead = state.audio ? Math.max(0, voiceEnd() - state.audio.context.currentTime) : 0;
+        pending.heardAt = Date.now() + ahead * 1000;
+    }
+}
+
 async function handleFunctionCall(call) {
     const args = call.args ?? {};
     let response = { result: 'ok' };
@@ -1942,14 +2009,19 @@ async function handleFunctionCall(call) {
         const result = await post(urls.result, { level: args.level, feedback: args.feedback });
 
         if (result.ok) {
-            showAssessmentResult(result.data.level, result.data.label, args.feedback);
             // Moment des questions ouvert par le serveur : la fin autorisée a été repoussée.
             questions = Boolean(result.data.questions);
+            const discovery = questions ? result.data.discovery : null;
+            // Niveau enregistré tout de suite (serveur), mais montré (écran et vidéo) quand le professeur le dit.
+            scheduleLevelReveal(result.data.level, () => {
+                showAssessmentResult(result.data.level, result.data.label, args.feedback);
+                // Mini-leçon découverte : son tableau (propre au niveau trouvé : montré avec lui).
+                showDiscoveryBoard(discovery);
+            });
 
             if (questions) {
                 setRemaining(result.data.remaining_seconds);
-                // Mini-leçon découverte : son tableau, et la suite à donner au professeur (phrase à enseigner).
-                showDiscoveryBoard(result.data.discovery);
+                // La suite à donner au professeur (phrase à enseigner) part sans attendre.
                 nextStep = result.data.next_step ?? null;
             }
         } else {
@@ -2327,6 +2399,8 @@ async function finish(reason, message = '') {
 
     stopPlayback();
     teacher?.expression('goodbye');
+    // Niveau encore en attente (fin pendant l'annonce) : montré maintenant, à l'écran et dans la vidéo.
+    revealLevelNow();
     // La vidéo s'arrête avec la séance, jamais après, et avant la fermeture du contexte audio.
     stopRecording();
     recording.armed = false;

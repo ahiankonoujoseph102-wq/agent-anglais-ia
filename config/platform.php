@@ -74,6 +74,11 @@ return [
         'closing_phrase' => 'On se retrouve de l\'autre côté !',
         // À la limite, la phrase en cours peut finir pendant ce nombre de secondes au plus.
         'closing_grace_seconds' => 6,
+        // Niveau reçu juste AVANT que le professeur l'annonce : l'écran et la vidéo (même instant) le montrent quand
+        // sa voix le dit (repéré dans sa transcription), sinon ce délai après le résultat une fois qu'il s'est tu,
+        // et au plus tard level_reveal_max_seconds après. L'enregistrement en base n'attend jamais.
+        'level_reveal_delay_seconds' => 4,
+        'level_reveal_max_seconds' => 12,
     ],
 
     /*

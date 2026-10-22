@@ -52,7 +52,10 @@ class AssessmentQuestionsTest extends TestCase
             ->assertJsonPath('questions', true)
             ->assertJsonPath('remaining_seconds', 180)
             ->assertJsonPath('conclusion_cue_seconds', 30)
-            ->assertJsonPath('closing_phrase', 'On se retrouve de l\'autre côté !');
+            ->assertJsonPath('closing_phrase', 'On se retrouve de l\'autre côté !')
+            // Niveau montré quand le professeur le dit : délai de sécurité et maximum (configuration).
+            ->assertJsonPath('level_reveal_delay_seconds', 4)
+            ->assertJsonPath('level_reveal_max_seconds', 12);
 
         // Verdict tôt : la durée totale est plus courte (100 + 180 secondes).
         $assessment = $user->assessment()->first();
@@ -199,5 +202,30 @@ class AssessmentQuestionsTest extends TestCase
             ->assertOk()
             ->assertJsonMissingPath('discovery')
             ->assertJsonMissingPath('next_step');
+    }
+
+    public function test_the_level_is_saved_at_once_but_shown_when_the_teacher_says_it(): void
+    {
+        $user = User::factory()->create();
+
+        // Enregistré en base dès la réponse : rien n'attend l'annonce.
+        $this->verdictAfter($user, 100)->assertOk();
+        $this->assertSame('A2', $user->assessment()->first()->level->value);
+        $this->assertSame('A2', $user->fresh()->level->value);
+
+        $session = file_get_contents(public_path('js/live-session.js'));
+        $call = substr($session, strpos($session, "call.name === 'record_assessment_result'"), 1400);
+        // L'écran et la vidéo ne sont montrés que par le report (même appel showAssessmentResult).
+        $this->assertStringContainsString('scheduleLevelReveal(result.data.level, () => {', $call);
+        $this->assertLessThan(strpos($call, 'showAssessmentResult('), strpos($call, 'scheduleLevelReveal('));
+        $show = substr($session, strpos($session, 'function showAssessmentResult('), 600);
+        $this->assertStringContainsString('recording.recorder?.revealLevel(level, label);', $show);
+        // Le minuteur garde « Temps restant » pendant l'attente (rien ne dit que le verdict est tombé).
+        $this->assertStringContainsString("state.end.questions && !state.pendingReveal ? 'Vos questions' : 'Temps restant'", $session);
+        // Les sous-titres de l'annonce attendent aussi le niveau.
+        $this->assertStringContainsString('state.pendingReveal.held.push(text);', $session);
+        // Fin de la conversation pendant l'attente : montré avant l'arrêt de la vidéo.
+        $finish = substr($session, strpos($session, 'async function finish('));
+        $this->assertLessThan(strpos($finish, 'stopRecording();'), strpos($finish, 'revealLevelNow();'));
     }
 }
