@@ -258,6 +258,9 @@ class AssessmentController extends Controller
             'conclusion_cue_seconds' => (int) config('platform.assessment.conclusion_cue_seconds'),
             'closing_phrase' => (string) config('platform.assessment.closing_phrase'),
             'closing_grace_seconds' => (int) config('platform.assessment.closing_grace_seconds'),
+            // Niveau montré quand le professeur le dit (écran et vidéo), jamais avant : délai de sécurité et maximum.
+            'level_reveal_delay_seconds' => (float) config('platform.assessment.level_reveal_delay_seconds'),
+            'level_reveal_max_seconds' => (float) config('platform.assessment.level_reveal_max_seconds'),
         ];
     }
 
