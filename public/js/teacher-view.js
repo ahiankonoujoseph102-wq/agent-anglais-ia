@@ -7,7 +7,7 @@
  * la page et le bouton « Commencer » sont utilisables tout de suite. Repli silencieux sur le
  * visage SVG si WebGL 2 manque, si le chargement échoue ou dure plus de
  * LOAD_TIMEOUT_MS, ou si le téléphone est trop lent : la séance n'est jamais
- * bloquée. Le lien « Visage simple » / « Afficher le professeur en 3D »
+ * bloquée. Le lien « Affichage plus léger » / « Revoir Teacher Joe animé »
  * mémorise le choix de l'apprenant dans le navigateur.
  */
 
@@ -91,6 +91,10 @@ export function createTeacherView(root, config) {
     const loading = root.querySelector('#teacher3d-loading');
     const bar = loading.querySelector('progress');
     const toggle = root.querySelector('#teacher3d-toggle');
+    // Textes du lien de réglage : le nom du professeur vient de la configuration (data-teacher-name).
+    const name = root.dataset.teacherName || 'le professeur';
+    const LIGHT = 'Affichage plus léger';
+    const ANIMATED = `Revoir ${name} animé`;
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
     let teacher = null;
@@ -148,7 +152,7 @@ export function createTeacherView(root, config) {
         box.classList.remove('teacher-3d');
         stage.replaceChildren();
         loading.hidden = true;
-        showToggle('Afficher le professeur en 3D', () => {
+        showToggle(ANIMATED, () => {
             setPreference('3d');
             load();
         });
@@ -200,7 +204,7 @@ export function createTeacherView(root, config) {
                     pendingExpression = null;
                 }
 
-                showToggle('Visage simple', () => {
+                showToggle(LIGHT, () => {
                     setPreference('svg');
                     teacher?.dispose();
                     loadingPromise = null;
@@ -229,7 +233,7 @@ export function createTeacherView(root, config) {
         root.dataset.teacher = 'svg';
 
         if (skip === 'preference') {
-            showToggle('Afficher le professeur en 3D', () => {
+            showToggle(ANIMATED, () => {
                 setPreference('3d');
                 load();
             });

@@ -53,7 +53,7 @@ class SessionRecordingTest extends TestCase
         $this->assertStringContainsString('Télécharger ma vidéo', $html);
         $this->assertStringContainsString('Enregistrement en cours', $html);
         $this->assertStringContainsString('La vidéo reste sur votre téléphone : elle n\'est jamais envoyée à Talkami.', $html);
-        $this->assertMatchesRegularExpression('/<p id="record-unsupported"[^>]*hidden>L\'enregistrement vidéo n\'est pas possible sur ce navigateur\. Votre séance fonctionne normalement\.<\/p>/', $html);
+        $this->assertMatchesRegularExpression('/<p id="record-unsupported"[^>]*hidden>Cet appareil ne permet pas d\'enregistrer la séance en vidéo\. Votre séance fonctionne normalement\.<\/p>/', $html);
         $this->assertMatchesRegularExpression('/data-recorder="[^"]*js\/session-recorder\.js\?v=/', $html);
 
         $config = $this->recordingConfig($html);

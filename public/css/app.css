@@ -680,6 +680,22 @@ main { overflow-x: clip; }
 .teacher3d-canvas { display: block; width: 100%; height: 100%; }
 .teacher3d-loading { width: 100%; text-align: center; font-size: var(--fs-xs); color: var(--c-muted); margin-top: var(--space-2); }
 .teacher3d-loading progress { display: block; width: 60%; height: 6px; margin: 6px auto 0; accent-color: var(--c-primary); }
+/* Attente de l'arrivée du professeur (data-teacher="loading") : nom, phrase rassurante, trois points orange qui
+   pulsent et une barre fine, sans texte technique. */
+.teacher-wait { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); margin: 0; }
+.teacher-wait[hidden] { display: none; }
+.teacher-wait-title { margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--c-primary); }
+.teacher-wait-text { margin: 0; font-size: var(--fs-sm); color: var(--c-muted); }
+.teacher-wait-dots { display: inline-flex; gap: 8px; }
+.teacher-wait-dots span { width: 12px; height: 12px; border-radius: 50%; background: var(--c-accent); opacity: .35; animation: teacher-wait 1.2s ease-in-out infinite; }
+.teacher-wait-dots span:nth-child(2) { animation-delay: .2s; }
+.teacher-wait-dots span:nth-child(3) { animation-delay: .4s; }
+.teacher-wait progress { appearance: none; -webkit-appearance: none; width: min(180px, 60%); height: 3px; margin: var(--space-1) auto 0; border: 0; border-radius: 3px; overflow: hidden; background: var(--c-primary-soft); color: var(--c-accent); }
+.teacher-wait progress::-webkit-progress-bar { background: var(--c-primary-soft); }
+.teacher-wait progress::-webkit-progress-value { background: var(--c-accent); transition: width var(--dur) ease-out; }
+.teacher-wait progress::-moz-progress-bar { background: var(--c-accent); }
+@keyframes teacher-wait { 0%, 100% { opacity: .35; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .teacher-wait-dots span { animation: none; opacity: .8; } }
 /* 3D en chargement (data-teacher="loading") : un emplacement de la taille du professeur 3D avec la barre, jamais le
    visage simple (il n'apparaît qu'en repli). Sans JavaScript, le visage simple reste. */
 .js [data-teacher="loading"] .face { display: none; }
@@ -997,6 +1013,10 @@ main { overflow-x: clip; }
 .welcome-page .face { width: min(260px, 70%); height: auto; }
 .welcome-page .teacher3d-loading { color: var(--c-on-dark-muted); }
 .welcome-page .teacher3d-loading progress { accent-color: var(--c-accent); }
+.welcome-page .teacher-wait-title { color: var(--c-on-dark); }
+.welcome-page .teacher-wait-text { color: var(--c-on-dark-muted); }
+.welcome-page .teacher-wait progress { background: var(--c-on-dark-line); }
+.welcome-page .teacher-wait progress::-webkit-progress-bar { background: var(--c-on-dark-line); }
 .welcome-page .btn-link, .welcome-page .btn-link:hover { color: var(--c-on-dark); }
 .welcome-page .btn-light, .welcome-page .btn-light:hover, .welcome-page .btn-light:focus-visible { background: var(--c-on-dark-glow); color: var(--c-on-dark); border: 1px solid var(--c-on-dark-line); box-shadow: none; }
 .welcome-panel { display: grid; gap: var(--space-3); }
