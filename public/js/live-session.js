@@ -354,7 +354,7 @@ async function stopRecording() {
 
     if (!blob) {
         rec.unsupported.hidden = false;
-        rec.unsupported.textContent = 'La vidéo n\'a pas pu être enregistrée. Votre séance n\'est pas touchée.';
+        rec.unsupported.textContent = 'La vidéo n\'a pas pu être enregistrée. Votre séance continue normalement.';
 
         return;
     }
@@ -398,14 +398,14 @@ const TURN_TEXTS = {
 const MESSAGES = {
     micDenied: 'Vous avez refusé l\'accès au micro. Autorisez-le dans les réglages du navigateur (icône à gauche de l\'adresse du site), puis rechargez la page.',
     micMissing: 'Aucun micro n\'a été trouvé sur cet appareil. Branchez des écouteurs avec micro ou essayez depuis votre téléphone.',
-    micInsecure: 'Votre navigateur ne permet pas d\'utiliser le micro sur cette page. Ouvrez le site avec une adresse sécurisée (https) dans Chrome, Firefox ou Safari à jour.',
+    micInsecure: 'Le micro ne peut pas être utilisé sur cette page. Ouvrez le site dans Chrome, Firefox ou Safari à jour.',
     micOther: 'Le micro n\'a pas pu être activé. Fermez les autres applications qui l\'utilisent, puis réessayez.',
-    network: 'Impossible de joindre le serveur. Vérifiez votre connexion internet, puis réessayez.',
+    network: 'La connexion n\'a pas abouti. Vérifiez votre connexion internet, puis réessayez.',
     cut: WAIT.cut,
     cutAgain: WAIT.cut_again,
     unavailable: WAIT.unavailable,
     reconnecting: WAIT.reconnecting,
-    quota: 'Le professeur a atteint sa limite de conversations gratuites pour le moment. Réessayez un peu plus tard : votre temps non utilisé reste disponible.',
+    quota: `${teacherName} est très demandé en ce moment. Réessayez dans quelques minutes : votre temps non utilisé reste disponible.`,
     pauseTooLong: 'La pause a duré trop longtemps : la conversation est terminée. Le temps déjà utilisé est décompté.',
     slow: WAIT.slow,
     stuck: WAIT.stuck,
@@ -1491,7 +1491,7 @@ function nudgeTeacher() {
  *                           commence alors la séance chez le suivant (une seule fois)
  */
 async function connect({ planned = false, failed = null } = {}) {
-    setStatus(planned ? 'En conversation' : 'Connexion au professeur…');
+    setStatus(planned ? 'En conversation' : `${teacherName} arrive…`);
 
     const result = await post(urls.connect, { handle: state.resumeHandle, failed });
 
@@ -1568,7 +1568,7 @@ async function connect({ planned = false, failed = null } = {}) {
  */
 function connectionFailed(message) {
     if (!state.everReady) {
-        setStatus('Indisponible');
+        setStatus('Pas disponible pour le moment');
         showError(message);
         setPhase('intro');
         ui.intro.hidden = false;
@@ -1835,7 +1835,7 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             // (le serveur décide ; une seule fois, jamais en cours de séance).
             if (!state.spoke && !state.switched && !planned && !state.ending) {
                 state.switched = true;
-                setStatus('Connexion au professeur…');
+                setStatus(`${teacherName} arrive…`);
                 connect({ failed: transport.provider });
 
                 return;

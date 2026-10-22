@@ -43,9 +43,11 @@
                     <ellipse id="welcome-mouth" cx="100" cy="142" rx="24" ry="3" class="face-mouth"/>
                 </svg>
                 <div id="teacher3d" class="teacher3d-stage"></div>
-                <div id="teacher3d-loading" class="teacher3d-loading" hidden>
-                    Chargement du professeur 3D…
-                    <progress max="100" value="0"></progress>
+                <div id="teacher3d-loading" class="teacher3d-loading teacher-wait" role="status" hidden>
+                    <span class="teacher-wait-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+                    <p class="teacher-wait-title">{{ $teacher }} arrive…</p>
+                    <p class="teacher-wait-text">Patientez un instant.</p>
+                    <progress max="100" value="0" aria-hidden="true"></progress>
                 </div>
             </div>
             <button type="button" id="teacher3d-toggle" class="btn btn-link teacher3d-toggle" hidden></button>

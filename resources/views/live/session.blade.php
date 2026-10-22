@@ -89,9 +89,11 @@
                 </svg>
                 {{-- Professeur 3D : chargé en arrière-plan, remplace le visage SVG une fois prêt. --}}
                 <div id="teacher3d" class="teacher3d-stage"></div>
-                <div id="teacher3d-loading" class="teacher3d-loading" hidden>
-                    Chargement du professeur 3D…
-                    <progress max="100" value="0"></progress>
+                <div id="teacher3d-loading" class="teacher3d-loading teacher-wait" role="status" hidden>
+                    <span class="teacher-wait-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+                    <p class="teacher-wait-title">{{ config('avatar.model.name') }} arrive…</p>
+                    <p class="teacher-wait-text">Patientez un instant.</p>
+                    <progress max="100" value="0" aria-hidden="true"></progress>
                 </div>
             </div>
             <button type="button" id="teacher3d-toggle" class="btn btn-link teacher3d-toggle" hidden></button>
@@ -217,7 +219,7 @@
                     <a id="record-download" class="btn btn-outline btn-block" href="#" hidden><x-icon name="download" /> Télécharger ma vidéo <span class="recorder-size">(<span id="record-size"></span>)</span></a>
                     <p class="recorder-note">La vidéo reste sur votre téléphone : elle n'est jamais envoyée à {{ config('platform.name') }}. Elle s'arrête avec la séance.</p>
                 </section>
-                <p id="record-unsupported" class="recorder-note" hidden>L'enregistrement vidéo n'est pas possible sur ce navigateur. Votre séance fonctionne normalement.</p>
+                <p id="record-unsupported" class="recorder-note" hidden>Cet appareil ne permet pas d'enregistrer la séance en vidéo. Votre séance fonctionne normalement.</p>
             @endif
 
             <div id="subtitles-home"><div id="subtitles" class="subtitles" aria-live="polite" hidden></div></div>
