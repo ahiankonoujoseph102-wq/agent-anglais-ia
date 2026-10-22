@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Videos\LessonVideos;
 use App\Support\Videos\VideoScriptWriter;
+use App\Support\Videos\VideoSettings;
 use App\Support\Videos\VideoTopics;
 use App\Support\Videos\VideoVoice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,6 +51,7 @@ class LessonVideoTest extends TestCase
             'app.url' => 'https://talkami.laravel.cloud',
         ]);
         $this->geminiText = $this->script();
+        VideoSettings::saveSite('talkami.laravel.cloud');
 
         Http::fake([
             '*/interactions' => fn (Request $request) => ($request['response_format']['type'] ?? null) === 'audio'
@@ -71,6 +73,7 @@ class LessonVideoTest extends TestCase
         return array_merge([
             'title' => 'Se présenter en anglais',
             'segments' => array_map($segment, range(1, 8)),
+            'question' => ['spoken' => 'Écrivez votre prénom en commentaire, en anglais : My name is…', 'subtitle' => 'Écrivez votre prénom en commentaire : [en]My name is…[/en]'],
             'caption' => 'Apprenez à vous présenter en anglais en dix secondes. Nom, ville et métier !',
             'hashtags' => ['#anglais', 'apprendrelanglais', '#englishlesson', '#anglais', '#chatgpt'],
         ], $overrides);
@@ -143,19 +146,23 @@ class LessonVideoTest extends TestCase
         $this->assertSame('gemini', $video->text_provider);
         $this->assertSame('gemini', $video->voice_provider);
 
+        // Fin dans l'ordre imposé : question du jour, abonnement, adresse du site (en dernier).
+        $this->assertSame(['question', 'subscribe', 'closing'], array_column(array_slice($video->script['segments'], -3), 'kind'));
+        $this->assertSame('Écrivez votre prénom en commentaire, en anglais : My name is…', $video->script['segments'][8]['spoken']);
+        $this->assertSame(config('videos.ending.subscribe'), $video->script['segments'][9]['spoken']);
         $last = collect($video->script['segments'])->last();
         $this->assertTrue($last['closing']);
-        $this->assertSame('Pour aller plus loin, évaluez gratuitement votre niveau d\'anglais sur talkami.laravel.cloud.', $last['subtitle']);
+        $this->assertSame('Et pour aller plus loin, évaluez gratuitement votre niveau d\'anglais sur talkami.laravel.cloud.', $last['subtitle']);
         $this->assertStringContainsString('talkami point laravel point cloud', $last['spoken']);
 
         // Hashtags nettoyés : sans doublon, sans marque.
         $this->assertSame('#anglais #apprendrelanglais #englishlesson', $video->hashtags);
         $this->assertStringContainsString('évaluez gratuitement votre niveau d\'anglais sur talkami.laravel.cloud', $video->caption);
 
-        // Une voix assemblée : 9 parties d'une demi-seconde et 8 silences.
+        // Une voix assemblée : 11 parties d'une demi-seconde (8 de leçon, question, abonnement, adresse) et 10 silences.
         $this->assertTrue(Storage::disk('local')->exists($video->audio_path));
-        $this->assertCount(9, $video->timings['segments']);
-        $this->assertEqualsWithDelta(9 * 0.5 + 8 * 0.45, $video->timings['duration'], 0.01);
+        $this->assertCount(11, $video->timings['segments']);
+        $this->assertEqualsWithDelta(11 * 0.5 + 10 * 0.45, $video->timings['duration'], 0.01);
         $this->assertSame(0.95, $video->timings['segments'][1]['start']);
         $this->assertFalse(Storage::disk('local')->exists($video->folder().'/voice'));
     }
@@ -216,7 +223,7 @@ class LessonVideoTest extends TestCase
         $video = LessonVideo::query()->firstOrFail();
         $this->assertSame(LessonVideo::RENDERING, $video->status);
         $this->assertSame('talkami.laravel.cloud', $job['site']);
-        $this->assertCount(9, $job['segments']);
+        $this->assertCount(11, $job['segments']);
         $this->assertSame(1080, $job['render']['width']);
         $this->assertArrayHasKey('camera', $job['avatar']);
         $this->assertStringNotContainsString('cle-', json_encode($job));
