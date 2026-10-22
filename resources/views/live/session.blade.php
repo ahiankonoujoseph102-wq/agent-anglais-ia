@@ -217,7 +217,8 @@
                         <button type="button" id="record-stop" class="btn btn-light recorder-stop"><x-icon name="stop" /> Arrêter l'enregistrement</button>
                     </div>
                     <a id="record-download" class="btn btn-outline btn-block" href="#" hidden><x-icon name="download" /> Télécharger ma vidéo <span class="recorder-size">(<span id="record-size"></span>)</span></a>
-                    <p class="recorder-note">La vidéo reste sur votre téléphone : elle n'est jamais envoyée à {{ config('platform.name') }}. Elle s'arrête avec la séance.</p>
+                    <p class="recorder-note">La vidéo montre {{ config('avatar.model.name') }}, le tableau, et on y entend vos deux voix. Elle reste sur votre téléphone : elle n'est jamais envoyée à {{ config('platform.name') }}. Elle s'arrête avec la séance : téléchargez-la avant de quitter la page.</p>
+                    <x-recording-share />
                 </section>
                 <p id="record-unsupported" class="recorder-note" hidden>Cet appareil ne permet pas d'enregistrer la séance en vidéo. Votre séance fonctionne normalement.</p>
             @endif

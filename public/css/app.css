@@ -1361,6 +1361,14 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .useful-list li { display: grid; gap: 1px; padding: 6px 10px; border-radius: var(--radius-sm); background: var(--c-primary-soft); }
 .useful-en { font-weight: var(--fw-bold); color: var(--c-heading); overflow-wrap: anywhere; }
 .useful-fr { font-size: var(--fs-sm); color: var(--c-muted); overflow-wrap: anywhere; }
+/* « Enregistrer ma séance » : rappel d'une ligne (components/recording-hint) et « Comment partager ma vidéo »
+   (components/recording-share, même style que les phrases utiles). */
+.recording-hint { display: flex; align-items: flex-start; gap: var(--space-2); margin: var(--space-3) 0 0; font-size: var(--fs-sm); }
+.recording-hint .icon { flex: none; margin-top: 3px; color: var(--c-accent-strong); }
+.next-card .recording-hint .icon { color: var(--c-accent); }
+.recording-hint a { display: inline-block; font-weight: var(--fw-bold); padding: 4px 0; }
+.recording-share { margin: var(--space-3) 0 0; }
+.recording-steps { margin: 0 0 var(--space-2); padding-left: 1.3em; display: grid; gap: 6px; font-size: var(--fs-sm); }
 .board-preview { margin: 0; max-width: 420px; width: 100%; justify-self: center; box-shadow: 0 0 0 1px var(--c-on-dark-line), var(--shadow); box-shadow: 0 0 0 1px rgba(255, 255, 255, .25), var(--shadow); }
 .board-preview .board-head { cursor: default; }
 .board-preview .board-head::after { content: none; }

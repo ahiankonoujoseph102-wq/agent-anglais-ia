@@ -3,5 +3,8 @@
 <li><x-icon name="headphones" /> Avec des écouteurs, le professeur vous entendra mieux.</li>
 <li><x-icon name="bubble" /> Quand {{ config('avatar.model.name') }} parle, votre micro est coupé : attendez « À vous de parler » pour répondre.</li>
 <li><x-icon name="mic" /> Votre navigateur va vous demander l'accès au micro : acceptez-le.</li>
+@if (isset($mode) && \App\Support\SessionRecording::enabled($mode))
+    <li><x-icon name="video" /> Touchez « Enregistrer ma séance » pour garder la vidéo de votre séance avec {{ config('avatar.model.name') }} sur votre téléphone, et la revoir pour mesurer vos progrès.</li>
+@endif
 <li><x-icon name="messages" /> Vous pouvez parler français, demander de répéter ou de réexpliquer : vous avez le droit de vous tromper.</li>
 <li><x-icon name="wifi" /> {{ config('platform.live.disconnect_rule') }}</li>
