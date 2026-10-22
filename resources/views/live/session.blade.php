@@ -60,6 +60,8 @@
          @if (\App\Support\SessionRecording::enabled($mode))
              data-recorder="{{ \App\Support\Asset::url('js/session-recorder.js') }}"
              data-recording='@json(\App\Support\SessionRecording::clientConfig($mode))'
+             data-video-guard="{{ \App\Support\Asset::url('js/video-guard.js') }}"
+             data-video-leave='@json(\App\Support\Confirmation::for('video.leave'))'
          @endif
          {{-- Professeur 3D attendu : emplacement de chargement, jamais le visage simple avant lui (teacher-view.js). --}}
          data-teacher="{{ \App\Support\Avatar::enabled() ? 'loading' : 'svg' }}"
@@ -216,7 +218,10 @@
                         <span>Enregistrement en cours <span id="record-time">0:00</span></span>
                         <button type="button" id="record-stop" class="btn btn-light recorder-stop"><x-icon name="stop" /> Arrêter l'enregistrement</button>
                     </div>
-                    <a id="record-download" class="btn btn-outline btn-block" href="#" hidden><x-icon name="download" /> Télécharger ma vidéo <span class="recorder-size">(<span id="record-size"></span>)</span></a>
+                    {{-- Vidéo prête : rappel visible tant qu'elle n'est pas téléchargée (et confirmation avant de quitter, video-guard.js). --}}
+                    <p id="record-ready" class="recorder-ready" role="status" hidden><x-icon name="download" /> <span>Votre vidéo est prête. Téléchargez-la avant de quitter cette page.</span></p>
+                    <a id="record-download" class="btn btn-lg btn-block" href="#" hidden><x-icon name="download" /> Télécharger ma vidéo <span class="recorder-size">(<span id="record-size"></span>)</span></a>
+                    <p id="record-saved" class="recorder-saved" role="status" hidden><x-icon name="check-circle" /> <span>Vidéo téléchargée : retrouvez-la dans l'application Fichiers de votre téléphone, dossier « Téléchargements ».</span></p>
                     <p class="recorder-note">La vidéo montre {{ config('avatar.model.name') }}, le tableau, et on y entend vos deux voix. Elle reste sur votre téléphone : elle n'est jamais envoyée à {{ config('platform.name') }}. Elle s'arrête avec la séance : téléchargez-la avant de quitter la page.</p>
                     <x-recording-share />
                 </section>

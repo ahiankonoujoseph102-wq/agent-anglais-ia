@@ -62,6 +62,12 @@ final class Confirmation
             'message' => 'La conversation s\'arrête tout de suite. Le temps déjà utilisé est décompté.',
             'confirm' => 'Terminer la conversation',
         ],
+        // « Enregistrer ma séance » : quitter la page avant de télécharger la vidéo (public/js/video-guard.js).
+        'video.leave' => [
+            'title' => 'Quitter sans votre vidéo ?',
+            'message' => 'La vidéo de votre séance n\'est gardée que sur cette page : si vous la quittez avant de toucher « Télécharger ma vidéo », elle sera perdue.',
+            'confirm' => 'Quitter la page',
+        ],
     ];
 
     /**
