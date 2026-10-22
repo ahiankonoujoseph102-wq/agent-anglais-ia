@@ -475,6 +475,18 @@ Avatar en haut à droite, **Settings**, **Billing and licensing**, **Budgets and
 
 Ensuite, c'est automatique : 3 vidéos sont ajoutées chaque matin à 4 heures 40 (heure de Lomé), GitHub les fabrique à 6 heures 30 (et repasse à 10 heures 30 pour celles qui n'étaient pas prêtes).
 
+### Étape 0 : l'adresse du site (obligatoire)
+
+Administration, onglet **« Vidéos »**, bloc **« Fin de chaque vidéo »** : saisissez l'adresse (par exemple `talkami.laravel.cloud`, puis `talkami.net` au changement de domaine), touchez **Enregistrer l'adresse**. Tant qu'elle est vide, aucune vidéo n'est préparée ni fabriquée, et la page l'explique en rouge.
+
+### Refaire une vidéo
+
+Sur une vidéo prête ou en échec : **« Refaire la vidéo »** (ou **« Refaire les vidéos d'aujourd'hui »** en haut). Même sujet, même script, même voix ; seule la fin est remise à jour si besoin. Attendez quelques minutes (état « Voix prête »), puis GitHub, **Actions**, **Run workflow**. L'ancienne vidéo reste visible jusqu'à l'arrivée de la nouvelle.
+
+### Choisir la voix en écoutant
+
+Bloc **« Essai comparatif des voix »** : touchez **Écouter** sur chaque voix (la première écoute prend quelques secondes), puis **Choisir cette voix**. Elle sert aux NOUVELLES vidéos, sans redéploiement.
+
 ### Changer de voix ou de fournisseur
 
 Variables de Laravel Cloud (puis **Deploy**) ; elles ne changent que les vidéos préparées ENSUITE :
