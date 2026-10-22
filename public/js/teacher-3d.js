@@ -541,6 +541,63 @@ class Teacher3D {
         this.placeBoard(distance);
     }
 
+    /**
+     * « Enregistrer ma séance » : image de Teacher Joe par une caméra réservée à la vidéo (jamais celle de l'écran,
+     * qui ne change pas), rendue dans une image hors écran de width × height pixels. Cadrage : point visé, demi-
+     * hauteur et demi-largeur visibles (même calcul que resize()). L'image est stockée en sRGB (SRGB8_ALPHA8 : mêmes
+     * couleurs qu'à l'écran, sans bandes) puis lue. Le tableau noir du décor est caché le temps de ce rendu : le
+     * tableau de la séance est dessiné au-dessus dans la vidéo. Renvoie {data, width, height} (lignes du bas vers
+     * le haut).
+     * @param {{width: number, height: number, camera: {target: number[], half_height: number, half_width: number}}} view
+     */
+    renderVideo({ width, height, camera: framing }) {
+        const { THREE } = this;
+        const w = Math.max(1, Math.round(width));
+        const h = Math.max(1, Math.round(height));
+
+        if (!this.videoTarget) {
+            this.videoTarget = new THREE.WebGLRenderTarget(w, h, { depthBuffer: true });
+            this.videoTarget.texture.colorSpace = THREE.SRGBColorSpace;
+            this.videoCamera = new THREE.PerspectiveCamera(30, 1, 0.1, 10);
+        }
+
+        if (this.videoTarget.width !== w || this.videoTarget.height !== h) {
+            this.videoTarget.setSize(w, h);
+        }
+
+        if (this.videoPixels?.length !== w * h * 4) {
+            this.videoPixels = new Uint8Array(w * h * 4);
+        }
+
+        const camera = this.videoCamera;
+        const [cx, cy, cz] = framing.target;
+        camera.aspect = w / h;
+        const distance = Math.max(framing.half_height, framing.half_width / camera.aspect) / Math.tan((30 * Math.PI / 180) / 2);
+        camera.position.set(cx, cy + distance * 0.06, cz + distance);
+        camera.lookAt(cx, cy, cz);
+        camera.updateProjectionMatrix();
+
+        const boardVisible = this.board?.visible;
+
+        if (this.board) {
+            this.board.visible = false;
+        }
+
+        try {
+            this.renderer.setRenderTarget(this.videoTarget);
+            this.renderer.render(this.scene, camera);
+            this.renderer.readRenderTargetPixels(this.videoTarget, 0, 0, w, h, this.videoPixels);
+        } finally {
+            this.renderer.setRenderTarget(null);
+
+            if (this.board) {
+                this.board.visible = boardVisible;
+            }
+        }
+
+        return { data: this.videoPixels, width: w, height: h };
+    }
+
     /* ---------- Audio ---------- */
 
     /**
@@ -756,10 +813,10 @@ class Teacher3D {
             return;
         }
 
-        // « Enregistrer ma séance » : l'image n'est lisible que juste après le rendu. Un échec ici ne touche
-        // jamais le professeur.
+        // « Enregistrer ma séance » : l'image de la vidéo est rendue juste après celle de l'écran. Un échec ici ne
+        // touche jamais le professeur.
         try {
-            this.onrender?.(this.renderer.domElement);
+            this.onrender?.(this);
         } catch { /* enregistrement seulement */ }
     }
 
@@ -1149,6 +1206,7 @@ class Teacher3D {
             object.geometry?.dispose();
             [object.material].flat().forEach((m) => { m?.map?.dispose(); m?.dispose(); });
         });
+        this.videoTarget?.dispose();
         this.renderer?.dispose();
         this.renderer?.domElement.remove();
     }

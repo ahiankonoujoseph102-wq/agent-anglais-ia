@@ -60,9 +60,19 @@ class SessionRecordingTest extends TestCase
         $this->assertSame(['width' => 540, 'height' => 960, 'fps' => 24], array_intersect_key($config, array_flip(['width', 'height', 'fps'])));
         $this->assertSame(9 / 16, $config['width'] / $config['height']);
         $this->assertSame('Talkami', $config['platform']);
-        $this->assertSame('Teacher Joe', $config['teacher']);
-        $this->assertSame('Évaluation gratuite', $config['title']);
         $this->assertSame('talkami-evaluation', $config['file_prefix']);
+        // Écran partagé : le tableau en haut (45 % de la hauteur), Teacher Joe en dessous, transition douce.
+        $this->assertSame(0.45, $config['board_share']);
+        $this->assertSame(700, $config['transition_ms']);
+        $this->assertSame(['max' => 34, 'min' => 24, 'window' => 28], $config['board_sizes']);
+        $this->assertSame(14, $config['frame_budget_ms']);
+        foreach (['camera_full', 'camera_split'] as $camera) {
+            $this->assertCount(3, $config[$camera]['target']);
+            $this->assertGreaterThan(0, $config[$camera]['half_height']);
+            $this->assertGreaterThan(0, $config[$camera]['half_width']);
+        }
+        // Tête et épaules en écran partagé : cadrage plus serré qu'en plein cadre.
+        $this->assertLessThan($config['camera_full']['half_height'], $config['camera_split']['half_height']);
     }
 
     public function test_the_daily_session_offers_it_too(): void
@@ -71,8 +81,10 @@ class SessionRecordingTest extends TestCase
 
         $this->assertStringContainsString('id="record-start"', $html);
         $config = $this->recordingConfig($html);
-        $this->assertSame('Séance du jour', $config['title']);
         $this->assertSame('talkami-seance', $config['file_prefix']);
+        // Le tableau de la séance est dans la page (replié sur téléphone) : la vidéo le dessine à partir de lui.
+        $this->assertMatchesRegularExpression('/<details id="board" class="board"/', $html);
+        $this->assertStringContainsString('data-board-item="p0"', $html);
     }
 
     public function test_the_site_address_and_names_come_from_the_configuration(): void
@@ -84,7 +96,6 @@ class SessionRecordingTest extends TestCase
 
         $this->assertSame('talkami.net', $config['mention']);
         $this->assertSame('Nom Essai', $config['platform']);
-        $this->assertSame('Professeur Essai', $config['teacher']);
         $this->assertSame('nom-essai-evaluation', $config['file_prefix']);
         $this->assertStringContainsString('elle n\'est jamais envoyée à Nom Essai.', $html);
     }
@@ -123,7 +134,23 @@ class SessionRecordingTest extends TestCase
         $this->assertDoesNotMatchRegularExpression('/fetch\(|XMLHttpRequest|sendBeacon|context\.destination/', $recorder);
         $this->assertStringContainsString("'video/mp4", $recorder);
         $this->assertStringContainsString("'video/webm'", $recorder);
-        // Image 3D lue juste après son rendu.
-        $this->assertStringContainsString('this.onrender?.(this.renderer.domElement);', file_get_contents(public_path('js/teacher-3d.js')));
+        // Image 3D de la vidéo rendue juste après celle de l'écran, par sa propre caméra.
+        $teacher = file_get_contents(public_path('js/teacher-3d.js'));
+        $this->assertStringContainsString('this.onrender?.(this);', $teacher);
+        $this->assertStringContainsString('renderVideo({ width, height, camera: framing })', $teacher);
+        $this->assertStringContainsString('this.renderer.setRenderTarget(null);', $teacher);
+        // La bibliothèque 3D regroupée fournit l'image hors écran.
+        $this->assertStringContainsString('as WebGLRenderTarget', file_get_contents(public_path('teacher3d/lib/three-teacher.min.js')));
+        // Le tableau de la mini-leçon de l'évaluation est donné à la vidéo dès qu'il apparaît.
+        $this->assertStringContainsString('recording.recorder?.setBoard(boardEl);', $session);
+    }
+
+    public function test_the_screen_camera_and_the_board_on_screen_do_not_change(): void
+    {
+        // La caméra de l'écran de la séance reste celle de config/avatar.php ; celle de la vidéo est à part.
+        $this->assertSame([0, 0.57, 0], config('avatar.model.camera.target'));
+        $html = $this->actingAs($this->lessonLearner())->get('/seance')->assertOk()->getContent();
+        // Sur téléphone, le tableau reste replié à l'écran (aucun attribut open dans la page).
+        $this->assertDoesNotMatchRegularExpression('/<details id="board"[^>]*\bopen\b/', $html);
     }
 }

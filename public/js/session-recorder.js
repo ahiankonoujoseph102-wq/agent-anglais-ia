@@ -2,9 +2,14 @@
  * « Enregistrer ma séance » : vidéo de la séance fabriquée ENTIÈREMENT dans le navigateur, jamais envoyée
  * au serveur.
  *
- * Image : un canevas vertical 9:16 (config/platform.php → recording) où sont recopiés, à chaque image, le
- * professeur 3D (juste après son rendu : le canevas WebGL n'est lisible qu'à ce moment-là) ou, à défaut, le
- * visage SVG, avec le nom de la plateforme, celui du professeur et, en bas, l'adresse du site.
+ * Image : un canevas vertical 9:16 (config/platform.php → recording), en écran partagé. En haut (board_share
+ * de la hauteur), le TABLEAU de la séance, dessiné ici à partir de ses données (#board : titre, étape, phrases,
+ * mots, verbes, règle, piège), même quand il est replié à l'écran ; l'anglais en orange, l'élément expliqué
+ * surligné, mis à jour en même temps que l'écran. En bas, le professeur vu par une caméra réservée à la vidéo
+ * (teacher-3d.js → renderVideo, rendu juste après l'image de l'écran, qui ne change pas), ou le visage SVG.
+ * Sans tableau (évaluation avant le verdict, tableau vide) : le professeur sur toute la hauteur, avec une
+ * transition douce quand le tableau apparaît ou disparaît. Discrets : le nom de la plateforme en haut,
+ * l'adresse du site en bas.
  *
  * Son : une sortie « MediaStreamDestination » du contexte audio de la séance reçoit la voix du professeur
  * (après le retard, telle qu'on l'entend) et le micro de l'apprenant. Elle n'est branchée sur AUCUN
@@ -68,15 +73,6 @@ export function formatSize(bytes) {
     return megabytes === 1 ? '1 mégaoctet' : `${megabytes} mégaoctets`;
 }
 
-/** Rectangle source qui remplit la zone sans déformer (recadrage au centre, un peu vers le haut : la tête). */
-export function coverRect(sourceWidth, sourceHeight, width, height) {
-    const scale = Math.max(width / sourceWidth, height / sourceHeight);
-    const sw = width / scale;
-    const sh = height / scale;
-
-    return { sx: (sourceWidth - sw) / 2, sy: Math.max(0, (sourceHeight - sh) * 0.35), sw, sh };
-}
-
 /**
  * Le navigateur sait-il fabriquer la vidéo ? (MediaRecorder, capture d'un canevas, sortie audio en flux, et
  * un format connu.)
@@ -94,12 +90,209 @@ export function supportInfo(env = globalThis) {
     return pickMimeType((type) => recorder.isTypeSupported(type));
 }
 
+/** Courbe douce des transitions (0 → 1). */
+export function easeInOut(x) {
+    const t = Math.min(1, Math.max(0, x));
+
+    return t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2;
+}
+
+/** Cadrage intermédiaire entre deux cadrages de caméra (t de 0 à 1). */
+export function mixCamera(a, b, t) {
+    const mix = (x, y) => x + (y - x) * t;
+
+    return {
+        target: a.target.map((value, i) => mix(value, b.target[i])),
+        half_height: mix(a.half_height, b.half_height),
+        half_width: mix(a.half_width, b.half_width),
+    };
+}
+
+/**
+ * Coupe un texte en lignes de maxWidth pixels au plus (measure : largeur d'un texte), maxLines lignes au plus ;
+ * un mot trop long est coupé, une ligne de trop finit par « … ».
+ */
+export function wrapLines(text, maxWidth, measure, maxLines = 3) {
+    const lines = [];
+    let line = '';
+
+    const push = (value) => {
+        lines.push(value);
+        line = '';
+    };
+
+    for (const word of String(text ?? '').trim().split(/\s+/).filter(Boolean)) {
+        const candidate = line ? `${line} ${word}` : word;
+
+        if (measure(candidate) <= maxWidth) {
+            line = candidate;
+            continue;
+        }
+
+        if (line) {
+            push(line);
+        }
+
+        // Mot plus large que la ligne : coupé lettre par lettre.
+        let rest = word;
+
+        while (measure(rest) > maxWidth && rest.length > 1) {
+            let cut = rest.length - 1;
+
+            while (cut > 1 && measure(rest.slice(0, cut)) > maxWidth) {
+                cut--;
+            }
+
+            push(rest.slice(0, cut));
+            rest = rest.slice(cut);
+        }
+
+        line = rest;
+    }
+
+    if (line) {
+        lines.push(line);
+    }
+
+    if (lines.length <= maxLines) {
+        return lines;
+    }
+
+    const kept = lines.slice(0, maxLines);
+    let last = kept[maxLines - 1];
+
+    while (last.length > 1 && measure(`${last}…`) > maxWidth) {
+        last = last.slice(0, -1).trimEnd();
+    }
+
+    kept[maxLines - 1] = `${last}…`;
+
+    return kept;
+}
+
+/**
+ * Réglage de l'image vidéo de le professeur d'après son coût moyen (millisecondes) : au-delà du budget, d'abord
+ * moins de pixels (1 → 0,75 → 0,5), puis une image sur deux. Ne remonte jamais.
+ */
+export function adaptQuality({ scale, every }, mean, budget) {
+    if (mean <= budget) {
+        return { scale, every };
+    }
+
+    if (scale > 0.5) {
+        return { scale: scale > 0.75 ? 0.75 : 0.5, every };
+    }
+
+    return { scale, every: Math.min(4, every * 2) };
+}
+
+/** Tailles du tableau pour une taille de texte anglais s (pixels). */
+export function boardMetrics(s) {
+    return {
+        en: s,
+        fr: Math.round(s * 0.66),
+        title: Math.round(s * 0.9),
+        heading: Math.round(s * 0.54),
+        small: Math.round(s * 0.56),
+        header: Math.round(s * 1.3),
+        pad: Math.round(s * 0.62),
+        itemPad: Math.round(s * 0.2),
+        gap: Math.round(s * 0.14),
+        line: 1.2,
+    };
+}
+
+/**
+ * Mise en page du tableau dans width × height : la plus grande taille de texte (sizes.max → sizes.min) où tout
+ * tient ; sinon, à la taille sizes.window, seulement les éléments autour de celui que le professeur explique.
+ * model : {title, phase, sections: [{heading, items: [{en, fr, lit}]}], pitfall} ; measure(texte, taille,
+ * graisse) : largeur en pixels. Renvoie {size, metrics, blocks (avec y), windowed}.
+ */
+export function layoutBoard(model, { width, height, showFr = true, sizes = { max: 34, min: 24, window: 28 } }, measure) {
+    const items = [];
+
+    model.sections.forEach((section, sectionIndex) => {
+        section.items.forEach((item) => items.push({ ...item, section: sectionIndex }));
+    });
+
+    const build = (s, range = null) => {
+        const m = boardMetrics(s);
+        const inner = width - 2 * m.pad;
+        const blocks = [];
+        let y = m.header;
+
+        const add = (block, h) => {
+            blocks.push({ ...block, y, h });
+            y += h;
+        };
+
+        if (model.title) {
+            const lines = wrapLines(model.title, inner, (t) => measure(t, m.title, 700), 2);
+            add({ type: 'title', lines }, Math.round(lines.length * m.title * m.line + m.gap * 2));
+        }
+
+        const chosen = range ? items.slice(range[0], range[1] + 1) : items;
+        let section = -1;
+
+        for (const item of chosen) {
+            if (item.section !== section) {
+                section = item.section;
+                const heading = model.sections[section]?.heading;
+
+                if (heading) {
+                    add({ type: 'heading', text: heading }, Math.round(m.heading * 1.9));
+                }
+            }
+
+            const en = wrapLines(item.en, inner - m.itemPad, (t) => measure(t, m.en, 600), 3);
+            const fr = showFr && item.fr ? wrapLines(item.fr, inner - m.itemPad, (t) => measure(t, m.fr, 400), 2) : [];
+            const h = Math.round(en.length * m.en * m.line + fr.length * m.fr * m.line + m.itemPad * 2 + m.gap);
+            add({ type: 'item', en, fr, lit: !!item.lit }, h);
+        }
+
+        if (!range && model.pitfall) {
+            add({ type: 'heading', text: 'Attention, piège' }, Math.round(m.heading * 1.9));
+            const lines = wrapLines(model.pitfall, inner, (t) => measure(t, m.fr, 400), 3);
+            add({ type: 'pitfall', lines }, Math.round(lines.length * m.fr * m.line + m.gap * 2));
+        }
+
+        return { size: s, metrics: m, blocks, bottom: y + m.pad / 2 };
+    };
+
+    for (let s = sizes.max; s >= sizes.min; s -= 2) {
+        const layout = build(s);
+
+        if (layout.bottom <= height) {
+            return { ...layout, windowed: false };
+        }
+    }
+
+    // Trop long : les éléments autour de celui qui est expliqué (ou le début), à une taille lisible.
+    const focus = Math.max(0, items.findIndex((item) => item.lit));
+    let range = [Math.max(0, focus - 1), Math.max(0, focus - 1)];
+    const fits = (r) => build(sizes.window, r).bottom <= height;
+
+    while (range[1] + 1 < items.length && fits([range[0], range[1] + 1])) {
+        range = [range[0], range[1] + 1];
+    }
+
+    while (range[0] > 0 && fits([range[0] - 1, range[1]])) {
+        range = [range[0] - 1, range[1]];
+    }
+
+    if (range[1] < focus) {
+        range = [focus, focus];
+    }
+
+    return { ...build(sizes.window, items.length ? range : null), windowed: true };
+}
+
 export class SessionRecorder {
     /**
      * @param {object} config réglages de App\Support\SessionRecording::clientConfig()
-     * @param {{svg: SVGElement|null, mouth: Element|null, mimeType: string}} options
+     * @param {{svg: SVGElement|null, mouth: Element|null, mimeType: string, board?: Element|null}} options
      */
-    constructor(config, { svg = null, mouth = null, mimeType }) {
+    constructor(config, { svg = null, mouth = null, mimeType, board = null }) {
         this.config = config;
         this.svg = svg;
         this.mouth = mouth;
@@ -108,6 +301,14 @@ export class SessionRecorder {
         this.teacherFrameAt = 0;
         this.startedAt = 0;
         this.recorder = null;
+        this.boardEl = board;
+        this.boardDirty = true;
+        this.boardLayout = null;
+        // Part du tableau : 0 (le professeur sur toute la hauteur) à 1 (écran partagé), animée.
+        this.split = { value: 0, from: 0, to: 0, at: 0 };
+        // Protection de la séance : coût mesuré de chaque image 3D de la vidéo ; trop cher, la définition de
+        // le professeur baisse (scale), puis une image sur deux seulement (every).
+        this.cost = { samples: [], scale: 1, every: 1, count: 0 };
     }
 
     /** Démarre l'enregistrement sur le contexte audio de la séance. Lève une erreur si c'est impossible. */
@@ -118,8 +319,17 @@ export class SessionRecorder {
         this.canvas.width = width;
         this.canvas.height = height;
         this.g = this.canvas.getContext('2d');
+        this.boardCanvas = document.createElement('canvas');
+        this.boardCanvas.width = width;
+        this.boardCanvas.height = this.boardHeight();
+        this.staging = document.createElement('canvas');
+        this.font = getComputedStyle(document.body).fontFamily || 'sans-serif';
         this.colors = this.readColors();
         this.svgShapes = this.readSvg();
+        this.setBoard(this.boardEl);
+        // Première image : directement dans la bonne disposition, sans transition.
+        this.updateSplit(performance.now());
+        this.split = { value: this.split.to, from: this.split.to, to: this.split.to, at: 0 };
 
         this.context = context;
         this.destination = context.createMediaStreamDestination();
@@ -182,11 +392,26 @@ export class SessionRecorder {
     }
 
     /**
-     * Image du professeur 3D, dessinée dans la vidéo juste après son rendu (appelée par teacher-3d.js) : une
-     * seule lecture du canevas WebGL par image, au rythme de la vidéo au plus.
+     * Tableau de la séance (#board), ou null. Suivi par un MutationObserver : élément allumé, étape, contenu ; il
+     * est relu seulement quand il change.
      */
-    captureTeacher(canvas) {
-        if (!this.recording || !canvas.width || !canvas.height) {
+    setBoard(element) {
+        this.observer?.disconnect();
+        this.boardEl = element ?? null;
+        this.boardDirty = true;
+
+        if (this.boardEl && typeof MutationObserver !== 'undefined') {
+            this.observer = new MutationObserver(() => { this.boardDirty = true; });
+            this.observer.observe(this.boardEl, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'data-phase'] });
+        }
+    }
+
+    /**
+     * Professeur 3D : appelé juste après chaque image de l'écran (teacher-3d.js → onrender) ; au rythme de la
+     * vidéo au plus, une image par la caméra de la vidéo, à la taille de sa place.
+     */
+    captureTeacher(teacher) {
+        if (!this.recording || typeof teacher?.renderVideo !== 'function') {
             return;
         }
 
@@ -197,12 +422,45 @@ export class SessionRecorder {
         }
 
         this.teacherFrameAt = now;
-        this.draw(canvas);
+        this.updateSplit(now);
+        this.cost.count++;
+
+        if (this.cost.count % this.cost.every !== 0 && this.lastFrame) {
+            this.draw(this.lastFrame);
+
+            return;
+        }
+
+        const area = this.teacherArea();
+        const scale = this.cost.scale;
+        const frame = teacher.renderVideo({ width: this.canvas.width * scale, height: area.height * scale, camera: this.cameraFor(this.split.value) });
+        this.draw(frame);
+        this.lastFrame = frame;
+        this.watchCost(performance.now() - now);
+    }
+
+    /** Image vidéo trop chère pour ce téléphone : moins de pixels, puis moins d'images (jamais la séance). */
+    watchCost(ms) {
+        const cost = this.cost;
+        cost.samples.push(ms);
+
+        if (cost.samples.length < 24) {
+            return;
+        }
+
+        const mean = cost.samples.reduce((sum, value) => sum + value, 0) / cost.samples.length;
+        cost.samples = [];
+        const next = adaptQuality(cost, mean, this.config.frame_budget_ms);
+        cost.scale = next.scale;
+        cost.every = next.every;
     }
 
     /** Minuterie : dessine le visage SVG seulement quand le professeur 3D ne fournit plus d'image. */
     tick() {
-        if (performance.now() - this.teacherFrameAt > 250) {
+        const now = performance.now();
+
+        if (now - this.teacherFrameAt > 250) {
+            this.updateSplit(now);
             this.draw(null);
         }
     }
@@ -214,6 +472,7 @@ export class SessionRecorder {
         }
 
         clearInterval(this.timer);
+        this.observer?.disconnect();
 
         try {
             if (this.recorder.state !== 'inactive') {
@@ -235,6 +494,213 @@ export class SessionRecorder {
 
     blob() {
         return this.chunks.length > 0 ? new Blob(this.chunks, { type: this.mimeType.split(';')[0] }) : null;
+    }
+
+    /* ---------- Mise en page ---------- */
+
+    boardHeight() {
+        return Math.round(this.config.height * this.config.board_share);
+    }
+
+    /** Place de le professeur : sous le tableau (qui glisse pendant la transition). */
+    teacherArea() {
+        const top = Math.round(this.boardHeight() * this.split.value);
+
+        return { top, height: this.config.height - top };
+    }
+
+    cameraFor(split) {
+        return mixCamera(this.config.camera_full, this.config.camera_split, split);
+    }
+
+    /** Relit le tableau s'il a changé, et vise l'écran partagé s'il a du contenu, sinon le plein cadre. */
+    updateSplit(now) {
+        if (this.boardDirty) {
+            this.boardDirty = false;
+            const model = this.readBoard();
+            this.boardLayout = model ? this.layout(model) : null;
+            this.paintBoard(model);
+            const target = this.boardLayout ? 1 : 0;
+
+            if (target !== this.split.to) {
+                this.split = { value: this.split.value, from: this.split.value, to: target, at: now };
+            }
+        }
+
+        const progress = (now - this.split.at) / this.config.transition_ms;
+        this.split.value = this.split.from + (this.split.to - this.split.from) * easeInOut(progress);
+    }
+
+    /** Données du tableau (#board) : texte des éléments, élément allumé, étape. null s'il est vide ou absent. */
+    readBoard() {
+        const root = this.boardEl;
+
+        if (!root) {
+            return null;
+        }
+
+        const text = (el) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
+        const sections = [];
+        let pitfall = '';
+        let current = null;
+
+        for (const el of root.querySelectorAll('.board-heading, .board-item, .board-pitfall')) {
+            if (el.classList.contains('board-heading')) {
+                current = { heading: text(el), items: [] };
+                sections.push(current);
+            } else if (el.classList.contains('board-pitfall')) {
+                pitfall = text(el);
+                sections.pop();
+            } else {
+                if (!current) {
+                    current = { heading: '', items: [] };
+                    sections.push(current);
+                }
+
+                const en = text(el.querySelector('.board-en'));
+
+                if (en) {
+                    current.items.push({ en, fr: text(el.querySelector('.board-fr')), lit: el.classList.contains('is-lit') });
+                }
+            }
+        }
+
+        const filled = sections.filter((section) => section.items.length > 0);
+
+        if (filled.length === 0) {
+            return null;
+        }
+
+        const translations = root.dataset?.translations;
+
+        return {
+            title: text(root.querySelector('.board-title')),
+            phase: text(root.querySelector('[data-board-phase]')),
+            sections: filled,
+            pitfall,
+            showFr: translations !== 'hidden' || root.classList.contains('show-translations'),
+        };
+    }
+
+    layout(model) {
+        const g = this.g;
+        const margin = this.margin();
+        const measure = (text, size, weight) => {
+            g.font = `${weight} ${size}px ${this.font}`;
+
+            return g.measureText(text).width;
+        };
+
+        return layoutBoard(model, {
+            width: this.canvas.width - 2 * margin,
+            height: this.boardHeight() - 2 * margin,
+            showFr: model.showFr,
+            sizes: this.config.board_sizes,
+        }, measure);
+    }
+
+    margin() {
+        return Math.round(this.config.width * 0.03);
+    }
+
+    /** Dessine le tableau dans son image (refaite seulement quand il change). */
+    paintBoard(model) {
+        const g = this.boardCanvas.getContext('2d');
+        const { width, height } = this.boardCanvas;
+        const margin = this.margin();
+        const c = this.colors;
+
+        g.fillStyle = c.background;
+        g.fillRect(0, 0, width, height);
+
+        if (!model || !this.boardLayout) {
+            return;
+        }
+
+        const { metrics: m, blocks } = this.boardLayout;
+        const x = margin + m.pad;
+        const panel = [margin, margin, width - 2 * margin, height - 2 * margin];
+
+        // Panneau du tableau : un peu plus clair que le fond, liseré orange en haut.
+        g.fillStyle = c.text;
+        g.globalAlpha = 0.07;
+        roundRect(g, ...panel, 18);
+        g.fill();
+        g.globalAlpha = 1;
+        g.fillStyle = c.accent;
+        g.fillRect(margin + 18, margin, width - 2 * margin - 36, 4);
+
+        g.textBaseline = 'top';
+        // En-tête : la plateforme (discrète) à gauche, l'étape à droite.
+        g.textAlign = 'left';
+        g.font = `700 ${m.small}px ${this.font}`;
+        g.fillStyle = c.text;
+        g.globalAlpha = 0.72;
+        g.fillText(this.config.platform, x, margin + m.small * 0.9);
+        g.globalAlpha = 1;
+
+        if (model.phase) {
+            g.font = `700 ${m.small}px ${this.font}`;
+            const w = g.measureText(model.phase).width + m.small * 1.2;
+            const right = width - margin - m.pad;
+            g.fillStyle = c.accent;
+            roundRect(g, right - w, margin + m.small * 0.55, w, m.small * 1.6, m.small * 0.8);
+            g.fill();
+            g.fillStyle = c.background;
+            g.textAlign = 'center';
+            g.fillText(model.phase, right - w / 2, margin + m.small * 0.9);
+            g.textAlign = 'left';
+        }
+
+        for (const block of blocks) {
+            const top = margin + block.y;
+
+            if (block.type === 'title') {
+                g.font = `700 ${m.title}px ${this.font}`;
+                g.fillStyle = c.text;
+                block.lines.forEach((line, i) => g.fillText(line, x, top + m.gap + i * m.title * m.line));
+            } else if (block.type === 'heading') {
+                g.font = `700 ${m.heading}px ${this.font}`;
+                g.fillStyle = c.text;
+                g.globalAlpha = 0.62;
+                g.fillText(block.text.toUpperCase(), x, top + m.heading * 0.6);
+                g.globalAlpha = 1;
+            } else if (block.type === 'item') {
+                // Élément que le professeur explique : surligné, barre orange à gauche.
+                if (block.lit) {
+                    g.fillStyle = c.accent;
+                    g.globalAlpha = 0.18;
+                    roundRect(g, x - m.itemPad, top, width - 2 * x + 2 * m.itemPad, block.h - m.gap, 10);
+                    g.fill();
+                    g.globalAlpha = 1;
+                    g.fillRect(x - m.itemPad, top, 5, block.h - m.gap);
+                }
+
+                let y = top + m.itemPad;
+                g.font = `600 ${m.en}px ${this.font}`;
+                g.fillStyle = c.accent;
+
+                for (const line of block.en) {
+                    g.fillText(line, x + m.itemPad, y);
+                    y += m.en * m.line;
+                }
+
+                g.font = `400 ${m.fr}px ${this.font}`;
+                g.fillStyle = c.text;
+                g.globalAlpha = 0.85;
+
+                for (const line of block.fr) {
+                    g.fillText(line, x + m.itemPad, y);
+                    y += m.fr * m.line;
+                }
+
+                g.globalAlpha = 1;
+            } else if (block.type === 'pitfall') {
+                g.font = `400 ${m.fr}px ${this.font}`;
+                g.fillStyle = c.text;
+                block.lines.forEach((line, i) => g.fillText(line, x, top + m.gap + i * m.fr * m.line));
+            }
+        }
     }
 
     /* ---------- Image ---------- */
@@ -279,50 +745,89 @@ export class SessionRecorder {
         return shapes;
     }
 
-    /** @param {HTMLCanvasElement|null} teacher canevas 3D qui vient d'être rendu, sinon le visage SVG */
-    draw(teacher) {
+    /** @param {{data: Uint8Array, width: number, height: number}|null} frame image 3D de la caméra de la vidéo, sinon le visage SVG */
+    draw(frame) {
         const g = this.g;
         const { width, height } = this.canvas;
-        const font = getComputedStyle(document.body).fontFamily || 'sans-serif';
-        const top = Math.round(height * 0.1);
-        const stageHeight = Math.round(width * 4 / 3);
+        const c = this.colors;
+        const split = this.split.value;
+        const area = this.teacherArea();
 
-        g.fillStyle = this.colors.background;
+        g.fillStyle = c.background;
         g.fillRect(0, 0, width, height);
 
-        // En haut : plateforme et type de séance.
-        g.textAlign = 'center';
-        g.textBaseline = 'middle';
-        g.fillStyle = this.colors.accent;
-        g.font = `700 ${Math.round(width * 0.06)}px ${font}`;
-        g.fillText(this.config.platform, width / 2, top * 0.42);
-        g.fillStyle = this.colors.text;
-        g.font = `400 ${Math.round(width * 0.036)}px ${font}`;
-        g.fillText(this.config.title, width / 2, top * 0.8);
+        // le professeur, sous le tableau.
+        if (frame && frame.height > 0) {
+            if (this.staging.width !== frame.width || this.staging.height !== frame.height) {
+                this.staging.width = frame.width;
+                this.staging.height = frame.height;
+            }
 
-        // Le professeur : image 3D récente, sinon le visage SVG.
-        if (teacher) {
-            const { sx, sy, sw, sh } = coverRect(teacher.width, teacher.height, width, stageHeight);
-            g.drawImage(teacher, sx, sy, sw, sh, 0, top, width, stageHeight);
+            const pixels = new Uint8ClampedArray(frame.data.buffer, frame.data.byteOffset, frame.width * frame.height * 4);
+            this.staging.getContext('2d').putImageData(new ImageData(pixels, frame.width, frame.height), 0, 0);
+            // Image lue du bas vers le haut : retournée.
+            g.save();
+            g.translate(0, area.top + area.height);
+            g.scale(1, -1);
+            g.drawImage(this.staging, 0, 0, frame.width, frame.height, 0, 0, width, area.height);
+            g.restore();
         } else {
-            g.fillStyle = this.colors.stage;
-            g.fillRect(0, top, width, stageHeight);
-            this.drawFace(top, stageHeight);
+            g.fillStyle = c.stage;
+            g.fillRect(0, area.top, width, area.height);
+            this.drawFace(area.top, area.height);
         }
 
-        // Liseré orange sous le professeur, son nom, puis l'adresse du site, discrète.
-        g.fillStyle = this.colors.accent;
-        g.fillRect(0, top + stageHeight, width, Math.max(2, Math.round(height * 0.004)));
-        g.fillStyle = this.colors.text;
-        g.font = `700 ${Math.round(width * 0.05)}px ${font}`;
-        g.fillText(this.config.teacher, width / 2, top + stageHeight + (height - top - stageHeight) * 0.4);
+        // Le tableau glisse depuis le haut.
+        if (split > 0.001) {
+            const boardH = this.boardHeight();
+            g.globalAlpha = Math.min(1, split * 1.5);
+            g.drawImage(this.boardCanvas, 0, area.top - boardH);
+            g.globalAlpha = 1;
+            g.fillStyle = c.accent;
+            g.fillRect(0, area.top - 2, width, 4);
+        }
 
-        if (this.config.mention) {
-            g.globalAlpha = 0.7;
-            g.font = `400 ${Math.round(width * 0.032)}px ${font}`;
-            g.fillText(this.config.mention, width / 2, height - Math.round(height * 0.035));
+        g.textBaseline = 'middle';
+        const small = Math.round(width * 0.034);
+
+        // Plein cadre : la plateforme en haut, discrète (dans l'en-tête du tableau en écran partagé) ; elle
+        // s'efface dès que le tableau commence à descendre.
+        const overlay = Math.max(0, 1 - split * 4);
+
+        if (overlay > 0) {
+            g.globalAlpha = overlay;
+            this.shade(0, 0, width, small * 3.2, true);
+            g.globalAlpha = overlay * 0.85;
+            g.textAlign = 'left';
+            g.font = `700 ${small}px ${this.font}`;
+            g.fillStyle = c.text;
+            g.fillText(this.config.platform, Math.round(width * 0.05), small * 1.4);
             g.globalAlpha = 1;
         }
+
+        // L'adresse du site, en bas, discrète.
+        if (this.config.mention) {
+            this.shade(0, height - small * 3.2, width, small * 3.2, false);
+            g.globalAlpha = 0.8;
+            g.textAlign = 'center';
+            g.font = `400 ${small}px ${this.font}`;
+            g.fillStyle = c.text;
+            g.fillText(this.config.mention, width / 2, height - small * 1.4);
+            g.globalAlpha = 1;
+        }
+    }
+
+    /** Dégradé sombre léger sous un texte posé sur l'image du professeur (lisible sur le mur clair). */
+    shade(x, y, w, h, fromTop) {
+        const g = this.g;
+        const gradient = g.createLinearGradient(0, fromTop ? y : y + h, 0, fromTop ? y + h : y);
+        gradient.addColorStop(0, this.colors.background);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        const alpha = g.globalAlpha;
+        g.globalAlpha = alpha * 0.55;
+        g.fillStyle = gradient;
+        g.fillRect(x, y, w, h);
+        g.globalAlpha = alpha;
     }
 
     drawFace(top, stageHeight) {
@@ -333,7 +838,7 @@ export class SessionRecorder {
         const g = this.g;
         const { width } = this.canvas;
         const [, , boxWidth, boxHeight] = (this.svg.getAttribute('viewBox') ?? '0 0 200 250').split(/\s+/).map(Number);
-        const scale = Math.min(width / boxWidth, stageHeight / boxHeight) * 0.92;
+        const scale = Math.min(width / boxWidth, stageHeight / boxHeight) * 0.86;
 
         g.save();
         g.translate((width - boxWidth * scale) / 2, top + (stageHeight - boxHeight * scale));
@@ -364,4 +869,16 @@ export class SessionRecorder {
 
         g.restore();
     }
+}
+
+/** Rectangle arrondi (tracé seulement). */
+function roundRect(g, x, y, w, h, r) {
+    const radius = Math.max(0, Math.min(r, w / 2, h / 2));
+    g.beginPath();
+    g.moveTo(x + radius, y);
+    g.arcTo(x + w, y, x + w, y + h, radius);
+    g.arcTo(x + w, y + h, x, y + h, radius);
+    g.arcTo(x, y + h, x, y, radius);
+    g.arcTo(x, y, x + w, y, radius);
+    g.closePath();
 }
