@@ -3,7 +3,7 @@
 // première vraie image ; le visage simple seulement en repli.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { hasPicture, SessionRecorder } from '../../public/js/session-recorder.js';
+import { boardKind, hasPicture, introModel, levelModel, SessionRecorder } from '../../public/js/session-recorder.js';
 
 const config = {
     width: 54, height: 96, fps: 24, video_bits_per_second: 1, audio_bits_per_second: 1, board_share: 0.45,
@@ -15,7 +15,7 @@ const config = {
 
 /** Navigateur simulé : canevas, MediaRecorder et horloge ; chaque dessin du professeur est noté. */
 function browser() {
-    const env = { now: 1000, recorders: [], drawn: [] };
+    const env = { now: 1000, recorders: [], drawn: [], texts: [] };
     const context2d = () => new Proxy({}, {
         get: (target, name) => {
             if (name in target) {
@@ -24,6 +24,11 @@ function browser() {
 
             if (name === 'measureText') {
                 return () => ({ width: 10 });
+            }
+
+            // Textes écrits dans la vidéo, gardés pour les vérifier.
+            if (name === 'fillText') {
+                return (text) => env.texts.push(String(text));
             }
 
             if (name === 'getContext') {
@@ -179,4 +184,63 @@ test('arrêt avant la première image 3D : pas de vidéo, le son est débranché
     r.useFace();
     assert.equal(env.recorders.length, 0);
     assert.deepEqual(env.drawn, []);
+});
+
+const assessment = {
+    phase: 'Évaluation', title: "Évaluation gratuite d'anglais", text: 'Parlez anglais avec Teacher Joe. Découvrez votre niveau en 5 minutes.',
+    result_phase: 'Résultat', level_heading: 'Votre niveau', level_text: 'Bravo ! Votre parcours commence ici.', reveal_ms: 4000,
+};
+// Tout ce qui trahirait un niveau : lettres du niveau et libellés.
+const LEVEL = /\b(A1|A2|B1|B2|C1|C2)\b|Débutant|Élémentaire|Intermédiaire|Avancé|Maîtrise/;
+
+test('ce que montre le haut de la vidéo : tableau neutre, niveau au verdict, puis « Découverte »', () => {
+    // Évaluation avant le verdict : le tableau neutre, jamais le niveau ni le plein cadre.
+    assert.equal(boardKind({ board: false, intro: true, reveal: null, now: 0 }), 'intro');
+    // Au verdict : le niveau, même si « Découverte » est déjà là, pendant reveal_ms.
+    assert.equal(boardKind({ board: true, intro: true, reveal: { until: 5 }, now: 1 }), 'level');
+    // Ensuite « Découverte » ; sans lui, le niveau reste (jamais de tableau vide).
+    assert.equal(boardKind({ board: true, intro: true, reveal: { until: 5 }, now: 6 }), 'board');
+    assert.equal(boardKind({ board: false, intro: true, reveal: { until: 5 }, now: 60 }), 'level');
+    // Séance du jour : son tableau ; sans tableau ni évaluation : plein cadre, comme avant.
+    assert.equal(boardKind({ board: true, intro: false, reveal: null, now: 0 }), 'board');
+    assert.equal(boardKind({ board: false, intro: false, reveal: null, now: 0 }), null);
+});
+
+test('le tableau neutre ne contient aucun niveau, seulement les textes et le temps de l\'écran', () => {
+    const model = introModel(assessment, { label: 'Temps restant', value: '4:12' });
+    assert.deepEqual(model, {
+        kind: 'intro', phase: 'Évaluation', title: "Évaluation gratuite d'anglais",
+        text: 'Parlez anglais avec Teacher Joe. Découvrez votre niveau en 5 minutes.', clockLabel: 'Temps restant', clock: '4:12',
+    });
+    assert.doesNotMatch(JSON.stringify(model), LEVEL);
+    assert.deepEqual(levelModel(assessment, { level: 'B1', label: 'Intermédiaire' }), {
+        kind: 'level', phase: 'Résultat', heading: 'Votre niveau', level: 'B1', label: 'Intermédiaire', text: 'Bravo ! Votre parcours commence ici.',
+    });
+});
+
+test('évaluation : aucune lettre de niveau dans la vidéo avant le verdict, le niveau au verdict, puis « Découverte »', () => {
+    const env = browser();
+    let clock = '5:00';
+    const r = recorder(env, { waitForTeacher: true, clock: () => ({ label: 'Temps restant', value: clock }) });
+    r.config = { ...config, width: 540, height: 960, assessment };
+    r.start(audio());
+    const t = teacher([]);
+    r.captureTeacher(t);
+
+    // Écran partagé dès la couverture, avec le temps de l'écran, qui suit le minuteur.
+    assert.equal(r.split.value, 1);
+    assert.ok(env.texts.includes("Évaluation gratuite d'anglais"));
+    assert.ok(env.texts.includes('5:00'));
+    clock = '4:59';
+    env.now += 1000;
+    r.captureTeacher(t);
+    assert.ok(env.texts.includes('4:59'));
+    assert.equal(env.texts.filter((text) => LEVEL.test(text)).length, 0);
+
+    // Verdict (même signal que l'écran) : le niveau et son libellé.
+    r.revealLevel('A2', 'Élémentaire');
+    env.now += 50;
+    r.captureTeacher(t);
+    assert.ok(env.texts.includes('A2') && env.texts.includes('Élémentaire'));
+    assert.equal(r.split.value, 1);
 });

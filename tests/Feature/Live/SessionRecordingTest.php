@@ -184,6 +184,33 @@ class SessionRecordingTest extends TestCase
         $this->assertStringContainsString("root.dataset.phase === 'intro' ? $('start') : null", file_get_contents(public_path('js/live-session.js')));
     }
 
+    public function test_the_assessment_video_board_never_reveals_a_level_before_the_verdict(): void
+    {
+        $board = $this->recordingConfig($this->actingAs(User::factory()->create())->get('/evaluation')->getContent())['assessment'];
+
+        $this->assertSame("Évaluation gratuite d'anglais", $board['title']);
+        // Nom du professeur et durée tirés de la configuration.
+        $this->assertSame('Parlez anglais avec '.config('avatar.model.name').'. Découvrez votre niveau en '.config('platform.assessment.max_minutes').' minutes.', $board['text']);
+        $this->assertSame(4000, $board['reveal_ms']);
+
+        // Aucun niveau (lettre ou libellé) dans les textes donnés au navigateur pour la vidéo.
+        $text = implode(' ', array_filter($board, 'is_string'));
+        foreach (Level::cases() as $level) {
+            $this->assertDoesNotMatchRegularExpression('/\\b'.$level->value.'\\b/', $text);
+            $this->assertStringNotContainsString($level->label(), $text);
+        }
+
+        // Le niveau n'entre dans la vidéo que par le résultat affiché à l'écran.
+        $session = file_get_contents(public_path('js/live-session.js'));
+        $show = substr($session, strpos($session, 'function showAssessmentResult('), 400);
+        $this->assertStringContainsString('recording.recorder?.revealLevel(level, label);', $show);
+        $this->assertSame(2, substr_count($session, '.revealLevel('));
+        $this->assertSame(1, substr_count($session, 'revealLevel(state.revealed.level'));
+
+        // Séance du jour : pas de tableau neutre.
+        $this->assertNull($this->recordingConfig($this->actingAs($this->lessonLearner())->get('/seance')->getContent())['assessment']);
+    }
+
     public function test_the_screen_camera_and_the_board_on_screen_do_not_change(): void
     {
         // La caméra de l'écran de la séance reste celle de config/avatar.php ; celle de la vidéo est à part.

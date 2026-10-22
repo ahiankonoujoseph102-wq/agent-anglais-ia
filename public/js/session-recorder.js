@@ -319,6 +319,51 @@ export function hasPicture(frame, samples = 400) {
     return false;
 }
 
+/**
+ * Ce que montre le haut de la vidéo : 'board' (tableau de la séance ou « Découverte »), 'level' (niveau trouvé, au
+ * verdict), 'intro' (tableau neutre de l'évaluation) ou null (plein cadre). Avant le verdict (reveal nul), jamais
+ * 'level' : le niveau n'existe pas encore dans l'enregistreur. Après, le niveau reste au moins jusqu'à reveal.until,
+ * et tant qu'aucun tableau n'est arrivé (jamais de tableau vide). Fonction pure, testée.
+ */
+export function boardKind({ board, intro, reveal, now }) {
+    if (reveal) {
+        return board && now >= reveal.until ? 'board' : 'level';
+    }
+
+    if (board) {
+        return 'board';
+    }
+
+    return intro ? 'intro' : null;
+}
+
+/**
+ * Contenu du tableau neutre de l'évaluation : seulement les textes de la configuration et le temps de l'écran
+ * (« Temps restant 4:12 »). Aucun niveau, aucune question, aucun score. Fonction pure, testée.
+ */
+export function introModel(intro, clock) {
+    return {
+        kind: 'intro',
+        phase: intro.phase,
+        title: intro.title,
+        text: intro.text,
+        clockLabel: clock?.label ?? '',
+        clock: clock?.value ?? '',
+    };
+}
+
+/** Carte du niveau trouvé (seulement après le verdict). Fonction pure, testée. */
+export function levelModel(intro, reveal) {
+    return {
+        kind: 'level',
+        phase: intro?.result_phase ?? '',
+        heading: intro?.level_heading ?? '',
+        level: reveal.level,
+        label: reveal.label ?? '',
+        text: intro?.level_text ?? '',
+    };
+}
+
 export class SessionRecorder {
     /**
      * @param {object} config réglages de App\Support\SessionRecording::clientConfig()
@@ -326,8 +371,15 @@ export class SessionRecorder {
      *   waitForTeacher : le professeur 3D se charge encore ; aucune image n'est écrite avant sa première vraie image
      *   (la couverture de la vidéo le montre), sauf repli sur le visage simple (useFace()).
      */
-    constructor(config, { svg = null, mouth = null, mimeType, board = null, waitForTeacher = false }) {
+    constructor(config, { svg = null, mouth = null, mimeType, board = null, waitForTeacher = false, clock = null }) {
         this.config = config;
+        // Évaluation : temps affiché à l'écran ({label, value}), lu pour le tableau neutre.
+        this.clock = clock;
+        // Niveau trouvé ({level, label, until}) : posé par revealLevel(), au même instant que l'écran.
+        this.reveal = null;
+        this.boardModel = null;
+        this.shown = { kind: undefined, clock: '' };
+        this.fade = null;
         // Professeur dessiné dans la vidéo : 'waiting' (3D attendue, rien d'écrit), '3d', ou 'face' (visage simple).
         this.mode = waitForTeacher ? 'waiting' : 'face';
         this.stopped = false;
@@ -475,6 +527,18 @@ export class SessionRecorder {
             this.observer = new MutationObserver(() => { this.boardDirty = true; });
             this.observer.observe(this.boardEl, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'data-phase'] });
         }
+    }
+
+    /**
+     * Évaluation : le niveau trouvé vient d'être affiché à l'écran (même signal : showAssessmentResult). La vidéo le
+     * montre reveal_ms au moins, puis le tableau « Découverte » s'il est arrivé (fondu).
+     */
+    revealLevel(level, label) {
+        if (!level || this.reveal) {
+            return;
+        }
+
+        this.reveal = { level, label, until: performance.now() + (this.config.assessment?.reveal_ms ?? 4000) };
     }
 
     /**
@@ -633,12 +697,27 @@ export class SessionRecorder {
 
     /** Relit le tableau s'il a changé, et vise l'écran partagé s'il a du contenu, sinon le plein cadre. */
     updateSplit(now) {
+        let changed = false;
+
         if (this.boardDirty) {
             this.boardDirty = false;
-            const model = this.readBoard();
-            this.boardLayout = model ? this.layout(model) : null;
-            this.paintBoard(model);
-            const target = this.boardLayout ? 1 : 0;
+            this.boardModel = this.readBoard();
+            changed = true;
+        }
+
+        const intro = this.config.assessment ?? null;
+        const kind = boardKind({ board: this.boardModel !== null, intro: intro !== null, reveal: this.reveal, now });
+        const clock = kind === 'intro' && this.clock ? this.clock() : null;
+        const clockText = clock ? `${clock.label} ${clock.value}` : '';
+
+        if (changed || kind !== this.shown.kind || clockText !== this.shown.clock) {
+            // Autre contenu (tableau neutre → niveau → « Découverte ») : fondu depuis l'image précédente.
+            if (this.shown.kind && kind && kind !== this.shown.kind) {
+                this.startFade(now);
+            }
+
+            this.shown = { kind, clock: clockText };
+            const target = this.paintKind(kind, intro, clock);
 
             if (target !== this.split.to) {
                 this.split = { value: this.split.value, from: this.split.value, to: target, at: now };
@@ -647,6 +726,42 @@ export class SessionRecorder {
 
         const progress = (now - this.split.at) / this.config.transition_ms;
         this.split.value = this.split.from + (this.split.to - this.split.from) * easeInOut(progress);
+    }
+
+    /** Dessine le contenu choisi dans l'image du tableau ; renvoie la part visée (1 : écran partagé, 0 : plein cadre). */
+    paintKind(kind, intro, clock) {
+        if (kind === 'board') {
+            this.boardLayout = this.layout(this.boardModel);
+            this.paintBoard(this.boardModel);
+
+            return this.boardLayout ? 1 : 0;
+        }
+
+        this.boardLayout = null;
+
+        if (kind === 'intro') {
+            this.paintCard(introModel(intro, clock));
+
+            return 1;
+        }
+
+        if (kind === 'level') {
+            this.paintCard(levelModel(intro, this.reveal));
+
+            return 1;
+        }
+
+        this.paintBoard(null);
+
+        return 0;
+    }
+
+    startFade(now) {
+        this.prevBoard ??= document.createElement('canvas');
+        this.prevBoard.width = this.boardCanvas.width;
+        this.prevBoard.height = this.boardCanvas.height;
+        this.prevBoard.getContext('2d').drawImage(this.boardCanvas, 0, 0);
+        this.fade = { at: now };
     }
 
     /** Données du tableau (#board) : texte des éléments, élément allumé, étape. null s'il est vide ou absent. */
@@ -737,38 +852,7 @@ export class SessionRecorder {
 
         const { metrics: m, blocks } = this.boardLayout;
         const x = margin + m.pad;
-        const panel = [margin, margin, width - 2 * margin, height - 2 * margin];
-
-        // Panneau du tableau : un peu plus clair que le fond, liseré orange en haut.
-        g.fillStyle = c.text;
-        g.globalAlpha = 0.07;
-        roundRect(g, ...panel, 18);
-        g.fill();
-        g.globalAlpha = 1;
-        g.fillStyle = c.accent;
-        g.fillRect(margin + 18, margin, width - 2 * margin - 36, 4);
-
-        g.textBaseline = 'top';
-        // En-tête : la plateforme (discrète) à gauche, l'étape à droite.
-        g.textAlign = 'left';
-        g.font = `700 ${m.small}px ${this.font}`;
-        g.fillStyle = c.text;
-        g.globalAlpha = 0.72;
-        g.fillText(this.config.platform, x, margin + m.small * 0.9);
-        g.globalAlpha = 1;
-
-        if (model.phase) {
-            g.font = `700 ${m.small}px ${this.font}`;
-            const w = g.measureText(model.phase).width + m.small * 1.2;
-            const right = width - margin - m.pad;
-            g.fillStyle = c.accent;
-            roundRect(g, right - w, margin + m.small * 0.55, w, m.small * 1.6, m.small * 0.8);
-            g.fill();
-            g.fillStyle = c.background;
-            g.textAlign = 'center';
-            g.fillText(model.phase, right - w / 2, margin + m.small * 0.9);
-            g.textAlign = 'left';
-        }
+        this.paintPanel(g, model.phase, m);
 
         for (const block of blocks) {
             const top = margin + block.y;
@@ -819,6 +903,116 @@ export class SessionRecorder {
                 block.lines.forEach((line, i) => g.fillText(line, x, top + m.gap + i * m.fr * m.line));
             }
         }
+    }
+
+    /** Panneau du tableau (un peu plus clair que le fond, liseré orange en haut) et son en-tête : la plateforme
+     * (discrète) à gauche, l'étape à droite. */
+    paintPanel(g, phase, m) {
+        const { width, height } = this.boardCanvas;
+        const margin = this.margin();
+        const c = this.colors;
+        const x = margin + m.pad;
+
+        g.fillStyle = c.text;
+        g.globalAlpha = 0.07;
+        roundRect(g, margin, margin, width - 2 * margin, height - 2 * margin, 18);
+        g.fill();
+        g.globalAlpha = 1;
+        g.fillStyle = c.accent;
+        g.fillRect(margin + 18, margin, width - 2 * margin - 36, 4);
+
+        g.textBaseline = 'top';
+        g.textAlign = 'left';
+        g.font = `700 ${m.small}px ${this.font}`;
+        g.fillStyle = c.text;
+        g.globalAlpha = 0.72;
+        g.fillText(this.config.platform, x, margin + m.small * 0.9);
+        g.globalAlpha = 1;
+
+        if (phase) {
+            g.font = `700 ${m.small}px ${this.font}`;
+            const w = g.measureText(phase).width + m.small * 1.2;
+            const right = width - margin - m.pad;
+            g.fillStyle = c.accent;
+            roundRect(g, right - w, margin + m.small * 0.55, w, m.small * 1.6, m.small * 0.8);
+            g.fill();
+            g.fillStyle = c.background;
+            g.textAlign = 'center';
+            g.fillText(phase, right - w / 2, margin + m.small * 0.9);
+            g.textAlign = 'left';
+        }
+    }
+
+    /**
+     * Tableau neutre de l'évaluation (titre, phrase, temps) ou carte du niveau trouvé : même panneau et même
+     * en-tête que le tableau de la séance, contenu centré dans la hauteur.
+     */
+    paintCard(model) {
+        const g = this.boardCanvas.getContext('2d');
+        const { width, height } = this.boardCanvas;
+        const margin = this.margin();
+        const c = this.colors;
+        const m = boardMetrics(this.config.board_sizes?.max ?? 34);
+        const x = margin + m.pad;
+        const inner = width - 2 * x;
+        const font = (size, weight) => `${weight} ${size}px ${this.font}`;
+        const measure = (size, weight) => (text) => {
+            g.font = font(size, weight);
+
+            return g.measureText(text).width;
+        };
+
+        g.fillStyle = c.background;
+        g.fillRect(0, 0, width, height);
+        this.paintPanel(g, model.phase, m);
+
+        // Lignes : [texte, taille, graisse, couleur, opacité].
+        const rows = [];
+        const add = (text, size, weight, color, alpha = 1, maxLines = 2) => {
+            for (const line of wrapLines(text, inner, measure(size, weight), maxLines)) {
+                rows.push({ line, size, weight, color, alpha });
+            }
+        };
+
+        if (model.kind === 'intro') {
+            add(model.title, 44, 700, c.text);
+            rows.push({ gap: 10 });
+            // Une phrase par ligne (jamais un mot seul en bout de phrase).
+            for (const sentence of String(model.text ?? '').split(/(?<=[.!?])\s+/).filter(Boolean)) {
+                add(sentence, 24, 400, c.text, 0.85, 2);
+            }
+            rows.push({ gap: 22 });
+            add(model.clockLabel, 20, 700, c.text, 0.72, 1);
+            add(model.clock, 72, 700, c.accent, 1, 1);
+        } else {
+            add(model.heading, 26, 700, c.text, 0.85, 1);
+            rows.push({ gap: 4 });
+            add(model.level, 110, 700, c.accent, 1, 1);
+            add(model.label, 34, 700, c.text, 1, 1);
+            rows.push({ gap: 14 });
+            add(model.text, 24, 400, c.text, 0.85, 2);
+        }
+
+        const lineHeight = (row) => (row.gap ?? row.size * 1.18);
+        const total = rows.reduce((sum, row) => sum + lineHeight(row), 0);
+        const top = margin + m.header + m.pad * 0.5;
+        let y = top + Math.max(0, (height - margin - m.pad - top - total) / 2);
+        g.textAlign = 'center';
+        g.textBaseline = 'top';
+
+        for (const row of rows) {
+            if (row.line !== undefined) {
+                g.font = font(row.size, row.weight);
+                g.fillStyle = row.color;
+                g.globalAlpha = row.alpha;
+                g.fillText(row.line, width / 2, y);
+                g.globalAlpha = 1;
+            }
+
+            y += lineHeight(row);
+        }
+
+        g.textAlign = 'left';
     }
 
     /* ---------- Image ---------- */
@@ -899,6 +1093,16 @@ export class SessionRecorder {
         if (split > 0.001) {
             const boardH = this.boardHeight();
             g.globalAlpha = Math.min(1, split * 1.5);
+            const fading = this.fade ? Math.min(1, (performance.now() - this.fade.at) / this.config.transition_ms) : 1;
+
+            if (fading < 1) {
+                // Fondu entre l'ancien contenu et le nouveau (tableau neutre → niveau → « Découverte »).
+                g.drawImage(this.prevBoard, 0, area.top - boardH);
+                g.globalAlpha *= easeInOut(fading);
+            } else {
+                this.fade = null;
+            }
+
             g.drawImage(this.boardCanvas, 0, area.top - boardH);
             g.globalAlpha = 1;
             g.fillStyle = c.accent;

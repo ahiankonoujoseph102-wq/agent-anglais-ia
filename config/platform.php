@@ -356,6 +356,19 @@ return [
         // (couverture). Au-delà (3D jamais arrivée, au-delà du délai de chargement de 30 secondes de teacher-view.js),
         // elle commence avec le visage simple.
         'teacher_wait_ms' => 35_000,
+        // Évaluation gratuite : la vidéo garde l'écran partagé du début à la fin. Avant le verdict, un tableau NEUTRE
+        // (jamais un niveau, une question ni un score) avec le temps de l'écran ; au verdict (même instant que l'écran,
+        // live-session.js → showAssessmentResult), le niveau trouvé pendant reveal_ms, puis le tableau « Découverte ».
+        // Marqueurs : :teacher (config('avatar.model.name')), :minutes (assessment.max_minutes).
+        'assessment_board' => [
+            'phase' => 'Évaluation',
+            'title' => "Évaluation gratuite d'anglais",
+            'text' => 'Parlez anglais avec :teacher. Découvrez votre niveau en :minutes minutes.',
+            'result_phase' => 'Résultat',
+            'level_heading' => 'Votre niveau',
+            'level_text' => 'Bravo ! Votre parcours commence ici.',
+            'reveal_ms' => 4_000,
+        ],
     ],
 
     /*
