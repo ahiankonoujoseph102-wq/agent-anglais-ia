@@ -145,6 +145,45 @@ class SessionRecordingTest extends TestCase
         $this->assertStringContainsString('recording.recorder?.setBoard(boardEl);', $session);
     }
 
+    public function test_the_video_starts_with_the_first_3d_image_and_never_with_the_simple_face_before_it(): void
+    {
+        $session = file_get_contents(public_path('js/live-session.js'));
+        $recorder = file_get_contents(public_path('js/session-recorder.js'));
+
+        // 3D en chargement : la vidéo attend sa première vraie image (couverture) ; repli sur le visage simple
+        // seulement quand la 3D est indisponible (data-teacher="svg"), ou après le délai de la configuration.
+        $this->assertStringContainsString("waitForTeacher: root.dataset.teacher !== 'svg'", $session);
+        $this->assertStringContainsString('recording.recorder?.useFace();', $session);
+        $this->assertStringContainsString('if (!hasPicture(frame))', $recorder);
+        $this->assertSame(35000, config('platform.recording.teacher_wait_ms'));
+        $config = $this->recordingConfig($this->actingAs(User::factory()->create())->get('/evaluation')->getContent());
+        $this->assertSame(35000, $config['teacher_wait_ms']);
+    }
+
+    public function test_the_screen_shows_a_clean_loading_place_instead_of_the_simple_face_while_the_3d_loads(): void
+    {
+        $html = $this->actingAs(User::factory()->create())->get('/evaluation')->assertOk()->getContent();
+        $this->assertStringContainsString('data-teacher="loading"', $html);
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString('.js [data-teacher="loading"] .face { display: none; }', $css);
+
+        // Sans professeur 3D : le visage simple, comme avant.
+        config(['avatar.enabled' => false]);
+        $this->assertStringContainsString('data-teacher="svg"', $this->actingAs(User::factory()->create())->get('/evaluation')->getContent());
+    }
+
+    public function test_a_started_assessment_keeps_the_button_and_it_sits_under_start_before_the_session(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user)->get('/evaluation')->assertOk();
+        $user->assessment()->create(['allowed_seconds' => 300, 'used_seconds' => 0, 'started_at' => now()]);
+
+        // Évaluation commencée puis reprise : toujours la page de la séance, avec le bouton.
+        $this->assertStringContainsString('id="record-start"', $this->actingAs($user)->get('/evaluation')->assertOk()->getContent());
+        // Avant « Commencer », le bouton est placé juste sous lui (visible sans faire défiler).
+        $this->assertStringContainsString("root.dataset.phase === 'intro' ? $('start') : null", file_get_contents(public_path('js/live-session.js')));
+    }
+
     public function test_the_screen_camera_and_the_board_on_screen_do_not_change(): void
     {
         // La caméra de l'écran de la séance reste celle de config/avatar.php ; celle de la vidéo est à part.

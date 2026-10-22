@@ -184,7 +184,8 @@ function resumeCue(kind) {
     return phases[phase] + (last ? ` The last board item you were working on: "${last}".` : '');
 }
 
-// Professeur 3D, chargé en arrière-plan ; le visage SVG reste affiché en attendant.
+// Professeur 3D, chargé en arrière-plan ; un emplacement de chargement (data-teacher="loading") est affiché en
+// attendant, jamais le visage simple, qui n'apparaît qu'en repli (data-teacher="svg").
 let teacher = null;
 
 if (root.dataset.teacher3d && root.dataset.teacherView) {
@@ -197,8 +198,21 @@ if (root.dataset.teacher3d && root.dataset.teacherView) {
                 teacher.attachAudio(state.audio.context, state.audio.output, state.audio.micBus);
             }
         })
-        .catch((error) => console.warn('Professeur 3D indisponible :', error));
+        .catch((error) => {
+            console.warn('Professeur 3D indisponible :', error);
+            root.dataset.teacher = 'svg';
+        });
 }
+
+// Repli sur le visage simple (téléphone incompatible, échec, choix de l'apprenant) : la vidéo en attente de la
+// première image 3D commence avec lui.
+new MutationObserver(() => {
+    if (root.dataset.teacher === 'svg') {
+        recording.recorder?.useFace();
+    }
+
+    placeRecorder();
+}).observe(root, { attributes: true, attributeFilter: ['data-teacher', 'data-phase'] });
 
 /* ---------- « Enregistrer ma séance » (vidéo fabriquée dans le navigateur, jamais envoyée) ---------- */
 
@@ -241,6 +255,33 @@ if (rec.box && root.dataset.recorder) {
         });
 }
 
+/**
+ * Avant « Commencer » : « Enregistrer ma séance » juste sous le bouton (visible sans faire défiler, sur
+ * l'évaluation comme sur la séance du jour) ; ensuite, à sa place sous les commandes.
+ */
+function placeRecorder() {
+    if (!rec.box) {
+        return;
+    }
+
+    const before = root.dataset.phase === 'intro' ? $('start') : null;
+    const anchor = before ?? $('subtitles-home');
+
+    if (!anchor) {
+        return;
+    }
+
+    if (before) {
+        if (rec.box.previousElementSibling !== before) {
+            before.after(rec.box, rec.unsupported);
+        }
+    } else if (rec.box.nextElementSibling !== rec.unsupported || rec.unsupported.nextElementSibling !== anchor) {
+        anchor.before(rec.box, rec.unsupported);
+    }
+}
+
+placeRecorder();
+
 function linkTeacherToRecording() {
     if (teacher) {
         teacher.onRender = recording.recorder ? (teacher3d) => recording.recorder?.captureTeacher(teacher3d) : null;
@@ -259,6 +300,8 @@ function startRecording() {
         mimeType: recording.mimeType,
         // Tableau de la séance, dessiné dans la vidéo même quand il est replié à l'écran.
         board: board ? boardEl : null,
+        // Professeur 3D en chargement : la vidéo ne commence qu'avec sa première vraie image (couverture).
+        waitForTeacher: root.dataset.teacher !== 'svg',
     });
 
     try {

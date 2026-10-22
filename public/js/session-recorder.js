@@ -287,13 +287,50 @@ export function layoutBoard(model, { width, height, showFr = true, sizes = { max
     return { ...build(sizes.window, items.length ? range : null), windowed: true };
 }
 
+/**
+ * Image 3D vraiment dessinée ? (pas une image vide ou d'une seule couleur, avant que la scène soit prête)
+ * Quelques centaines de points lus, pas toute l'image. Fonction pure, testée.
+ * @param {{data: ArrayLike<number>, width: number, height: number}|null} frame
+ */
+export function hasPicture(frame, samples = 400) {
+    if (!frame?.data || !(frame.width > 0) || !(frame.height > 0)) {
+        return false;
+    }
+
+    const pixels = frame.width * frame.height;
+    const step = Math.max(1, Math.floor(pixels / samples));
+    let first = null;
+
+    for (let i = 0; i < pixels; i += step) {
+        const o = i * 4;
+        const value = (frame.data[o] << 24 | frame.data[o + 1] << 16 | frame.data[o + 2] << 8 | frame.data[o + 3]) >>> 0;
+
+        if (frame.data[o + 3] === 0) {
+            continue;
+        }
+
+        if (first === null) {
+            first = value;
+        } else if (value !== first) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 export class SessionRecorder {
     /**
      * @param {object} config réglages de App\Support\SessionRecording::clientConfig()
-     * @param {{svg: SVGElement|null, mouth: Element|null, mimeType: string, board?: Element|null}} options
+     * @param {{svg: SVGElement|null, mouth: Element|null, mimeType: string, board?: Element|null, waitForTeacher?: boolean}} options
+     *   waitForTeacher : le professeur 3D se charge encore ; aucune image n'est écrite avant sa première vraie image
+     *   (la couverture de la vidéo le montre), sauf repli sur le visage simple (useFace()).
      */
-    constructor(config, { svg = null, mouth = null, mimeType, board = null }) {
+    constructor(config, { svg = null, mouth = null, mimeType, board = null, waitForTeacher = false }) {
         this.config = config;
+        // Professeur dessiné dans la vidéo : 'waiting' (3D attendue, rien d'écrit), '3d', ou 'face' (visage simple).
+        this.mode = waitForTeacher ? 'waiting' : 'face';
+        this.stopped = false;
         this.svg = svg;
         this.mouth = mouth;
         this.mimeType = mimeType;
@@ -347,7 +384,28 @@ export class SessionRecorder {
         micNode.connect(this.learnerTap).connect(this.limiter);
         this.links = [[voiceNode, this.voiceTap], [micNode, this.learnerTap]];
 
-        this.draw(null);
+        this.requestedAt = performance.now();
+        this.timer = setInterval(() => this.tick(), 1000 / fps);
+
+        if (this.mode === 'face') {
+            this.begin(null);
+        }
+    }
+
+    /**
+     * Première image de la vidéo (sa couverture) : la première vraie image 3D, ou le visage simple en repli. Le
+     * MediaRecorder ne démarre qu'ici : aucune image avant.
+     */
+    begin(frame) {
+        if (this.recorder || this.stopped) {
+            return;
+        }
+
+        const { fps } = this.config;
+        // Directement dans la bonne disposition, sans transition.
+        this.updateSplit(performance.now());
+        this.split = { value: this.split.to, from: this.split.to, to: this.split.to, at: 0 };
+        this.draw(frame);
         this.video = this.canvas.captureStream(fps);
         const stream = new MediaStream([...this.video.getVideoTracks(), ...this.destination.stream.getAudioTracks()]);
 
@@ -367,11 +425,24 @@ export class SessionRecorder {
         });
         this.recorder.start(1000);
         this.startedAt = performance.now();
-        this.timer = setInterval(() => this.tick(), 1000 / fps);
     }
 
     get recording() {
         return this.recorder?.state === 'recording';
+    }
+
+    /** En attente de la première image 3D (rien d'écrit pour l'instant). */
+    get waiting() {
+        return this.mode === 'waiting' && !this.recorder && !this.stopped;
+    }
+
+    /** Professeur 3D indisponible (téléphone incompatible, échec, « Visage simple ») : le visage simple prend sa place. */
+    useFace() {
+        this.mode = 'face';
+
+        if (!this.recorder && this.timer) {
+            this.begin(null);
+        }
     }
 
     get elapsedSeconds() {
@@ -411,11 +482,22 @@ export class SessionRecorder {
      * vidéo au plus, une image par la caméra de la vidéo, à la taille de sa place.
      */
     captureTeacher(teacher) {
-        if (!this.recording || typeof teacher?.renderVideo !== 'function') {
+        if (typeof teacher?.renderVideo !== 'function') {
+            return;
+        }
+
+        if (this.waiting) {
+            this.firstTeacherFrame(teacher);
+
+            return;
+        }
+
+        if (!this.recording) {
             return;
         }
 
         const now = performance.now();
+        this.mode = '3d';
 
         if (now - this.teacherFrameAt < 1000 / this.config.fps - 4) {
             return;
@@ -439,6 +521,24 @@ export class SessionRecorder {
         this.watchCost(performance.now() - now);
     }
 
+    /** Première vraie image 3D (jamais une image vide) : la vidéo commence par elle. */
+    firstTeacherFrame(teacher) {
+        const now = performance.now();
+        this.updateSplit(now);
+        const area = this.teacherArea();
+        const split = this.split.to;
+        const frame = teacher.renderVideo({ width: this.canvas.width, height: area.height, camera: this.cameraFor(split) });
+
+        if (!hasPicture(frame)) {
+            return;
+        }
+
+        this.mode = '3d';
+        this.teacherFrameAt = now;
+        this.lastFrame = frame;
+        this.begin(frame);
+    }
+
     /** Image vidéo trop chère pour ce téléphone : moins de pixels, puis moins d'images (jamais la séance). */
     watchCost(ms) {
         const cost = this.cost;
@@ -455,24 +555,39 @@ export class SessionRecorder {
         cost.every = next.every;
     }
 
-    /** Minuterie : dessine le visage SVG seulement quand le professeur 3D ne fournit plus d'image. */
+    /**
+     * Minuterie. En attente de la 3D : rien, sauf repli sur le visage simple après teacher_wait_ms. Ensuite, quand
+     * le professeur 3D ne fournit plus d'image (calcul long, onglet en arrière-plan), sa dernière image est
+     * redessinée ; le visage simple seulement en mode 'face'.
+     */
     tick() {
         const now = performance.now();
 
-        if (now - this.teacherFrameAt > 250) {
+        if (this.waiting) {
+            if (now - this.requestedAt > (this.config.teacher_wait_ms ?? 35000)) {
+                this.useFace();
+            }
+
+            return;
+        }
+
+        if (this.recording && now - this.teacherFrameAt > 250) {
             this.updateSplit(now);
-            this.draw(null);
+            this.draw(this.mode === '3d' ? this.lastFrame ?? null : null);
         }
     }
 
     /** Arrête l'enregistrement ; renvoie la vidéo (Blob) ou null. */
     stop() {
-        if (!this.recorder) {
-            return Promise.resolve(null);
-        }
-
+        this.stopped = true;
         clearInterval(this.timer);
         this.observer?.disconnect();
+
+        if (!this.recorder) {
+            this.unlink();
+
+            return Promise.resolve(null);
+        }
 
         try {
             if (this.recorder.state !== 'inactive') {
@@ -482,14 +597,17 @@ export class SessionRecorder {
         } catch { /* déjà arrêté */ }
 
         this.video?.getTracks().forEach((track) => track.stop());
+        this.unlink();
 
+        return this.done;
+    }
+
+    unlink() {
         for (const [from, to] of this.links ?? []) {
             try { from.disconnect(to); } catch { /* déjà débranché */ }
         }
 
         this.links = [];
-
-        return this.done;
     }
 
     blob() {

@@ -44,6 +44,7 @@ final class SessionRecording
             'camera_full' => config('platform.recording.camera_full'),
             'camera_split' => config('platform.recording.camera_split'),
             'frame_budget_ms' => (int) config('platform.recording.frame_budget_ms'),
+            'teacher_wait_ms' => (int) config('platform.recording.teacher_wait_ms'),
             'mention' => self::mention(),
             'platform' => $platform,
             // Début du nom du fichier : « talkami-evaluation », « talkami-seance ».

@@ -61,7 +61,8 @@
              data-recorder="{{ \App\Support\Asset::url('js/session-recorder.js') }}"
              data-recording='@json(\App\Support\SessionRecording::clientConfig($mode))'
          @endif
-         data-teacher="svg"
+         {{-- Professeur 3D attendu : emplacement de chargement, jamais le visage simple avant lui (teacher-view.js). --}}
+         data-teacher="{{ \App\Support\Avatar::enabled() ? 'loading' : 'svg' }}"
          data-phase="intro"
          data-teacher-name="{{ config('avatar.model.name') }}">
 

@@ -1,9 +1,10 @@
 /*
  * Choix entre le professeur 3D et le visage SVG sur l'écran de conversation.
  *
- * Le professeur 3D est affiché PAR DÉFAUT. Le visage SVG reste visible le
- * temps du chargement en arrière-plan (barre de progression) : la page et le
- * bouton « Commencer » sont utilisables tout de suite. Repli silencieux sur le
+ * Le professeur 3D est affiché PAR DÉFAUT. Pendant le chargement en
+ * arrière-plan, un emplacement propre de la même taille avec une barre de
+ * progression (data-teacher="loading") : jamais le visage SVG avant la 3D ;
+ * la page et le bouton « Commencer » sont utilisables tout de suite. Repli silencieux sur le
  * visage SVG si WebGL 2 manque, si le chargement échoue ou dure plus de
  * LOAD_TIMEOUT_MS, ou si le téléphone est trop lent : la séance n'est jamais
  * bloquée. Le lien « Visage simple » / « Afficher le professeur en 3D »
@@ -161,6 +162,8 @@ export function createTeacherView(root, config) {
         toggle.hidden = true;
         loading.hidden = false;
         bar.value = 0;
+        // Emplacement de chargement à la place du visage simple (CSS) : jamais le visage simple avant la 3D.
+        root.dataset.teacher = 'loading';
 
         // Cache durable des fichiers 3D (bibliothèque, lecture labiale).
         if ('serviceWorker' in navigator && config.serviceWorker) {
