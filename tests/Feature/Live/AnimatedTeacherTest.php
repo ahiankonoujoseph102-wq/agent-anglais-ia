@@ -34,7 +34,8 @@ class AnimatedTeacherTest extends TestCase
         $text = strip_tags(preg_replace('#<(script|style)\b.*?</\1>#s', '', $html));
 
         foreach (['3D', 'Chargement', 'Visage simple', 'repli', 'mode allégé', 'serveur'] as $word) {
-            $this->assertStringNotContainsStringIgnoringCase($word, $text, $word);
+            // Début de mot seulement : « Téléchargements » (dossier du téléphone) n'est pas « chargement ».
+            $this->assertDoesNotMatchRegularExpression('/(?<!\\p{L})'.preg_quote($word, '/').'/iu', $text, $word);
         }
 
         // Textes écrits par le navigateur : lien de réglage et messages de la séance.

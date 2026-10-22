@@ -1,4 +1,6 @@
 <x-layout title="Mon espace" install>
+    {{-- Vrai dès qu'un rappel de « Enregistrer ma séance » est affiché : l'aide « Comment partager ma vidéo » suit. --}}
+    @php $recordShare = false; @endphp
     <div class="welcome rise">
         {{-- Petit visage de Teacher Joe (au lieu du logo). --}}
         <span class="hero-teacher-face welcome-face"><img src="{{ \App\Support\Asset::url('images/teacher-joe.webp') }}" width="56" height="56" alt=""></span>
@@ -21,6 +23,10 @@
                 d'anglais, puis découvrez une première leçon et posez vos questions. C'est gratuit et sans engagement.
             </p>
             <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-lg btn-block btn-next"><x-icon name="mic" /> Commencer mon évaluation gratuite</a>
+            @if (\App\Support\SessionRecording::enabled('assessment'))
+                <x-recording-hint share="partager-ma-video" />
+                @php $recordShare = true; @endphp
+            @endif
         @elseif ($pendingPayment && ! $subscription)
             <h2 id="next-step-title">Nous vérifions votre paiement</h2>
             <p>
@@ -75,6 +81,10 @@
             @if ($canStartToday)
                 <p>{{ \App\Support\DailyTime::remainingSentence((int) $remainingSeconds) }} Ce temps est partagé entre la séance orale et « Mes cours ».</p>
                 <a href="{{ route('lesson.show') }}" class="btn btn-lg btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
+                @if (\App\Support\SessionRecording::enabled('lesson'))
+                    <x-recording-hint share="partager-ma-video" />
+                    @php $recordShare = true; @endphp
+                @endif
             @else
                 {{-- Temps du jour épuisé : rien à lancer, la suite est de relire sa dernière séance. --}}
                 <p>{{ \App\Support\DailyTime::EXHAUSTED }} En attendant, relisez votre dernière séance et votre devoir.</p>
@@ -116,7 +126,16 @@
             <div class="card-title"><span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span><h2 id="assessment-invite">Passez votre évaluation gratuite</h2></div>
             <p>{{ $assessmentMinutes }} minutes avec {{ config('avatar.model.name') }} pour mesurer votre niveau, puis une mini-leçon et vos questions.</p>
             <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
+            @if (\App\Support\SessionRecording::enabled('assessment'))
+                <x-recording-hint share="partager-ma-video" />
+                @php $recordShare = true; @endphp
+            @endif
         </section>
+    @endif
+
+    {{-- « Comment partager ma vidéo » : seulement quand une séance qui s'enregistre est proposée plus haut. --}}
+    @if ($recordShare)
+        <x-recording-share class="rise" />
     @endif
 
     @if ($rejectedPayment && ! $pendingPayment)

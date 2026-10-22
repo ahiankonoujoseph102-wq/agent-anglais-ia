@@ -99,7 +99,7 @@
             <li class="card reveal" style="--i: 1">
                 <div class="how-head"><span class="how-num">2</span><span class="icon-bubble"><x-icon name="mic" /></span></div>
                 <h3>Passez l'évaluation gratuite</h3>
-                <p>{{ $minutes }} minutes à l'oral pour trouver votre niveau, puis une mini-leçon et vos questions.</p>
+                <p>{{ $minutes }} minutes à l'oral pour trouver votre niveau, puis une mini-leçon et vos questions. Vous pouvez même l'enregistrer en vidéo.</p>
             </li>
             <li class="card reveal" style="--i: 2">
                 <div class="how-head"><span class="how-num">3</span><span class="icon-bubble"><x-icon name="mobile" /></span></div>
@@ -149,6 +149,7 @@
         <ul class="course-plus reveal">
             <li><x-icon name="pin" /> <span><strong>Des situations de chez nous :</strong> le Grand Marché de Lomé, le zémidjan, le port, le travail, le voyage, les études.</span></li>
             <li><x-icon name="calendar" /> <span><strong>À votre rythme :</strong> vous choisissez vos jours, et chaque séance a une durée fixe.</span></li>
+            <li id="enregistrer"><x-icon name="video" /> <span><strong>Enregistrez votre séance avec {{ $teacher }} :</strong> la vidéo montre le professeur, le tableau, et on y entend vos deux voix. Elle reste sur votre téléphone, {{ $platform }} ne la reçoit jamais. Revoyez-la pour mesurer vos progrès, et partagez-la avec vos proches, sur WhatsApp ou sur vos réseaux, si vous le souhaitez.</span></li>
         </ul>
         <ul class="levels reveal" aria-label="Les niveaux, de A1 à C2">
             @foreach (Level::cases() as $level)
@@ -320,6 +321,19 @@
             <details>
                 <summary><x-icon name="bubble" /><span>Puis-je préparer un entretien ou un exposé ?</span></summary>
                 <p>Oui. Dans le questionnaire de votre programme, choisissez l'objectif « Préparer un entretien (bourse, admission, visa, stage, embauche) » ou « Faire un exposé ou une soutenance en anglais ». Pour un entretien, {{ $teacher }} joue l'examinateur : il pose les questions une par une, écoute votre réponse, puis vous corrige et vous propose une meilleure formulation. C'est un entraînement à l'oral : ce n'est pas la préparation d'un examen officiel, et aucun résultat n'est garanti.</p>
+            </details>
+            <details>
+                <summary><x-icon name="video" /><span>Puis-je enregistrer ma séance en vidéo ?</span></summary>
+                <p>Oui, pendant l'évaluation gratuite et la séance du jour. Touchez « Enregistrer ma séance », juste sous « Commencer » : l'enregistrement démarre avec la séance et s'arrête avec elle, ou quand vous touchez « Arrêter l'enregistrement ». La vidéo montre {{ $teacher }} et le tableau de la leçon, et on y entend sa voix et la vôtre. Cette fonction est pensée pour Chrome sur Android. Sur iPhone, elle peut ne pas fonctionner ou se comporter autrement. Si votre téléphone ne permet pas d'enregistrer, le bouton n'apparaît pas et votre séance se passe normalement.</p>
+            </details>
+            <details>
+                <summary><x-icon name="share" /><span>Où retrouver ma vidéo, et comment la partager ?</span></summary>
+                <p>À la fin de la séance, touchez « Télécharger ma vidéo » avant de quitter la page. Tant qu'elle n'est pas téléchargée, la vidéo n'existe que dans la page : si vous la quittez ou la fermez avant, la vidéo est perdue. Sur Android, vous la retrouvez dans l'application Fichiers, dossier « Téléchargements » : son nom commence par « {{ \Illuminate\Support\Str::slug($platform) }} » et porte la date de la séance. Ouvrez-la, touchez l'icône de partage, puis choisissez WhatsApp ou TikTok.</p>
+                <p>Sur un téléphone lent, l'image peut être un peu moins nette ou moins fluide : {{ $platform }} allège la vidéo pour que votre séance ne soit jamais ralentie.</p>
+            </details>
+            <details>
+                <summary><x-icon name="lock" /><span>Ma vidéo est-elle privée ?</span></summary>
+                <p>Oui. La vidéo est fabriquée et gardée sur votre téléphone : elle n'est jamais envoyée à {{ $platform }}, et notre équipe ne la voit pas. C'est vous qui décidez de la garder, de la partager ou de l'effacer. Avant de la publier, pensez qu'on y entend votre voix et que l'adresse du site est écrite en bas de l'image.</p>
             </details>
             <details>
                 <summary><x-icon name="wallet" /><span>Comment payer mon abonnement ?</span></summary>
