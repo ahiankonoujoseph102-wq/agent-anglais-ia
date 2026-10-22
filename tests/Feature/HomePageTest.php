@@ -57,10 +57,9 @@ class HomePageTest extends TestCase
     {
         $html = $this->get('/')->assertOk()
             // Promesse et bouton orange en haut de page, Teacher Joe dès l'ouverture.
-            ->assertSee('Parlez anglais avec un professeur')
-            ->assertSee('disponible chaque jour')
-            ->assertSee('class="btn btn-accent btn-lg btn-block" href="'.route('register').'"', false)
-            ->assertSee('class="hero-teacher"', false)
+            ->assertSee('Parlez anglais avec <span class="accent">Teacher Joe</span>, chaque jour', false)
+            ->assertSee('class="btn btn-accent btn-lg btn-block hero-cta" href="'.route('register').'"', false)
+            ->assertSee('class="hero-caption"', false)
             // Sections.
             ->assertSee('Quatre étapes simples')
             ->assertSee('Comment se passe votre cours avec Teacher Joe ?')
