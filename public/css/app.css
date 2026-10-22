@@ -680,6 +680,10 @@ main { overflow-x: clip; }
 .teacher3d-canvas { display: block; width: 100%; height: 100%; }
 .teacher3d-loading { width: 100%; text-align: center; font-size: var(--fs-xs); color: var(--c-muted); margin-top: var(--space-2); }
 .teacher3d-loading progress { display: block; width: 60%; height: 6px; margin: 6px auto 0; accent-color: var(--c-primary); }
+/* 3D en chargement (data-teacher="loading") : un emplacement de la taille du professeur 3D avec la barre, jamais le
+   visage simple (il n'apparaît qu'en repli). Sans JavaScript, le visage simple reste. */
+.js [data-teacher="loading"] .face { display: none; }
+.js [data-teacher="loading"] .teacher { min-height: clamp(210px, 36vh, 340px); }
 .teacher3d-toggle { display: block; margin: -4px auto var(--space-2); font-size: var(--fs-xs); }
 /* Séance du jour : annonce du temps en cours (pratique, conversation, bilan), sous le professeur, sans bouton. */
 .phase-note { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius); background: var(--c-primary); color: var(--c-on-dark); font-weight: var(--fw-bold); font-size: var(--fs-sm); animation: rise var(--dur) ease-out both; }
@@ -726,6 +730,8 @@ main { overflow-x: clip; }
 .live-control[aria-pressed="true"] { background: var(--c-accent); color: var(--c-on-accent); box-shadow: none; }
 /* « Enregistrer ma séance » : discret, sous les commandes ; point rouge pendant l'enregistrement. */
 .recorder { margin-bottom: var(--space-3); }
+/* Avant « Commencer » : juste sous le bouton (live-session.js → placeRecorder). */
+#intro .recorder { margin: var(--space-3) 0 0; }
 .recorder #record-start[aria-pressed="true"] { border-color: var(--c-accent); }
 .recorder-armed, .recorder-note { margin: var(--space-2) 0 0; font-size: var(--fs-sm); color: var(--c-muted); }
 .recorder-live { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-3); border: 1px solid var(--c-danger-line); border-radius: var(--radius-lg); background: var(--c-danger-soft); color: var(--c-danger-strong); font-weight: var(--fw-bold); }
@@ -987,6 +993,7 @@ main { overflow-x: clip; }
 .welcome-lead { color: var(--c-on-dark-muted); margin: 0; font-size: var(--fs-lg); }
 .welcome-page .teacher { background: transparent; border: 0; margin: 0; padding: 0; }
 .welcome-page .teacher-3d .teacher3d-stage { height: clamp(300px, 52dvh, 480px); }
+.js .welcome-page[data-teacher="loading"] .teacher { min-height: clamp(300px, 52dvh, 480px); }
 .welcome-page .face { width: min(260px, 70%); height: auto; }
 .welcome-page .teacher3d-loading { color: var(--c-on-dark-muted); }
 .welcome-page .teacher3d-loading progress { accent-color: var(--c-accent); }

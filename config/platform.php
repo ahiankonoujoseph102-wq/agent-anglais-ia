@@ -352,6 +352,10 @@ return [
         // Protection de la séance : au-delà de ce coût moyen par image (millisecondes), l'image de Teacher Joe dans
         // la vidéo perd de la définition, puis une image sur deux (session-recorder.js → adaptQuality).
         'frame_budget_ms' => 14,
+        // Professeur 3D encore en chargement au début de l'enregistrement : la vidéo attend sa première vraie image
+        // (couverture). Au-delà (3D jamais arrivée, au-delà du délai de chargement de 30 secondes de teacher-view.js),
+        // elle commence avec le visage simple.
+        'teacher_wait_ms' => 35_000,
     ],
 
     /*

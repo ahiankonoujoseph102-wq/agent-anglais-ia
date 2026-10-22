@@ -12,7 +12,7 @@
 @endphp
 <x-layout title="Bienvenue" focus>
     <div id="welcome" class="welcome-page"
-         data-teacher="svg"
+         data-teacher="{{ $teacher3d ? 'loading' : 'svg' }}"
          data-teacher-name="{{ $teacher }}"
          data-pieces='@json($pieces)'
          data-audio='@json($audio)'

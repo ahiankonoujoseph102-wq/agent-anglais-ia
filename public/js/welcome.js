@@ -29,7 +29,7 @@ async function run() {
         next: $('welcome-next'), mouth: $('welcome-mouth'),
     };
 
-    // Professeur 3D, chargé en arrière-plan ; le visage simple reste affiché en attendant (ou en repli).
+    // Professeur 3D, chargé en arrière-plan ; un emplacement de chargement en attendant, le visage simple en repli.
     let teacher = null;
 
     if (root.dataset.teacher3d && root.dataset.teacherView) {
@@ -41,7 +41,10 @@ async function run() {
                     teacher.attachAudio(graph.context, graph.output, null);
                 }
             })
-            .catch((error) => console.warn('Professeur 3D indisponible :', error));
+            .catch((error) => {
+                console.warn('Professeur 3D indisponible :', error);
+                root.dataset.teacher = 'svg';
+            });
     }
 
     // Sous-titres : une ligne par morceau, une étiquette par phrase.
