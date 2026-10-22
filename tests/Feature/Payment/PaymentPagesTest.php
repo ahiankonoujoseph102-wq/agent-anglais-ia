@@ -18,7 +18,7 @@ class PaymentPagesTest extends TestCase
     {
         $this->actingAs(User::factory()->create())->get('/abonnement')->assertOk()
             ->assertSee('Choisissez votre formule')
-            ->assertSee('sans carte bancaire')
+            ->assertSee('Paiement par Mobile Money depuis votre téléphone')
             ->assertSee('Copier le numéro');
     }
 

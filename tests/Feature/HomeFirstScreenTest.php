@@ -31,9 +31,9 @@ class HomeFirstScreenTest extends TestCase
         preg_match('/<p class="lead">(.*?)<\/p>/s', $hero, $lead);
         $this->assertSame(1, preg_match_all('/[.!?](\s|$)/u', strip_tags($lead[1])));
 
-        // Réassurance : la durée vient de la configuration ; gratuite ; aucune carte bancaire.
+        // Réassurance : des faits vérifiés, la durée lue dans la configuration.
         $minutes = config('platform.assessment.max_minutes');
-        $this->assertStringContainsString($minutes.' minutes à l\'oral, gratuite, sans carte bancaire', $hero);
+        $this->assertStringContainsString('Évaluation orale gratuite de '.$minutes.' minutes : votre niveau d\'anglais, de A1 à C2.', $hero);
         // Teacher Joe : nom et accroche lus dans la configuration.
         $this->assertStringContainsString('<strong>'.config('avatar.model.name').'</strong> '.e(config('platform.brand.tagline')), $hero);
     }

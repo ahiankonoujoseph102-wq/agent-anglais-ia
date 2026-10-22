@@ -94,8 +94,8 @@ return [
                 'answer' => 'Oui, pour ses cours d\'anglais, avec « Mes cours » : il explique la leçon en français, vérifie que votre enfant a compris et l\'aide à trouver lui-même la réponse des exercices. Inscrivez-le vous-même ou aidez-le à le faire, et restez à ses côtés pour le paiement.',
             ],
             [
-                'question' => 'Faut-il une carte bancaire ?',
-                'answer' => 'Non. Le paiement se fait uniquement par Mobile Money, depuis votre téléphone : au Bénin, avec :operators.',
+                'question' => 'Comment payer au Bénin ?',
+                'answer' => 'Par Mobile Money, depuis votre téléphone, avec :operators : vous envoyez le montant exact au numéro affiché, puis la capture d\'écran de la confirmation.',
             ],
         ],
     ],

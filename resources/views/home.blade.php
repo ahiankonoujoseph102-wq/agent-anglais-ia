@@ -27,10 +27,10 @@
         <div class="hero-text rise">
             <span class="eyebrow hero-eyebrow"><x-icon name="mic" /> Osez parler anglais, pour les francophones</span>
             <h1 id="promesse">Parlez anglais avec <span class="accent">{{ $teacher }}</span>, chaque jour</h1>
-            <p class="lead">Sur votre téléphone, {{ $teacher }} vous fait parler sans gêne ni jugement et vous corrige avec patience.</p>
+            <p class="lead">{{ $teacher }} vous fait parler sans gêne ni jugement, depuis votre téléphone.</p>
             <a class="btn btn-accent btn-lg btn-block hero-cta" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
-            {{-- Réassurance : durée de config('platform.assessment.max_minutes'), gratuite (une par compte), compte créé avec un numéro de téléphone, sans carte bancaire. --}}
-            <p class="hero-reassure"><x-icon name="check-circle" /> <span>{{ $minutes }} minutes à l'oral, gratuite, sans carte bancaire</span></p>
+            {{-- Faits vérifiés : durée de config('platform.assessment.max_minutes'), gratuite (une par compte), niveaux A1 à C2 (App\Enums\Level). --}}
+            <p class="hero-reassure"><x-icon name="check-circle" /> <span>Évaluation orale gratuite de {{ $minutes }} minutes : votre niveau d'anglais, de A1 à C2.</span></p>
             @guest
                 <a class="btn btn-outline btn-block hero-login" href="{{ route('login') }}">J'ai déjà un compte</a>
             @endguest
@@ -38,8 +38,8 @@
                 <p>{{ $teacher }} vous fait progresser à votre rythme. Vous apprenez l'anglais américain, compris partout dans le monde.</p>
                 <p class="hero-also">Élève ou étudiant ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école ou de l'université.</p>
                 <ul class="hero-points">
-                    <li><x-icon name="check-circle" /> Gratuite et sans engagement</li>
-                    <li><x-icon name="check-circle" /> Votre niveau, de A1 à C2</li>
+                    <li><x-icon name="check-circle" /> Un programme construit pour votre objectif</li>
+                    <li><x-icon name="check-circle" /> Une séance orale chaque jour avec {{ $teacher }}</li>
                     <li><x-icon name="check-circle" /> Paiement par Mobile Money</li>
                 </ul>
             </div>
@@ -93,7 +93,7 @@
             <li class="card reveal" style="--i: 0">
                 <div class="how-head"><span class="how-num">1</span><span class="icon-bubble"><x-icon name="user-plus" /></span></div>
                 <h3>Créez votre compte</h3>
-                <p>Avec votre nom et votre numéro de téléphone. Aucune carte bancaire.</p>
+                <p>Avec votre nom et votre numéro de téléphone.</p>
             </li>
             <li class="card reveal" style="--i: 1">
                 <div class="how-head"><span class="how-num">2</span><span class="icon-bubble"><x-icon name="mic" /></span></div>
@@ -161,7 +161,7 @@
     <section class="section band" aria-labelledby="plans">
         <div class="section-head reveal">
             <span class="eyebrow">Formules</span>
-            <h2 id="plans">Des formules simples, sans engagement</h2>
+            <h2 id="plans">Des formules à la semaine ou au mois</h2>
             <p class="muted">L'évaluation est offerte. Ensuite, choisissez la durée de séance qui vous convient.</p>
         </div>
         <div class="plans">
@@ -336,7 +336,7 @@
             </details>
             <details>
                 <summary><x-icon name="wallet" /><span>Comment payer mon abonnement ?</span></summary>
-                <p>Par Mobile Money, depuis votre téléphone : vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Aucune carte bancaire. Mêmes formules et mêmes prix dans tous les pays :</p>
+                <p>Par Mobile Money, depuis votre téléphone : vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Mêmes formules et mêmes prix dans tous les pays :</p>
                 <ul class="faq-list">
                     @foreach ($paymentCountries as $paymentCountry)
                         <li><strong>{{ $paymentCountry['name'] }}</strong> : {{ implode(', ', $paymentCountry['operators']) }}</li>
