@@ -23,7 +23,7 @@
             <a href="{{ route('courses.create') }}" class="btn btn-accent btn-block btn-lg courses-add rise"><x-icon name="plus" /> Ajouter une leçon</a>
         @else
             <div class="card empty-state rise">
-                <span class="icon-bubble"><x-icon name="book" /></span>
+                <x-teacher-face size="72" />
                 <p><strong>Vous n'avez pas encore ajouté de leçon.</strong></p>
                 <p class="muted">{{ \App\Support\CourseFiles::offer() }}.</p>
                 <div class="actions">

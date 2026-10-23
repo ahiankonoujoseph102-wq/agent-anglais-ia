@@ -1,6 +1,7 @@
 <x-layout :indexable="false" title="Page introuvable" narrow>
     @php($whatsapp = \App\Support\WhatsApp::communityUrl())
     <section class="empty-state">
+        <x-teacher-face />
         <div class="code" aria-hidden="true">404</div>
         <h1>Page introuvable</h1>
         <p class="lead">L'adresse demandée n'existe pas ou n'est plus disponible. Voici où aller :</p>

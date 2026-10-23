@@ -1678,3 +1678,6 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 /* Vérification d'une attestation : le code reste d'un seul tenant. */
 .attestation-code { white-space: nowrap; }
 .attestation-fresh { border-top: 4px solid var(--c-accent); }
+/* Visage de Teacher Joe (<x-teacher-face>) en tête des pages d'erreur, hors connexion et états vides. */
+.teacher-face { display: block; width: var(--face, 96px); height: var(--face, 96px); margin: 0 auto var(--space-4); }
+.empty-state .code { font-size: 3rem; }
