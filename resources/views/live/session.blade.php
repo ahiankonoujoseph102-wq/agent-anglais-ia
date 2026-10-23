@@ -138,6 +138,9 @@
 
             <div id="intro" class="card">
                 <p class="intro-text">{{ $intro }}</p>
+                @if ($mode === 'assessment')
+                    @include('live.assessment-before')
+                @endif
                 <button type="button" id="start" class="btn btn-accent btn-block btn-lg"><x-icon name="play" /> Commencer</button>
                 {{-- Pendant la connexion : « Teacher Joe arrive… », indicateur discret, conseils toujours visibles. --}}
                 <p id="arriving" class="live-arriving" role="status"><span class="live-arriving-dots" aria-hidden="true"><span></span><span></span><span></span></span> {{ config('avatar.model.name') }} arrive…</p>
