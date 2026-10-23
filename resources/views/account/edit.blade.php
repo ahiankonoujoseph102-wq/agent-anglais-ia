@@ -18,7 +18,7 @@
             <x-input name="email" label="Adresse e-mail" type="email" inputmode="email" autocomplete="email"
                      :value="$user->email" :hint="\App\Support\EmailAddress::HINT" />
 
-            <button type="submit" class="btn btn-block btn-lg">Enregistrer</button>
+            <button type="submit" class="btn btn-accent btn-block btn-lg">Enregistrer</button>
         </form>
     </section>
 

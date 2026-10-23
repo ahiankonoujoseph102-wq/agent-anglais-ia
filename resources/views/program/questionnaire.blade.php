@@ -86,7 +86,7 @@
                 </fieldset>
             @endif
 
-            <button type="submit" class="btn btn-block btn-lg">{{ $step < $steps ? 'Continuer' : ($editing ? 'Enregistrer mes objectifs' : 'Construire mon programme') }} <x-icon name="arrow-right" /></button>
+            <button type="submit" class="btn btn-accent btn-block btn-lg">{{ $step < $steps ? 'Continuer' : ($editing ? 'Enregistrer mes objectifs' : 'Construire mon programme') }} <x-icon name="arrow-right" /></button>
         </form>
 
         @if ($step > 1)

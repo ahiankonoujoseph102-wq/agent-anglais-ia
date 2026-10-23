@@ -154,7 +154,7 @@
                         <x-icon name="alert" />
                         <div><strong>Attention : ce niveau est plus élevé que celui de votre évaluation.</strong> Les séances risquent d'aller trop vite pour vous. Vous pourrez revenir au niveau recommandé tant que votre programme n'est pas construit.</div>
                     </div>
-                    <button type="submit" class="btn">Enregistrer ce niveau</button>
+                    <button type="submit" class="btn btn-outline">Enregistrer ce niveau</button>
                 </form>
             </details>
         </section>

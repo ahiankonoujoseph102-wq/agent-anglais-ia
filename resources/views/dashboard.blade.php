@@ -126,8 +126,10 @@
         <section class="card next-step rise" aria-labelledby="assessment-invite">
             <div class="card-title"><span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span><h2 id="assessment-invite">Passez votre évaluation gratuite</h2></div>
             <p>{{ $assessmentMinutes }} minutes avec {{ config('avatar.model.name') }} pour mesurer votre niveau, puis une mini-leçon et vos questions.</p>
-            <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
-            @if (\App\Support\SessionRecording::enabled('assessment'))
+            {{-- Contour : le seul bouton orange reste celui de la prochaine étape ; un libellé différent pour une action différente. --}}
+            <a href="{{ route('assessment.show') }}" class="btn btn-outline btn-block"><x-icon name="mic" /> Passer mon évaluation gratuite</a>
+            {{-- Le rappel « Enregistrer ma séance » n'est dit qu'une fois sur la page. --}}
+            @if (\App\Support\SessionRecording::enabled('assessment') && ! $recordShare)
                 <x-recording-hint share="partager-ma-video" />
                 @php $recordShare = true; @endphp
             @endif
@@ -169,7 +171,7 @@
             <div>
                 <strong>Votre formule se termine le {{ $subscription->ends_at->translatedFormat('j F Y à H:i') }}.</strong>
                 Renouvelez-la pour continuer vos séances sans interruption : la nouvelle période commencera à cette date.
-                <a class="btn btn-block next-step" href="{{ route('payment.plans') }}">Renouveler</a>
+                <a class="btn btn-outline btn-block next-step" href="{{ route('payment.plans') }}">Renouveler</a>
             </div>
         </div>
     @endif
@@ -193,7 +195,7 @@
                 {{ \App\Support\CourseFiles::offer() }} : {{ config('avatar.model.name') }} vous aide à les comprendre et à vous exercer.
             </p>
             <p class="course-counter"><x-icon name="clock" /> <span>Pris sur votre temps du jour, partagé avec la séance orale.</span></p>
-            <a href="{{ route('courses.index') }}" class="btn btn-light btn-block"><x-icon name="arrow-right" /> Ouvrir Mes cours</a>
+            <a href="{{ route('courses.index') }}" class="btn btn-outline btn-block"><x-icon name="arrow-right" /> Ouvrir Mes cours</a>
         </section>
     @endif
 

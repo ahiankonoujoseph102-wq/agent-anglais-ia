@@ -53,7 +53,7 @@
                         </p>
                     </div>
                     <div class="course-card-actions">
-                        <a href="{{ route('courses.show', $lesson) }}" class="btn btn-light"><x-icon name="arrow-right" /> Ouvrir</a>
+                        <a href="{{ route('courses.show', $lesson) }}" class="btn btn-outline"><x-icon name="arrow-right" /> Ouvrir</a>
                         <form method="POST" action="{{ route('courses.destroy', $lesson) }}" {!! \App\Support\Confirmation::attributes('course.delete') !!}>
                             @csrf
                             @method('DELETE')

@@ -5,8 +5,8 @@
         <h1>Fichier trop lourd</h1>
         <p class="lead">Votre fichier est trop lourd pour être envoyé : envoyez seulement les pages utiles.</p>
         <div class="actions">
-            <a class="btn btn-block" href="{{ route('courses.create') }}"><x-icon name="file-text" /> Choisir un autre fichier</a>
-            <a class="btn btn-light btn-block" href="{{ route('dashboard') }}"><x-icon name="home" /> Retour à mon espace</a>
+            <a class="btn btn-accent btn-block" href="{{ route('courses.create') }}"><x-icon name="file-text" /> Choisir un autre fichier</a>
+            <a class="btn btn-outline btn-block" href="{{ route('dashboard') }}"><x-icon name="home" /> Retour à mon espace</a>
         </div>
     </section>
 </x-layout>

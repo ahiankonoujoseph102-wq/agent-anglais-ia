@@ -80,7 +80,7 @@
                                 <form method="POST" action="{{ route('courses.part', $course) }}">
                                     @csrf
                                     <input type="hidden" name="part" value="{{ $other->id }}">
-                                    <button type="submit" class="btn btn-light">Reprendre</button>
+                                    <button type="submit" class="btn btn-outline">Reprendre</button>
                                 </form>
                             </li>
                         @endforeach
@@ -152,7 +152,7 @@
             @foreach ($course->pages as $page)
                 <li>
                     @if ($page->isPdf())
-                        <a href="{{ route('courses.page', [$course, $page]) }}" class="btn btn-light" target="_blank" rel="noopener"><x-icon name="file-text" /> Ouvrir le PDF</a>
+                        <a href="{{ route('courses.page', [$course, $page]) }}" class="btn btn-outline" target="_blank" rel="noopener"><x-icon name="file-text" /> Ouvrir le PDF</a>
                     @else
                         <a href="{{ route('courses.page', [$course, $page]) }}" target="_blank" rel="noopener" class="proof-thumb">
                             <img src="{{ route('courses.page', [$course, $page]) }}" alt="Page {{ $page->position }} de la leçon" loading="lazy">

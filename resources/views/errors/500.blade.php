@@ -6,7 +6,7 @@
         @php($contact = \App\Support\SiteSettings::contact())
         <p class="muted">{{ implode(' · ', array_filter([$contact['hours'], $contact['phones'][0] ?? null])) }}</p>
         <div class="actions">
-            <a class="btn btn-block" href="{{ url('/') }}"><x-icon name="home" /> Retour à l'accueil</a>
+            <a class="btn btn-accent btn-block" href="{{ url('/') }}"><x-icon name="home" /> Retour à l'accueil</a>
         </div>
     </section>
 </x-simple-layout>
