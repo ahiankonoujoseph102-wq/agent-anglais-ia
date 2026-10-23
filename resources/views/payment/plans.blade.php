@@ -5,10 +5,8 @@
         <div class="page-head">
             <h1>Choisissez votre formule</h1>
             @if (auth()->user()->canPayOnline())
-                <p class="muted">
-                    Vous payez par Mobile Money depuis votre téléphone, puis vous envoyez la capture d'écran de la confirmation.
-                    Si tout est clair, vous pouvez commencer vos séances tout de suite, le temps que notre équipe vérifie votre paiement.
-                </p>
+                {{-- Une phrase : le détail du paiement est sous les formules (liste juste en dessous). --}}
+                <p class="muted">Payez par Mobile Money, puis envoyez la capture d'écran de la confirmation.</p>
             @else
                 {{-- Pays sans paiement en ligne : l'équipe explique l'abonnement sur WhatsApp (bouton sur la page suivante). --}}
                 <p class="muted">
@@ -46,7 +44,8 @@
 
         <div class="plans">
             @foreach ($plans as $plan)
-                <x-plan-card :plan="$plan" :href="route('payment.create', $plan->key)" heading="h2" :current="$subscription?->plan === $plan->key" />
+                {{-- Cartes compactes : les trois boutons « Choisir » arrivent vite, le détail est sous « Ce qui est compris ». --}}
+                <x-plan-card compact :plan="$plan" :href="route('payment.create', $plan->key)" heading="h2" :current="$subscription?->plan === $plan->key" />
             @endforeach
         </div>
 

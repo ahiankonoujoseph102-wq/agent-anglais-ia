@@ -24,8 +24,9 @@
                 <a @class(['btn', 'btn-block', 'btn-light' => $whatsappUrl, 'next-step' => $whatsappUrl]) href="{{ route('contact') }}">Voir nos coordonnées</a>
             </section>
         @else
-            {{-- 1. Le pays (choisi d'avance d'après l'indicatif du téléphone). --}}
-            <section class="card pay-section" id="pays" aria-labelledby="pays-titre">
+            {{-- 1. Le pays (choisi d'avance d'après l'indicatif du téléphone). Déjà connu : replié, le choix suivant arrive
+                 dans le premier écran ; « Modifier » le rouvre (payment-flow.js, ou ?changer=pays sans JavaScript). --}}
+            <section class="card pay-section" id="pays" aria-labelledby="pays-titre" @if ($country && request('changer') !== 'pays') hidden @endif>
                 <div class="card-title">
                     <span class="icon-bubble"><x-icon name="globe" /></span>
                     <h2 id="pays-titre" tabindex="-1">Dans quel pays payez-vous ?</h2>
@@ -47,7 +48,7 @@
             <section class="card pay-section" id="moyen" data-pay-methods @unless ($country) hidden @endunless>
                 @foreach ($countries as $option)
                     <div data-pay-methods-for="{{ $option->code }}" @if ($option->code !== $country?->code) hidden @endif>
-                        <p class="pay-choice"><x-icon name="pin" /> <strong>{{ $option->name }}</strong> · <a href="#pays" data-pay-edit="pays">Modifier</a></p>
+                        <p class="pay-choice"><x-icon name="pin" /> <strong>{{ $option->name }}</strong>@if ($countryFromPhone && $option->code === $country?->code) <span class="muted small">({{ $countryMatchesPhone ? 'd\'après votre numéro' : 'd\'après votre compte' }})</span>@endif · <a href="{{ route('payment.create', ['plan' => $plan->key, 'changer' => 'pays']) }}#pays" data-pay-edit="pays">Modifier</a></p>
                         <div class="card-title">
                             <span class="icon-bubble"><x-icon name="wallet" /></span>
                             <h2 tabindex="-1">Par quel moyen voulez-vous payer ?</h2>

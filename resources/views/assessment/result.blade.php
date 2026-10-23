@@ -45,9 +45,10 @@
                 <span class="eyebrow">Évaluation terminée</span>
                 <h1 id="niveau">Nous n'avons pas pu mesurer votre niveau</h1>
                 @php($helpWhatsapp = \App\Support\SiteSettings::contact()['whatsapp'] ?? null)
-                <p class="result-feedback">L'évaluation s'est arrêtée avant que {{ $teacher }} ait assez entendu votre anglais. Choisissez ci-dessous le niveau qui vous ressemble{{ $helpWhatsapp ? ', ou écrivez-nous sur WhatsApp : notre équipe vous répond.' : '.' }}</p>
+                <p class="result-feedback">L'évaluation s'est arrêtée avant que {{ $teacher }} ait assez entendu votre anglais.</p>
                 @include('assessment.result-next')
                 @if ($helpWhatsapp)
+                    <p class="muted small result-help">Une question ? Notre équipe vous répond sur WhatsApp.</p>
                     {{-- Évaluation interrompue : écrire directement à l'équipe (numéro WhatsApp des Réglages, sinon de la configuration). --}}
                     <a class="btn btn-whatsapp result-whatsapp" href="{{ \App\Support\WhatsApp::url($helpWhatsapp, 'Bonjour '.config('platform.name').', mon évaluation gratuite s\'est arrêtée avant la fin. ') }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Écrire sur WhatsApp</a>
                 @endif

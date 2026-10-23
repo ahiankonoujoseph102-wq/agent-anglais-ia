@@ -100,6 +100,8 @@ if (flow) {
             const target = edit.dataset.payEdit === 'pays'
                 ? flow.querySelector('#pays')
                 : flow.querySelector(`[data-pay-methods-for="${countryInput.value}"]`);
+            // Le pays déjà connu est replié : « Modifier » le rouvre.
+            target.hidden = false;
             goTo(target);
         }
     });
