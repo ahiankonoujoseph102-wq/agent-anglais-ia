@@ -90,12 +90,16 @@ class RecordingAnnouncementTest extends TestCase
         $this->actingAs($user)->get('/espace')->assertOk()->assertDontSee(self::HINT, false)->assertDontSee(self::SHARE, false);
     }
 
-    public function test_session_pages_carry_a_tip_and_the_share_help(): void
+    public function test_session_pages_carry_the_recording_sentence_once_and_the_share_help(): void
     {
         foreach (['/evaluation' => User::factory()->create(), '/seance' => $this->subscriber()] as $url => $user) {
-            $this->actingAs($user)->get($url)->assertOk()
-                ->assertSee('Touchez « Enregistrer ma séance » pour garder la vidéo de votre séance avec Teacher Joe sur votre téléphone, et la revoir pour mesurer vos progrès.', false)
+            $html = $this->actingAs($user)->get($url)->assertOk()
+                ->assertSee('La vidéo montre Teacher Joe, le tableau, et on y entend vos deux voix. Elle reste sur votre téléphone', false)
                 ->assertSee(self::SHARE)
+                ->getContent();
+            // Plus de conseil qui répète le bouton : sa phrase, juste dessous, suffit.
+            $this->assertStringNotContainsString('Touchez « Enregistrer ma séance » pour garder la vidéo', $html);
+            $this->actingAs($user)->get($url)
                 ->assertSee('Ouvrez-la, touchez l\'icône de partage, puis choisissez WhatsApp pour l\'envoyer à vos proches, ou TikTok pour la publier.', false);
         }
 

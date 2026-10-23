@@ -44,7 +44,9 @@ class LevelTestController extends Controller
         return view('live.session', [
             'mode' => 'level_test',
             'title' => 'Bilan de fin de niveau '.$program->level->value,
-            'intro' => "Pendant {$minutes} minutes au maximum, le professeur vérifie que vous maîtrisez le niveau {$program->level->value}. "
+            // UNE ligne courte sous « Commencer » ; le détail est replié sous « Avant de commencer ».
+            'intro' => "{$minutes} minutes au plus pour vérifier votre niveau {$program->level->value}.",
+            'introMore' => "Le professeur vérifie que vous maîtrisez le niveau {$program->level->value}. "
                 .'Si vous réussissez, vous passez au niveau suivant et recevez votre attestation de niveau.',
             'remainingSeconds' => $test?->remainingSeconds() ?? $minutes * 60,
             'urls' => [

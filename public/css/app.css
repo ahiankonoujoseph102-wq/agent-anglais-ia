@@ -1556,14 +1556,6 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .swipe-hint .icon { flex: none; color: var(--c-accent-strong); }
 }
 .founder-more { display: inline-flex; align-items: center; min-height: 44px; }
-
-/* Évaluation, avant « Commencer » : ce qui va se passer et le micro expliqué avant la demande du téléphone. */
-.intro-text:has(+ .intro-before) { font-weight: var(--fw-bold); color: var(--c-heading); }
-.intro-before { list-style: none; padding: 0; margin: 0 0 var(--space-4); display: grid; gap: var(--space-2); font-size: var(--fs-sm); }
-.intro-before li { display: flex; gap: var(--space-2); align-items: flex-start; line-height: 1.45; }
-.intro-before .icon { flex: none; color: var(--c-accent-strong); margin-top: 2px; }
-.intro-before .intro-mic { padding: var(--space-2) var(--space-3); border-radius: var(--radius); background: var(--c-primary-soft); }
-.intro-before .intro-mic .icon { color: var(--c-primary); }
 .result-whatsapp { margin-top: var(--space-3); }
 
 /* « Inviter un ami sur WhatsApp » : discret (bouton secondaire, pas le vert du bouton WhatsApp principal). */
@@ -1571,3 +1563,37 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .invite-friend p { margin: 0 0 var(--space-3); }
 .invite-friend-btn .icon { color: var(--c-primary); }
 @media (max-width: 639.98px) { .invite-friend-btn { width: 100%; } }
+
+/* Avant « Commencer » (évaluation, séance du jour, « Mes cours », bilan) : le bouton orange tout de suite, UNE ligne
+   courte, « Enregistrer ma séance », puis « Avant de commencer » replié. */
+.start-block .intro-text { margin: var(--space-2) 0 0; text-align: center; font-weight: var(--fw-bold); color: var(--c-heading); }
+.intro-mic-line { display: flex; justify-content: center; align-items: flex-start; gap: 6px; margin: var(--space-1) 0 0; font-size: var(--fs-xs); color: var(--c-muted); text-align: center; }
+.intro-mic-line .icon { flex: none; width: 14px; height: 14px; margin-top: 2px; color: var(--c-primary); }
+.live:not([data-phase="intro"]) .intro-mic-line { display: none; }
+.before-start { margin-top: var(--space-3); border-top: 1px solid var(--c-border); }
+.before-start > summary { display: flex; align-items: center; gap: var(--space-2); min-height: 48px; font-weight: var(--fw-bold); color: var(--c-primary); cursor: pointer; list-style: none; }
+.before-start > summary::-webkit-details-marker { display: none; }
+.before-start > summary > span { flex: 1; }
+.before-start > summary::after { content: "+"; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--c-primary-soft); color: var(--c-primary); font-weight: var(--fw-heavy); }
+.before-start[open] > summary::after { content: "−"; }
+.before-start > summary:focus-visible { outline: 3px solid var(--c-focus); outline-offset: 2px; border-radius: var(--radius); }
+.before-start-body > p { margin: 0 0 var(--space-2); font-size: var(--fs-sm); color: var(--c-muted); }
+.before-start .intro-tips { margin-top: var(--space-2); }
+
+/* Téléphone en portrait, avant « Commencer » seulement : titre, Teacher Joe un peu moins haut, puis tout de suite la
+   carte de « Commencer » ; le tableau et le reste passent dessous. L'écran de la conversation ne change pas. */
+@media (max-width: 899.98px) and (orientation: portrait) {
+    .live[data-phase="intro"] { display: flex; flex-direction: column; }
+    .live[data-phase="intro"] .live-stage, .live[data-phase="intro"] .live-panel { display: contents; }
+    .live[data-phase="intro"] .live-stage > *, .live[data-phase="intro"] .live-panel > * { order: 5; }
+    .live[data-phase="intro"] .live-head { order: 0; margin-bottom: var(--space-2); }
+    .live[data-phase="intro"] .live-head h1 { font-size: var(--fs-lg); }
+    .live[data-phase="intro"] .live-stage > .teacher { order: 1; margin-bottom: var(--space-2); }
+    .live[data-phase="intro"] .live-stage > .teacher3d-toggle { order: 2; }
+    .live[data-phase="intro"] .live-panel > #error, .live[data-phase="intro"] .live-panel > #whatsapp-help { order: 3; margin-bottom: var(--space-3); }
+    .live[data-phase="intro"] .live-panel > #intro { order: 4; padding: var(--space-3) var(--space-4); }
+    .live[data-phase="intro"] .live-stage > #board-home { order: 6; margin-top: var(--space-3); }
+    .live[data-phase="intro"] .teacher-3d .teacher3d-stage { height: clamp(160px, 32vh, 300px); height: clamp(160px, 32svh, 300px); }
+    .js .live[data-phase="intro"][data-teacher="loading"] .teacher { min-height: clamp(160px, 32vh, 300px); min-height: clamp(160px, 32svh, 300px); }
+    .live[data-phase="intro"] .face { height: clamp(130px, 26vh, 225px); height: clamp(130px, 26svh, 225px); width: auto; }
+}

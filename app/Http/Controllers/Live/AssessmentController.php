@@ -46,8 +46,9 @@ class AssessmentController extends Controller
             // Premier contact avec Teacher Joe : phrases utiles dépliées.
             'usefulPhrasesOpen' => true,
             'title' => 'Évaluation gratuite',
-            // Ce qui va se passer, dit simplement ; le reste (calme, droit à l'erreur, micro) dans live/assessment-before.
-            'intro' => $minutes.' minutes d\'anglais à l\'oral avec '.config('avatar.model.name').', pour trouver votre niveau.',
+            // UNE ligne courte sous « Commencer » ; le reste (ce qui suit, calme, droit à l'erreur, micro) est replié
+            // sous « Avant de commencer » (live/before-start).
+            'intro' => $minutes.' minutes à l\'oral avec '.config('avatar.model.name').', pour trouver votre niveau.',
             'remainingSeconds' => $assessment?->remainingSeconds() ?? $minutes * 60,
             'urls' => [
                 'connect' => route('assessment.connect'),

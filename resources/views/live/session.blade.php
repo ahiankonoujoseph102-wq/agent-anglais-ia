@@ -136,15 +136,20 @@
                 </x-next-step>
             @endif
 
-            <div id="intro" class="card">
-                <p class="intro-text">{{ $intro }}</p>
-                @if ($mode === 'assessment')
-                    @include('live.assessment-before')
-                @endif
-                <button type="button" id="start" class="btn btn-accent btn-block btn-lg"><x-icon name="play" /> Commencer</button>
-                {{-- Pendant la connexion : « Teacher Joe arrive… », indicateur discret, conseils toujours visibles. --}}
+            {{--
+                Avant « Commencer » : le bouton tout de suite sous Teacher Joe (visible sans défiler, même à 360 × 640),
+                UNE ligne courte, puis « Enregistrer ma séance » (placé juste après #start-block par live-session.js),
+                et tout le reste replié sous « Avant de commencer ».
+            --}}
+            <div id="intro" class="card intro-card">
+                <div id="start-block" class="start-block">
+                    <button type="button" id="start" class="btn btn-accent btn-block btn-lg"><x-icon name="play" /> Commencer</button>
+                    <p class="intro-text">{{ $intro }}</p>
+                    <p class="intro-mic-line"><x-icon name="mic" /> <span>Touchez « Autoriser » quand le téléphone demande le micro.</span></p>
+                </div>
+                {{-- Pendant la connexion : « Teacher Joe arrive… », indicateur discret. --}}
                 <p id="arriving" class="live-arriving" role="status"><span class="live-arriving-dots" aria-hidden="true"><span></span><span></span><span></span></span> {{ config('avatar.model.name') }} arrive…</p>
-                <ul class="intro-tips">@include('live.tips')</ul>
+                @include('live.before-start')
             </div>
 
             <div class="live-bar">

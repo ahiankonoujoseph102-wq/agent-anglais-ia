@@ -80,8 +80,8 @@ class LiveLayoutTest extends TestCase
         // Ordinateur : conseils puis transcription sous Teacher Joe (même texte des conseils aux deux endroits).
         $this->assertGreaterThan(strpos($html, 'class="live-stage"'), strpos($html, 'id="stage-notes"'));
         $this->assertLessThan(strpos($html, 'class="live-panel"'), strpos($html, 'id="stage-notes"'));
-        // Évaluation : le calme est dit une fois, au-dessus de « Commencer » (les conseils ne le répètent pas).
-        $this->assertSame(1, substr_count($html, 'Installez-vous dans un endroit calme.'));
+        // Mêmes conseils aux deux endroits : « Avant de commencer » (replié) et sous Teacher Joe sur ordinateur.
+        $this->assertSame(2, substr_count($html, 'Installez-vous dans un endroit calme.'));
         $this->assertSame(2, substr_count($html, 'Quand Teacher Joe parle, votre micro est coupé'));
         $this->assertStringContainsString('<div id="subtitles-home"><div id="subtitles"', $html);
 
