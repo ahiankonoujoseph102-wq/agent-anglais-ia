@@ -9,6 +9,8 @@
         <p class="muted">Vos bilans de séance : résumés, devoirs, notes et erreurs à revoir.</p>
     </div>
 
+    {{-- Rien encore (aucune séance, aucune erreur) : l'état vide et son bouton passent en premier. --}}
+    @if ($lessons->isNotEmpty() || $openErrors->isNotEmpty() || $resolvedCount > 0)
     <section class="card card-accent rise" style="--i: 1">
         <div class="card-title">
             <span class="icon-bubble icon-bubble-accent"><x-icon name="edit" /></span>
@@ -29,6 +31,7 @@
             <p>Aucune erreur en cours. Bravo !</p>
         @endforelse
     </section>
+    @endif
 
     @if ($courseSessions->isNotEmpty())
         <section class="card rise" style="--i: 2" id="documents" aria-labelledby="documents-titre">
@@ -81,7 +84,7 @@
         </article>
     @empty
         <div class="card empty-state">
-            <span class="icon-bubble"><x-icon name="mic" /></span>
+            <x-teacher-face size="72" />
             <p>Aucune séance pour le moment.</p>
             <div class="actions">
                 @if (auth()->user()->activeSubscription && auth()->user()->activeProgram)
