@@ -12,16 +12,18 @@
     <div class="auth-head rise">
         <span class="icon-bubble icon-bubble-primary"><x-icon name="wallet" /></span>
         <h1>Formules et prix</h1>
-        <p>Des formules à la semaine ou au mois, au même prix au Togo, au Bénin, au Burkina Faso et en Côte d'Ivoire. Pour les francophones de tous les pays, en anglais américain, compris partout dans le monde.</p>
+        <p>Des formules à la semaine ou au mois, au même prix au Togo, au Bénin, au Burkina Faso et en Côte d'Ivoire.</p>
     </div>
 
     <section class="section" aria-label="Les formules">
         <div class="plans">
             @foreach ($plans as $plan)
-                <x-plan-card :plan="$plan" :href="auth()->check() ? route('payment.create', $plan->key) : route('register')" class="reveal" style="--i: {{ $loop->index }}" />
+                {{-- Cartes compactes : les boutons « Choisir » arrivent vite, le détail est sous « Ce qui est compris ». --}}
+                <x-plan-card compact :plan="$plan" :href="auth()->check() ? route('payment.create', $plan->key) : route('register')" class="reveal" style="--i: {{ $loop->index }}" />
             @endforeach
         </div>
         <p class="muted small next-step">Chaque formule donne un temps par jour, à partager entre la séance orale et « Mes cours ». Il revient chaque jour à minuit, heure de Lomé.</p>
+        <p class="muted small">Pour les francophones de tous les pays, en anglais américain, compris partout dans le monde.</p>
     </section>
 
     <section class="section" aria-labelledby="formules-gratuit">

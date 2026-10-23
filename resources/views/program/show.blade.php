@@ -7,7 +7,6 @@
         <span class="eyebrow"><x-icon name="target" /> Objectif : {{ \Illuminate\Support\Str::lcfirst($program->goal->label()) }}</span>
         <h1>Mon programme {{ $program->level->value }}</h1>
         <p class="muted">{{ $levelTitle }} · {{ $program->occupation }}</p>
-        <a class="btn btn-outline" href="{{ route('program.answers.edit', [$program, 1]) }}"><x-icon name="target" /> Modifier mes objectifs</a>
     </div>
 
     {{-- La suite : TOUJOURS avant la présentation et les chiffres (visible sans faire défiler). --}}
@@ -17,11 +16,14 @@
             text="Passez le bilan oral de fin de niveau avec {{ config('avatar.model.name') }} : vous obtiendrez votre attestation et passerez au niveau suivant."
             :href="route('level-test.show')" label="Passer mon bilan de fin de niveau" icon="award" />
     @elseif ($current)
-        <x-next-step class="rise"
+        <x-next-step class="rise next-step-compact"
             :title="$firstLesson ? 'Votre programme est prêt' : 'Votre prochaine leçon'"
             :text="'Unité '.$current->unit_number.' · '.$units[$current->unit_number]->title.' — leçon '.$current->lesson_number.' : '.$current->focusLabel().'. Situation : '.$current->situation()->title.'.'.($current->highlighted ? ' Choisie pour vous.' : '')"
             :href="route('lesson.show')" :label="$firstLesson ? 'Commencer ma première leçon' : 'Commencer la séance'" icon="mic" />
     @endif
+
+    {{-- Après la suite : changer ses objectifs reste à portée, sans repousser le bouton principal. --}}
+    <p class="edit-goals-link"><a class="btn btn-outline" href="{{ route('program.answers.edit', [$program, 1]) }}"><x-icon name="target" /> Modifier mes objectifs</a></p>
 
     @if (! empty($program->content['intro']))
         <div class="card card-soft rise"><p>{{ $program->content['intro'] }}</p></div>

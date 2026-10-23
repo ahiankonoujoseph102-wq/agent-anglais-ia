@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use App\Support\Plan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -49,15 +50,15 @@ class HomeShorterTest extends TestCase
         }
     }
 
-    public function test_plan_cards_are_compact_on_the_home_page_only(): void
+    public function test_plan_cards_are_compact_on_the_home_page_and_full_under_the_verdict(): void
     {
         $main = $this->visible();
         $this->assertSame(count(Plan::all()), substr_count($main, 'plan-compact'));
         $this->assertStringContainsString('<summary>Ce qui est compris</summary>', $main);
         $this->assertStringContainsString('15 minutes par jour · 7 jours', $main);
 
-        // Ailleurs, la carte complète ne change pas.
-        $this->get(route('plans'))->assertOk()->assertDontSee('plan-compact')->assertSee('Valable 7 jours');
+        // Sous le verdict de l'évaluation, la carte complète ne change pas.
+        $this->actingAs(User::factory()->create())->get('/evaluation')->assertOk()->assertDontSee('plan-compact')->assertSee('Valable 7 jours');
     }
 
     public function test_six_questions_first_the_others_folded_and_all_in_the_structured_data(): void

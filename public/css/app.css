@@ -1628,3 +1628,18 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .result-main h1 { font-size: var(--fs-xl); }
 }
 .result-help { margin: var(--space-3) 0 var(--space-1); }
+.contact-whatsapp { margin-bottom: var(--space-4); }
+.forgot-steps-title { margin: var(--space-5) 0 var(--space-2); font-size: var(--fs-md); }
+.edit-goals-link { margin: 0 0 var(--space-4); }
+/* « Mon programme », sur téléphone : le bouton de la leçon juste sous son titre, la description dessous. */
+@media (max-width: 639.98px) {
+    .next-step-card.next-step-compact { display: flex; flex-direction: column; }
+    .next-step-card.next-step-compact > .next-card-eyebrow { align-self: flex-start; }
+    .next-step-card.next-step-compact > .next-step-text { order: 3; margin: var(--space-3) 0 0; }
+}
+.courses-add { margin-bottom: var(--space-4); }
+/* Pages pays, sur téléphone : photo moins haute, le bouton de l'évaluation dans le premier écran. */
+@media (max-width: 639.98px) {
+    .page-hero .photo-frame { aspect-ratio: 2 / 1; order: 2; }
+    .page-hero .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+}
