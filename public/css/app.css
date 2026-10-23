@@ -447,10 +447,10 @@ main { overflow-x: clip; }
 @keyframes step-fill { from { width: var(--from); } }
 .pay-steps { display: flex; gap: var(--space-1); list-style: none; padding: 0; margin: var(--space-2) 0 0; font-size: var(--fs-xs); color: var(--c-muted); }
 .pay-steps li { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; font-weight: var(--fw-bold); }
-.pay-steps li span { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--c-surface); border: 2px solid var(--c-border); color: var(--c-muted); font-weight: var(--fw-heavy); font-size: var(--fs-xs); }
-.pay-steps .done span { background: var(--c-primary-soft); border-color: var(--c-primary-line); color: var(--c-primary-strong); }
+.pay-steps li .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--c-surface); border: 2px solid var(--c-border); color: var(--c-muted); font-weight: var(--fw-heavy); font-size: var(--fs-xs); }
+.pay-steps .done .step-num { background: var(--c-primary-soft); border-color: var(--c-primary-line); color: var(--c-primary-strong); }
 .pay-steps .current { color: var(--c-text); }
-.pay-steps .current span { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-dark); box-shadow: 0 0 0 4px var(--c-ring); }
+.pay-steps .current .step-num { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-dark); box-shadow: 0 0 0 4px var(--c-ring); }
 
 /* Panneau d'une étape : arrive en glissant */
 .step-panel { animation: slide-in var(--dur) var(--ease) both; }
@@ -1596,4 +1596,25 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .live[data-phase="intro"] .teacher-3d .teacher3d-stage { height: clamp(160px, 32vh, 300px); height: clamp(160px, 32svh, 300px); }
     .js .live[data-phase="intro"][data-teacher="loading"] .teacher { min-height: clamp(160px, 32vh, 300px); min-height: clamp(160px, 32svh, 300px); }
     .live[data-phase="intro"] .face { height: clamp(130px, 26vh, 225px); height: clamp(130px, 26svh, 225px); width: auto; }
+}
+
+/* Téléphone : l'action principale dans le premier écran (fil d'étapes compact, en-têtes plus courts, bouton de la
+   prochaine étape juste sous son titre). */
+@media (max-width: 639.98px) {
+    .stepper { margin-bottom: var(--space-3); }
+    .pay-steps li { flex-direction: row; justify-content: center; }
+    .pay-steps li.current { flex: 3; justify-content: flex-start; text-align: left; }
+    .pay-steps li:not(.current) .step-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    .auth-head { margin-bottom: var(--space-3); }
+    .auth-head .icon-bubble { display: none; }
+    .welcome { gap: var(--space-3); margin-bottom: var(--space-3); }
+    .welcome img { width: 48px; height: 48px; }
+    .welcome h1 { font-size: var(--fs-xl); }
+    .next-card:not(.next-step-card) { display: flex; flex-direction: column; }
+    .next-card:not(.next-step-card) > * { order: 3; }
+    .next-card:not(.next-step-card) > .next-card-eyebrow { order: 0; align-self: flex-start; }
+    .next-card:not(.next-step-card) > h2 { order: 1; margin-bottom: var(--space-3); text-align: left; align-self: stretch; }
+    .next-card:not(.next-step-card) > .btn, .next-card:not(.next-step-card) > .recording-hint { order: 2; }
+    .next-card:not(.next-step-card) > .btn { margin-bottom: var(--space-3); }
+    .next-card:not(.next-step-card) > .next-card-note { order: 4; }
 }

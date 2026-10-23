@@ -12,7 +12,7 @@
     <ol class="pay-steps" aria-label="{{ $label }}">
         @foreach ($labels as $i => $text)
             <li @class(['done' => $i + 1 < $current, 'current' => $i + 1 === $current]) @if ($i + 1 === $current) aria-current="step" @endif>
-                <span>@if ($i + 1 < $current)<x-icon name="check" />@else{{ $i + 1 }}@endif</span> {{ $text }}
+                <span class="step-num">@if ($i + 1 < $current)<x-icon name="check" />@else{{ $i + 1 }}@endif</span> <span class="step-label">{{ $text }}</span>
             </li>
         @endforeach
     </ol>

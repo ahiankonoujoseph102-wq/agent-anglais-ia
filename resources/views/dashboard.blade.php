@@ -10,10 +10,8 @@
         </div>
     </div>
 
-    {{-- Où en est l'apprenant dans le parcours : évaluation, formule, programme, séances. --}}
-    <x-stepper :labels="['Évaluation', 'Formule', 'Programme', 'Séances']" :current="$journeyStep" label="Votre parcours" />
-
-    {{-- Prochaine étape : TOUJOURS la première carte, une seule action principale (bouton orange). --}}
+    {{-- Prochaine étape : TOUJOURS la première carte, une seule action principale (bouton orange) ; sur téléphone, le
+         bouton passe juste sous le titre (CSS), l'explication dessous. --}}
     <section class="card next-card rise" aria-labelledby="next-step-title" style="--i: 1">
         <span class="next-card-eyebrow">Prochaine étape</span>
         @if ($needsAssessment && ! $subscription)
@@ -119,6 +117,9 @@
             </p>
         @endif
     </section>
+
+    {{-- Où en est l'apprenant dans le parcours : sous la prochaine étape, pour que son bouton reste dans le premier écran. --}}
+    <x-stepper :labels="['Évaluation', 'Formule', 'Programme', 'Séances']" :current="$journeyStep" label="Votre parcours" />
 
     {{-- Abonné sans évaluation (réinitialisée par l'administrateur) : invitation juste après la prochaine étape. --}}
     @if ($needsAssessment && $subscription)

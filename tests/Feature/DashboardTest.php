@@ -178,7 +178,7 @@ class DashboardTest extends TestCase
             ->getContent();
 
         // Étape 2 du parcours (formule), carte avant les chiffres.
-        $this->assertMatchesRegularExpression('/<li class="current"\s+aria-current="step"\s*>\s*<span>2<\/span>\s*Formule/', $html);
+        $this->assertMatchesRegularExpression('/<li class="current"\s+aria-current="step"\s*>\s*<span class="step-num">2<\/span>\s*<span class="step-label">Formule<\/span>/', $html);
         $this->assertLessThan(strpos($html, 'stats-main'), strpos($html, 'Prochaine étape'));
     }
 
