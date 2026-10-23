@@ -89,4 +89,37 @@ class ActionFirstTest extends TestCase
         $this->assertLessThan(strpos($html, 'result-help'), strpos($html, 'class="result-next"'));
         $this->assertStringContainsString('.result-teacher { width: 88px; height: 88px; }', self::css());
     }
+
+    public function test_help_and_forgotten_password_put_their_action_first(): void
+    {
+        $contact = $this->get('/contact')->assertOk()->getContent();
+        $this->assertLessThan(strpos($contact, 'class="contact-list"'), strpos($contact, 'contact-whatsapp'));
+
+        $forgot = $this->get('/mot-de-passe-oublie')->assertOk()->getContent();
+        $this->assertLessThan(strpos($forgot, 'class="steps"'), strpos($forgot, 'Préparer le message</button>'));
+        $this->assertStringContainsString('Indiquez ci-dessus le numéro de téléphone de votre compte.', html_entity_decode($forgot, ENT_QUOTES));
+    }
+
+    public function test_programme_and_courses_put_their_button_before_the_details(): void
+    {
+        $user = User::factory()->level(Level::A1)->create(['welcomed_at' => now()]);
+        Subscription::factory()->for($user)->forPlan('essentiel')->create();
+        $this->buildProgram($user, Level::A1);
+
+        $programme = $this->actingAs($user)->get('/programme')->assertOk()->getContent();
+        $this->assertLessThan(strpos($programme, 'Modifier mes objectifs'), strpos($programme, 'id="suite"'));
+        $this->assertStringContainsString('.next-step-card.next-step-compact > .next-step-text { order: 3;', self::css());
+
+        $courses = $this->actingAs($user)->get('/mes-cours')->assertOk()->getContent();
+        $this->assertLessThan(strpos($courses, 'data-course-counter'), strpos($courses, 'Ajouter une leçon'));
+    }
+
+    public function test_public_plans_and_country_pages_bring_their_button_up(): void
+    {
+        $this->assertSame(count(Plan::all()), substr_count($this->get('/formules')->assertOk()->getContent(), 'plan-compact'));
+
+        $country = $this->get('/apprendre-anglais/togo')->assertOk()->getContent();
+        $this->assertLessThan(strpos($country, 'accueille les francophones de tous les pays'), strpos($country, 'Passer mon évaluation gratuite'));
+        $this->assertStringContainsString('.page-hero .photo-frame { aspect-ratio: 2 / 1; order: 2; }', self::css());
+    }
 }

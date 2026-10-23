@@ -6,14 +6,8 @@
     </div>
 
     <div class="card form-card rise" style="--i: 1">
-        <ol class="steps">
-            <li>Indiquez ci-dessous le numéro de téléphone de votre compte.</li>
-            <li>Appuyez sur « Préparer le message », puis sur « Demander sur WhatsApp » : un message déjà rédigé s'ouvre, envoyez-le.</li>
-            <li>Nous vous répondons avec un mot de passe provisoire ({{ \Illuminate\Support\Str::lcfirst(config('platform.contact.hours')) }}).</li>
-            <li>Connectez-vous avec : le site vous demandera aussitôt d'en choisir un nouveau.</li>
-        </ol>
-
-        <form method="GET" action="{{ route('password.forgot') }}" class="next-step" novalidate>
+        {{-- L'action d'abord : le numéro et « Préparer le message » ; les étapes sont rappelées dessous. --}}
+        <form method="GET" action="{{ route('password.forgot') }}" novalidate>
             <div class="field">
                 <label for="telephone">Numéro de téléphone du compte</label>
                 <input id="telephone" name="telephone" type="tel" inputmode="tel" autocomplete="tel" value="{{ $input }}" required
@@ -22,7 +16,7 @@
                     <div class="error" id="telephone-error">Ce numéro de téléphone n'est pas valide. Hors du Togo, écrivez-le avec l'indicatif de votre pays, par exemple +237 6 77 12 34 56.</div>
                 @endif
             </div>
-            <button type="submit" class="btn btn-light btn-block">Préparer le message</button>
+            <button type="submit" class="btn btn-accent btn-block btn-lg">Préparer le message</button>
         </form>
 
         @if ($whatsappUrl)
@@ -32,6 +26,14 @@
             </div>
             <a class="btn btn-whatsapp btn-block btn-lg" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Demander sur WhatsApp</a>
         @endif
+
+        <h2 class="forgot-steps-title">Comment ça se passe</h2>
+        <ol class="steps">
+            <li>Indiquez ci-dessus le numéro de téléphone de votre compte.</li>
+            <li>Appuyez sur « Préparer le message », puis sur « Demander sur WhatsApp » : un message déjà rédigé s'ouvre, envoyez-le.</li>
+            <li>Nous vous répondons avec un mot de passe provisoire ({{ \Illuminate\Support\Str::lcfirst(config('platform.contact.hours')) }}).</li>
+            <li>Connectez-vous avec : le site vous demandera aussitôt d'en choisir un nouveau.</li>
+        </ol>
     </div>
 
     <div class="form-footer">

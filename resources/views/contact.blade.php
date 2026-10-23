@@ -5,6 +5,11 @@
         <p>Une question sur votre compte, un paiement ou une séance ? Écrivez-nous ou appelez-nous.</p>
     </div>
 
+    {{-- L'action d'abord : écrire sur WhatsApp, puis les coordonnées. --}}
+    @if ($contact['whatsapp'])
+        <a class="btn btn-whatsapp btn-block btn-lg contact-whatsapp rise" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Écrire sur WhatsApp</a>
+    @endif
+
     <section class="card rise" style="--i: 1">
         <ul class="contact-list">
             @if ($contact['address'])
@@ -26,8 +31,5 @@
             @endif
         </ul>
 
-        @if ($contact['whatsapp'])
-            <a class="btn btn-whatsapp btn-block btn-lg" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Écrire sur WhatsApp</a>
-        @endif
     </section>
 </x-layout>
