@@ -16,39 +16,38 @@
 @endphp
 
 <x-layout install :description="'Apprenez à parler anglais avec '.$teacher.', professeur d\'anglais en ligne disponible chaque jour sur votre téléphone. Évaluation orale gratuite.'">
-    {{-- Haut de page : la promesse et le bouton orange, visibles sans faire défiler. --}}
+    {{--
+        Haut de page : Teacher Joe, une accroche courte et le bouton orange, visibles sans faire défiler, même sur un
+        petit téléphone (360 × 640). Sur téléphone, l'image de Teacher Joe passe en bandeau en haut (même fichier, aucun
+        poids en plus) ; sur ordinateur, deux colonnes comme avant. Le reste de l'accroche descend sous le bouton.
+    --}}
     <section class="hero" aria-labelledby="promesse">
         {{-- Fond animé léger (CSS seulement) : trois formes floues ; bulles près de Teacher Joe. --}}
         <span class="hero-blob" aria-hidden="true"></span>
         <div class="hero-text rise">
-            {{-- Téléphone : Teacher Joe visible dès l'ouverture (même image que plus bas, aucun poids en plus). --}}
-            <p class="hero-teacher">
-                <span class="hero-teacher-face"><img src="{{ Asset::url('images/teacher-joe.webp') }}" width="56" height="56" alt=""></span>
-                <span><strong>{{ $teacher }}</strong> Votre professeur d'anglais à l'oral</span>
-            </p>
             <span class="eyebrow hero-eyebrow"><x-icon name="mic" /> Osez parler anglais, pour les francophones</span>
-            <h1 id="promesse">Parlez anglais avec un professeur <span class="accent">disponible chaque jour</span></h1>
-            <p class="lead">
-                {{ $teacher }} vous fait parler sans gêne ni jugement, vous corrige et vous fait progresser à votre rythme, depuis votre téléphone.
-                Commencez par une évaluation orale gratuite de {{ $minutes }} minutes.
-                Vous apprenez l'anglais américain, compris partout dans le monde.
-                <span class="hero-also">Élève ou étudiant ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école ou de l'université.</span>
-            </p>
-            <div class="actions actions-row">
-                <a class="btn btn-accent btn-lg btn-block" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
-                @guest
-                    <a class="btn btn-outline btn-block" href="{{ route('login') }}">J'ai déjà un compte</a>
-                @endguest
+            <h1 id="promesse">Parlez anglais avec <span class="accent">{{ $teacher }}</span>, chaque jour</h1>
+            <p class="lead">{{ $teacher }} vous fait parler sans gêne ni jugement, depuis votre téléphone.</p>
+            <a class="btn btn-accent btn-lg btn-block hero-cta" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
+            {{-- Faits vérifiés : durée de config('platform.assessment.max_minutes'), gratuite (une par compte), niveaux A1 à C2 (App\Enums\Level). --}}
+            <p class="hero-reassure"><x-icon name="check-circle" /> <span>Évaluation orale gratuite de {{ $minutes }} minutes : votre niveau d'anglais, de A1 à C2.</span></p>
+            @guest
+                <a class="btn btn-outline btn-block hero-login" href="{{ route('login') }}">J'ai déjà un compte</a>
+            @endguest
+            <div class="hero-more">
+                <p>{{ $teacher }} vous fait progresser à votre rythme. Vous apprenez l'anglais américain, compris partout dans le monde.</p>
+                <p class="hero-also">Élève ou étudiant ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école ou de l'université.</p>
+                <ul class="hero-points">
+                    <li><x-icon name="check-circle" /> Un programme construit pour votre objectif</li>
+                    <li><x-icon name="check-circle" /> Une séance orale chaque jour avec {{ $teacher }}</li>
+                    <li><x-icon name="check-circle" /> Paiement par Mobile Money</li>
+                </ul>
             </div>
-            <ul class="hero-points">
-                <li><x-icon name="check-circle" /> Gratuite et sans engagement</li>
-                <li><x-icon name="check-circle" /> Votre niveau, de A1 à C2</li>
-                <li><x-icon name="check-circle" /> Paiement par Mobile Money</li>
-            </ul>
         </div>
 
         <figure class="hero-media rise" style="--i: 2">
             <img src="{{ Asset::url('images/teacher-joe.webp') }}" width="560" height="560" alt="{{ $teacher }}, le professeur d'anglais de {{ $platform }}" fetchpriority="high">
+            <figcaption class="hero-caption"><strong>{{ $teacher }}</strong> {{ config('platform.brand.tagline') }}</figcaption>
             <span class="hero-bubble right" lang="en" aria-hidden="true">Hello!</span>
             <span class="hero-bubble" lang="en" aria-hidden="true">Let's talk!</span>
             <span class="hero-bubble third" lang="en" aria-hidden="true">How are you?</span>
@@ -94,7 +93,7 @@
             <li class="card reveal" style="--i: 0">
                 <div class="how-head"><span class="how-num">1</span><span class="icon-bubble"><x-icon name="user-plus" /></span></div>
                 <h3>Créez votre compte</h3>
-                <p>Avec votre nom et votre numéro de téléphone. Aucune carte bancaire.</p>
+                <p>Avec votre nom et votre numéro de téléphone.</p>
             </li>
             <li class="card reveal" style="--i: 1">
                 <div class="how-head"><span class="how-num">2</span><span class="icon-bubble"><x-icon name="mic" /></span></div>
@@ -162,7 +161,7 @@
     <section class="section band" aria-labelledby="plans">
         <div class="section-head reveal">
             <span class="eyebrow">Formules</span>
-            <h2 id="plans">Des formules simples, sans engagement</h2>
+            <h2 id="plans">Des formules à la semaine ou au mois</h2>
             <p class="muted">L'évaluation est offerte. Ensuite, choisissez la durée de séance qui vous convient.</p>
         </div>
         <div class="plans">
@@ -337,7 +336,7 @@
             </details>
             <details>
                 <summary><x-icon name="wallet" /><span>Comment payer mon abonnement ?</span></summary>
-                <p>Par Mobile Money, depuis votre téléphone : vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Aucune carte bancaire. Mêmes formules et mêmes prix dans tous les pays :</p>
+                <p>Par Mobile Money, depuis votre téléphone : vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Mêmes formules et mêmes prix dans tous les pays :</p>
                 <ul class="faq-list">
                     @foreach ($paymentCountries as $paymentCountry)
                         <li><strong>{{ $paymentCountry['name'] }}</strong> : {{ implode(', ', $paymentCountry['operators']) }}</li>

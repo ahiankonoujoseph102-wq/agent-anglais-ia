@@ -20,7 +20,7 @@
             <h2 id="next-step-title">Passez votre évaluation gratuite</h2>
             <p>
                 Parlez {{ $assessmentMinutes }} minutes avec {{ config('avatar.model.name') }} pour connaître votre niveau
-                d'anglais, puis découvrez une première leçon et posez vos questions. C'est gratuit et sans engagement.
+                d'anglais, puis découvrez une première leçon et posez vos questions. C'est gratuit : une évaluation par compte.
             </p>
             <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-lg btn-block btn-next"><x-icon name="mic" /> Commencer mon évaluation gratuite</a>
             @if (\App\Support\SessionRecording::enabled('assessment'))

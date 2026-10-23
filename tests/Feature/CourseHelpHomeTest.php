@@ -46,8 +46,8 @@ class CourseHelpHomeTest extends TestCase
             $this->assertStringContainsString($text, $html);
         }
 
-        // L'oral reste le message principal : le titre du haut de page n'a pas changé.
-        $this->assertStringContainsString('Parlez anglais avec un professeur', $html);
+        // L'oral reste le message principal : le titre du haut de page parle de parler anglais avec le professeur.
+        $this->assertStringContainsString('Parlez anglais avec <span class="accent">Teacher Joe</span>', $html);
         $this->assertStringContainsString('vous fait parler sans gêne ni jugement', $html);
         $this->assertStringContainsString('Osez parler anglais', $html);
     }

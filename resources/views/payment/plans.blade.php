@@ -51,7 +51,7 @@
         </div>
 
         <ul class="check-list next-step" aria-label="Comment se passe le paiement">
-            <li><x-icon name="check-circle" /> Paiement par Mobile Money depuis votre téléphone, sans carte bancaire{{ $countries ? ' ('.implode(', ', $countries).')' : '' }}.</li>
+            <li><x-icon name="check-circle" /> Paiement par Mobile Money depuis votre téléphone{{ $countries ? ' ('.implode(', ', $countries).')' : '' }}.</li>
             <li><x-icon name="check-circle" /> Montant exact, numéro et titulaire affichés à l'étape suivante, avec un bouton « Copier le numéro ».</li>
             <li><x-icon name="check-circle" /> Capture claire : vos séances peuvent commencer tout de suite, pendant la vérification.</li>
         </ul>

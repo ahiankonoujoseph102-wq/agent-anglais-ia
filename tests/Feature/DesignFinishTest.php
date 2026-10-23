@@ -148,7 +148,7 @@ class DesignFinishTest extends TestCase
             $this->get($page)->assertOk()
                 ->assertSee('class="with-aside-panel card"', false)
                 ->assertSee(config('avatar.model.name'))
-                ->assertSeeInOrder(['Gratuite et sans engagement', 'Votre niveau, de A1 à C2', 'Paiement par Mobile Money']);
+                ->assertSeeInOrder(['Évaluation orale gratuite de 5 minutes', 'Votre niveau, de A1 à C2', 'Paiement par Mobile Money']);
         }
 
         $user = User::factory()->create();
