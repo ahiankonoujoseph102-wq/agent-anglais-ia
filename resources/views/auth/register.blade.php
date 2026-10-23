@@ -30,7 +30,7 @@
                 @enderror
             </div>
             <x-input name="phone" label="Numéro de téléphone" type="tel" inputmode="tel" autocomplete="tel" required
-                     hint="Exemple : 90 12 34 56 au Togo. Hors du Togo, le numéro reçoit l'indicatif du pays choisi ; vous pouvez aussi l'écrire avec l'indicatif, par exemple +237 6 77 12 34 56." />
+                     hint="Exemple : 90 12 34 56. Hors du Togo, l'indicatif du pays choisi est ajouté ; vous pouvez aussi l'écrire, par exemple +237 6 77 12 34 56." />
             <x-input name="email" label="Adresse e-mail" type="email" inputmode="email" autocomplete="email"
                      :hint="\App\Support\EmailAddress::HINT" />
             <x-input name="password" label="Mot de passe" type="password" autocomplete="new-password" required
