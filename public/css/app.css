@@ -1654,3 +1654,8 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 /* « Affichage plus léger » (avant « Commencer ») : zone de toucher de 44 pixels de haut au moins, même texte, même
    comportement. */
 .teacher3d-toggle { min-height: 44px; display: flex; align-items: center; justify-content: center; margin-left: auto; margin-right: auto; }
+/* Accueil, cartes des publics qu'on fait glisser (téléphone) : chaque carte à la hauteur de son contenu, sans grand
+   vide en bas quand une voisine est plus longue. */
+@media (max-width: 719.98px) {
+    .audiences > .audience { align-self: start; }
+}

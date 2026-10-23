@@ -142,7 +142,7 @@
         <ul class="course-plus reveal">
             <li><x-icon name="pin" /> <span><strong>Des situations de chez nous :</strong> le Grand Marché de Lomé, le zémidjan, le port, le travail, le voyage, les études.</span></li>
             <li><x-icon name="calendar" /> <span><strong>À votre rythme :</strong> vous choisissez vos jours, et chaque séance a une durée fixe.</span></li>
-            <li id="enregistrer"><x-icon name="video" /> <span><strong>Enregistrez votre séance avec {{ $teacher }} :</strong> la vidéo montre le professeur, le tableau, et on y entend vos deux voix. Elle reste sur votre téléphone, {{ $platform }} ne la reçoit jamais. Revoyez-la pour mesurer vos progrès, et partagez-la avec vos proches, sur WhatsApp ou sur vos réseaux, si vous le souhaitez.</span></li>
+            <li id="enregistrer"><x-icon name="video" /> <span><strong>Enregistrez votre séance avec {{ $teacher }} :</strong> elle reste sur votre téléphone, {{ $platform }} ne la reçoit jamais. Revoyez-la ou partagez-la, si vous le souhaitez.</span></li>
         </ul>
         <ul class="levels reveal" aria-label="Les niveaux, de A1 à C2">
             @foreach (Level::cases() as $level)

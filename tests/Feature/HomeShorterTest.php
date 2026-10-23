@@ -82,4 +82,15 @@ class HomeShorterTest extends TestCase
         $this->assertMatchesRegularExpression('#<span class="footer-phones">\s*<a href="tel:\+22872240231">\+228 72 24 02 31</a>\s*<a href="tel:\+22879742127">\+228 79 74 21 27</a>\s*</span>#', $html);
         $this->assertStringContainsString('.footer-phones { display: grid; }', file_get_contents(public_path('css/app.css')));
     }
+
+    public function test_swiped_audience_cards_keep_their_own_height_and_the_recording_line_is_short(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString("@media (max-width: 719.98px) {\n    .audiences > .audience { align-self: start; }", $css);
+
+        $line = html_entity_decode($this->get('/')->getContent(), ENT_QUOTES);
+        $line = substr($line, strpos($line, '<li id="enregistrer">'));
+        $line = strip_tags(substr($line, 0, strpos($line, '</li>')));
+        $this->assertLessThan(200, mb_strlen(trim(preg_replace('/\s+/', ' ', $line))));
+    }
 }
