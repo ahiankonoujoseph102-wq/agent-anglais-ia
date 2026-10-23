@@ -20,7 +20,7 @@ class HomeFirstScreenTest extends TestCase
         $hero = substr($html, strpos($html, '<section class="hero"'), strpos($html, '</section>', strpos($html, '<section class="hero"')) - strpos($html, '<section class="hero"'));
 
         // Dans l'ordre : titre, une phrase, le bouton, la réassurance, puis le reste de l'accroche.
-        $order = ['id="promesse"', 'class="lead"', 'hero-cta', 'hero-reassure', 'hero-more', 'anglais américain', 'Élève ou étudiant', 'hero-points'];
+        $order = ['id="promesse"', 'class="lead"', 'hero-cta', 'hero-reassure', 'hero-more', 'anglais américain', 'Élève ou étudiant'];
         $positions = array_map(fn (string $needle) => strpos($hero, $needle), $order);
         $this->assertNotContains(false, $positions);
         $sorted = $positions;

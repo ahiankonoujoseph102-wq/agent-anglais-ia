@@ -205,10 +205,11 @@
                     @endif
                     <li><x-icon name="clock" /> <span>{{ $contact['hours'] }}</span></li>
                     @if ($contact['phones'])
+                        {{-- Un numéro par ligne, chacun facile à toucher. --}}
                         <li><x-icon name="phone" />
-                            <span>
+                            <span class="footer-phones">
                                 @foreach ($contact['phones'] as $phone)
-                                    <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}">{{ $phone }}</a>@if (! $loop->last) · @endif
+                                    <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}">{{ $phone }}</a>
                                 @endforeach
                             </span>
                         </li>

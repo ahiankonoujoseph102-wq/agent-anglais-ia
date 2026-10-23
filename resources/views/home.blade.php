@@ -37,11 +37,6 @@
             <div class="hero-more">
                 <p>{{ $teacher }} vous fait progresser à votre rythme. Vous apprenez l'anglais américain, compris partout dans le monde.</p>
                 <p class="hero-also">Élève ou étudiant ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école ou de l'université.</p>
-                <ul class="hero-points">
-                    <li><x-icon name="check-circle" /> Un programme construit pour votre objectif</li>
-                    <li><x-icon name="check-circle" /> Une séance orale chaque jour avec {{ $teacher }}</li>
-                    <li><x-icon name="check-circle" /> Paiement par Mobile Money</li>
-                </ul>
             </div>
         </div>
 
@@ -69,7 +64,6 @@
                 <li><span class="icon-bubble"><x-icon name="user-off" /></span> <span>Je n'ai personne avec qui pratiquer.</span></li>
             </ul>
             <p class="persuade-answer"><strong>Ce n'est pas un manque d'intelligence : c'est un manque de pratique.</strong> {{ $teacher }} est là pour ça.</p>
-            <a class="btn btn-accent btn-block" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
         </section>
 
         <section class="card persuade-card reveal" style="--i: 1" aria-labelledby="deja-essaye">
@@ -139,7 +133,7 @@
                 </div>
             </figure>
             <ol class="card course-steps reveal">
-                <li><span class="how-num course-num">1</span><p><strong>La leçon :</strong> {{ $teacher }} vous enseigne les phrases, les mots et les verbes du jour, affichés au tableau, en anglais simple, avec une explication en français si vous ne comprenez pas.</p></li>
+                <li><span class="how-num course-num">1</span><p><strong>La leçon :</strong> les phrases, les mots et les verbes du jour, au tableau, en anglais simple ; en français si vous ne comprenez pas.</p></li>
                 <li><span class="how-num course-num">2</span><p><strong>La pratique :</strong> vous répétez et vous construisez vos phrases, guidé par {{ $teacher }}.</p></li>
                 <li><span class="how-num course-num">3</span><p><strong>La conversation :</strong> vous utilisez la leçon dans une vraie situation (travail, marché, entretien…), il vous corrige avec douceur.</p></li>
                 <li><span class="how-num course-num">4</span><p><strong>Le bilan :</strong> ce que vous avez appris, et une phrase à retenir.</p></li>
@@ -166,16 +160,19 @@
         </div>
         <div class="plans">
             @foreach ($plans as $plan)
-                <x-plan-card :plan="$plan" :href="auth()->check() ? route('payment.create', $plan->key) : route('register')" class="reveal" style="--i: {{ $loop->index }}" />
+                <x-plan-card compact :plan="$plan" :href="auth()->check() ? route('payment.create', $plan->key) : route('register')" class="reveal" style="--i: {{ $loop->index }}" />
             @endforeach
         </div>
-        {{-- Moyens de paiement groupés par pays, en petites étiquettes. --}}
+        {{--
+            Pays et moyens de paiement, UNE seule fois sur l'accueil : chaque pays mène à sa page « Apprendre l'anglais »
+            (seul lien de l'accueil vers elle, le pied de page a l'autre).
+        --}}
         <div class="pay-methods reveal">
-            <p class="muted small">Paiement par Mobile Money, depuis votre téléphone. <a href="{{ route('plans') }}">Tout savoir sur les formules et les prix</a>.</p>
+            <h3 id="pays">Paiement par Mobile Money, dans votre pays</h3>
             <ul class="pay-countries" aria-label="Moyens de paiement par pays">
                 @foreach ($paymentCountries as $paymentCountry)
                     <li>
-                        <span class="pay-country">{{ $paymentCountry['name'] }}</span>
+                        <a class="pay-country" href="{{ route('country', $paymentCountry['slug']) }}">{{ $paymentCountry['name'] }} <x-icon name="chevron-right" /></a>
                         <span class="tags">
                             @foreach ($paymentCountry['operators'] as $operatorName)
                                 <span class="tag">{{ $operatorName }}</span>
@@ -184,81 +181,89 @@
                     </li>
                 @endforeach
             </ul>
+            <p class="muted small">Mêmes formules et mêmes prix partout. Vous habitez ailleurs ? {{ $platform }} accueille les francophones du monde entier : abonnement avec notre équipe sur WhatsApp. <a href="{{ route('plans') }}">Tout savoir sur les formules</a> · <a href="{{ route('about') }}">Qui sommes-nous ?</a></p>
         </div>
     </section>
 
     {{--
         Quatre cartes compactes de même format (.students.audience) : étudiants, élèves, parents, professionnels.
-        Chacune : une photo, un titre, une phrase, trois points courts au plus, un bouton orange.
-        Téléphone : l'une sous l'autre ; à partir de 720 pixels : grille 2 × 2.
+        Chacune : une photo, un titre, une phrase, trois points courts au plus (repliés sous « En savoir plus »), un
+        bouton secondaire (le bouton orange reste au premier écran, aux formules et à l'appel final).
+        Téléphone : petite photo à côté du titre, l'une sous l'autre ; à partir de 720 pixels : grille 2 × 2.
     --}}
-    <div class="section band band-soft audiences">
-        <section class="students audience reveal" aria-labelledby="etudiants">
-            <figure class="photo-frame"><x-photo name="etudiants-bibliotheque" /></figure>
-            <div class="audience-body">
-                <h2 id="etudiants">Vous êtes étudiant ?</h2>
-                <p>Prenez la parole en anglais : exposés, entretiens, études ou stage à l'étranger.</p>
-                <ul class="audience-points">
-                    <li><x-icon name="check-circle" /> Oser parler, sans gêne ni jugement</li>
-                    <li><x-icon name="check-circle" /> S'entraîner aux entretiens de bourse, d'admission ou de stage</li>
-                    <li><x-icon name="check-circle" /> Vos cours d'anglais en PDF, avec « Mes cours »</li>
-                </ul>
-                <a class="btn btn-accent" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
-            </div>
-        </section>
+    <div class="section band band-soft">
+        <p class="swipe-hint muted small"><x-icon name="arrow-right" /> Étudiant, élève, parent ou professionnel : faites glisser pour voir chaque profil.</p>
+        <div class="audiences">
+            <section class="students audience reveal" aria-labelledby="etudiants">
+                <figure class="photo-frame"><x-photo name="etudiants-bibliotheque" /></figure>
+                <div class="audience-body">
+                    <h2 id="etudiants">Vous êtes étudiant ?</h2>
+                    <p>Prenez la parole en anglais : exposés, entretiens, études ou stage à l'étranger.</p>
+                    <details class="audience-more">
+                        <summary>En savoir plus</summary>
+                        <ul class="audience-points">
+                            <li><x-icon name="check-circle" /> Oser parler, sans gêne ni jugement</li>
+                            <li><x-icon name="check-circle" /> S'entraîner aux entretiens de bourse, d'admission ou de stage</li>
+                            <li><x-icon name="check-circle" /> Vos cours d'anglais en PDF, avec « Mes cours »</li>
+                        </ul>
+                    </details>
+                    <a class="btn btn-outline audience-cta" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
+                </div>
+            </section>
 
-        <section class="students audience reveal" aria-labelledby="eleves">
-            <figure class="photo-frame"><x-photo name="eleve-ecouteurs" /></figure>
-            <div class="audience-body">
-                <h2 id="eleves">Vous êtes élève ?</h2>
-                <p>Vos cours d'anglais enfin compris : en plus de l'oral, {{ $teacher }} vous aide dans vos leçons d'anglais de l'école avec « Mes cours ».</p>
-                <ul class="audience-points">
-                    <li><x-icon name="camera" /> {{ \App\Support\CourseFiles::offer() }}</li>
-                    <li><x-icon name="book" /> {{ $teacher }} vous l'explique en détail, en français quand il le faut, et répond à vos questions</li>
-                    <li><x-icon name="edit" /> Il vous guide pour faire votre exercice vous-même, puis corrige</li>
-                </ul>
-                <p class="help-only"><x-icon name="info" /> Uniquement pour les cours d'anglais. Aussi pour les étudiants : lycée, université, formation.</p>
-                <a class="btn btn-accent" href="{{ $coursesUrl }}"><x-icon :name="$coursesIcon" /> {{ $coursesLabel }}</a>
-            </div>
-        </section>
+            <section class="students audience reveal" aria-labelledby="eleves">
+                <figure class="photo-frame"><x-photo name="eleve-ecouteurs" /></figure>
+                <div class="audience-body">
+                    <h2 id="eleves">Vous êtes élève ?</h2>
+                    <p>Vos cours d'anglais enfin compris : en plus de l'oral, {{ $teacher }} vous aide dans vos leçons d'anglais de l'école avec « Mes cours ».</p>
+                    <details class="audience-more">
+                        <summary>En savoir plus</summary>
+                        <ul class="audience-points">
+                            <li><x-icon name="camera" /> {{ \App\Support\CourseFiles::offer() }}</li>
+                            <li><x-icon name="book" /> {{ $teacher }} vous l'explique en détail, en français quand il le faut, et répond à vos questions</li>
+                            <li><x-icon name="edit" /> Il vous guide pour faire votre exercice vous-même, puis corrige</li>
+                        </ul>
+                    </details>
+                    <p class="help-only"><x-icon name="info" /> Uniquement pour les cours d'anglais. Aussi pour les étudiants : lycée, université, formation.</p>
+                    <a class="btn btn-outline audience-cta" href="{{ $coursesUrl }}"><x-icon :name="$coursesIcon" /> {{ $coursesLabel }}</a>
+                </div>
+            </section>
 
-        <section class="students audience reveal" aria-labelledby="parents">
-            <figure class="photo-frame"><x-photo name="parent-enfant-lecture" /></figure>
-            <div class="audience-body">
-                <h2 id="parents">Vous êtes parent ?</h2>
-                <p>Un professeur d'anglais patient pour votre enfant.</p>
-                <ul class="audience-points">
-                    <li><x-icon name="check-circle" /> {{ $teacher }} ne fait pas les devoirs à la place de votre enfant</li>
-                    <li><x-icon name="check-circle" /> Il l'aide à comprendre sa leçon d'anglais et à faire lui-même son exercice, une étape après l'autre</li>
-                    <li><x-icon name="check-circle" /> Il l'entraîne aussi à parler anglais à voix haute.</li>
-                </ul>
-                <a class="btn btn-accent" href="{{ route('register') }}"><x-icon name="user-plus" /> Inscrire mon enfant</a>
-            </div>
-        </section>
+            <section class="students audience reveal" aria-labelledby="parents">
+                <figure class="photo-frame"><x-photo name="parent-enfant-lecture" /></figure>
+                <div class="audience-body">
+                    <h2 id="parents">Vous êtes parent ?</h2>
+                    <p>Un professeur d'anglais patient pour votre enfant.</p>
+                    <details class="audience-more">
+                        <summary>En savoir plus</summary>
+                        <ul class="audience-points">
+                            <li><x-icon name="check-circle" /> {{ $teacher }} ne fait pas les devoirs à la place de votre enfant</li>
+                            <li><x-icon name="check-circle" /> Il l'aide à comprendre sa leçon d'anglais et à faire lui-même son exercice, une étape après l'autre</li>
+                            <li><x-icon name="check-circle" /> Il l'entraîne aussi à parler anglais à voix haute.</li>
+                        </ul>
+                    </details>
+                    <a class="btn btn-outline audience-cta" href="{{ route('register') }}"><x-icon name="user-plus" /> Inscrire mon enfant</a>
+                </div>
+            </section>
 
-        <section class="students audience reveal" aria-labelledby="pros">
-            <figure class="photo-frame"><x-photo name="equipe-reunion" /></figure>
-            <div class="audience-body">
-                <h2 id="pros">Vous travaillez ?</h2>
-                <p>Réunions, clients, visiteurs : parlez anglais dans votre métier.</p>
-                <ul class="audience-points">
-                    <li><x-icon name="check-circle" /> Indiquez votre métier et votre objectif dans le questionnaire</li>
-                    <li><x-icon name="check-circle" /> Les situations qui vous concernent passent en premier</li>
-                    <li><x-icon name="check-circle" /> Accueillir un client étranger, présenter votre activité, négocier, voyager</li>
-                </ul>
-                <a class="btn btn-accent" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
-            </div>
-        </section>
-    </div>
-
-    <section class="section band" aria-labelledby="pays">
-        <div class="section-head reveal">
-            <span class="eyebrow">Dans votre pays</span>
-            <h2 id="pays">Apprendre l'anglais au Togo, au Bénin, au Burkina Faso et en Côte d'Ivoire</h2>
-            <p class="muted">Mêmes formules et mêmes prix partout, avec les moyens de paiement de votre pays. Vous habitez ailleurs ? {{ $platform }} accueille les francophones du monde entier, abonnement avec notre équipe sur WhatsApp. <a href="{{ route('about') }}">Qui sommes-nous ?</a></p>
+            <section class="students audience reveal" aria-labelledby="pros">
+                <figure class="photo-frame"><x-photo name="equipe-reunion" /></figure>
+                <div class="audience-body">
+                    <h2 id="pros">Vous travaillez ?</h2>
+                    <p>Réunions, clients, visiteurs : parlez anglais dans votre métier.</p>
+                    <details class="audience-more">
+                        <summary>En savoir plus</summary>
+                        <ul class="audience-points">
+                            <li><x-icon name="check-circle" /> Indiquez votre métier et votre objectif dans le questionnaire</li>
+                            <li><x-icon name="check-circle" /> Les situations qui vous concernent passent en premier</li>
+                            <li><x-icon name="check-circle" /> Accueillir un client étranger, présenter votre activité, négocier, voyager</li>
+                        </ul>
+                    </details>
+                    <a class="btn btn-outline audience-cta" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
+                </div>
+            </section>
         </div>
-        <x-country-links :pages="$countryPages" />
-    </section>
+    </div>
 
     {{-- « Qui est derrière … ? » : le fondateur, sobrement (config/platform.php → founder ; photo chargée à la demande). --}}
     @if (\App\Support\Founder::bio())
@@ -309,49 +314,49 @@
                 <summary><x-icon name="history" /><span>Vais-je oublier ce que j'ai appris ?</span></summary>
                 <p>{{ $teacher }} vous aide à retenir. Au début de chaque séance, il vous redemande la phrase à retenir de la veille et votre devoir. Pendant la pratique, il vous fait retrouver des phrases des leçons passées (de la veille, de quelques jours, de la semaine d'avant) et revoit vos erreurs. Le plus efficace reste de pratiquer un peu chaque jour.</p>
             </details>
-            <details>
-                <summary><x-icon name="languages" /><span>Quel anglais vais-je apprendre ?</span></summary>
-                <p>L'anglais américain, compris partout dans le monde : sa prononciation, son vocabulaire et son orthographe. Si vous avez appris des mots britanniques à l'école, ils ne sont jamais comptés comme des fautes : {{ $teacher }} vous donne simplement l'équivalent américain quand c'est utile.</p>
-            </details>
-            <details>
-                <summary><x-icon name="book" /><span>Puis-je travailler mes cours d'anglais, même en PDF ?</span></summary>
-                <p>Oui, avec « Mes cours », pour les élèves et les étudiants (lycée, université, formation) qui ont une formule active. {{ \App\Support\CourseFiles::offer() }}. Pour un long PDF, vous choisissez avant la séance les pages ({{ \App\Support\CourseFiles::partPages() }} au plus à la fois) ou le passage à travailler, et vous revenez un autre jour pour la suite, sans renvoyer le fichier. {{ $teacher }} vous explique la leçon, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et le temps se prend sur votre temps du jour, partagé avec la séance orale.</p>
-            </details>
-            <details>
-                <summary><x-icon name="bubble" /><span>Puis-je préparer un entretien ou un exposé ?</span></summary>
-                <p>Oui. Dans le questionnaire de votre programme, choisissez l'objectif « Préparer un entretien (bourse, admission, visa, stage, embauche) » ou « Faire un exposé ou une soutenance en anglais ». Pour un entretien, {{ $teacher }} joue l'examinateur : il pose les questions une par une, écoute votre réponse, puis vous corrige et vous propose une meilleure formulation. C'est un entraînement à l'oral : ce n'est pas la préparation d'un examen officiel, et aucun résultat n'est garanti.</p>
-            </details>
-            <details>
-                <summary><x-icon name="video" /><span>Puis-je enregistrer ma séance en vidéo ?</span></summary>
-                <p>Oui, pendant l'évaluation gratuite et la séance du jour. Touchez « Enregistrer ma séance », juste sous « Commencer » : l'enregistrement démarre avec la séance et s'arrête avec elle, ou quand vous touchez « Arrêter l'enregistrement ». La vidéo montre {{ $teacher }} et le tableau de la leçon, et on y entend sa voix et la vôtre. Cette fonction est pensée pour Chrome sur Android. Sur iPhone, elle peut ne pas fonctionner ou se comporter autrement. Si votre téléphone ne permet pas d'enregistrer, le bouton n'apparaît pas et votre séance se passe normalement.</p>
-            </details>
-            <details>
-                <summary><x-icon name="share" /><span>Où retrouver ma vidéo, et comment la partager ?</span></summary>
-                <p>À la fin de la séance, touchez « Télécharger ma vidéo » avant de quitter la page. Tant qu'elle n'est pas téléchargée, la vidéo n'existe que dans la page : si vous la quittez ou la fermez avant, la vidéo est perdue. Sur Android, vous la retrouvez dans l'application Fichiers, dossier « Téléchargements » : son nom commence par « {{ \Illuminate\Support\Str::slug($platform) }} » et porte la date de la séance. Ouvrez-la, touchez l'icône de partage, puis choisissez WhatsApp ou TikTok.</p>
-                <p>Sur un téléphone lent, l'image peut être un peu moins nette ou moins fluide : {{ $platform }} allège la vidéo pour que votre séance ne soit jamais ralentie.</p>
-            </details>
-            <details>
-                <summary><x-icon name="lock" /><span>Ma vidéo est-elle privée ?</span></summary>
-                <p>Oui. La vidéo est fabriquée et gardée sur votre téléphone : elle n'est jamais envoyée à {{ $platform }}, et notre équipe ne la voit pas. C'est vous qui décidez de la garder, de la partager ou de l'effacer. Avant de la publier, pensez qu'on y entend votre voix et que l'adresse du site est écrite en bas de l'image.</p>
-            </details>
-            <details>
-                <summary><x-icon name="wallet" /><span>Comment payer mon abonnement ?</span></summary>
-                <p>Par Mobile Money, depuis votre téléphone : vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Mêmes formules et mêmes prix dans tous les pays :</p>
-                <ul class="faq-list">
-                    @foreach ($paymentCountries as $paymentCountry)
-                        <li><strong>{{ $paymentCountry['name'] }}</strong> : {{ implode(', ', $paymentCountry['operators']) }}</li>
-                    @endforeach
-                </ul>
-                <p>Si la capture est claire (bon montant, bon numéro, paiement récent), vous avez un accès provisoire de 24 heures : vos séances commencent tout de suite, pendant que notre équipe vérifie ; une fois vérifiée, votre formule devient définitive, sans perdre aucun jour. Sinon, l'équipe vérifie d'abord. Vous répondez ensuite à 4 petites questions et votre programme personnel est prêt.</p>
-                <p>Vous habitez dans un autre pays ? L'inscription et l'évaluation gratuite fonctionnent partout : notre équipe vous explique sur WhatsApp comment vous abonner, avec les mêmes prix en francs CFA.</p>
-            </details>
-            <details>
-                <summary><x-icon name="headphones" /><span>De quoi ai-je besoin (matériel, internet) ?</span></summary>
-                <p>Un téléphone ou un ordinateur avec un micro, un navigateur récent comme Chrome et une connexion internet ; des écouteurs sont pratiques mais pas obligatoires, et aucune application n'est à installer. Pendant une séance, la voix passe en continu : comptez environ 3 à 4 mégaoctets par minute, soit environ 50 mégaoctets pour une séance de 15 minutes. Le professeur en 3D (environ 1 mégaoctet) n'est téléchargé qu'une seule fois. Si vous le pouvez, utilisez le wifi.</p>
-            </details>
-            <details>
-                <summary><x-icon name="award" /><span>Qu'est-ce que l'attestation de niveau ?</span></summary>
-                <p>À la fin de chaque niveau (douze unités), vous passez un bilan oral avec {{ $teacher }}. S'il est réussi, vous recevez une attestation de niveau en PDF, que chacun peut vérifier en ligne grâce à son code.</p>
+            <details class="faq-more">
+                <summary class="faq-more-toggle">Voir les autres questions</summary>
+                <div class="faq">
+                    <details>
+                        <summary><x-icon name="languages" /><span>Quel anglais vais-je apprendre ?</span></summary>
+                        <p>L'anglais américain, compris partout dans le monde : sa prononciation, son vocabulaire et son orthographe. Si vous avez appris des mots britanniques à l'école, ils ne sont jamais comptés comme des fautes : {{ $teacher }} vous donne simplement l'équivalent américain quand c'est utile.</p>
+                    </details>
+                    <details>
+                        <summary><x-icon name="book" /><span>Puis-je travailler mes cours d'anglais, même en PDF ?</span></summary>
+                        <p>Oui, avec « Mes cours », pour les élèves et les étudiants (lycée, université, formation) qui ont une formule active. {{ \App\Support\CourseFiles::offer() }}. Pour un long PDF, vous choisissez avant la séance les pages ({{ \App\Support\CourseFiles::partPages() }} au plus à la fois) ou le passage à travailler, et vous revenez un autre jour pour la suite, sans renvoyer le fichier. {{ $teacher }} vous explique la leçon, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et le temps se prend sur votre temps du jour, partagé avec la séance orale.</p>
+                    </details>
+                    <details>
+                        <summary><x-icon name="bubble" /><span>Puis-je préparer un entretien ou un exposé ?</span></summary>
+                        <p>Oui. Dans le questionnaire de votre programme, choisissez l'objectif « Préparer un entretien (bourse, admission, visa, stage, embauche) » ou « Faire un exposé ou une soutenance en anglais ». Pour un entretien, {{ $teacher }} joue l'examinateur : il pose les questions une par une, écoute votre réponse, puis vous corrige et vous propose une meilleure formulation. C'est un entraînement à l'oral : ce n'est pas la préparation d'un examen officiel, et aucun résultat n'est garanti.</p>
+                    </details>
+                    <details>
+                        <summary><x-icon name="video" /><span>Puis-je enregistrer ma séance en vidéo ?</span></summary>
+                        <p>Oui, pendant l'évaluation gratuite et la séance du jour. Touchez « Enregistrer ma séance », juste sous « Commencer » : l'enregistrement démarre avec la séance et s'arrête avec elle, ou quand vous touchez « Arrêter l'enregistrement ». La vidéo montre {{ $teacher }} et le tableau de la leçon, et on y entend sa voix et la vôtre. Cette fonction est pensée pour Chrome sur Android. Sur iPhone, elle peut ne pas fonctionner ou se comporter autrement. Si votre téléphone ne permet pas d'enregistrer, le bouton n'apparaît pas et votre séance se passe normalement.</p>
+                    </details>
+                    <details>
+                        <summary><x-icon name="share" /><span>Où retrouver ma vidéo, et comment la partager ?</span></summary>
+                        <p>À la fin de la séance, touchez « Télécharger ma vidéo » avant de quitter la page. Tant qu'elle n'est pas téléchargée, la vidéo n'existe que dans la page : si vous la quittez ou la fermez avant, la vidéo est perdue. Sur Android, vous la retrouvez dans l'application Fichiers, dossier « Téléchargements » : son nom commence par « {{ \Illuminate\Support\Str::slug($platform) }} » et porte la date de la séance. Ouvrez-la, touchez l'icône de partage, puis choisissez WhatsApp ou TikTok.</p>
+                        <p>Sur un téléphone lent, l'image peut être un peu moins nette ou moins fluide : {{ $platform }} allège la vidéo pour que votre séance ne soit jamais ralentie.</p>
+                    </details>
+                    <details>
+                        <summary><x-icon name="lock" /><span>Ma vidéo est-elle privée ?</span></summary>
+                        <p>Oui. La vidéo est fabriquée et gardée sur votre téléphone : elle n'est jamais envoyée à {{ $platform }}, et notre équipe ne la voit pas. C'est vous qui décidez de la garder, de la partager ou de l'effacer. Avant de la publier, pensez qu'on y entend votre voix et que l'adresse du site est écrite en bas de l'image.</p>
+                    </details>
+                    <details>
+                        <summary><x-icon name="wallet" /><span>Comment payer mon abonnement ?</span></summary>
+                        <p>Par Mobile Money, depuis votre téléphone : vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Mêmes formules et mêmes prix dans tous les pays ; les moyens de paiement de chaque pays sont indiqués sous les formules.</p>
+                        <p>Si la capture est claire (bon montant, bon numéro, paiement récent), vous avez un accès provisoire de 24 heures : vos séances commencent tout de suite, pendant que notre équipe vérifie ; une fois vérifiée, votre formule devient définitive, sans perdre aucun jour. Sinon, l'équipe vérifie d'abord. Vous répondez ensuite à 4 petites questions et votre programme personnel est prêt.</p>
+                        <p>Vous habitez dans un autre pays ? L'inscription et l'évaluation gratuite fonctionnent partout : notre équipe vous explique sur WhatsApp comment vous abonner, avec les mêmes prix en francs CFA.</p>
+                    </details>
+                    <details>
+                        <summary><x-icon name="headphones" /><span>De quoi ai-je besoin (matériel, internet) ?</span></summary>
+                        <p>Un téléphone ou un ordinateur avec un micro, un navigateur récent comme Chrome et une connexion internet ; des écouteurs sont pratiques mais pas obligatoires, et aucune application n'est à installer. Pendant une séance, la voix passe en continu : comptez environ 3 à 4 mégaoctets par minute, soit environ 50 mégaoctets pour une séance de 15 minutes. Le professeur en 3D (environ 1 mégaoctet) n'est téléchargé qu'une seule fois. Si vous le pouvez, utilisez le wifi.</p>
+                    </details>
+                    <details>
+                        <summary><x-icon name="award" /><span>Qu'est-ce que l'attestation de niveau ?</span></summary>
+                        <p>À la fin de chaque niveau (douze unités), vous passez un bilan oral avec {{ $teacher }}. S'il est réussi, vous recevez une attestation de niveau en PDF, que chacun peut vérifier en ligne grâce à son code.</p>
+                    </details>
+                </div>
             </details>
         </div>
         @php($faqHtml = ob_get_clean())

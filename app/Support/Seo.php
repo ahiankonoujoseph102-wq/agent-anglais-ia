@@ -194,7 +194,8 @@ final class Seo
         $xpath = new DOMXPath($document);
         $questions = [];
 
-        foreach ($xpath->query('//details') as $details) {
+        // Chaque question est un <details> qui n'en contient pas d'autre (« Voir les autres questions » les regroupe).
+        foreach ($xpath->query('//details[not(.//details)]') as $details) {
             $summary = $xpath->query('./summary', $details)->item(0);
 
             if ($summary === null) {

@@ -41,13 +41,12 @@ class PersuasionTest extends TestCase
             ...self::SITUATIONS,
             "Ce n'est pas un manque d'intelligence : c'est un manque de pratique.",
             config('avatar.model.name').' est là pour ça.',
-            'Passer mon évaluation gratuite',
             'Vous avez déjà essayé ?',
             'id="etapes"',
         ], false);
 
-        // Bouton orange vers l'évaluation gratuite (inscription pour un visiteur).
-        $this->assertMatchesRegularExpression('/<a class="btn btn-accent btn-block" href="'.preg_quote(route('register'), '/').'">/', $this->persuasionBlock());
+        // Plus de bouton orange ici : il est au premier écran, juste au-dessus, et à l'appel final.
+        $this->assertStringNotContainsString('btn-accent', $this->persuasionBlock());
     }
 
     public function test_tried_block_lists_three_no_and_one_yes_without_any_brand(): void
