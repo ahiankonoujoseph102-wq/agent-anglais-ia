@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AssessmentStatus;
 use App\Enums\Level;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Plan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\BuildsPrograms;
 use Tests\TestCase;
@@ -51,5 +53,40 @@ class ActionFirstTest extends TestCase
     {
         $this->get('/inscription')->assertOk()->assertSee('Créer mon compte');
         $this->assertStringContainsString('.auth-head .icon-bubble { display: none; }', self::css());
+    }
+
+    public function test_plan_choice_uses_compact_cards_under_a_one_sentence_intro(): void
+    {
+        $user = User::factory()->level(Level::A2)->create(['country' => 'TG', 'phone' => '+22890112233']);
+
+        $html = $this->actingAs($user)->get('/abonnement')->assertOk()
+            ->assertSee('Payez par Mobile Money, puis envoyez la capture d\'écran de la confirmation.', false)
+            ->getContent();
+        $this->assertSame(count(Plan::all()), substr_count($html, 'plan-compact'));
+    }
+
+    public function test_a_known_country_is_folded_so_the_payment_methods_come_first(): void
+    {
+        $user = User::factory()->level(Level::A2)->create(['country' => 'TG', 'phone' => '+22890112233']);
+
+        $html = $this->actingAs($user)->get('/abonnement/essentiel')->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/<section class="card pay-section" id="pays"[^>]*\shidden/', $html);
+        $this->assertStringContainsString('(d\'après votre numéro)', html_entity_decode($html, ENT_QUOTES));
+        // « Modifier » rouvre le pays, avec ou sans JavaScript.
+        $this->assertStringContainsString('href="'.route('payment.create', ['plan' => 'essentiel', 'changer' => 'pays']).'#pays" data-pay-edit="pays"', $html);
+        $this->assertStringContainsString('target.hidden = false;', file_get_contents(public_path('js/payment-flow.js')));
+
+        $open = $this->actingAs($user)->get('/abonnement/essentiel?changer=pays')->assertOk()->getContent();
+        $this->assertDoesNotMatchRegularExpression('/<section class="card pay-section" id="pays"[^>]*\shidden/', $open);
+    }
+
+    public function test_an_interrupted_assessment_puts_the_button_before_the_help_line(): void
+    {
+        $user = User::factory()->create();
+        $user->assessment()->create(['allowed_seconds' => 300, 'used_seconds' => 40, 'status' => AssessmentStatus::Abandoned]);
+
+        $html = $this->actingAs($user)->get('/evaluation')->assertOk()->getContent();
+        $this->assertLessThan(strpos($html, 'result-help'), strpos($html, 'class="result-next"'));
+        $this->assertStringContainsString('.result-teacher { width: 88px; height: 88px; }', self::css());
     }
 }

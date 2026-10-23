@@ -1618,3 +1618,13 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .next-card:not(.next-step-card) > .btn { margin-bottom: var(--space-3); }
     .next-card:not(.next-step-card) > .next-card-note { order: 4; }
 }
+
+/* Téléphone : paiement, état d'un paiement et résultat de l'évaluation plus courts au-dessus du bouton. */
+@media (max-width: 639.98px) {
+    .status-head { padding-top: 0; }
+    .status-head .icon-bubble { width: 48px; height: 48px; margin-bottom: var(--space-2); }
+    .status-head .icon-bubble .icon { width: 26px; height: 26px; }
+    .result-teacher { width: 88px; height: 88px; }
+    .result-main h1 { font-size: var(--fs-xl); }
+}
+.result-help { margin: var(--space-3) 0 var(--space-1); }
