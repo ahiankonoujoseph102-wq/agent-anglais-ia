@@ -1635,6 +1635,7 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 @media (max-width: 639.98px) {
     .next-step-card.next-step-compact { display: flex; flex-direction: column; }
     .next-step-card.next-step-compact > .next-card-eyebrow { align-self: flex-start; }
+    .next-step-card.next-step-compact > h2 { text-align: left; align-self: stretch; }
     .next-step-card.next-step-compact > .next-step-text { order: 3; margin: var(--space-3) 0 0; }
 }
 .courses-add { margin-bottom: var(--space-4); }
