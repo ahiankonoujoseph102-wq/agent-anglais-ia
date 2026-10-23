@@ -284,15 +284,15 @@ if (rec.box && root.dataset.recorder) {
 }
 
 /**
- * Avant « Commencer » : « Enregistrer ma séance » juste sous le bouton (visible sans faire défiler, sur
- * l'évaluation comme sur la séance du jour) ; ensuite, à sa place sous les commandes.
+ * Avant « Commencer » : « Enregistrer ma séance » juste sous le bouton et sa ligne (#start-block), avant
+ * « Avant de commencer », sur l'évaluation comme sur la séance du jour ; ensuite, à sa place sous les commandes.
  */
 function placeRecorder() {
     if (!rec.box) {
         return;
     }
 
-    const before = root.dataset.phase === 'intro' ? $('start') : null;
+    const before = root.dataset.phase === 'intro' ? ($('start-block') ?? $('start')) : null;
     const anchor = before ?? $('subtitles-home');
 
     if (!anchor) {

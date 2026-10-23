@@ -60,7 +60,9 @@ class CourseSessionController extends Controller
             'mode' => 'course',
             'usefulPhrasesOpen' => WorkingTogether::isFirst(WorkingTogether::courseNumber($user, $open)),
             'title' => 'Mon cours',
-            'intro' => 'Teacher Joe a lu votre leçon « '.$course->title.' »'.($course->currentPart ? ' ('.$course->currentPart->label().')' : '').'. Il vous demandera ce que vous voulez faire : comprendre toute la leçon, poser une question précise ou travailler un exercice. '
+            // UNE ligne courte sous « Commencer » ; le détail est replié sous « Avant de commencer ».
+            'intro' => config('avatar.model.name').' a lu votre leçon « '.$course->title.' »'.($course->currentPart ? ' ('.$course->currentPart->label().')' : '').'.',
+            'introMore' => 'Il vous demandera ce que vous voulez faire : comprendre toute la leçon, poser une question précise ou travailler un exercice. '
                 .'Cette séance dure '.Duration::format($remaining).' au plus ; il vous préviendra avant la fin. '
                 .'Elle prend sur votre temps du jour, partagé avec la séance orale. '.DailyTime::remainingSentence((int) $user->remainingSecondsToday(false)),
             'remainingSeconds' => $remaining,

@@ -64,7 +64,9 @@ class LessonController extends Controller
             // Phrases utiles dépliées aux premières séances, repliées ensuite.
             'usefulPhrasesOpen' => WorkingTogether::isFirst(WorkingTogether::lessonNumber($user, $lesson)),
             'title' => 'Ma séance du jour',
-            'intro' => DailyTime::remainingSentence($remaining).' Ce temps du jour est partagé avec « Mes cours ». Le professeur vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
+            // UNE ligne courte sous « Commencer » ; le détail est replié sous « Avant de commencer ».
+            'intro' => DailyTime::remainingSentence($remaining),
+            'introMore' => 'Ce temps du jour est partagé avec « Mes cours ». Le professeur vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
             'remainingSeconds' => $remaining,
             'board' => $board,
             // Traductions du tableau : visibles en A1 et A2, discrètes en B1, masquées ensuite.

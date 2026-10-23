@@ -180,8 +180,8 @@ class SessionRecordingTest extends TestCase
 
         // Évaluation commencée puis reprise : toujours la page de la séance, avec le bouton.
         $this->assertStringContainsString('id="record-start"', $this->actingAs($user)->get('/evaluation')->assertOk()->getContent());
-        // Avant « Commencer », le bouton est placé juste sous lui (visible sans faire défiler).
-        $this->assertStringContainsString("root.dataset.phase === 'intro' ? $('start') : null", file_get_contents(public_path('js/live-session.js')));
+        // Avant « Commencer », le bouton est placé juste sous lui et sa ligne (visible sans faire défiler).
+        $this->assertStringContainsString("root.dataset.phase === 'intro' ? ($('start-block') ?? $('start')) : null", file_get_contents(public_path('js/live-session.js')));
     }
 
     public function test_the_assessment_video_board_never_reveals_a_level_before_the_verdict(): void

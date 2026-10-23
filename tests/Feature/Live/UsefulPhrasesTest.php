@@ -50,7 +50,7 @@ class UsefulPhrasesTest extends TestCase
     public function test_the_assessment_shows_them_open_with_the_reassuring_tip(): void
     {
         $html = $this->actingAs(User::factory()->create())->get('/evaluation')->assertOk()
-            ->assertSee('Vous avez le droit de vous tromper : répondez comme vous pouvez, même en français si vous bloquez.')
+            ->assertSee('Vous pouvez parler français, demander de répéter ou de réexpliquer : vous avez le droit de vous tromper.')
             ->getContent();
         $block = $this->block($html);
 
