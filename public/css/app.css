@@ -1644,3 +1644,13 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .page-hero .photo-frame { aspect-ratio: 2 / 1; order: 2; }
     .page-hero .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
 }
+
+/* Cohérence (octobre 2026) : petit titre orange sur une bande bleu pâle, orange plus foncé (accent-strong n'y
+   donne que 4,2:1, accent-ink donne plus de 6:1). */
+.band-soft .section-head .eyebrow, .band-soft .eyebrow { color: var(--c-accent-ink); }
+/* État vide dans une carte : la marge intérieure de la carte reste (le texte ne touche plus les bords). */
+.card.empty-state { padding: var(--space-5) var(--space-4); }
+.card.empty-state .icon-bubble { width: 64px; height: 64px; margin-bottom: var(--space-3); }
+/* « Affichage plus léger » (avant « Commencer ») : zone de toucher de 44 pixels de haut au moins, même texte, même
+   comportement. */
+.teacher3d-toggle { min-height: 44px; display: flex; align-items: center; justify-content: center; margin-left: auto; margin-right: auto; }

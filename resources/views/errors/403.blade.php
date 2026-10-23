@@ -4,7 +4,7 @@
         <h1>Accès refusé</h1>
         <p class="lead">Vous n'avez pas accès à cette page.</p>
         <div class="actions">
-            <a class="btn btn-block" href="{{ auth()->check() ? route('dashboard') : route('home') }}"><x-icon name="home" /> {{ auth()->check() ? 'Retour à mon espace' : 'Retour à l\'accueil' }}</a>
+            <a class="btn btn-accent btn-block" href="{{ auth()->check() ? route('dashboard') : route('home') }}"><x-icon name="home" /> {{ auth()->check() ? 'Retour à mon espace' : 'Retour à l\'accueil' }}</a>
         </div>
     </section>
 </x-layout>

@@ -20,7 +20,7 @@
                 </label>
             </div>
 
-            <button type="submit" class="btn btn-block btn-lg">Se connecter</button>
+            <button type="submit" class="btn btn-accent btn-block btn-lg">Se connecter</button>
             <p class="center next-step"><a href="{{ route('password.forgot') }}">Mot de passe oublié ?</a></p>
         </form>
 
