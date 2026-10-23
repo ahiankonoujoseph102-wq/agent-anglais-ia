@@ -37,8 +37,8 @@ class RecordingAnnouncementTest extends TestCase
     {
         $this->get('/')->assertOk()
             ->assertSee('Enregistrez votre séance avec Teacher Joe :', false)
-            ->assertSee('la vidéo montre le professeur, le tableau, et on y entend vos deux voix. Elle reste sur votre téléphone, Talkami ne la reçoit jamais.', false)
-            ->assertSee('partagez-la avec vos proches, sur WhatsApp ou sur vos réseaux, si vous le souhaitez.', false)
+            ->assertSee('elle reste sur votre téléphone, Talkami ne la reçoit jamais.', false)
+            ->assertSee('Revoyez-la ou partagez-la, si vous le souhaitez.', false)
             ->assertSee('Vous pouvez même l\'enregistrer en vidéo.', false);
     }
 
