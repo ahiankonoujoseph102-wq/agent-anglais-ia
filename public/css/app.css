@@ -1659,3 +1659,19 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 @media (max-width: 719.98px) {
     .audiences > .audience { align-self: start; }
 }
+/* Pages pays et « À propos », téléphone : l'icône à côté du titre, le texte sur toute la largeur de la carte (deux
+   fois moins de lignes, même texte). */
+@media (max-width: 639.98px) {
+    .card.feature { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-2) var(--space-3); align-items: center; }
+    .card.feature > div { display: contents; }
+    .card.feature .icon-bubble { width: 44px; height: 44px; }
+    .card.feature .icon-bubble .icon { width: 22px; height: 22px; }
+    .card.feature h3 { margin: 0; }
+    .card.feature p { grid-column: 1 / -1; }
+}
+/* Contact : le fondateur, petite photo ronde et son nom, sous le bouton WhatsApp. */
+.contact-founder { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-4) 0; }
+.contact-founder img { flex: none; width: 56px; height: 56px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 3px var(--c-surface), 0 0 0 5px var(--c-accent); }
+.contact-founder p { margin: 0; display: grid; line-height: 1.35; }
+.contact-founder strong { color: var(--c-primary-strong); }
+.contact-founder span { font-size: var(--fs-sm); color: var(--c-muted); }

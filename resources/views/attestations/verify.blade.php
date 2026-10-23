@@ -10,12 +10,19 @@
                 </p>
                 <p class="muted small">Code de vérification : {{ $attestation->code }}</p>
             </div>
+            <div class="actions">
+                <a class="btn btn-accent btn-block" href="{{ route('home') }}"><x-icon name="home" /> Découvrir {{ config('platform.name') }}</a>
+            </div>
         </section>
     @else
         <section class="empty-state rise">
             <span class="icon-bubble icon-bubble-danger"><x-icon name="alert" /></span>
             <h1>Vérification d'une attestation</h1>
-            <div class="alert alert-error"><x-icon name="alert" /><div>Aucune attestation ne correspond au code « {{ $code }} ».</div></div>
+            <div class="alert alert-error"><x-icon name="alert" /><div>Aucune attestation ne correspond au code « {{ $code }} ». Vérifiez le code écrit en bas de l'attestation.</div></div>
+            <div class="actions">
+                <a class="btn btn-accent btn-block" href="{{ route('home') }}"><x-icon name="home" /> Retour à l'accueil</a>
+                <a class="btn btn-outline btn-block" href="{{ route('contact') }}">Nous contacter</a>
+            </div>
         </section>
     @endif
 </x-layout>

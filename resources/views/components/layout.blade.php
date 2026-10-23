@@ -196,7 +196,6 @@
                 <div>
                     <x-logo variant="footer" />
                     <p class="footer-tagline">{{ config('platform.brand.tagline') }}</p>
-                    <p class="next-step">Apprenez l'anglais à l'oral avec {{ config('avatar.model.name') }}, depuis votre téléphone.</p>
                 </div>
                 @php($contact = \App\Support\SiteSettings::contact())
                 <ul class="footer-list">
