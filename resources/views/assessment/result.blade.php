@@ -159,5 +159,7 @@
         </section>
     @endif
 
+    <x-invite-friend class="card section-tight reveal" />
+
     <script type="module" src="{{ Asset::url('js/level-message.js') }}"></script>
 </x-layout>

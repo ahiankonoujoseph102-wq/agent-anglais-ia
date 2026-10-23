@@ -1565,3 +1565,9 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .intro-before .intro-mic { padding: var(--space-2) var(--space-3); border-radius: var(--radius); background: var(--c-primary-soft); }
 .intro-before .intro-mic .icon { color: var(--c-primary); }
 .result-whatsapp { margin-top: var(--space-3); }
+
+/* « Inviter un ami sur WhatsApp » : discret (bouton secondaire, pas le vert du bouton WhatsApp principal). */
+.invite-friend h2 { margin: 0 0 var(--space-1); font-size: var(--fs-lg); }
+.invite-friend p { margin: 0 0 var(--space-3); }
+.invite-friend-btn .icon { color: var(--c-primary); }
+@media (max-width: 639.98px) { .invite-friend-btn { width: 100%; } }

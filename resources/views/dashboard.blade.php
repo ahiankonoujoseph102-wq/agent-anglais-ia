@@ -337,6 +337,8 @@
         </section>
     @endif
 
+    <x-invite-friend class="card next-step reveal" />
+
     <p class="center next-step"><a href="{{ route('account.edit') }}"><x-icon name="user" /> Mon compte et mon adresse e-mail</a></p>
     @if ($welcomeReplay)
         <p class="center welcome-replay"><a href="{{ route('welcome.show', ['reecouter' => 1]) }}"><x-icon name="play" /> Réécouter le message de bienvenue</a></p>
