@@ -1474,3 +1474,85 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 @media (min-width: 640px) {
     .hero-cta, .hero-login { display: inline-flex; width: auto; }
 }
+
+/* Pied de page : liens faciles à toucher au pouce (44 pixels de haut), un numéro de téléphone par ligne. */
+.footer-phones { display: grid; }
+.site-footer .footer-list a, .site-footer .footer-links a { display: inline-flex; align-items: center; min-height: 44px; }
+.footer-list li { align-items: flex-start; }
+.footer-list li:has(a) .icon { margin-top: 12px; }
+.footer-links { row-gap: 0; }
+
+/* Accueil plus court : formules compactes (détail replié), pays une seule fois, cartes des publics compactes. */
+.plan-summary { display: flex; gap: var(--space-2); align-items: center; margin: var(--space-3) 0; font-weight: var(--fw-bold); color: var(--c-heading); }
+.plan-summary .icon { flex: none; color: var(--c-accent-strong); }
+.plan-more, .audience-more { margin: 0 0 var(--space-3); }
+.plan-more summary, .audience-more summary { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; font-weight: var(--fw-bold); color: var(--c-primary); cursor: pointer; list-style: none; }
+.plan-more summary::-webkit-details-marker, .audience-more summary::-webkit-details-marker { display: none; }
+.plan-more summary::after, .audience-more summary::after { content: "+"; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--c-primary-soft); color: var(--c-primary); font-weight: var(--fw-heavy); }
+.plan-more[open] summary::after, .audience-more[open] summary::after { content: "−"; }
+.plan-more summary:focus-visible, .audience-more summary:focus-visible { outline: 3px solid var(--c-focus); outline-offset: 2px; border-radius: var(--radius); }
+.plan.plan-compact ul { margin: var(--space-2) 0 0; }
+.plan-price-line { margin: var(--space-2) 0 0; }
+.plan-price-line .price { font-size: var(--fs-xl); font-weight: var(--fw-heavy); color: var(--c-primary); }
+.plan.plan-compact .plan-summary { margin: var(--space-2) 0 0; }
+.plan.plan-compact .plan-more { margin-bottom: var(--space-2); }
+@media (max-width: 639.98px) { .plan.plan-compact { padding: var(--space-4); } }
+.pay-methods h3 { margin: 0 0 var(--space-3); font-size: var(--fs-lg); }
+.pay-methods > p.muted { margin: var(--space-3) 0 0; }
+.pay-countries a.pay-country { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; color: var(--c-heading); text-decoration: underline; text-decoration-color: var(--c-primary-line); text-underline-offset: 3px; }
+.pay-countries a.pay-country .icon { width: 16px; height: 16px; color: var(--c-accent-strong); }
+@media (max-width: 639.98px) {
+    .pay-countries { gap: var(--space-1); }
+    .pay-countries li { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--space-3); row-gap: 4px; }
+}
+.audience-cta { align-self: flex-start; }
+
+@media (max-width: 719.98px) {
+    /* Petite photo à côté du titre ; le reste en dessous, sur toute la largeur. */
+    .students.audience { grid-template-columns: 88px minmax(0, 1fr); gap: var(--space-2) var(--space-3); align-items: center; padding: var(--space-4); }
+    .audience-body { display: contents; }
+    .audience .photo-frame { aspect-ratio: 1; grid-row: 1; grid-column: 1; }
+    .audience .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+    .audience h2 { grid-row: 1; grid-column: 2; margin: 0; font-size: var(--fs-lg); }
+    .audience-body > :not(h2) { grid-column: 1 / -1; }
+    .audience-body > p { margin: 0; }
+    .audience-more { margin: 0; }
+    .audiences { gap: var(--space-3); }
+    .audience-cta { width: 100%; }
+}
+
+@media (max-width: 639.98px) {
+    /* Étapes : numéro à gauche, titre et phrase à droite, sans pastille d'icône. */
+    .how .card { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--space-3); padding: var(--space-3) var(--space-4); }
+    .how .how-head { grid-row: 1 / span 2; margin: 0; align-self: start; }
+    .how .how-head .icon-bubble { display: none; }
+    .how .how-num { width: 40px; height: 40px; font-size: var(--fs-lg); }
+    .how p { font-size: var(--fs-sm); }
+    /* Persuasion : listes plus serrées. */
+    .tried { gap: var(--space-2); }
+    .tried li { font-size: var(--fs-sm); }
+}
+@media (max-width: 639.98px) {
+    /* Bandes de l'accueil moins hautes sur téléphone. */
+    .section.band { padding: var(--space-6) 0; }
+    .band .section-head { margin-bottom: var(--space-4); }
+}
+
+/* Questions fréquentes : les six premières visibles, les autres derrière « Voir les autres questions ». */
+.faq > .faq-more { background: none; border: 0; }
+.faq-more > .faq { margin-top: var(--space-2); }
+.faq .faq-more-toggle { justify-content: center; gap: var(--space-2); color: var(--c-primary); }
+.faq .faq-more-toggle::after { background: var(--c-primary-soft); color: var(--c-primary); }
+.faq-more[open] > .faq-more-toggle { display: none; }
+
+/* Cartes des publics sur téléphone : côte à côte, on les fait glisser (aucune animation, défilement natif). */
+@media (max-width: 719.98px) {
+    .audiences { grid-auto-flow: column; grid-auto-columns: 86%; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding-bottom: var(--space-3); scrollbar-width: thin; }
+    .audiences > .audience { scroll-snap-align: start; }
+}
+.swipe-hint { display: none; }
+@media (max-width: 719.98px) {
+    .swipe-hint { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-3); }
+    .swipe-hint .icon { flex: none; color: var(--c-accent-strong); }
+}
+.founder-more { display: inline-flex; align-items: center; min-height: 44px; }

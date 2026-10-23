@@ -63,7 +63,8 @@ class CourseHelpHomeTest extends TestCase
         sort($sorted);
         $this->assertSame($sorted, $positions);
 
-        // Même carte compacte : une photo, un titre, une phrase, trois points au plus, un bouton orange.
+        // Même carte compacte : une photo, un titre, une phrase, trois points au plus (repliés), un bouton secondaire :
+        // le bouton orange reste au premier écran, aux formules et à l'appel final.
         $document = new \DOMDocument;
         @$document->loadHTML('<?xml encoding="utf-8"?>'.$html);
         $xpath = new \DOMXPath($document);
@@ -75,7 +76,9 @@ class CourseHelpHomeTest extends TestCase
             $this->assertSame(1, $xpath->query($card.'//h2[@id="'.$id.'"]')->length, $id);
             $this->assertLessThanOrEqual(3, $xpath->query($card.'//ul[contains(@class,"audience-points")]/li')->length, $id);
             $this->assertGreaterThanOrEqual(1, $xpath->query($card.'//ul[contains(@class,"audience-points")]/li')->length, $id);
-            $this->assertSame(1, $xpath->query($card.'//a[contains(@class,"btn-accent")]')->length, $id);
+            $this->assertSame(1, $xpath->query($card.'//details[contains(@class,"audience-more")]/ul[contains(@class,"audience-points")]')->length, $id);
+            $this->assertSame(1, $xpath->query($card.'//a[contains(@class,"btn-outline")]')->length, $id);
+            $this->assertSame(0, $xpath->query($card.'//a[contains(@class,"btn-accent")]')->length, $id);
         }
 
         // Le bouton « parents » mène à l'inscription ; l'ancien bloc n'existe plus.

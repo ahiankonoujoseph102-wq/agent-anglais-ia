@@ -115,9 +115,9 @@ class DesignFinishTest extends TestCase
 
         // Niveaux : échelle reliée, nom sous chaque niveau.
         $this->assertSame(6, substr_count($html, 'class="level-dot"'));
-        // Moyens de paiement groupés par pays, en étiquettes.
+        // Moyens de paiement groupés par pays, en étiquettes ; chaque pays mène à sa page.
         $this->assertStringContainsString('class="pay-countries"', $html);
-        $this->assertMatchesRegularExpression('/<span class="pay-country">Togo<\/span>\s*<span class="tags">\s*<span class="tag">Mixx by Yas<\/span>\s*<span class="tag">Flooz<\/span>/', $html);
+        $this->assertMatchesRegularExpression('/<a class="pay-country" href="'.preg_quote(route('country', 'togo'), '/').'">Togo <svg.*?<\/a>\s*<span class="tags">\s*<span class="tag">Mixx by Yas<\/span>\s*<span class="tag">Flooz<\/span>/s', $html);
         $this->assertStringContainsString('faq-section', $html);
 
         $css = self::css();

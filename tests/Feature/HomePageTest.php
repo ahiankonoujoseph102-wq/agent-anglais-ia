@@ -87,7 +87,7 @@ class HomePageTest extends TestCase
         $html = $this->get('/')->assertOk()
             ->assertSee('Comment se passe votre cours avec Professeur Kofi ?')
             ->assertSee('La leçon :')
-            ->assertSee('affichés au tableau, en anglais simple, avec une explication en français si vous ne comprenez pas')
+            ->assertSee('au tableau, en anglais simple ; en français si vous ne comprenez pas')
             ->assertSee('La pratique :')
             ->assertSee('La conversation :')
             ->assertSee('Le bilan :')

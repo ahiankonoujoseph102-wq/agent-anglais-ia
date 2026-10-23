@@ -19,12 +19,13 @@ class HomeController extends Controller
 
         return view('home', [
             'plans' => Plan::all(),
-            'countryPages' => CountryPage::all(),
-            // Opérateurs pays par pays (étiquettes sous les formules, question fréquente sur le paiement).
-            'paymentCountries' => array_map(fn (PaymentCountry $country) => [
-                'name' => $country->name,
-                'operators' => array_map(fn ($operator) => $operator->name, array_values($country->operators)),
-            ], array_values($countries)),
+            // Pays de paiement (un lien vers la page de chaque pays) et moyens de paiement réellement proposés
+            // (numéro par défaut ou saisi dans les Réglages), affichés une seule fois, sous les formules.
+            'paymentCountries' => array_values(array_map(fn (CountryPage $page) => [
+                'slug' => $page->slug,
+                'name' => $page->name,
+                'operators' => array_map(fn ($operator) => $operator->name, array_values(($countries[$page->code] ?? null)?->operators ?? [])),
+            ], CountryPage::all())),
             'whatsappUrl' => $whatsapp ? WhatsApp::url($whatsapp, 'Bonjour '.config('platform.name').', j\'ai une question : ') : null,
         ]);
     }
