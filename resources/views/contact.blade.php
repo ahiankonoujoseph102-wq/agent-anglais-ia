@@ -10,6 +10,15 @@
         <a class="btn btn-whatsapp btn-block btn-lg contact-whatsapp rise" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Écrire sur WhatsApp</a>
     @endif
 
+    {{-- Un visage derrière le numéro : le fondateur (photo et nom de la configuration, rien d'inventé). --}}
+    @if ($founderPhoto = \App\Support\Founder::photoUrl())
+        <div class="contact-founder rise">
+            <img src="{{ $founderPhoto }}" width="56" height="56" alt="">
+            <p><strong>{{ \Illuminate\Support\Str::before(config('platform.founder.name'), ' ') }} vous répond</strong>
+                <span>{{ config('platform.founder.name') }}, fondateur de {{ config('platform.name') }}</span></p>
+        </div>
+    @endif
+
     <section class="card rise" style="--i: 1">
         <ul class="contact-list">
             @if ($contact['address'])

@@ -10,6 +10,7 @@ use App\Models\Attestation;
 use App\Models\Program;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\AttestationPdf;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -186,14 +187,18 @@ class LevelTestTest extends TestCase
             ->assertHeader('Content-Disposition', 'attachment; filename="attestation-anglais-B2-edem-kossi.pdf"')
             ->getContent();
 
-        $this->assertStringStartsWith('%PDF-1.4', $pdf);
-        $this->assertStringEndsWith("%%EOF\n", $pdf);
-        $this->assertStringContainsString('ATTESTATION DE NIVEAU EN ANGLAIS', $pdf);
-        $this->assertStringContainsString('Edem Kossi', $pdf);
-        $this->assertStringContainsString($attestation->code, $pdf);
+        $this->assertStringStartsWith('%PDF-', $pdf);
+        $this->assertStringContainsString('%%EOF', substr($pdf, -10));
+
+        // Contenu de l'attestation (le PDF compresse son texte : on lit la page qui le produit).
+        $html = html_entity_decode(AttestationPdf::html($attestation), ENT_QUOTES);
+        $this->assertStringContainsString('ATTESTATION DE NIVEAU EN ANGLAIS', $html);
+        $this->assertStringContainsString('Edem Kossi', $html);
+        $this->assertStringContainsString($attestation->code, $html);
+        $this->assertStringContainsString(route('attestation.verify', $attestation->code), $html);
         // Toujours « attestation », jamais « certificat » ni « diplôme ».
-        $this->assertStringNotContainsStringIgnoringCase('certificat', $pdf);
-        $this->assertStringNotContainsStringIgnoringCase(mb_convert_encoding('diplôme', 'Windows-1252', 'UTF-8'), $pdf);
+        $this->assertStringNotContainsStringIgnoringCase('certificat', $html);
+        $this->assertStringNotContainsStringIgnoringCase('diplôme', $html);
 
         $this->actingAs($user->fresh())->get('/espace')
             ->assertSee('Mes attestations de niveau')
