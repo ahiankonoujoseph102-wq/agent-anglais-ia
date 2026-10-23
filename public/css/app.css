@@ -1556,3 +1556,12 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .swipe-hint .icon { flex: none; color: var(--c-accent-strong); }
 }
 .founder-more { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* Évaluation, avant « Commencer » : ce qui va se passer et le micro expliqué avant la demande du téléphone. */
+.intro-text:has(+ .intro-before) { font-weight: var(--fw-bold); color: var(--c-heading); }
+.intro-before { list-style: none; padding: 0; margin: 0 0 var(--space-4); display: grid; gap: var(--space-2); font-size: var(--fs-sm); }
+.intro-before li { display: flex; gap: var(--space-2); align-items: flex-start; line-height: 1.45; }
+.intro-before .icon { flex: none; color: var(--c-accent-strong); margin-top: 2px; }
+.intro-before .intro-mic { padding: var(--space-2) var(--space-3); border-radius: var(--radius); background: var(--c-primary-soft); }
+.intro-before .intro-mic .icon { color: var(--c-primary); }
+.result-whatsapp { margin-top: var(--space-3); }
