@@ -121,6 +121,18 @@
     {{-- Où en est l'apprenant dans le parcours : sous la prochaine étape, pour que son bouton reste dans le premier écran. --}}
     <x-stepper :labels="['Évaluation', 'Formule', 'Programme', 'Séances']" :current="$journeyStep" label="Votre parcours" />
 
+    {{-- Niveau validé il y a moins de 14 jours : on le fête juste après la prochaine étape, attestation à portée de main. --}}
+    @php
+        $freshAttestation = $attestations->sortByDesc('issued_at')->first(fn ($a) => $a->issued_at->gt(now()->subDays(14)));
+    @endphp
+    @if ($freshAttestation)
+        <section class="card attestation-fresh rise" aria-labelledby="attestation-fresh-title">
+            <div class="card-title"><span class="icon-bubble icon-bubble-accent"><x-icon name="award" /></span><h2 id="attestation-fresh-title">Bravo, niveau {{ $freshAttestation->level->value }} validé !</h2></div>
+            <p>Votre attestation de niveau {{ $freshAttestation->level->value }} ({{ $freshAttestation->level->label() }}) est prête. Chacun peut vérifier qu'elle est authentique grâce à son code.</p>
+            <a class="btn btn-outline btn-block" href="{{ route('attestation.download', $freshAttestation) }}"><x-icon name="download" /> Télécharger mon attestation</a>
+        </section>
+    @endif
+
     {{-- Abonné sans évaluation (réinitialisée par l'administrateur) : invitation juste après la prochaine étape. --}}
     @if ($needsAssessment && $subscription)
         <section class="card next-step rise" aria-labelledby="assessment-invite">

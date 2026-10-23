@@ -8,7 +8,7 @@
                     {{ $attestation->user->name }} a validé le niveau <strong>{{ $attestation->level->value }} ({{ $attestation->level->label() }})</strong>
                     en anglais avec {{ config('platform.name') }} le {{ $attestation->issued_at->translatedFormat('j F Y') }}.
                 </p>
-                <p class="muted small">Code de vérification : {{ $attestation->code }}</p>
+                <p class="muted small">Code de vérification : <span class="attestation-code">{{ $attestation->code }}</span></p>
             </div>
             <div class="actions">
                 <a class="btn btn-accent btn-block" href="{{ route('home') }}"><x-icon name="home" /> Découvrir {{ config('platform.name') }}</a>

@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Level;
+use App\Models\Attestation;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -46,5 +49,21 @@ class TrustPagesTest extends TestCase
         $css = file_get_contents(public_path('css/app.css'));
         $this->assertStringContainsString('.card.feature > div { display: contents; }', $css);
         $this->assertStringContainsString('.card.feature p { grid-column: 1 / -1; }', $css);
+    }
+
+    public function test_a_fresh_attestation_is_celebrated_on_the_dashboard(): void
+    {
+        $user = User::factory()->create(['welcomed_at' => now()]);
+        $attestation = new Attestation(['level' => Level::B1, 'code' => 'TA-B1-ABCD-EFGH', 'issued_at' => now()->subDays(3)]);
+        $attestation->user_id = $user->id;
+        $attestation->save();
+
+        $html = html_entity_decode($this->actingAs($user)->get('/espace')->assertOk()->getContent(), ENT_QUOTES);
+        $this->assertStringContainsString('Bravo, niveau B1 validé !', $html);
+        $this->assertLessThan(strpos($html, 'Bravo, niveau B1'), strpos($html, 'next-step-title'));
+        $this->assertStringContainsString('class="btn btn-outline btn-block" href="'.route('attestation.download', $attestation).'"', $html);
+
+        $this->travel(15)->days();
+        $this->actingAs($user)->get('/espace')->assertOk()->assertDontSee('Bravo, niveau B1 validé');
     }
 }

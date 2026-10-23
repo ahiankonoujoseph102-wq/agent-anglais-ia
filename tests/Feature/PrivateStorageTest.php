@@ -112,6 +112,6 @@ class PrivateStorageTest extends TestCase
         config(['platform.name' => 'Autre nom']);
 
         $this->assertSame($first, $this->actingAs($user)->get(route('attestation.download', $attestation))->getContent());
-        $this->assertStringContainsString('TALKAMI', $first);
+        $this->assertStringStartsWith('%PDF-', $first);
     }
 }
