@@ -84,22 +84,22 @@
             <h2 id="etapes">Quatre étapes simples</h2>
         </div>
         <ol class="how">
-            <li class="card reveal" style="--i: 0">
+            <li class="card reveal reveal-side" style="--i: 0">
                 <div class="how-head"><span class="how-num">1</span><span class="icon-bubble"><x-icon name="user-plus" /></span></div>
                 <h3>Créez votre compte</h3>
                 <p>Avec votre nom et votre numéro de téléphone.</p>
             </li>
-            <li class="card reveal" style="--i: 1">
+            <li class="card reveal reveal-side" style="--i: 1">
                 <div class="how-head"><span class="how-num">2</span><span class="icon-bubble"><x-icon name="mic" /></span></div>
                 <h3>Passez l'évaluation gratuite</h3>
                 <p>{{ $minutes }} minutes à l'oral pour trouver votre niveau, puis une mini-leçon et vos questions. Vous pouvez même l'enregistrer en vidéo.</p>
             </li>
-            <li class="card reveal" style="--i: 2">
+            <li class="card reveal reveal-side" style="--i: 2">
                 <div class="how-head"><span class="how-num">3</span><span class="icon-bubble"><x-icon name="mobile" /></span></div>
                 <h3>Choisissez votre formule</h3>
                 <p>Payez par Mobile Money et envoyez la capture. Souvent, votre accès s'ouvre tout de suite pour 24 heures, puis notre équipe le confirme.</p>
             </li>
-            <li class="card reveal" style="--i: 3">
+            <li class="card reveal reveal-side" style="--i: 3">
                 <div class="how-head"><span class="how-num">4</span><span class="icon-bubble"><x-icon name="calendar-check" /></span></div>
                 <h3>Parlez chaque jour</h3>
                 <p>{{ $teacher }} vous accueille, 4 petites questions, et votre programme est prêt : première séance possible le jour même.</p>
@@ -194,7 +194,7 @@
     <div class="section band band-soft">
         <p class="swipe-hint muted small"><x-icon name="arrow-right" /> Étudiant, élève, parent ou professionnel : faites glisser pour voir chaque profil.</p>
         <div class="audiences">
-            <section class="students audience reveal" aria-labelledby="etudiants">
+            <section class="students audience reveal reveal-side" aria-labelledby="etudiants">
                 <figure class="photo-frame"><x-photo name="etudiants-bibliotheque" /></figure>
                 <div class="audience-body">
                     <h2 id="etudiants">Vous êtes étudiant ?</h2>
@@ -211,7 +211,7 @@
                 </div>
             </section>
 
-            <section class="students audience reveal" aria-labelledby="eleves">
+            <section class="students audience reveal reveal-side" aria-labelledby="eleves">
                 <figure class="photo-frame"><x-photo name="eleve-ecouteurs" /></figure>
                 <div class="audience-body">
                     <h2 id="eleves">Vous êtes élève ?</h2>
@@ -229,7 +229,7 @@
                 </div>
             </section>
 
-            <section class="students audience reveal" aria-labelledby="parents">
+            <section class="students audience reveal reveal-side" aria-labelledby="parents">
                 <figure class="photo-frame"><x-photo name="parent-enfant-lecture" /></figure>
                 <div class="audience-body">
                     <h2 id="parents">Vous êtes parent ?</h2>
@@ -246,7 +246,7 @@
                 </div>
             </section>
 
-            <section class="students audience reveal" aria-labelledby="pros">
+            <section class="students audience reveal reveal-side" aria-labelledby="pros">
                 <figure class="photo-frame"><x-photo name="equipe-reunion" /></figure>
                 <div class="audience-body">
                     <h2 id="pros">Vous travaillez ?</h2>
@@ -370,6 +370,16 @@
     </section>
 
     <section class="section band">
+        {{-- En bref : les faits vérifiés de l'évaluation, juste avant l'appel final (aucun bouton : celui de l'appel suffit). --}}
+        <div class="in-short reveal" aria-labelledby="en-bref">
+            <h2 id="en-bref" class="in-short-title">En bref</h2>
+            <ul class="in-short-list">
+                <li><x-icon name="mic" /> <span>Évaluation orale de {{ $minutes }} minutes</span></li>
+                <li><x-icon name="gift" /> <span>Gratuite, une par compte</span></li>
+                <li><x-icon name="mobile" /> <span>Depuis votre téléphone</span></li>
+                <li><x-icon name="award" /> <span>Votre niveau, de {{ Level::cases()[0]->value }} à {{ Level::cases()[count(Level::cases()) - 1]->value }}</span></li>
+            </ul>
+        </div>
         <div class="cta-band reveal">
             <h2>Votre anglais oral commence aujourd'hui</h2>
             <p>Une évaluation orale gratuite avec {{ $teacher }} : votre niveau, une première phrase apprise et vos questions.</p>
