@@ -1681,3 +1681,11 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 /* Visage de Teacher Joe (<x-teacher-face>) en tête des pages d'erreur, hors connexion et états vides. */
 .teacher-face { display: block; width: var(--face, 96px); height: var(--face, 96px); margin: 0 auto var(--space-4); }
 .empty-state .code { font-size: 3rem; }
+
+/* Fluidité sur téléphone (moins de 900 pixels) : les formes rondes restent à leur place sans tourner en boucle
+   (la règle du projet réserve ces animations à l'ordinateur), et l'en-tête fixe est plein, de la même couleur, sans
+   flou (le flou sous un en-tête fixe est recalculé à chaque image du défilement). */
+@media (max-width: 899.98px) {
+    .students::before, .cta-band::before, .cta-band::after, .result-hero::before { animation: none; }
+    .site-header { background: var(--c-bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
