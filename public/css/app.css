@@ -1689,3 +1689,23 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .students::before, .cta-band::before, .cta-band::after, .result-hero::before { animation: none; }
     .site-header { background: var(--c-bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
+
+/* Dynamisme de l'accueil (octobre 2026). Apparition des cartes des étapes et des publics : glissement latéral léger,
+   alterné (gauche, droite), avec fondu ; seulement transform et opacity ; coupé avec « réduire les animations ». */
+.js .reveal.reveal-side { transform: translateX(-22px); }
+.js .reveal.reveal-side:nth-child(even) { transform: translateX(22px); }
+.js .reveal.reveal-side.is-visible { transform: none; }
+/* Photos des publics : léger cadre orange décalé, le texte ne bouge pas. */
+.audience .photo-frame { box-shadow: 5px 5px 0 var(--c-accent); margin: 0 5px 5px 0; }
+/* « En bref » avant l'appel final : quatre faits vérifiés, en pastilles. */
+.in-short { margin: 0 0 var(--space-5); text-align: center; }
+.in-short-title { font-size: var(--fs-lg); margin: 0 0 var(--space-3); }
+.in-short-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.in-short-list li { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3); border-radius: var(--radius); background: var(--c-surface); border: 1px solid var(--c-border); font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--c-primary-strong); text-align: left; line-height: 1.3; }
+.in-short-list .icon { flex: none; color: var(--c-accent-strong); }
+@media (min-width: 900px) {
+    .in-short-list { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 960px; margin: 0 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .js .reveal.reveal-side, .js .reveal.reveal-side:nth-child(even) { opacity: 1; transform: none; }
+}
