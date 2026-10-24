@@ -85,22 +85,22 @@
         </div>
         <ol class="how">
             <li class="card reveal reveal-side" style="--i: 0">
-                <div class="how-head"><span class="how-num">1</span><img class="how-face" src="{{ Asset::url('images/teacher-joe-accueil.webp') }}" width="52" height="52" alt="{{ $teacher }} vous salue de la main" loading="lazy"></div>
+                <div class="how-head"><span class="how-num">1</span><span class="icon-bubble"><x-icon name="user-plus" /></span></div>
                 <h3>Créez votre compte</h3>
                 <p>Avec votre nom et votre numéro de téléphone.</p>
             </li>
             <li class="card reveal reveal-side" style="--i: 1">
-                <div class="how-head"><span class="how-num">2</span><img class="how-face" src="{{ Asset::url('images/teacher-joe-attentif.webp') }}" width="52" height="52" alt="{{ $teacher }} vous écoute avec attention" loading="lazy"></div>
+                <div class="how-head"><span class="how-num">2</span><span class="icon-bubble"><x-icon name="mic" /></span></div>
                 <h3>Passez l'évaluation gratuite</h3>
                 <p>{{ $minutes }} minutes à l'oral pour trouver votre niveau, puis une mini-leçon et vos questions. Vous pouvez même l'enregistrer en vidéo.</p>
             </li>
             <li class="card reveal reveal-side" style="--i: 2">
-                <div class="how-head"><span class="how-num">3</span><img class="how-face" src="{{ Asset::url('images/teacher-joe-encourageant.webp') }}" width="52" height="52" alt="{{ $teacher }} vous encourage" loading="lazy"></div>
+                <div class="how-head"><span class="how-num">3</span><span class="icon-bubble"><x-icon name="mobile" /></span></div>
                 <h3>Choisissez votre formule</h3>
                 <p>Payez par Mobile Money et envoyez la capture. Souvent, votre accès s'ouvre tout de suite pour 24 heures, puis notre équipe le confirme.</p>
             </li>
             <li class="card reveal reveal-side" style="--i: 3">
-                <div class="how-head"><span class="how-num">4</span><img class="how-face" src="{{ Asset::url('images/teacher-joe-souriant.webp') }}" width="52" height="52" alt="{{ $teacher }} sourit, les mains ouvertes" loading="lazy"></div>
+                <div class="how-head"><span class="how-num">4</span><span class="icon-bubble"><x-icon name="calendar-check" /></span></div>
                 <h3>Parlez chaque jour</h3>
                 <p>{{ $teacher }} vous accueille, 4 petites questions, et votre programme est prêt : première séance possible le jour même.</p>
             </li>
