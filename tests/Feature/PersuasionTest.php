@@ -68,6 +68,14 @@ class PersuasionTest extends TestCase
     {
         $block = $this->persuasionBlock();
 
+        // Seule image permise : Teacher Joe (le professeur, jamais un apprenant), dans l'encadré de la réponse, pas
+        // dans la liste des situations.
+        $situations = substr($block, strpos($block, 'class="situations"'));
+        $situations = substr($situations, 0, strpos($situations, '</ul>'));
+        $this->assertStringNotContainsString('<img', $situations);
+        $this->assertMatchesRegularExpression('#<p class="persuade-answer"><img class="persuade-face" src="[^"]*teacher-joe-pensif\.webp#', $block);
+        $block = preg_replace('#<img class="persuade-face"[^>]*>#', '', $block);
+
         // Ni photo, ni guillemets, ni citation, ni nom : des situations vécues, pas des témoignages.
         foreach (['<img', '<picture', '<blockquote', '<cite', '<q>', '«', '»', '“', '”', config('platform.founder.name')] as $forbidden) {
             $this->assertStringNotContainsString($forbidden, $block);
