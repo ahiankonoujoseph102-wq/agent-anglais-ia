@@ -40,5 +40,6 @@ class TeacherExpressionsTest extends TestCase
         $css = file_get_contents(public_path('css/app.css'));
         $this->assertStringContainsString('.persuade-face { position: absolute;', $css);
         $this->assertStringContainsString('.how .how-head .how-face { display: none; }', $css);
+        $this->assertStringContainsString('@media (min-width: 640px) { .persuade-face { display: none; } }', $css);
     }
 }

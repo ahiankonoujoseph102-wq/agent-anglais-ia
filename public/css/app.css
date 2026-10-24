@@ -1714,7 +1714,10 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
    d'intelligence… » (toutes les tailles, à côté du texte : le bloc ne s'allonge pas). */
 .how-face { flex: none; width: 52px; height: 52px; border-radius: var(--radius); background: var(--c-bg-warm); box-shadow: 0 0 0 2px var(--c-surface), 0 0 0 4px var(--c-accent-line); object-fit: cover; }
 .persuade-answer { position: relative; }
-.persuade-face { position: absolute; top: -50px; right: 6px; width: 46px; height: 46px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px var(--c-surface), 0 0 0 4px var(--c-accent); }
+/* Tablette et ordinateur : l'encadré tient sur deux lignes jusqu'au bord, la pastille le rallongerait ; les visages
+   des étapes prennent le relais. */
+@media (min-width: 640px) { .persuade-face { display: none; } }
+.persuade-face { position: absolute; top: -20px; right: 10px; width: 40px; height: 40px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px var(--c-surface), 0 0 0 4px var(--c-accent); }
 @media (max-width: 639.98px) {
     .how .how-head .how-face { display: none; }
 }
