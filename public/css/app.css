@@ -1709,3 +1709,9 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) {
     .js .reveal.reveal-side, .js .reveal.reveal-side:nth-child(even) { opacity: 1; transform: none; }
 }
+/* Teacher Joe pensif (image de notre modèle 3D, tools/brand/teacher-expressions.mjs) : pastille au coin de
+   « Ce n'est pas un manque d'intelligence… », sur téléphone seulement, sans couvrir le texte ni allonger le bloc. */
+.persuade-answer { position: relative; }
+.persuade-face { position: absolute; top: -20px; right: 10px; width: 40px; height: 40px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px var(--c-surface), 0 0 0 4px var(--c-accent); }
+/* Tablette et ordinateur : l'encadré tient sur deux lignes jusqu'au bord, la pastille le rallongerait. */
+@media (min-width: 640px) { .persuade-face { display: none; } }

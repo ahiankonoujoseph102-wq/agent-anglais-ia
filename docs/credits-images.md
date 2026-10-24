@@ -24,6 +24,7 @@ apprenants de la plateforme, ni accompagnées d'un témoignage, d'un nom ou d'un
 | Fichier | Page(s) | Origine | Licence |
 |---|---|---|---|
 | `public/images/teacher-joe.webp` | Accueil, résultat de l'évaluation, À propos, « Mon espace », pages d'erreur, hors connexion, états vides (`<x-teacher-face>`) | Rendu du personnage 3D Teacher Joe, créé par `tools/teacher3d/build-teacher-joe.mjs` (aucune ressource tierce) | CC0 1.0 (voir `LICENCES-TIERS.md`) |
+| `public/images/teacher-joe-pensif.webp` | Accueil, encadré « Ce n'est pas un manque d'intelligence… » (téléphone seulement) | Rendu de NOTRE modèle 3D Teacher Joe (mêmes salle de classe et lumières que les séances), expression « pensif » du module des séances, par `tools/brand/teacher-expressions.mjs` (EN LOCAL), 192 × 192, 3 Ko | CC0 1.0, création de la plateforme |
 | `public/images/partage-talkami.jpg` | Aperçu des liens (WhatsApp, réseaux) | `tools/brand/share-image.html` + `share-image.mjs`, EN LOCAL ; logo, Teacher Joe et textes du site ; le carré du centre (x 285 à 915) reste lisible quand WhatsApp montre une petite vignette carrée | Création de la plateforme |
 | `public/brand/*`, `public/icons/*`, `public/favicon.ico` | Toutes les pages, application installée | Logos fournis par le propriétaire ; icônes tirées du logo par `tools/brand/prepare-logos.py` | Propriété de la plateforme |
 | `public/images/app/*.webp` | Fenêtre d'installation de Chrome | Captures d'un compte de démonstration (`tools/brand/app-screenshots.mjs`) | Création de la plateforme |

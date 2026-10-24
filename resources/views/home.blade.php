@@ -63,7 +63,7 @@
                 <li><span class="icon-bubble"><x-icon name="alert" /></span> <span>J'ai peur de faire des fautes et qu'on se moque de moi.</span></li>
                 <li><span class="icon-bubble"><x-icon name="user-off" /></span> <span>Je n'ai personne avec qui pratiquer.</span></li>
             </ul>
-            <p class="persuade-answer"><strong>Ce n'est pas un manque d'intelligence : c'est un manque de pratique.</strong> {{ $teacher }} est là pour ça.</p>
+            <p class="persuade-answer"><img class="persuade-face" src="{{ Asset::url('images/teacher-joe-pensif.webp') }}" width="56" height="56" alt="{{ $teacher }}, pensif" loading="lazy"><span><strong>Ce n'est pas un manque d'intelligence : c'est un manque de pratique.</strong> {{ $teacher }} est là pour ça.</span></p>
         </section>
 
         <section class="card persuade-card reveal" style="--i: 1" aria-labelledby="deja-essaye">
