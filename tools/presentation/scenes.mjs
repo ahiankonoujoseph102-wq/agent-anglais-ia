@@ -44,6 +44,47 @@ export const SCENES = {
             await s.circle('.board-preview');
         },
     },
+    // « Ce que l'anglais apporte » : les cartes « Vous travaillez ? » et « Vous êtes étudiant ? ».
+    'home.cards': {
+        account: 'visitor', path: '/',
+        async act(s, ms) {
+            await s.scroll('#pros', Math.min(1800, ms * 0.25), 120);
+            await s.circleAny(['section.audience:has(#pros)', '#pros']);
+            await s.wait(Math.min(3500, ms * 0.4));
+            await s.clear();
+            await s.scroll('#etudiants', 1200, 120);
+            await s.circleAny(['section.audience:has(#etudiants)', '#etudiants']);
+        },
+    },
+    // Question fréquente « De quoi ai-je besoin (matériel, internet) ? » ouverte, la phrase des mégaoctets entourée.
+    'home.faq.data': {
+        account: 'visitor', path: '/',
+        async act(s) {
+            const handle = await s.page.evaluateHandle(() => {
+                const summary = [...document.querySelectorAll('.faq summary')].find((el) => el.textContent.includes('De quoi ai-je besoin'));
+
+                for (let node = summary?.parentElement; node; node = node.parentElement) {
+                    if (node.tagName === 'DETAILS') {
+                        node.open = true;
+                    }
+                }
+
+                return summary?.parentElement?.querySelector('p') ?? null;
+            });
+            await s.page.evaluate((el) => el && window.__fx.scrollTo(el, 1500, 220), handle);
+            await s.wait(300);
+            await s.page.evaluate((el) => el && window.__fx.circle(el, 6), handle);
+        },
+    },
+    // « Affichage plus léger » sur la page de la séance du jour (avant « Commencer »).
+    'lesson.light': {
+        account: 'active', path: '/seance',
+        async act(s) {
+            await s.teacherReady();
+            await s.wait(300);
+            await s.circleAny(['#teacher3d-toggle:not([hidden])', '#teacher3d-toggle']);
+        },
+    },
     'home.start': {
         account: 'visitor', path: '/',
         async act(s) {
@@ -267,6 +308,13 @@ export const SCENES = {
     'plans.semaine': { account: 'assessed', path: '/abonnement', async act(s) { await s.planCard(0); } },
     'plans.essentiel': { account: 'assessed', path: '/abonnement', async act(s) { await s.planCard(1); } },
     'plans.intensif': { account: 'assessed', path: '/abonnement', async act(s) { await s.planCard(2); } },
+    'plans.time': {
+        account: 'assessed', path: '/abonnement',
+        async act(s) {
+            await s.planCard(0, false);
+            await s.circleText('article.plan >> nth=0', 'minutes par jour');
+        },
+    },
     'plans.shared': {
         account: 'assessed', path: '/abonnement',
         async act(s) {

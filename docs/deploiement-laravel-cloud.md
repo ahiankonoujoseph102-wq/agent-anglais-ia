@@ -510,6 +510,8 @@ Prérequis : les étapes 0 à 4 de la partie 13 ter (adresse du site, jeton, sec
 4. Revenez dans « Vidéos » et rechargez : pour chaque vidéo, l'aperçu, **Télécharger pour TikTok** (pleine qualité) et **Télécharger pour WhatsApp** (plus légère : moins de 16 mégaoctets pour une courte, moins de 100 pour la grande), **Copier le texte**.
 5. Sur le téléphone, le fichier arrive dans l'application **Fichiers**, dossier **Téléchargements**. Sur TikTok, avant de publier : activez **« Contenu généré par IA »**.
 
+Fabriquer SEULEMENT certaines vidéos (sans refaire les autres) : sous la vidéo voulue, touchez **Préparer cette vidéo seulement**, attendez « Voix prête », puis **Run workflow** en choisissant **ce soir seulement** (la vidéo « Rendez-vous ce soir à 19 heures », environ 15 minutes) ou **nouvelles seulement** (elle et « Vos questions, mes réponses »). Avant de publier « Rendez-vous ce soir », remplacez « [collez ici le lien du groupe] » dans le texte par le lien du groupe WhatsApp (ou réglez `WHATSAPP_GROUP_URL` dans Laravel Cloud pour qu'il y soit tout seul).
+
 Contrôle avant publication : dans GitHub, ouvrez l'exécution terminée, en bas **Artifacts**, « images-de-controle-… » : quatre images de chaque vidéo (début, tiers, deux tiers, fin).
 
 Refaire une vidéo : bouton **Refaire cette vidéo** sous la vidéo, puis **Run workflow** de nouveau. Si le texte n'a pas changé, la voix est gardée et seule l'image est refaite.

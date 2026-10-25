@@ -178,7 +178,7 @@ class PresentationVideos
 
         foreach ($video->script['segments'] ?? [] as $index => $segment) {
             $timing = $video->timings['segments'][$index] ?? ['start' => 0, 'end' => 0];
-            $segments[] = array_intersect_key($segment, array_flip(['subtitle', 'shot', 'scene', 'chapter', 'medallion', 'closing'])) + ['start' => $timing['start'], 'end' => $timing['end']];
+            $segments[] = array_intersect_key($segment, array_flip(['subtitle', 'shot', 'scene', 'chapter', 'medallion', 'closing', 'card'])) + ['start' => $timing['start'], 'end' => $timing['end']];
         }
 
         return [
@@ -195,9 +195,27 @@ class PresentationVideos
             'done_url' => route('api.presentations.done', $video),
             'failed_url' => route('api.presentations.failed', $video),
             // Teacher Joe : mêmes réglages que les vidéos de leçon (salle de classe, caméra, lèvres), à 30 images par seconde.
-            'render' => array_merge(config('videos.render'), config('videos.presentations.render'), ['watermark' => null]),
+            'render' => self::render($segments),
             'avatar' => array_intersect_key(Avatar::clientConfig()['model'] ?? [], array_flip(['profile', 'camera', 'desk_height', 'resting_smile', 'voice_hz'])),
         ];
+    }
+
+    /**
+     * Réglages de l'image. Avec un bandeau en gros (« card »), le tableau du décor reste vide : son « Let's talk! »
+     * dépasserait sous le bandeau.
+     *
+     * @param  list<array<string, mixed>>  $segments
+     * @return array<string, mixed>
+     */
+    private static function render(array $segments): array
+    {
+        $render = array_merge(config('videos.render'), config('videos.presentations.render'), ['watermark' => null]);
+
+        if (collect($segments)->contains(fn (array $segment) => ($segment['card'] ?? []) !== [])) {
+            $render['board'] = ['lines' => [' ']] + $render['board'];
+        }
+
+        return $render;
     }
 
     public static function path(PresentationVideo $video, bool $light): string

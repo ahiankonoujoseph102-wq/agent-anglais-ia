@@ -10,8 +10,8 @@ on:
       videos:
         description: 'Vidéos à fabriquer'
         type: choice
-        options: ['toutes', 'grande seulement', 'courtes seulement']
-        default: 'toutes'
+        options: ['nouvelles seulement', 'ce soir seulement', 'toutes', 'grande seulement', 'courtes seulement']
+        default: 'nouvelles seulement'
 
 concurrency:
   group: presentations
@@ -27,23 +27,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Deux machines en même temps : la grande vidéo d'un côté, les six courtes de l'autre.
+        # Plusieurs machines en même temps : la grande vidéo, les six courtes, et chacune des nouvelles à part (la
+        # vidéo du soir, très courte, est prête la première).
         part:
           - name: grande
             keys: talkami
           - name: courtes
             keys: compte,evaluation,formules,paiement,seance,mes-cours
+          - name: ce-soir
+            keys: ce-soir
+          - name: questions
+            keys: questions
     name: Vidéos (${{ matrix.part.name }})
     steps:
       - name: Partie demandée ?
         id: wanted
         run: |
           choice='${{ inputs.videos }}'
-          if [ "$choice" = 'toutes' ] || { [ "$choice" = 'grande seulement' ] && [ '${{ matrix.part.name }}' = 'grande' ]; } || { [ "$choice" = 'courtes seulement' ] && [ '${{ matrix.part.name }}' = 'courtes' ]; }; then
-            echo "run=1" >> "$GITHUB_OUTPUT"
-          else
-            echo "run=0" >> "$GITHUB_OUTPUT"
-          fi
+          part='${{ matrix.part.name }}'
+          case "$choice:$part" in
+            toutes:*|'grande seulement:grande'|'courtes seulement:courtes'|'nouvelles seulement:ce-soir'|'nouvelles seulement:questions'|'ce soir seulement:ce-soir')
+              echo "run=1" >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "run=0" >> "$GITHUB_OUTPUT" ;;
+          esac
 
       - uses: actions/checkout@v4
         if: steps.wanted.outputs.run == '1'

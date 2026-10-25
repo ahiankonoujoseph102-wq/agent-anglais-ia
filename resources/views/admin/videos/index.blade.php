@@ -178,7 +178,7 @@
             </p>
             <ol class="small">
                 <li>Touchez « Préparer les vidéos de présentation » : la voix est prête en quelques minutes (« Voix prête »).</li>
-                <li>Sur GitHub : Actions, « Vidéos de présentation », Run workflow (environ une heure pour les sept).</li>
+                <li>Sur GitHub : Actions, « Vidéos de présentation », Run workflow (environ une heure pour toutes ; « nouvelles seulement » ou « ce soir seulement » pour ne pas refaire les autres).</li>
                 <li>Revenez ici : « Télécharger pour TikTok » (pleine qualité) ou « Télécharger pour WhatsApp » (plus légère).</li>
             </ol>
             <form method="POST" action="{{ route('admin.videos.presentations.request') }}" class="video-prepare">
@@ -231,11 +231,16 @@
                     <button type="button" class="btn btn-light" data-copy="{{ $presentation->caption }}" data-copied="Texte copié"><x-icon name="copy" /> Copier le texte</button>
                 @endif
 
-                @if (in_array($presentation->status, [\App\Models\LessonVideo::READY, \App\Models\LessonVideo::FAILED], true))
+                @if ($presentation->status !== \App\Models\LessonVideo::RENDERING)
+                    {{-- Une seule vidéo, sans attendre les autres (sa voix d'abord, puis « Run workflow » sur GitHub). --}}
                     <form method="POST" action="{{ route('admin.videos.presentations.request') }}" class="voice-actions video-redo">
                         @csrf
                         <input type="hidden" name="key" value="{{ $presentation->key }}">
-                        <button type="submit" class="btn btn-light"><x-icon name="refresh" /> Refaire cette vidéo</button>
+                        @if (in_array($presentation->status, [\App\Models\LessonVideo::READY, \App\Models\LessonVideo::FAILED], true))
+                            <button type="submit" class="btn btn-light"><x-icon name="refresh" /> Refaire cette vidéo</button>
+                        @else
+                            <button type="submit" class="btn btn-light"><x-icon name="play" /> Préparer cette vidéo seulement</button>
+                        @endif
                     </form>
                 @endif
             </article>
