@@ -101,6 +101,16 @@ jobs:
           CHROME_PATH: /usr/bin/google-chrome
         run: node make.mjs
 
+      # Vidéo refaite et prévue pour la page « Comment ça marche » : sa version légère pour le site, tout de suite.
+      - name: Version légère pour le site
+        if: steps.wanted.outputs.run == '1' && steps.peek.outputs.waiting != '0'
+        working-directory: tools/presentation
+        env:
+          TALKAMI_URL: ${{ vars.TALKAMI_URL }}
+          TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
+          PRESENTATION_KEYS: ${{ matrix.part.keys }}
+        run: node site-version.mjs
+
       - name: Images de contrôle
         if: always() && steps.wanted.outputs.run == '1' && steps.peek.outputs.waiting != '0'
         uses: actions/upload-artifact@v4

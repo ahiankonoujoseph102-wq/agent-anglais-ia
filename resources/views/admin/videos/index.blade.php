@@ -197,6 +197,16 @@
                     @if ($presentation->size_bytes) · TikTok {{ number_format($presentation->size_bytes / 1048576, 1, ',', ' ') }} mégaoctets @endif
                     @if ($presentation->light_size_bytes) · WhatsApp {{ number_format($presentation->light_size_bytes / 1048576, 1, ',', ' ') }} mégaoctets @endif
                 </p>
+                @if (in_array($presentation->key, \App\Support\Videos\SiteVideos::keys(), true))
+                    {{-- Page publique « Comment ça marche » : version légère tirée de la version WhatsApp (workflow « Vidéos du site »). --}}
+                    <p class="muted small">
+                        @if ($presentation->web_path)
+                            Sur la page « <a href="{{ route('how') }}#{{ $presentation->key }}">Comment ça marche</a> » : version du site {{ number_format($presentation->web_size_bytes / 1048576, 1, ',', ' ') }} mégaoctets.
+                        @else
+                            Page « Comment ça marche » : version du site pas encore faite (GitHub, Actions, « Vidéos du site », Run workflow, une fois cette vidéo prête).
+                        @endif
+                    </p>
+                @endif
                 <p>
                     <span @class(['badge', 'badge-accent' => $presentation->status === \App\Models\LessonVideo::READY, 'badge-alert' => $presentation->status === \App\Models\LessonVideo::FAILED])>{{ $presentation->statusLabel() }}</span>
                 </p>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\PresentationJobController;
+use App\Http\Controllers\Api\SiteVideoJobController;
 use App\Http\Controllers\Api\VideoJobController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,11 @@ Route::middleware(['video.token', 'throttle:120,1'])->prefix('videos')->name('ap
 */
 Route::middleware(['video.token', 'throttle:120,1'])->prefix('presentations')->name('api.presentations.')->group(function () {
     Route::get('/travaux', [PresentationJobController::class, 'jobs'])->name('jobs');
+    // Version « site » (page « Comment ça marche ») tirée de la version WhatsApp : tools/presentation/site-version.mjs.
+    Route::get('/site/travaux', [SiteVideoJobController::class, 'jobs'])->name('site.jobs');
+    Route::get('/{presentation}/site/source', [SiteVideoJobController::class, 'source'])->name('site.source');
+    Route::put('/{presentation}/site/fichier/{file}', [SiteVideoJobController::class, 'upload'])->whereIn('file', ['video', 'apercu'])->name('site.upload');
+    Route::post('/{presentation}/site/prete', [SiteVideoJobController::class, 'done'])->name('site.done');
     Route::get('/{presentation}/voix', [PresentationJobController::class, 'audio'])->name('audio');
     Route::put('/{presentation}/fichier/{version}', [PresentationJobController::class, 'upload'])->whereIn('version', ['tiktok', 'whatsapp'])->name('upload');
     Route::post('/{presentation}/prete', [PresentationJobController::class, 'done'])->name('done');

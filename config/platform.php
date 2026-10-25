@@ -468,7 +468,7 @@ return [
         // Vide : le lien n'est pas affiché.
         'tiktok' => 'https://www.tiktok.com/@talkami8',
         'whatsapp_channel' => 'https://whatsapp.com/channel/0029VbDtfS2HbFV796odSi0n',
-        'social_routes' => ['plans', 'about', 'country', 'contact', 'register', 'privacy', 'install'],
+        'social_routes' => ['plans', 'about', 'how', 'country', 'contact', 'register', 'privacy', 'install'],
     ],
 
     /*
