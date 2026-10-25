@@ -73,6 +73,7 @@ export function buildAss(job, total) {
     const r = job.render;
     const sub = r.subtitles;
     const ch = r.chapter;
+    const card = { top: 250, size: 92, second: 60, box: '&H285C2A0E&', ...(r.card ?? {}) };
     const accent = assColor('#FF7A1A');
     const box = '&H70000000&';
     const lines = [
@@ -80,12 +81,38 @@ export function buildAss(job, total) {
         '[V4+ Styles]',
         'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
         `Style: Sub,Sora,${sub.size},${WHITE},${WHITE},${box},${box},-1,0,0,0,100,100,0,0,3,12,0,8,${sub.side_margin},${sub.right_margin},${sub.top},1`,
+        // Bandeau en gros (« CE SOIR · 19 HEURES ») au-dessus de Teacher Joe en plein écran, sous la zone de TikTok.
+        `Style: Card,Sora,${card.size},${WHITE},${WHITE},${card.box},${card.box},-1,0,0,0,100,100,0,0,3,26,0,8,${sub.side_margin},${sub.right_margin},${card.top},1`,
         `Style: Chapter,Sora,${ch.size},${accent},${WHITE},&H00000000&,&H00000000&,-1,0,0,0,100,100,0,0,1,0,0,7,${ch.x},${r.width - ch.x - ch.width},${ch.y},1`,
         '',
         '[Events]',
         'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
     ];
     const all = windows(job, total);
+
+    // Bandeau : de sa phrase jusqu'à la fin des phrases qui gardent le même bandeau (aucun clignotement).
+    all.forEach((w, index) => {
+        const text = (w.card ?? []).join('\n');
+        const previous = (all[index - 1]?.card ?? []).join('\n');
+
+        if (text === '' || text === previous) {
+            return;
+        }
+
+        let end = w.to;
+
+        for (const next of all.slice(index + 1)) {
+            if ((next.card ?? []).join('\n') !== text) {
+                break;
+            }
+
+            end = next.to;
+        }
+
+        const [first, ...rest] = w.card.map((line) => line.replace(/[{}\\]/g, ''));
+        const body = [first, ...rest.map((line) => `{\\fs${card.second}\\c${accent}}${line}`)].join('\\N');
+        lines.push(`Dialogue: 0,${assTime(w.from)},${assTime(end)},Card,,0,0,0,,${body}`);
+    });
 
     // Chapitre : de sa phrase jusqu'au chapitre suivant ou au prochain plein écran.
     all.forEach((w, index) => {

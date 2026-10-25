@@ -10,7 +10,11 @@
 |   configuration (jamais un prix, une durée ni un nom écrit à la main) : :teacher, :platform, :site (adresse du site
 |   réglée dans la page « Vidéos », dite « … point … »), :name_{formule}, :price_{formule}, :days_{formule},
 |   :minutes_{formule}, :assessment_minutes, :assessment_total, :questions_max, :warning_minutes, :course_minutes,
-|   :course_photos, :pdf_pages, :part_pages, :units. Les nombres sont dits en toutes lettres, écrits en chiffres.
+|   :course_photos, :pdf_pages, :part_pages, :units, :address (bureau, Réglages), :pay_countries (« au Togo, … et en
+|   Côte d'Ivoire »), :group_link (texte de publication seulement : lien du groupe WhatsApp). Les nombres sont dits en
+|   toutes lettres, écrits en chiffres ; {{dit|écrit}} pour un autre cas (« dix-neuf heures » / « 19 heures »).
+| - « card » : lignes écrites en gros dans un bandeau, au-dessus de Teacher Joe en plein écran.
+| - « voice_style » (par vidéo) : ton de la voix, à la place du ton commun des présentations.
 | - « shot » : « full » (Teacher Joe en plein écran) ou « screen » (écran du téléphone, Teacher Joe en médaillon).
 | - « scene » : ce que l'outil d'enregistrement fait à l'écran pendant la phrase (tools/presentation/scenes.mjs).
 | - « chapter » : titre court affiché à côté du téléphone, à partir de cette phrase.
@@ -182,6 +186,55 @@ return [
             ['shot' => 'screen', 'scene' => 'courses.review', 'text' => 'Après une séance assez longue, un *document de révision* se prépare : vous le *téléchargez* en PDF, et vous le recevez *par e-mail* si vous avez donné votre adresse.'],
             ['shot' => 'screen', 'scene' => 'courses.only', 'text' => 'C\'est *uniquement pour les cours d\'anglais*.'],
             ['shot' => 'full', 'scene' => 'wait', 'closing' => true, 'text' => '« Mes cours » est compris dans *chaque formule*. Commencez par l\'évaluation gratuite, sur *:site*.'],
+        ],
+    ],
+
+    // Rendez-vous du soir dans le groupe WhatsApp (octobre 2026) : Teacher Joe seul, bandeau en gros (« card »), aucun
+    // lien dans la vidéo (il est dans le texte de publication), aucune mention de l'intelligence artificielle.
+    'ce-soir' => [
+        'title' => 'Rendez-vous ce soir à 19 heures',
+        'caption' => 'Ce soir à 19 heures, rendez-vous dans le groupe WhatsApp :platform : :teacher vous montre comment parler anglais depuis votre téléphone, même en partant de zéro. Lien du groupe : :group_link',
+        'hashtags' => ['#anglais', '#apprendrelanglais', '#togo', '#talkami'],
+        'voice_style' => 'Lis en français comme un professeur très chaleureux et enthousiaste qui invite ses amis à un rendez-vous : souriant, plein d\'énergie, à un rythme naturel. Les mots anglais avec une prononciation américaine, joyeuse.',
+        'segments' => [
+            ['shot' => 'full', 'scene' => 'wait', 'card' => ['CE SOIR · 19 HEURES'], 'text' => '*Hello everyone! Tonight at 7 p.m., let\'s talk!*'],
+            ['shot' => 'full', 'scene' => 'wait', 'card' => ['CE SOIR · 19 HEURES', 'Groupe WhatsApp :platform'], 'text' => 'Ce soir, à *{{dix-neuf heures|19 heures}}*, je vous donne rendez-vous dans le *groupe WhatsApp :platform*.'],
+            ['shot' => 'full', 'scene' => 'wait', 'card' => ['CE SOIR · 19 HEURES', 'Groupe WhatsApp :platform'], 'text' => 'Je vous montre comment *parler anglais* depuis votre *téléphone*, même si vous partez *de zéro*.'],
+            ['shot' => 'full', 'scene' => 'wait', 'card' => ['CE SOIR · 19 HEURES', 'Groupe WhatsApp :platform'], 'text' => 'Et je vous présente l\'*évaluation orale gratuite* : *:assessment_minutes minutes* avec moi pour découvrir votre niveau.'],
+            ['shot' => 'full', 'scene' => 'wait', 'card' => ['CE SOIR · 19 HEURES', 'Groupe WhatsApp :platform'], 'text' => 'Je vous attends ! *See you tonight!*'],
+        ],
+    ],
+
+    // Les questions que les gens se posent, et des réponses vraies d'après le code (octobre 2026). Aucune mention de
+    // l'intelligence artificielle ni de la façon dont :teacher a été créé : il parle simplement en professeur.
+    'questions' => [
+        'title' => 'Vos questions, mes réponses',
+        'caption' => 'Pourquoi apprendre l\'anglais ? Pas le temps ? Trop cher ? Peur de vous tromper ? :teacher répond à vos questions. Évaluation orale gratuite sur :site',
+        'hashtags' => ['#anglais', '#apprendrelanglais', '#togo', '#talkami'],
+        'segments' => [
+            ['shot' => 'full', 'scene' => 'prepare.home', 'text' => 'Vous hésitez encore ? C\'est normal. Voici *vos questions*, et *mes réponses*.'],
+            ['shot' => 'full', 'scene' => 'wait', 'text' => 'Est-ce vraiment important d\'apprendre l\'anglais aujourd\'hui ? Oui : l\'anglais est *compris partout dans le monde*. Au travail, dans les études, sur Internet, il est autour de vous.'],
+            ['shot' => 'screen', 'scene' => 'home.cards', 'chapter' => 'Ce que l\'anglais apporte', 'text' => 'Qu\'est-ce que l\'anglais peut vous apporter ? Il peut vous *ouvrir des portes* : parler avec des entreprises, des ONG ou des clients, vous présenter dans un *entretien d\'embauche*, comprendre des cours et des documents en anglais pour vos études.'],
+            ['shot' => 'full', 'scene' => 'wait', 'text' => 'Et aussi suivre des *formations en ligne*, *voyager*, et avoir la *confiance* de répondre quand quelqu\'un vous parle anglais.'],
+            ['shot' => 'screen', 'scene' => 'home.start', 'chapter' => 'Pourquoi maintenant ?', 'text' => 'Pourquoi maintenant ? Parce que l\'anglais s\'apprend *en le pratiquant*, et que vous pouvez commencer *dès aujourd\'hui*, depuis votre téléphone, par l\'*évaluation orale gratuite*.'],
+            ['shot' => 'full', 'scene' => 'wait', 'text' => 'Je comprends un peu, mais je n\'arrive pas à parler. C\'est justement notre travail : à chaque séance, vous *répétez*, vous *pratiquez*, puis vous *parlez* d\'une situation de votre vie.'],
+            ['shot' => 'screen', 'scene' => 'home.course', 'chapter' => 'Oser parler', 'text' => 'Tout se passe *à l\'oral*, avec la leçon écrite *au tableau*.'],
+            ['shot' => 'full', 'scene' => 'wait', 'text' => 'J\'ai peur qu\'on se moque de moi. Vous parlez *avec moi*, pas devant une classe. Je ne me moque jamais : vous avez *le droit de vous tromper*, et je vous aide à corriger.'],
+            ['shot' => 'full', 'scene' => 'wait', 'text' => 'Je suis trop âgé, ou trop nul en anglais. *Il n\'y a pas d\'âge pour apprendre.* Vous commencez *à votre niveau*, même au tout début, et je parle *lentement* aux débutants.'],
+            ['shot' => 'full', 'scene' => 'wait', 'text' => 'J\'ai déjà essayé, sans résultat. Ici, vous *parlez dès la première séance* : même l\'évaluation se fait *à l\'oral*, avec moi.'],
+            ['shot' => 'screen', 'scene' => 'plans.time', 'chapter' => 'Pas le temps ?', 'text' => 'Je n\'ai pas le temps. Avec les formules :name_semaine et :name_essentiel, c\'est *:minutes_essentiel minutes par jour*, depuis votre téléphone, à l\'heure qui vous arrange.'],
+            ['shot' => 'screen', 'scene' => 'plans.semaine', 'chapter' => 'Trop cher ?', 'text' => 'C\'est trop cher. Commencez par l\'*évaluation gratuite*. Puis, pour essayer : la formule *:name_semaine*, *:price_semaine* pour :days_semaine jours.'],
+            ['shot' => 'screen', 'scene' => 'plans.essentiel', 'chapter' => 'Un prélèvement ?', 'text' => 'On va me prélever de l\'argent chaque mois ? *Non.* Vous payez vous-même chaque formule par *Mobile Money*. *Rien n\'est prélevé automatiquement* : à la fin, vous choisissez de continuer, ou non.'],
+            ['shot' => 'screen', 'scene' => 'help.whatsapp', 'chapter' => 'Est-ce sérieux ?', 'text' => 'Est-ce sérieux ? :platform a été fondé par *Joseph Ahiankonou*. Le bureau : *:address*. Et Joseph vous répond sur *WhatsApp*.'],
+            ['shot' => 'screen', 'scene' => 'home.faq.data', 'chapter' => 'Vos données', 'text' => 'Et mes données internet ? Une séance utilise environ *{{trois à quatre|3 à 4}} mégaoctets par minute*. Le wifi, si vous le pouvez.'],
+            ['shot' => 'screen', 'scene' => 'lesson.light', 'medallion' => false, 'text' => 'Votre téléphone a du mal ? Touchez « *Affichage plus léger* ».'],
+            ['shot' => 'screen', 'scene' => 'pay.step1', 'chapter' => 'Payer', 'text' => 'Je ne sais pas payer. *Trois étapes* : copiez le numéro, envoyez le montant avec *Mobile Money*,'],
+            ['shot' => 'screen', 'scene' => 'pay.step3', 'text' => 'puis revenez et envoyez la *capture* de la confirmation.'],
+            ['shot' => 'screen', 'scene' => 'pay.abroad', 'chapter' => 'Hors du Togo ?', 'text' => 'Je ne suis pas au Togo. On paie par Mobile Money :pay_countries. Ailleurs, écrivez-nous sur *WhatsApp*.'],
+            ['shot' => 'screen', 'scene' => 'install.page', 'chapter' => 'Une application ?', 'text' => 'Faut-il une application ? *Non* : :platform marche dans le *navigateur*. Vous pouvez aussi l\'installer sur l\'*écran d\'accueil*.'],
+            ['shot' => 'screen', 'scene' => 'courses.new', 'chapter' => 'Pour l\'école', 'text' => 'Je suis élève : ça m\'aide pour l\'école ? Oui, avec « *Mes cours* » : envoyez votre leçon d\'anglais en photo ou en PDF, je vous l\'explique *en français*. *Uniquement pour les cours d\'anglais.*'],
+            ['shot' => 'screen', 'scene' => 'attestation.show', 'chapter' => 'Un document ?', 'text' => 'Aurai-je un document ? Après le *bilan oral* réussi de chaque niveau, vous recevez une *attestation de niveau*, vérifiable en ligne. Ce n\'est pas un examen officiel.'],
+            ['shot' => 'full', 'scene' => 'wait', 'closing' => true, 'text' => 'Une autre question ? Écrivez-nous sur WhatsApp, ou commencez par l\'évaluation orale gratuite sur *:site*.'],
         ],
     ],
 

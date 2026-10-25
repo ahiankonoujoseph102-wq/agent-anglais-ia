@@ -5,7 +5,9 @@ namespace App\Support\Videos;
 use App\Enums\Level;
 use App\Models\Assessment;
 use App\Support\Curriculum\Curriculum;
+use App\Support\PaymentCountry;
 use App\Support\Plan;
+use App\Support\SiteSettings;
 
 /**
  * Scripts des vidéos de présentation (resources/videos/presentations.php) : repères remplis depuis la configuration
@@ -51,6 +53,7 @@ class PresentationScripts
                 'chapter' => isset($segment['chapter']) ? self::render($segment['chapter'], false, $site) : null,
                 'medallion' => (bool) ($segment['medallion'] ?? true),
                 'closing' => (bool) ($segment['closing'] ?? false),
+                'card' => array_map(fn (string $line) => self::render($line, false, $site, plain: true), $segment['card'] ?? []),
             ];
         }
 
@@ -58,6 +61,7 @@ class PresentationScripts
             'title' => self::render($definition['title'], false, $site, plain: true),
             'caption' => self::render($definition['caption'], false, $site, plain: true),
             'hashtags' => array_values($definition['hashtags']),
+            'voice_style' => $definition['voice_style'] ?? null,
             'segments' => $segments,
         ];
     }
@@ -74,6 +78,8 @@ class PresentationScripts
      */
     public static function render(string $text, bool $spoken, string $site, bool $plain = false): string
     {
+        // {{dit|écrit}} : « dix-neuf heures » dans la voix, « 19 heures » à l'écran.
+        $text = preg_replace_callback('/\{\{([^|}]*)\|([^}]*)\}\}/u', fn (array $m) => $spoken ? $m[1] : $m[2], $text) ?? $text;
         $text = strtr($text, self::markers($spoken, $site));
 
         if ($spoken || $plain) {
@@ -104,6 +110,9 @@ class PresentationScripts
             ':pdf_pages' => $number((int) config('platform.courses.pdf_max_pages')),
             ':part_pages' => $number((int) config('platform.courses.part_max_pages')),
             ':units' => $number(count(Curriculum::units(Level::A1))),
+            ':address' => (string) (SiteSettings::contact()['address'] ?? ''),
+            ':pay_countries' => self::countries(),
+            ':group_link' => (string) (config('platform.contact.whatsapp_group') ?: '[collez ici le lien du groupe]'),
         ];
 
         foreach (Plan::all() as $plan) {
@@ -116,6 +125,18 @@ class PresentationScripts
         }
 
         return $markers;
+    }
+
+    /** Pays où l'on paie en ligne : « au Togo, au Burkina Faso, au Bénin et en Côte d'Ivoire » (configuration). */
+    public static function countries(): string
+    {
+        $names = array_map(
+            fn (PaymentCountry $country) => (str_starts_with($country->name, 'Côte') ? 'en ' : 'au ').$country->name,
+            array_values(PaymentCountry::all()),
+        );
+        $last = array_pop($names);
+
+        return $names === [] ? (string) $last : implode(', ', $names).' et '.$last;
     }
 
     /** Nombre entier en toutes lettres, en français (0 à 999 999). */

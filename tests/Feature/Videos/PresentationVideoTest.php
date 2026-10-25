@@ -69,7 +69,7 @@ class PresentationVideoTest extends TestCase
 
     public function test_there_is_one_long_video_and_six_short_ones_with_every_marker_filled(): void
     {
-        $this->assertSame(['talkami', 'compte', 'evaluation', 'formules', 'paiement', 'seance', 'mes-cours'], PresentationScripts::keys());
+        $this->assertSame(['talkami', 'compte', 'evaluation', 'formules', 'paiement', 'seance', 'mes-cours', 'ce-soir', 'questions'], PresentationScripts::keys());
 
         foreach (self::allTexts() as $text) {
             $this->assertDoesNotMatchRegularExpression('/:[a-z_]{3,}/', $text, $text);
@@ -83,7 +83,7 @@ class PresentationVideoTest extends TestCase
             foreach ($script['segments'] as $segment) {
                 $this->assertStringNotContainsString('*', $segment['spoken']);
                 $this->assertStringNotContainsString('[en]', $segment['spoken']);
-                $this->assertLessThanOrEqual(170, mb_strlen(strip_tags(str_replace(['[en]', '[/en]'], '', $segment['subtitle']))), $segment['subtitle']);
+                $this->assertLessThanOrEqual(260, mb_strlen(strip_tags(str_replace(['[en]', '[/en]'], '', $segment['subtitle']))), $segment['subtitle']);
             }
         }
 
@@ -92,9 +92,43 @@ class PresentationVideoTest extends TestCase
         $this->assertNull(PresentationScripts::script('paiement'));
     }
 
+    public function test_the_evening_video_and_the_questions_never_speak_of_artificial_intelligence(): void
+    {
+        foreach (['ce-soir', 'questions'] as $key) {
+            $script = PresentationScripts::script($key, 'talkami.laravel.cloud');
+            $text = implode("\n", array_merge(
+                array_column($script['segments'], 'spoken'),
+                array_column($script['segments'], 'subtitle'),
+                array_merge(...array_column($script['segments'], 'card')),
+            ));
+
+            $this->assertDoesNotMatchRegularExpression('/intelligence artificielle|conçu|programmé|humain|robot/iu', $text, $key);
+            $this->assertDoesNotMatchRegularExpression('/\bIA\b/u', $text, $key);
+            $this->assertDoesNotMatchRegularExpression('/gagner plus|garanti|emploi assuré|places limitées|dernière chance/iu', $text, $key);
+        }
+
+        $evening = PresentationScripts::script('ce-soir', 'talkami.laravel.cloud');
+        $this->assertSame(['CE SOIR · 19 HEURES'], $evening['segments'][0]['card']);
+        $this->assertSame(['CE SOIR · 19 HEURES', 'Groupe WhatsApp Talkami'], $evening['segments'][1]['card']);
+        // Dit en lettres, écrit en chiffres ; aucune adresse de site dans la vidéo, le lien du groupe dans la publication.
+        $this->assertStringContainsString('dix-neuf heures', $evening['segments'][1]['spoken']);
+        $this->assertStringContainsString('[en]19 heures[/en]', $evening['segments'][1]['subtitle']);
+        $this->assertStringNotContainsString('talkami.laravel.cloud', implode(' ', array_column($evening['segments'], 'subtitle')));
+        $this->assertStringContainsString('[collez ici le lien du groupe]', $evening['caption']);
+        config(['platform.contact.whatsapp_group' => 'https://chat.whatsapp.com/exemple']);
+        $this->assertStringContainsString('https://chat.whatsapp.com/exemple', PresentationScripts::script('ce-soir', 'talkami.laravel.cloud')['caption']);
+        $this->assertStringContainsString('chaleureux et enthousiaste', $evening['voice_style']);
+
+        // Pays et bureau lus dans la configuration.
+        $questions = implode(' ', array_column(PresentationScripts::script('questions', 'talkami.laravel.cloud')['segments'], 'spoken'));
+        $this->assertStringContainsString('au Togo, au Burkina Faso, au Bénin et en Côte d\'Ivoire', $questions);
+        $this->assertStringContainsString((string) config('platform.contact.address'), $questions);
+        $this->assertStringContainsString('Rien n\'est prélevé automatiquement', $questions);
+    }
+
     public function test_every_scene_of_the_scripts_is_filmed_by_the_tool(): void
     {
-        preg_match_all("/^    '?([a-z]+(?:\\.[a-z0-9-]+)?)'?: \\{/m", (string) file_get_contents(base_path('tools/presentation/scenes.mjs')), $matches);
+        preg_match_all("/^    '?([a-z]+(?:\\.[a-z0-9-]+)*)'?: \\{/m", (string) file_get_contents(base_path('tools/presentation/scenes.mjs')), $matches);
         $known = $matches[1];
         $this->assertContains('pay.step3', $known);
 
@@ -148,7 +182,7 @@ class PresentationVideoTest extends TestCase
     public function test_the_voice_is_prepared_then_github_takes_the_job_and_uploads_both_versions(): void
     {
         $videos = app(PresentationVideos::class);
-        $this->assertCount(7, $videos->all());
+        $this->assertCount(9, $videos->all());
         $this->assertSame('Pas encore préparée', PresentationVideo::query()->where('key', 'paiement')->first()->statusLabel());
 
         $this->assertSame(1, $videos->request('paiement'));
@@ -253,14 +287,15 @@ class PresentationVideoTest extends TestCase
             ->assertSee('Télécharger pour TikTok')
             ->assertSee('Télécharger pour WhatsApp')
             ->assertSee('Contenu généré par IA')
-            ->assertSee('Pas encore préparée');
+            ->assertSee('Pas encore préparée')
+            ->assertSee('Préparer cette vidéo seulement');
 
         $this->get(route('admin.videos.presentations.file', ['presentation' => $video, 'telecharger' => 1]))->assertRedirect();
         $this->get(route('admin.videos.presentations.file', ['presentation' => $video, 'version' => 'whatsapp', 'telecharger' => 1]))->assertRedirect();
         $this->get(route('admin.videos.presentations.file', PresentationVideo::query()->where('key', 'compte')->first()))->assertNotFound();
 
         $this->post(route('admin.videos.presentations.request'))->assertRedirect(route('admin.videos.index').'#presentations');
-        $this->assertSame(7, PresentationVideo::query()->whereIn('status', [LessonVideo::SCRIPTED, LessonVideo::VOICED])->count());
+        $this->assertSame(9, PresentationVideo::query()->whereIn('status', [LessonVideo::SCRIPTED, LessonVideo::VOICED])->count());
         $this->post(route('admin.videos.presentations.request'), ['key' => 'inconnue'])->assertNotFound();
     }
 

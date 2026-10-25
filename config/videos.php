@@ -120,7 +120,7 @@ return [
             'video_bitrate' => '5000k',
             'audio_bitrate' => '128k',
             // Son : même chaîne que les vidéos de leçon, limiteur un peu plus bas (crête sous 0 dB après l'AAC).
-            'audio' => ['target_lufs' => -14, 'limit' => 0.75, 'limiter_makeup_db' => 2.0],
+            'audio' => ['target_lufs' => -14, 'limit' => 0.7, 'limiter_makeup_db' => 2.5],
         ],
     ],
 

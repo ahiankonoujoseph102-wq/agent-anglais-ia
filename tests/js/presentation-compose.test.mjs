@@ -54,3 +54,15 @@ test('la ponctuation reste collée à un mot en orange', () => {
     const ass = buildAss({ ...job, segments: [{ ...job.segments[1], subtitle: 'Sur [en]talkami.laravel.cloud[/en], touchez.' }] }, 5);
     assert.match(ass, /talkami\.laravel\.cloud\{\\c&H00FFFFFF&\},/);
 });
+
+test('le bandeau en gros reste affiché sans clignoter tant que les phrases le gardent', () => {
+    const withCard = { ...job, segments: [
+        { ...job.segments[0], card: ['CE SOIR · 19 HEURES'] },
+        { ...job.segments[0], start: 2.3, end: 5, card: ['CE SOIR · 19 HEURES', 'Groupe WhatsApp Talkami'] },
+        { ...job.segments[0], start: 5.3, end: 7, card: ['CE SOIR · 19 HEURES', 'Groupe WhatsApp Talkami'] },
+    ] };
+    const cards = buildAss(withCard, 8).split('\n').filter((line) => line.includes(',Card,'));
+    assert.equal(cards.length, 2);
+    assert.match(cards[0], /0:00:00\.00,0:00:02\.30,Card,,0,0,0,,CE SOIR · 19 HEURES$/);
+    assert.match(cards[1], /0:00:02\.30,0:00:08\.00,Card.*\\N\{\\fs60\\c&H001A7AFF&\}Groupe WhatsApp Talkami/);
+});

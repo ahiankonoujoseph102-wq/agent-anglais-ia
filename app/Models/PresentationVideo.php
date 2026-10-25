@@ -53,9 +53,10 @@ class PresentationVideo extends LessonVideo
         return str((string) config('platform.name'))->slug().'-presentation-'.$this->key.($light ? '-whatsapp' : '').'.mp4';
     }
 
+    /** Ton de la vidéo (« voice_style » de son script), sinon celui des présentations. */
     public function voiceStyle(): string
     {
-        return (string) config('videos.presentations.voice_style');
+        return (string) ($this->script['voice_style'] ?? null ?: config('videos.presentations.voice_style'));
     }
 
     public function voiceGapMs(): int
