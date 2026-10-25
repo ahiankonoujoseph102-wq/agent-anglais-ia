@@ -283,6 +283,9 @@ export async function recordTake(demo, scenes, dir) {
     if (first.live) {
         await helper(demo, Date.now() + 40000).teacherReady();
         await sleep(1500);
+    } else {
+        // Les blocs de la page finissent d'apparaître avant la première image.
+        await sleep(1200);
     }
 
     const frames = [];
@@ -330,9 +333,9 @@ export async function recordTake(demo, scenes, dir) {
         }
 
         try {
-            // Jamais plus d'une seconde et demie au-delà de la phrase : la scène suivante doit rester sous sa phrase.
+            // La scène suivante démarre à l'heure de SA phrase : le retard ne s'accumule jamais d'une scène à l'autre.
             const acting = Promise.resolve(sceneDef.act?.(s, Math.max(500, deadline - Date.now()))).catch((error) => console.log(`[scène ${entry.name}] ${error.message.split('\n')[0]}`));
-            await Promise.race([acting, sleep(deadline - Date.now() + 1500)]);
+            await Promise.race([acting, sleep(deadline - Date.now() + 150)]);
         } catch (error) {
             console.log(`[scène ${entry.name}] ${error.message.split('\n')[0]}`);
         }

@@ -87,6 +87,17 @@ export const SCENES = {
             await s.circleAny(['#teacher3d-toggle:not([hidden])', '#teacher3d-toggle']);
         },
     },
+    // L'évaluation gratuite montrée sur l'accueil, sans quitter la page.
+    'home.assessment': {
+        account: 'visitor', path: '/',
+        async act(s) {
+            await top(s);
+            await s.wait(400);
+            await s.circle('.hero-cta');
+            await s.wait(1500);
+            await s.arrow('.hero-cta');
+        },
+    },
     'home.start': {
         account: 'visitor', path: '/',
         async act(s) {
