@@ -18,17 +18,21 @@ use Throwable;
  */
 class PresentationVideoController extends Controller
 {
-    /** « Préparer les vidéos de présentation » (toutes) ou « Préparer » une seule. */
+    /** « Préparer les vidéos pas encore prêtes » (jamais une vidéo prête) ou « Préparer » / « Refaire » une seule. */
     public function request(Request $request, PresentationVideos $videos): RedirectResponse
     {
         $key = $request->input('key');
         abort_if($key !== null && ! in_array($key, PresentationScripts::keys(), true), 404);
 
         $count = $videos->request($key);
+        $siteMissing = PresentationScripts::script($key ?? PresentationScripts::keys()[0]) === null;
 
-        return redirect()->to(route('admin.videos.index').'#presentations')->with('status', $count === 0
-            ? 'Rien n\'a été préparé : renseignez d\'abord l\'adresse du site des vidéos (« Fin de chaque vidéo »), ou attendez la fin de la fabrication en cours.'
-            : "{$count} vidéo(s) de présentation demandée(s). La voix est prête en quelques minutes (état « Voix prête ») : lancez ensuite la fabrication sur GitHub (Actions, « Vidéos de présentation », Run workflow).");
+        return redirect()->to(route('admin.videos.index').'#presentations')->with('status', match (true) {
+            $count > 0 => null,
+            $siteMissing => 'Rien n\'a été préparé : renseignez d\'abord l\'adresse du site des vidéos (« Fin de chaque vidéo »).',
+            $key === null => 'Toutes les vidéos de présentation sont déjà prêtes ou en fabrication : rien n\'a été refait. Pour en refaire une, touchez « Refaire cette vidéo » sous elle.',
+            default => 'Rien n\'a été préparé : cette vidéo est en cours de fabrication.',
+        } ?? "{$count} vidéo(s) de présentation demandée(s). La voix est prête en quelques minutes (état « Voix prête ») : lancez ensuite la fabrication sur GitHub (Actions, « Vidéos de présentation », Run workflow).");
     }
 
     /** Aperçu ou téléchargement : adresse signée de courte durée du bucket privé. */

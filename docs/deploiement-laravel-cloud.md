@@ -504,7 +504,7 @@ Teacher Joe présente le site pendant que l'écran du téléphone défile à cô
 
 Prérequis : les étapes 0 à 4 de la partie 13 ter (adresse du site, jeton, secret et variable sur GitHub). Rien de plus à régler.
 
-1. Administration, onglet **« Vidéos »**, partie **« Vidéos de présentation »** : touchez **Préparer les vidéos de présentation**.
+1. Administration, onglet **« Vidéos »**, partie **« Vidéos de présentation »** : touchez **Préparer les vidéos pas encore prêtes** (une vidéo déjà prête n'est jamais refaite par ce bouton ; pour en refaire une : **Refaire cette vidéo** sous elle).
 2. Attendez environ 10 minutes (la grande vidéo a beaucoup de phrases) et rechargez : chaque vidéo doit afficher « Voix prête : en attente de fabrication ».
 3. GitHub, dépôt, onglet **Actions**, à gauche **« Vidéos de présentation »**, bouton **Run workflow**, choisissez **toutes**, puis **Run workflow**. Deux machines travaillent en même temps (la grande vidéo d'un côté, les six courtes de l'autre) : comptez environ 45 minutes à 1 heure et quart.
 4. Revenez dans « Vidéos » et rechargez : pour chaque vidéo, l'aperçu, **Télécharger pour TikTok** (pleine qualité) et **Télécharger pour WhatsApp** (plus légère : moins de 16 mégaoctets pour une courte, moins de 100 pour la grande), **Copier le texte**.
