@@ -8,6 +8,8 @@
 
 const LEVEL_FEEDBACK = 'Vous comprenez les questions simples et vous répondez avec des phrases courtes.';
 
+const sleepFor = (ms) => new Promise((ok) => setTimeout(ok, ms));
+
 /** Garde le début d'une page visible : en haut, sans zoom ni marque. */
 async function top(s) {
     await s.page.evaluate(() => window.scrollTo(0, 0));
@@ -479,6 +481,44 @@ export const SCENES = {
         account: 'active', path: '/programme',
         async act(s) {
             await s.scrollText(['Modifier mes objectifs'], 900);
+        },
+    },
+    // Publicité « Au Grand Marché » (compte « market » : débutant, leçon du jour au marché, tableau écrit dans la base
+    // de démonstration). La séance est commencée AVANT la première image (« before ») : on voit tout de suite le
+    // tableau, puis la phrase dite par Teacher Joe s'allume.
+    'lesson.market': {
+        account: 'market', path: '/seance', live: 'lesson',
+        // Dit tôt : la phrase s'allume au tableau en même temps que la voix de la vidéo la prononce.
+        plan: [{ at: 0, teacher: "It's two thousand francs.", seconds: 1 }, { at: 1800, teacher: "Repeat after me: It's two thousand francs.", seconds: 2.5 }],
+        async before(s) {
+            await s.teacherReady();
+            await s.tap('#start', { click: true });
+            await s.page.waitForFunction(() => document.querySelector('.live[data-phase]')?.dataset.phase === 'connecting', null, { timeout: 15000 }).catch(() => {});
+            await s.say({ teacher: "Hello! Today, we are at the market.", seconds: 2 });
+            await s.page.waitForFunction(() => document.querySelector('.live[data-phase]')?.dataset.phase === 'live', null, { timeout: 15000 }).catch(() => {});
+            await sleepFor(3200);
+            await s.openBoard();
+            await s.page.evaluate(() => window.__fx.scrollTo('#board', 1, 300));
+            await sleepFor(500);
+            await s.page.evaluate(() => window.__fx.hideFinger());
+        },
+        async act(s, ms) {
+            await s.wait(Math.min(1500, ms * 0.4));
+            await s.circleAny(['#board .is-lit', '#board']);
+        },
+    },
+    'program.market': {
+        account: 'market', path: '/programme',
+        async act(s, ms) {
+            // La carte « La suite » en haut de l'écran (le titre de la page, avec le code du niveau, passe dessous).
+            // Deux fois : la page finit d'apparaître (blocs qui glissent) après le premier défilement.
+            await s.page.evaluate(() => window.__fx.scrollTo('#suite', 1, 56));
+            await s.wait(350);
+            await s.page.evaluate(() => window.__fx.scrollTo('#suite', 1, 56));
+            await s.circle('#suite');
+            await s.wait(Math.min(2600, ms * 0.6));
+            await s.clear();
+            await s.page.evaluate(() => window.__fx.scrollBy(420, 1200));
         },
     },
     'lesson.board': {

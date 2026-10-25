@@ -178,7 +178,7 @@
             </p>
             <ol class="small">
                 <li>Touchez « Préparer les vidéos de présentation » : la voix est prête en quelques minutes (« Voix prête »).</li>
-                <li>Sur GitHub : Actions, « Vidéos de présentation », Run workflow (environ une heure pour toutes ; « nouvelles seulement » ou « ce soir seulement » pour ne pas refaire les autres).</li>
+                <li>Sur GitHub : Actions, « Vidéos de présentation », Run workflow (environ une heure pour toutes ; « nouvelles seulement », « ce soir seulement » ou « publicité seulement » pour ne pas refaire les autres).</li>
                 <li>Revenez ici : « Télécharger pour TikTok » (pleine qualité) ou « Télécharger pour WhatsApp » (plus légère).</li>
             </ol>
             <form method="POST" action="{{ route('admin.videos.presentations.request') }}" class="video-prepare">
@@ -217,7 +217,7 @@
                     @endif
                     <video class="video-preview" controls preload="none" playsinline src="{{ route('admin.videos.presentations.file', ['presentation' => $presentation, 'version' => 'whatsapp']) }}"></video>
                     <div class="voice-actions">
-                        <a class="btn btn-accent" href="{{ route('admin.videos.presentations.file', ['presentation' => $presentation, 'telecharger' => 1]) }}" download="{{ $presentation->downloadName() }}"><x-icon name="download" /> Télécharger pour TikTok</a>
+                        <a class="btn btn-accent" href="{{ route('admin.videos.presentations.file', ['presentation' => $presentation, 'telecharger' => 1]) }}" download="{{ $presentation->downloadName() }}"><x-icon name="download" /> {{ $presentation->isAd() ? 'Télécharger pour Meta et TikTok' : 'Télécharger pour TikTok' }}</a>
                         @if ($presentation->light_path)
                             <a class="btn btn-light" href="{{ route('admin.videos.presentations.file', ['presentation' => $presentation, 'version' => 'whatsapp', 'telecharger' => 1]) }}" download="{{ $presentation->downloadName(true) }}"><x-icon name="download" /> Télécharger pour WhatsApp</a>
                         @endif

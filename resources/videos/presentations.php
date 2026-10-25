@@ -238,4 +238,34 @@ return [
         ],
     ],
 
+    // Publicité « Au Grand Marché » (octobre 2026), pour les relances WhatsApp puis Facebook, Instagram et TikTok :
+    // une vraie phrase du programme officiel (niveau débutant, unité « Au marché »). « layout » « ad » : sous-titres et
+    // médaillon hors des boutons de Meta et de TikTok, petits bruitages (« sfx »), aucune musique. « pause_after » :
+    // silence ajouté après la phrase, en millisecondes. Jamais « A1 à C2 » : « de débutant à avancé ».
+    'pub-marche' => [
+        'title' => 'Publicité : au Grand Marché (20 secondes)',
+        'caption' => 'Au marché, une touriste vous demande « How much is it? ». Vous répondez quoi ? :teacher vous apprend les phrases de tous les jours. Évaluation orale gratuite de :assessment_minutes minutes sur :site',
+        'hashtags' => ['#anglais', '#apprendrelanglais', '#parleranglais', '#togo', '#lome'],
+        'layout' => 'ad',
+        'segments' => [
+            ['shot' => 'full', 'scene' => 'wait', 'card' => ['*How much is it?*'], 'sfx' => 'pop', 'text' => 'Au marché, une touriste vous demande : « *How much is it?* » Vous répondez quoi ?'],
+            ['shot' => 'full', 'scene' => 'wait', 'card' => ['*How much is it?*', 'Vous répondez quoi ?'], 'pause_after' => 2000, 'text' => 'Réfléchissez…'],
+            ['shot' => 'screen', 'scene' => 'lesson.market', 'medallion' => false, 'sfx' => 'ding', 'text' => 'Vous pouvez dire : « *It\'s two thousand francs.* » Repeat after me: « *It\'s two thousand francs.* »'],
+            ['shot' => 'screen', 'scene' => 'program.market', 'text' => 'Au marché, en zémidjan, au travail : je vous apprends les *phrases de tous les jours*.'],
+            ['shot' => 'full', 'scene' => 'wait', 'card' => ['ÉVALUATION GRATUITE', ':assessment_minutes minutes, depuis votre téléphone'], 'sfx' => 'pop', 'text' => 'Commencez par une *évaluation orale gratuite* de :assessment_minutes minutes. Touchez le bouton !'],
+        ],
+    ],
+
+    'pub-marche-court' => [
+        'title' => 'Publicité : au Grand Marché (10 secondes)',
+        'caption' => '« How much is it? » Vous répondez quoi ? :teacher vous apprend l\'anglais de tous les jours. Évaluation orale gratuite de :assessment_minutes minutes sur :site',
+        'hashtags' => ['#anglais', '#apprendrelanglais', '#togo', '#lome'],
+        'layout' => 'ad',
+        'segments' => [
+            ['shot' => 'full', 'scene' => 'wait', 'card' => ['*How much is it?*', 'Vous répondez quoi ?'], 'sfx' => 'pop', 'text' => 'Au marché : « *How much is it?* » Vous répondez quoi ?'],
+            ['shot' => 'screen', 'scene' => 'lesson.market', 'medallion' => false, 'sfx' => 'ding', 'text' => '« *It\'s two thousand francs.* » Repeat after me!'],
+            ['shot' => 'full', 'scene' => 'wait', 'card' => ['ÉVALUATION GRATUITE', ':assessment_minutes minutes, depuis votre téléphone'], 'sfx' => 'pop', 'text' => '*Évaluation orale gratuite* de :assessment_minutes minutes. Touchez le bouton !'],
+        ],
+    ],
+
 ];

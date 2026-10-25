@@ -82,7 +82,7 @@ export function buildAss(job, total) {
         'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
         `Style: Sub,Sora,${sub.size},${WHITE},${WHITE},${box},${box},-1,0,0,0,100,100,0,0,3,12,0,8,${sub.side_margin},${sub.right_margin},${sub.top},1`,
         // Bandeau en gros (« CE SOIR · 19 HEURES ») au-dessus de Teacher Joe en plein écran, sous la zone de TikTok.
-        `Style: Card,Sora,${card.size},${WHITE},${WHITE},${card.box},${card.box},-1,0,0,0,100,100,0,0,3,26,0,8,${sub.side_margin},${sub.right_margin},${card.top},1`,
+        `Style: Card,Sora,${card.size},${WHITE},${WHITE},${card.box},${card.box},-1,0,0,0,100,100,0,0,3,26,0,8,${card.margin_left ?? sub.side_margin},${card.margin_right ?? sub.right_margin},${card.top},1`,
         `Style: Chapter,Sora,${ch.size},${accent},${WHITE},&H00000000&,&H00000000&,-1,0,0,0,100,100,0,0,1,0,0,7,${ch.x},${r.width - ch.x - ch.width},${ch.y},1`,
         '',
         '[Events]',
@@ -109,8 +109,10 @@ export function buildAss(job, total) {
             end = next.to;
         }
 
-        const [first, ...rest] = w.card.map((line) => line.replace(/[{}\\]/g, ''));
-        const body = [first, ...rest.map((line) => `{\\fs${card.second}\\c${accent}}${line}`)].join('\\N');
+        // *Mots* en orange ([en]…[/en]) : couleur rendue à la fin du passage (blanc sur la première ligne, orange ensuite).
+        const color = (line, base) => line.replace(/[{}\\]/g, '').replace(/\[en\]/g, `{\\c${accent}}`).replace(/\[\/en\]/g, `{\\c${base}}`);
+        const [first, ...rest] = w.card;
+        const body = [color(first, WHITE), ...rest.map((line) => `{\\fs${card.second}\\c${accent}}${color(line, accent)}`)].join('\\N');
         lines.push(`Dialogue: 0,${assTime(w.from)},${assTime(end)},Card,,0,0,0,,${body}`);
     });
 
@@ -176,6 +178,26 @@ export function buildAss(job, total) {
     });
 
     return `${lines.join('\n')}\n`;
+}
+
+/**
+ * Bruitages des publicités, fabriqués par ffmpeg (aucun fichier, aucune licence) : « pop » (petit bruit sec, à
+ * l'apparition d'un bandeau) et « ding » (la bonne réponse).
+ */
+export const SFX = {
+    pop: "aevalsrc='0.6*sin(2*PI*(500+1400*t)*t)*exp(-28*t)':s=44100:d=0.18",
+    ding: "aevalsrc='0.5*sin(2*PI*1318*t)*exp(-5*t)+0.25*sin(2*PI*1975*t)*exp(-7*t)':s=44100:d=0.9",
+};
+
+/** Heures des bruitages (début de leur phrase, un peu avant) ; aucun sans le réglage « sfx » (publicités). */
+export function sfxEvents(job, settings) {
+    if (!settings) {
+        return [];
+    }
+
+    return job.segments
+        .filter((segment) => SFX[segment.sfx])
+        .map((segment) => ({ kind: segment.sfx, at: Math.max(0, segment.start - (settings.lead ?? 0)) }));
 }
 
 /** Fond, cadre du téléphone, anneau et masque du médaillon : dessinés par Chromium (police Sora, logo blanc). */
@@ -287,6 +309,22 @@ export async function compose(job, total, parts, dir, out) {
 
     await writeFile(join(dir, 'subtitles.ass'), buildAss(job, total));
     const gainDb = gainFor(measureLoudness(parts.audio, AUDIO_PRE).lufs, r.audio);
+    const effects = sfxEvents(job, r.sfx);
+    const voiceChain = `${AUDIO_PRE},volume=${gainDb}dB`;
+    const limiter = `alimiter=limit=${r.audio.limit}:attack=3:release=60:level=false,apad`;
+    // Sans bruitage : exactement la chaîne d'avant (les autres vidéos ne changent pas).
+    const audio = effects.length === 0
+        ? { filter: [], map: '6:a', af: ['-af', `${voiceChain},${limiter}`], inputs: [] }
+        : {
+            filter: [
+                `[6:a]${voiceChain}[vo]`,
+                ...effects.map((e, i) => `[${7 + i}:a]volume=${r.sfx.volume_db}dB,adelay=${Math.round(e.at * 1000)}:all=1[fx${i}]`),
+                `[vo]${effects.map((_, i) => `[fx${i}]`).join('')}amix=inputs=${effects.length + 1}:duration=first:normalize=0,${limiter}[au]`,
+            ],
+            map: '[au]',
+            af: [],
+            inputs: effects.flatMap((e) => ['-f', 'lavfi', '-i', SFX[e.kind]]),
+        };
     const filter = [
         `[1:v]scale=${p.width}:${parts.layers.screenHeight}:flags=lanczos,setsar=1[scr]`,
         `[0:v][scr]overlay=${p.x}:${p.y}[a]`,
@@ -300,6 +338,7 @@ export async function compose(job, total, parts, dir, out) {
         `[av1]scale=${r.width}:${r.height}:flags=lanczos[fullav]`,
         `[d][fullav]overlay=0:0:enable='${full}'[e]`,
         `[e]ass=${join(dir, 'subtitles.ass')}:fontsdir=${FONTS},format=yuv420p[v]`,
+        ...audio.filter,
     ].join(';');
 
     await run([
@@ -310,9 +349,10 @@ export async function compose(job, total, parts, dir, out) {
         '-loop', '1', '-framerate', String(r.fps), '-i', parts.layers.ring,
         '-loop', '1', '-framerate', String(r.fps), '-i', parts.layers.mask,
         '-i', parts.audio,
+        ...audio.inputs,
         '-filter_complex', filter,
-        '-map', '[v]', '-map', '6:a',
-        '-af', `${AUDIO_PRE},volume=${gainDb}dB,alimiter=limit=${r.audio.limit}:attack=3:release=60:level=false,apad`,
+        '-map', '[v]', '-map', audio.map,
+        ...audio.af,
         '-t', total.toFixed(3),
         '-c:v', 'libx264', '-preset', 'medium', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-r', String(r.fps), '-g', String(r.fps * 2),
         '-b:v', r.video_bitrate, '-maxrate', '8000k', '-bufsize', '12000k',

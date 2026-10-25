@@ -66,3 +66,24 @@ test('le bandeau en gros reste affiché sans clignoter tant que les phrases le g
     assert.match(cards[0], /0:00:00\.00,0:00:02\.30,Card,,0,0,0,,CE SOIR · 19 HEURES$/);
     assert.match(cards[1], /0:00:02\.30,0:00:08\.00,Card.*\\N\{\\fs60\\c&H001A7AFF&\}Groupe WhatsApp Talkami/);
 });
+
+test('publicité : l\'anglais du bandeau en orange, sous-titres remontés, bruitages seulement avec le réglage « sfx »', async () => {
+    const { sfxEvents, SFX } = await import('../../tools/presentation/compose.mjs');
+    const ad = {
+        ...job,
+        render: { ...job.render, subtitles: { top: 1040, size: 54, chars: 34, side_margin: 120, right_margin: 320 }, card: { top: 300, margin_left: 120, margin_right: 120 }, sfx: { volume_db: -14, lead: 0.05 } },
+        segments: [
+            { ...job.segments[0], card: ['[en]How much is it?[/en]'], sfx: 'pop' },
+            { ...job.segments[0], start: 2.3, end: 5, card: ['[en]How much is it?[/en]', 'Vous répondez quoi ?'], sfx: null },
+            { ...job.segments[1], start: 5.3, end: 7, sfx: 'ding' },
+        ],
+    };
+    const ass = buildAss(ad, 8);
+    assert.match(ass, /Style: Sub,Sora,54,.*,8,120,320,1040,1/);
+    assert.match(ass, /Style: Card,Sora,92,.*,8,120,120,300,1/);
+    assert.match(ass, /Card,,0,0,0,,\{\\c&H001A7AFF&\}How much is it\?\{\\c&H00FFFFFF&\}$/m);
+    assert.deepEqual(sfxEvents(ad, ad.render.sfx), [{ kind: 'pop', at: 0 }, { kind: 'ding', at: 5.25 }]);
+    // Les autres vidéos : aucun bruitage.
+    assert.deepEqual(sfxEvents(job, undefined), []);
+    assert.ok(SFX.pop.startsWith('aevalsrc=') && SFX.ding.startsWith('aevalsrc='));
+});

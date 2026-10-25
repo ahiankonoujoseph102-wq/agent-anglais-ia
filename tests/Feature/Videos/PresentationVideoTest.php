@@ -69,7 +69,7 @@ class PresentationVideoTest extends TestCase
 
     public function test_there_is_one_long_video_and_six_short_ones_with_every_marker_filled(): void
     {
-        $this->assertSame(['talkami', 'compte', 'evaluation', 'formules', 'paiement', 'seance', 'mes-cours', 'ce-soir', 'questions'], PresentationScripts::keys());
+        $this->assertSame(['talkami', 'compte', 'evaluation', 'formules', 'paiement', 'seance', 'mes-cours', 'ce-soir', 'questions', 'pub-marche', 'pub-marche-court'], PresentationScripts::keys());
 
         foreach (self::allTexts() as $text) {
             $this->assertDoesNotMatchRegularExpression('/:[a-z_]{3,}/', $text, $text);
@@ -124,6 +124,75 @@ class PresentationVideoTest extends TestCase
         $this->assertStringContainsString('au Togo, au Burkina Faso, au Bénin et en Côte d\'Ivoire', $questions);
         $this->assertStringContainsString((string) config('platform.contact.address'), $questions);
         $this->assertStringContainsString('Rien n\'est prélevé automatiquement', $questions);
+    }
+
+    public function test_the_market_ad_exists_in_20_and_10_seconds_without_ai_levels_or_urgency(): void
+    {
+        foreach (['pub-marche', 'pub-marche-court'] as $key) {
+            $script = PresentationScripts::script($key, 'talkami.laravel.cloud');
+            $this->assertSame('ad', $script['layout'], $key);
+            $text = implode("\n", array_merge(
+                array_column($script['segments'], 'spoken'),
+                array_column($script['segments'], 'subtitle'),
+                array_merge(...array_column($script['segments'], 'card')),
+                [$script['caption']],
+            ));
+
+            $this->assertDoesNotMatchRegularExpression('/intelligence artificielle|conçu|programmé|humain|robot/iu', $text, $key);
+            $this->assertDoesNotMatchRegularExpression('/\bIA\b|\b[ABC][12]\b/u', $text, $key);
+            $this->assertDoesNotMatchRegularExpression('/gagner plus|garanti|emploi|places limitées|dernière chance|aujourd\'hui seulement/iu', $text, $key);
+            // La phrase enseignée vient du programme officiel (débutant, unité « Au marché »).
+            $this->assertStringContainsString("It's two thousand francs.", $text);
+            $this->assertSame('pop', $script['segments'][0]['sfx']);
+            $this->assertContains('ding', array_column($script['segments'], 'sfx'));
+            // Bandeau : l'anglais en orange.
+            $this->assertSame('[en]How much is it?[/en]', $script['segments'][0]['card'][0]);
+        }
+
+        $this->assertStringContainsString("It's two thousand francs.", (string) file_get_contents(resource_path('curriculum/a1.php')));
+        $long = PresentationScripts::script('pub-marche', 'talkami.laravel.cloud');
+        $this->assertSame('Réfléchissez…', $long['segments'][1]['spoken']);
+        $this->assertSame(2000, $long['segments'][1]['pause_after']);
+        $this->assertSame('ÉVALUATION GRATUITE', end($long['segments'])['card'][0]);
+        $this->assertStringContainsString('cinq minutes', end($long['segments'])['spoken']);
+
+        // Les autres vidéos ne changent ni de mise en page ni d'empreinte de voix.
+        $payment = PresentationScripts::script('paiement', 'talkami.laravel.cloud');
+        $this->assertNull($payment['layout']);
+        $this->assertSame(hash('sha256', json_encode(array_column($payment['segments'], 'spoken'))), PresentationScripts::hash($payment));
+        $this->assertNotSame(hash('sha256', json_encode(array_column($long['segments'], 'spoken'))), PresentationScripts::hash($long));
+    }
+
+    public function test_the_ad_voice_keeps_a_two_second_silence_and_its_job_raises_the_subtitles(): void
+    {
+        $videos = app(PresentationVideos::class);
+        $this->assertSame(1, $videos->request('pub-marche'));
+        $videos->prepare(microtime(true) + 600);
+        $video = PresentationVideo::query()->where('key', 'pub-marche')->firstOrFail();
+        $this->assertSame(LessonVideo::VOICED, $video->status);
+
+        // Chaque partie de voix simulée dure 0,5 seconde ; « Réfléchissez… » est suivie de 2 secondes de silence.
+        $think = $video->timings['segments'][1];
+        $this->assertEqualsWithDelta(2.5, $think['end'] - $think['start'], 0.01);
+        $this->assertEqualsWithDelta(0.5, $video->timings['segments'][0]['end'] - $video->timings['segments'][0]['start'], 0.01);
+
+        $job = $videos->job($video);
+        $this->assertSame('ad', $job['render']['layout']);
+        $this->assertSame(1100, $job['render']['subtitles']['top']);
+        $this->assertSame(300, $job['render']['card']['top']);
+        $this->assertSame(380, $job['render']['medallion']['y']);
+        $this->assertSame(['pop', null, 'ding', null, 'pop'], array_column($job['segments'], 'sfx'));
+        $this->assertSame(16 * 1024 * 1024, $job['light_limit_bytes']);
+        $this->assertTrue($video->isAd());
+
+        // Une vidéo ordinaire garde les sous-titres en bas et aucun bruitage.
+        $videos->request('paiement');
+        $videos->prepare(microtime(true) + 600);
+        $payment = $videos->job(PresentationVideo::query()->where('key', 'paiement')->firstOrFail());
+        $this->assertSame(1408, $payment['render']['subtitles']['top']);
+        $this->assertArrayNotHasKey('layout', $payment['render']);
+        $this->assertArrayNotHasKey('sfx', $payment['render']);
+        $this->assertSame([], array_filter(array_column($payment['segments'], 'sfx')));
     }
 
     public function test_every_scene_of_the_scripts_is_filmed_by_the_tool(): void
@@ -182,7 +251,7 @@ class PresentationVideoTest extends TestCase
     public function test_the_voice_is_prepared_then_github_takes_the_job_and_uploads_both_versions(): void
     {
         $videos = app(PresentationVideos::class);
-        $this->assertCount(9, $videos->all());
+        $this->assertCount(11, $videos->all());
         $this->assertSame('Pas encore préparée', PresentationVideo::query()->where('key', 'paiement')->first()->statusLabel());
 
         $this->assertSame(1, $videos->request('paiement'));
@@ -288,14 +357,16 @@ class PresentationVideoTest extends TestCase
             ->assertSee('Télécharger pour WhatsApp')
             ->assertSee('Contenu généré par IA')
             ->assertSee('Pas encore préparée')
-            ->assertSee('Préparer cette vidéo seulement');
+            ->assertSee('Préparer cette vidéo seulement')
+            ->assertSee('Publicité : au Grand Marché (20 secondes)')
+            ->assertSee('Publicité : au Grand Marché (10 secondes)');
 
         $this->get(route('admin.videos.presentations.file', ['presentation' => $video, 'telecharger' => 1]))->assertRedirect();
         $this->get(route('admin.videos.presentations.file', ['presentation' => $video, 'version' => 'whatsapp', 'telecharger' => 1]))->assertRedirect();
         $this->get(route('admin.videos.presentations.file', PresentationVideo::query()->where('key', 'compte')->first()))->assertNotFound();
 
         $this->post(route('admin.videos.presentations.request'))->assertRedirect(route('admin.videos.index').'#presentations');
-        $this->assertSame(9, PresentationVideo::query()->whereIn('status', [LessonVideo::SCRIPTED, LessonVideo::VOICED])->count());
+        $this->assertSame(11, PresentationVideo::query()->whereIn('status', [LessonVideo::SCRIPTED, LessonVideo::VOICED])->count());
         $this->post(route('admin.videos.presentations.request'), ['key' => 'inconnue'])->assertNotFound();
     }
 
