@@ -90,6 +90,40 @@ return [
     // Taille maximale d'une vidéo reçue, en mégaoctets.
     'max_megabytes' => 60,
 
+    /*
+    | Vidéos de PRÉSENTATION du site (resources/videos/presentations.php, App\Support\Videos\PresentationVideos) :
+    | une grande vidéo et six courtes. Voix préparée par Laravel (même fournisseur et même voix que les vidéos de leçon,
+    | mais un ton de présentation, plus naturel), fabrication par GitHub Actions (.github/workflows/presentations.yml,
+    | lancé à la main) : écran du site enregistré sur un site LOCAL de démonstration, jamais en production.
+    */
+    'presentations' => [
+        'voice_style' => 'Lis en français comme un professeur chaleureux qui présente son site à un ami : clair, souriant, à un rythme naturel, sans traîner. Les mots anglais avec une prononciation américaine.',
+        'gap_ms' => 300,
+        // Version légère (WhatsApp) : taille au plus, en mégaoctets ; « long » pour la grande vidéo.
+        'light_megabytes' => ['short' => 16, 'long' => 100],
+        // Au-delà de cette durée (secondes), c'est la grande vidéo (limite de la version légère « long »).
+        'long_after_seconds' => 120,
+        'max_megabytes' => 400,
+        // Mise en page (lue par tools/presentation) : image 1080 × 1920, 30 images par seconde ; zone sûre de TikTok
+        // (rien d'important dans les 10 % du haut, les 20 % du bas, les 12 % de droite).
+        'render' => [
+            'width' => 1080,
+            'height' => 1920,
+            'fps' => 30,
+            'viewport' => ['width' => 390, 'height' => 844],
+            'phone' => ['x' => 40, 'y' => 200, 'width' => 530],
+            'medallion' => ['x' => 625, 'y' => 1080, 'size' => 300],
+            // Partie de l'image de Teacher Joe (540 × 960) montrée dans le médaillon : son visage.
+            'medallion_crop' => ['x' => 118, 'y' => 285, 'size' => 300],
+            'chapter' => ['x' => 625, 'y' => 330, 'width' => 310, 'size' => 44],
+            'subtitles' => ['top' => 1408, 'size' => 48, 'chars' => 56, 'side_margin' => 40, 'right_margin' => 140],
+            'video_bitrate' => '5000k',
+            'audio_bitrate' => '128k',
+            // Son : même chaîne que les vidéos de leçon, limiteur un peu plus bas (crête sous 0 dB après l'AAC).
+            'audio' => ['target_lufs' => -14, 'limit' => 0.75, 'limiter_makeup_db' => 2.0],
+        ],
+    ],
+
     // Mise en page (lue par tools/video/render.mjs) : gros plan de Teacher Joe dans la salle de classe des séances,
     // rendu plus petit puis agrandi (plus rapide sur GitHub), texte en pleine définition. Coordonnées du décor en
     // mètres de la scène 3D (le visage est vers x = 0, y = 0,75 ; le mur à z = −0,6).

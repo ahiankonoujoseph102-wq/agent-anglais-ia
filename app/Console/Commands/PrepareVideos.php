@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Support\Videos\LessonVideos;
+use App\Support\Videos\PresentationVideos;
 use App\Support\Videos\VideoSettings;
 use App\Support\Videos\VideoTopics;
 use Illuminate\Console\Command;
@@ -21,7 +22,7 @@ class PrepareVideos extends Command
 
     protected $description = 'Prépare les vidéos de leçon (sujet, script, voix) ; avec --plan, ajoute celles du jour';
 
-    public function handle(LessonVideos $videos): int
+    public function handle(LessonVideos $videos, PresentationVideos $presentations): int
     {
         // Une seule préparation à la fois (la tâche du matin et celle de chaque minute peuvent se croiser).
         $lock = Cache::lock('videos:prepare', 600);
@@ -33,14 +34,17 @@ class PrepareVideos extends Command
         }
 
         try {
-            return $this->work($videos);
+            return $this->work($videos, $presentations);
         } finally {
             $lock->release();
         }
     }
 
-    private function work(LessonVideos $videos): int
+    private function work(LessonVideos $videos, PresentationVideos $presentations): int
     {
+        $budget = (int) ($this->option('budget') ?: config('videos.prepare_budget'));
+        $deadline = microtime(true) + $budget;
+
         if ($this->option('plan')) {
             if (blank(config('videos.token'))) {
                 $this->line('Jeton des vidéos non réglé (VIDEO_UPLOAD_TOKEN) : aucune vidéo ajoutée automatiquement.');
@@ -54,8 +58,15 @@ class PrepareVideos extends Command
             $this->warn($blocked);
         }
 
-        $result = $videos->prepare((int) ($this->option('budget') ?: config('videos.prepare_budget')));
+        $result = $videos->prepare($budget);
         $this->info("Scripts écrits : {$result['scripted']}, voix prêtes : {$result['voiced']}, encore en préparation : {$result['waiting']}.");
+
+        // Vidéos de présentation demandées dans l'administration : leurs voix, avec le temps qui reste.
+        $presented = $presentations->prepare($deadline);
+
+        if ($presented['voiced'] > 0 || $presented['waiting'] > 0) {
+            $this->info("Vidéos de présentation : voix prêtes : {$presented['voiced']}, encore en préparation : {$presented['waiting']}.");
+        }
 
         return self::SUCCESS;
     }

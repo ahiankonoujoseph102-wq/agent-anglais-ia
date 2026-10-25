@@ -498,6 +498,24 @@ Variables de Laravel Cloud (puis **Deploy**) ; elles ne changent que les vidéos
 
 Pour refaire une vidéo déjà prête avec la nouvelle voix : préparez simplement de nouvelles vidéos (un sujet n'est jamais refait).
 
+## 13 quater. Les vidéos de présentation de Talkami (une grande, six courtes)
+
+Teacher Joe présente le site pendant que l'écran du téléphone défile à côté de lui : une grande vidéo d'environ 4 à 5 minutes (tout le site) et six courtes (créer son compte, l'évaluation gratuite, les formules, payer, la séance du jour, « Mes cours »). L'écran est filmé par GitHub sur un **site de démonstration** fabriqué pour l'occasion (compte fictif « Élève », aucune donnée réelle, aucun vrai paiement), jamais sur le site en ligne. La voix est celle des vidéos de leçon (mêmes réglages, ton de présentation).
+
+Prérequis : les étapes 0 à 4 de la partie 13 ter (adresse du site, jeton, secret et variable sur GitHub). Rien de plus à régler.
+
+1. Administration, onglet **« Vidéos »**, partie **« Vidéos de présentation »** : touchez **Préparer les vidéos de présentation**.
+2. Attendez environ 10 minutes (la grande vidéo a beaucoup de phrases) et rechargez : chaque vidéo doit afficher « Voix prête : en attente de fabrication ».
+3. GitHub, dépôt, onglet **Actions**, à gauche **« Vidéos de présentation »**, bouton **Run workflow**, choisissez **toutes**, puis **Run workflow**. Deux machines travaillent en même temps (la grande vidéo d'un côté, les six courtes de l'autre) : comptez environ 45 minutes à 1 heure et quart.
+4. Revenez dans « Vidéos » et rechargez : pour chaque vidéo, l'aperçu, **Télécharger pour TikTok** (pleine qualité) et **Télécharger pour WhatsApp** (plus légère : moins de 16 mégaoctets pour une courte, moins de 100 pour la grande), **Copier le texte**.
+5. Sur le téléphone, le fichier arrive dans l'application **Fichiers**, dossier **Téléchargements**. Sur TikTok, avant de publier : activez **« Contenu généré par IA »**.
+
+Contrôle avant publication : dans GitHub, ouvrez l'exécution terminée, en bas **Artifacts**, « images-de-controle-… » : quatre images de chaque vidéo (début, tiers, deux tiers, fin).
+
+Refaire une vidéo : bouton **Refaire cette vidéo** sous la vidéo, puis **Run workflow** de nouveau. Si le texte n'a pas changé, la voix est gardée et seule l'image est refaite.
+
+Coût : environ 1 heure et demie de minutes GitHub pour les sept vidéos (sur les 2 000 minutes gratuites par mois d'un dépôt privé).
+
 ## 14. Savoir si un déploiement a réussi ou échoué
 
 - Chaque fois que du code arrive sur `main` (par exemple après la fusion d'une pull request), Laravel Cloud démarre un déploiement tout seul : onglet **Deployments**.

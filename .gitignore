@@ -29,3 +29,5 @@ Thumbs.db
 
 # Outils locaux du professeur 3D
 /tools/teacher3d/node_modules
+/tools/presentation/node_modules
+/tools/video/node_modules

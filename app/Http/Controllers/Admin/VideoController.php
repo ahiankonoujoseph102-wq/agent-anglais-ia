@@ -7,6 +7,7 @@ use App\Models\LessonVideo;
 use App\Support\Gemini\SpeechFailed;
 use App\Support\PrivateStorage;
 use App\Support\Videos\LessonVideos;
+use App\Support\Videos\PresentationVideos;
 use App\Support\Videos\VideoEnding;
 use App\Support\Videos\VideoSettings;
 use App\Support\Videos\VideoTopics;
@@ -25,7 +26,7 @@ use Throwable;
  */
 class VideoController extends Controller
 {
-    public function index(): View
+    public function index(PresentationVideos $presentations): View
     {
         $videos = LessonVideo::query()->orderByDesc('day')->orderBy('slot')->paginate(15);
 
@@ -43,6 +44,7 @@ class VideoController extends Controller
             'redoable' => LessonVideo::query()->whereDate('day', today())->whereIn('status', [LessonVideo::READY, LessonVideo::FAILED])->count(),
             'reminder' => (string) config('videos.ai_label_reminder'),
             'perDay' => (int) config('videos.per_day'),
+            'presentations' => $presentations->all(),
         ]);
     }
 

@@ -72,6 +72,24 @@ class LessonVideo extends Model
         return 'videos/'.$this->day->format('Y-m-d').'/'.$this->id;
     }
 
+    /** Ton demandé à la synthèse vocale (VideoVoice). */
+    public function voiceStyle(): string
+    {
+        return (string) config('videos.voice.style');
+    }
+
+    /** Silence entre deux parties de la voix, en millisecondes. */
+    public function voiceGapMs(): int
+    {
+        return (int) config('videos.voice.gap_ms');
+    }
+
+    /** Libellé des synthèses (page « Consommation »). */
+    public function voiceLabel(): string
+    {
+        return 'Vidéo de leçon';
+    }
+
     /** Nom du fichier proposé au téléchargement. */
     public function downloadName(): string
     {
