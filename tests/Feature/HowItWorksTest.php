@@ -30,7 +30,11 @@ class HowItWorksTest extends TestCase
 
     private function readyVideo(string $key, bool $site = false): PresentationVideo
     {
-        $video = PresentationVideo::query()->create(['key' => $key, 'title' => $key === 'talkami' ? 'Talkami en 5 minutes' : 'Votre évaluation orale gratuite', 'status' => LessonVideo::READY, 'duration_seconds' => 95]);
+        $video = PresentationVideo::query()->create(['key' => $key, 'title' => match ($key) {
+            'talkami' => 'Talkami en 5 minutes',
+            'questions' => 'Vos questions, mes réponses',
+            default => 'Votre évaluation orale gratuite',
+        }, 'status' => LessonVideo::READY, 'duration_seconds' => 95]);
         $light = $video->folder().'/'.$video->downloadName(true);
         Storage::disk('local')->put($light, 'mp4-whatsapp');
         $video->update(['light_path' => $light, 'video_path' => $video->folder().'/'.$video->downloadName()]);
@@ -140,5 +144,49 @@ class HowItWorksTest extends TestCase
     public function test_the_home_page_links_to_the_page_with_one_line_of_text(): void
     {
         $this->get('/')->assertOk()->assertSee('<p class="hero-how"><a href="'.route('how').'">Voir comment ça marche</a></p>', false);
+    }
+
+    public function test_the_questions_video_comes_third_with_the_same_light_method(): void
+    {
+        $this->readyVideo('questions', true);
+        $this->readyVideo('talkami', true);
+        $this->readyVideo('evaluation', true);
+
+        $html = $this->get('/comment-ca-marche')->assertOk()->getContent();
+
+        $this->assertLessThan(strpos($html, 'Talkami en 5 minutes'), strpos($html, 'Votre évaluation orale gratuite'));
+        $this->assertLessThan(strpos($html, 'Vos questions, mes réponses'), strpos($html, 'Talkami en 5 minutes'));
+        $this->assertStringContainsString('id="questions"', $html);
+        $this->assertSame(3, substr_count($html, 'data-watch'));
+        $this->assertStringNotContainsString('<video', $html);
+        // Une seule note sur les données, sous la première vidéo.
+        $this->assertSame(1, substr_count($html, "Rien n'est téléchargé avant"));
+        $this->get('/comment-ca-marche/questions/apercu')->assertOk();
+        $this->get('/comment-ca-marche/questions/video')->assertRedirect();
+    }
+
+    public function test_github_gets_the_questions_video_for_the_site(): void
+    {
+        $this->readyVideo('questions');
+
+        $this->api('GET', '/api/presentations/site/travaux?apercu=1')->assertOk()->assertJson(['waiting' => 1]);
+        $this->api('GET', '/api/presentations/site/travaux')->assertOk()->assertJsonPath('jobs.0.key', 'questions');
+    }
+
+    public function test_the_plans_page_links_to_the_questions_video_only_once_it_is_on_the_site(): void
+    {
+        $this->readyVideo('questions');
+
+        $this->get('/formules')->assertOk()->assertDontSee('Des questions avant de choisir');
+
+        PresentationVideo::query()->where('key', 'questions')->delete();
+        $this->readyVideo('questions', true);
+
+        $html = $this->get('/formules')->assertOk()->getContent();
+        $this->assertStringContainsString('Des questions avant de choisir ? <a href="'.route('how').'#questions">Regardez « Vos questions, mes réponses »</a>.', $html);
+        // Une ligne de texte : aucun bouton orange de plus, rien de la vidéo chargé sur cette page.
+        $this->assertStringNotContainsString('how.poster', $html);
+        $this->assertStringNotContainsString('/comment-ca-marche/questions', $html);
+        $this->get('/comment-ca-marche')->assertSee('id="questions"', false);
     }
 }

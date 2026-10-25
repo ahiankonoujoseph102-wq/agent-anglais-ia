@@ -18,9 +18,12 @@ use Throwable;
  */
 class PageController extends Controller
 {
-    public function plans(): View
+    public function plans(SiteVideos $videos): View
     {
+        $link = config('videos.presentations.site.plans_link');
+
         return view('pages.plans', [
+            'questionsVideo' => $link ? $videos->find($link) : null,
             'plans' => Plan::all(),
             'countries' => PaymentCountry::available(),
             'countryPages' => CountryPage::all(),
