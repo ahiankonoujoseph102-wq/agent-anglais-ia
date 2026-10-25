@@ -27,6 +27,7 @@ import { openDemo, recordTake } from './record.mjs';
 import { renderAvatar } from './avatar.mjs';
 import { buildScreen, compose, lightVersion, renderLayers, takes } from './compose.mjs';
 import { SCENES } from './scenes.mjs';
+import { call } from './talkami-api.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = Object.fromEntries(process.argv.slice(2).map((arg) => arg.replace(/^--/, '').split('=')));
@@ -40,17 +41,10 @@ function log(message) {
     console.log(`[${new Date().toISOString().slice(11, 19)}] ${message}`);
 }
 
-async function api(path, options = {}) {
-    const response = await fetch(path.startsWith('http') ? path : `${base}${path}`, {
-        ...options,
-        headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(options.headers ?? {}) },
-    });
+async function api(path, options = {}, extra = {}) {
+    const url = path.startsWith('http') ? path : `${base}${path}`;
 
-    if (!response.ok) {
-        throw new Error(`Talkami a répondu ${response.status} pour ${new URL(response.url).pathname}`);
-    }
-
-    return response;
+    return call(url, { ...options, headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(options.headers ?? {}) } }, { log, ...extra });
 }
 
 /** Réglages du site de démonstration : base locale, faux fournisseur, aucune clé, aucun e-mail. */
@@ -261,11 +255,8 @@ async function upload(target, file) {
         headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(target.url, { method: target.method, headers, body: await readFile(file) });
-
-    if (!response.ok) {
-        throw new Error(`dépôt refusé (${response.status})`);
-    }
+    // Même fichier, même adresse : un nouvel essai remplace simplement le dépôt interrompu.
+    await call(target.url, { method: target.method, headers, body: await readFile(file) }, { log });
 }
 
 async function remote() {
@@ -309,11 +300,12 @@ async function remote() {
                 log(`${job.key} : envoi…`);
                 await upload(job.upload.video, result.full);
                 await upload(job.upload.light, result.light);
+                // Les deux fichiers sont déposés : une réponse passagère de Talkami ne doit plus faire perdre la vidéo.
                 await api(job.done_url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ duration: result.total, lips_correlation: result.lips.correlation, lips_open: result.lips.open_speech, loudness_lufs: result.sound.lufs, true_peak_db: result.sound.peak }),
-                });
+                }, { acceptOnRetry: [409] });
                 log(`${job.key} : prête.`);
             } catch (error) {
                 failures++;
