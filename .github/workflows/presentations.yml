@@ -49,9 +49,10 @@ jobs:
           part='${{ matrix.part.name }}'
           case "$choice:$part" in
             toutes:*|'grande seulement:grande'|'courtes seulement:courtes'|'nouvelles seulement:ce-soir'|'nouvelles seulement:questions'|'nouvelles seulement:publicite'|'publicité seulement:publicite'|'ce soir seulement:ce-soir')
-              echo "run=1" >> "$GITHUB_OUTPUT" ;;
+              echo "Partie demandée : $part." ; echo "run=1" >> "$GITHUB_OUTPUT" ;;
             *)
-              echo "run=0" >> "$GITHUB_OUTPUT" ;;
+              # Cette machine ne fait rien (quelques secondes, aucune vidéo touchée) : elle apparaît quand même en vert.
+              echo "Partie non demandée par « $choice » : rien à faire, aucune vidéo touchée." ; echo "run=0" >> "$GITHUB_OUTPUT" ;;
           esac
 
       - uses: actions/checkout@v4
