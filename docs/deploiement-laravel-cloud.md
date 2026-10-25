@@ -537,6 +537,18 @@ La page publique « Comment ça marche » (`/comment-ca-marche`) montre trois vi
 
 Quand vous refaites une de ces trois vidéos (« Vos questions, mes réponses » dit les prix à voix haute : refaites-la si un prix change), l'ancienne version du site est retirée et la nouvelle est faite à la fin de la fabrication (même workflow « Vidéos de présentation ») ; sinon, relancez **Vidéos du site**.
 
+## 13 quinquies. Le catalogue des écrans (une vidéo pour un montage)
+
+Une seule vidéo **muette** (1080 × 1920, 30 images par seconde) qui montre **tous les écrans** du site, bout à bout, séparés par **une seconde d'écran noir**, et la **voix de Teacher Joe** du passage où il parle, dans un fichier à part. Tout est filmé sur un site de **démonstration** (compte fictif « Élève », aucune donnée réelle, aucun paiement), jamais sur le site en ligne. Il faut que la vidéo de présentation « Vos questions, mes réponses » soit « Prête » (sa voix sert au passage où Teacher Joe parle).
+
+1. Dans GitHub, onglet **Actions**, choisissez **Catalogue des écrans**, puis **Run workflow**, puis **Run workflow** (environ 40 à 60 minutes).
+2. Quand la ligne devient verte, ouvrez l'administration, **Vidéos**, bloc **Catalogue des écrans (pour un montage)**.
+3. Touchez **Télécharger la vidéo du catalogue** (le fichier arrive dans « Téléchargements »), puis **Télécharger la voix de Teacher Joe**.
+4. Ouvrez **Index des passages** : début et fin de chaque passage, à copier pour le monteur.
+5. Pour Google Drive : application **Drive**, bouton **+**, **Importer**, choisissez les deux fichiers dans « Téléchargements ».
+
+Relancez le workflow après un changement du site : le nouveau catalogue remplace l'ancien.
+
 ## 14. Savoir si un déploiement a réussi ou échoué
 
 - Chaque fois que du code arrive sur `main` (par exemple après la fusion d'une pull request), Laravel Cloud démarre un déploiement tout seul : onglet **Deployments**.

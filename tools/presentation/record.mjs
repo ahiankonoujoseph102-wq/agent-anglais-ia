@@ -20,11 +20,11 @@ const ACCOUNTS = {
 const sleep = (ms) => new Promise((ok) => setTimeout(ok, Math.max(0, ms)));
 
 /** Navigateur prêt : un onglet de téléphone, les effets, les cookies de chaque compte de démonstration. */
-export async function openDemo(browser, { site, fakePort, viewport, scale, effects, proofImage }) {
+export async function openDemo(browser, { site, fakePort, viewport, scale, effects, proofImage, coursePhoto = null, accounts = {} }) {
     const options = { viewport, deviceScaleFactor: scale, isMobile: true, hasTouch: true, locale: 'fr-FR', timezoneId: 'Africa/Lome', permissions: ['microphone'], reducedMotion: 'no-preference' };
     const cookies = { visitor: [] };
 
-    for (const [key, phone] of Object.entries(ACCOUNTS)) {
+    for (const [key, phone] of Object.entries({ ...ACCOUNTS, ...accounts })) {
         const context = await browser.newContext(options);
         const page = await context.newPage();
         await page.goto(`${site}/connexion`);
@@ -48,7 +48,7 @@ export async function openDemo(browser, { site, fakePort, viewport, scale, effec
     page.on('pageerror', (error) => console.log(`[page] ${error.message}`));
     const cdp = await context.newCDPSession(page);
 
-    return { context, page, cdp, cookies, site, fakePort, proofImage, viewport, scale, account: null };
+    return { context, page, cdp, cookies, site, fakePort, proofImage, coursePhoto, viewport, scale, account: null };
 }
 
 /** L'aide « s » des scènes. */
@@ -198,6 +198,11 @@ function helper(demo, deadline) {
             await page.setInputFiles('#proof', { name: 'capture-de-demonstration.png', mimeType: 'image/png', buffer: demo.proofImage });
         },
 
+        /** Photo de cahier DESSINÉE (aucune vraie photo), jamais envoyée : seulement son aperçu. */
+        async chooseCoursePhoto() {
+            await page.setInputFiles('#course-gallery', { name: 'lecon-de-demonstration.png', mimeType: 'image/png', buffer: demo.coursePhoto ?? demo.proofImage });
+        },
+
         async questionnaireScreen(screen) {
             const choose = async (selector) => {
                 const label = page.locator(selector).first().locator('xpath=ancestor::label[1]');
@@ -278,7 +283,7 @@ async function arrive(demo, sceneDef) {
 export async function recordTake(demo, scenes, dir) {
     await mkdir(dir, { recursive: true });
     const { page, cdp } = demo;
-    const first = sceneOf(scenes[0].name);
+    const first = scenes[0].def ?? sceneOf(scenes[0].name);
     await arrive(demo, first);
 
     if (first.live) {
@@ -317,7 +322,7 @@ export async function recordTake(demo, scenes, dir) {
     let planned = Date.now();
 
     for (const [index, entry] of scenes.entries()) {
-        const sceneDef = sceneOf(entry.name);
+        const sceneDef = entry.def ?? sceneOf(entry.name);
         const start = Math.max(Date.now(), planned);
         const deadline = start + entry.ms;
         const s = helper(demo, deadline);

@@ -14,28 +14,25 @@
 // CHROME_PATH, PRESENTATION_OUT (dossier des images de contrôle), PRESENTATION_PEEK=1 (compter seulement).
 // Répétition locale, sans Talkami : node make.mjs --job=job.json --audio=voix.wav --out=dossier [--avatar=avatar.mp4]
 
-import { spawn, spawnSync } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile, copyFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
-import { ROOT, audioDuration, launch } from '../video/common.mjs';
+import { audioDuration, launch } from '../video/common.mjs';
 import { startFakeGemini } from './fake-gemini.mjs';
 import { openDemo, recordTake } from './record.mjs';
 import { renderAvatar } from './avatar.mjs';
 import { buildScreen, compose, lightVersion, renderLayers, takes } from './compose.mjs';
 import { SCENES } from './scenes.mjs';
 import { call } from './talkami-api.mjs';
+import { FAKE_PORT, SITE, demoEnv, resetDemo, startDemoSite } from './demo-site.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = Object.fromEntries(process.argv.slice(2).map((arg) => arg.replace(/^--/, '').split('=')));
 const base = (process.env.TALKAMI_URL ?? '').replace(/\/+$/, '');
 const token = process.env.TALKAMI_VIDEO_TOKEN ?? '';
-const SITE_PORT = 8123;
-const FAKE_PORT = 8124;
-const SITE = `http://127.0.0.1:${SITE_PORT}`;
 
 function log(message) {
     console.log(`[${new Date().toISOString().slice(11, 19)}] ${message}`);
@@ -45,73 +42,6 @@ async function api(path, options = {}, extra = {}) {
     const url = path.startsWith('http') ? path : `${base}${path}`;
 
     return call(url, { ...options, headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(options.headers ?? {}) } }, { log, ...extra });
-}
-
-/** Réglages du site de démonstration : base locale, faux fournisseur, aucune clé, aucun e-mail. */
-function demoEnv(database) {
-    return {
-        ...process.env,
-        APP_ENV: 'local',
-        APP_DEBUG: 'false',
-        APP_KEY: process.env.DEMO_APP_KEY || `base64:${randomBytes(32).toString('base64')}`,
-        APP_URL: SITE,
-        APP_TIMEZONE: 'Africa/Lome',
-        DB_CONNECTION: 'sqlite',
-        DB_DATABASE: database,
-        SESSION_DRIVER: 'database',
-        CACHE_STORE: 'database',
-        QUEUE_CONNECTION: 'sync',
-        PHP_CLI_SERVER_WORKERS: '6',
-        FILESYSTEM_DISK: 'local',
-        PRIVATE_FILES_DISK: 'local',
-        MAIL_MAILER: 'log',
-        LOG_CHANNEL: 'stderr',
-        LOG_LEVEL: 'error',
-        GEMINI_API_KEY: 'demonstration',
-        GEMINI_BASE_URL: `http://127.0.0.1:${FAKE_PORT}`,
-        GEMINI_WEBSOCKET_URL: `ws://127.0.0.1:${FAKE_PORT}`,
-        OPENAI_API_KEY: '',
-        LIVE_PROVIDERS: 'gemini',
-        TEXT_PROVIDERS: 'gemini',
-        TTS_PROVIDERS: 'gemini',
-        VIDEO_UPLOAD_TOKEN: '',
-        ADMIN_ALERT_EMAIL: '',
-        VAPID_PUBLIC_KEY: '',
-        VAPID_PRIVATE_KEY: '',
-    };
-}
-
-/** Base neuve et comptes de démonstration (avant chaque vidéo : chaque vidéo part du même état). */
-function resetDemo(env) {
-    const artisan = (...command) => {
-        const result = spawnSync('php', ['artisan', ...command, '--no-interaction'], { cwd: ROOT, env, encoding: 'utf8' });
-
-        if (result.status !== 0) {
-            throw new Error(`php artisan ${command[0]} a échoué : ${(result.stderr || result.stdout).slice(-400)}`);
-        }
-    };
-
-    artisan('migrate:fresh', '--force');
-    artisan('db:seed', '--class=PresentationDemoSeeder', '--force');
-}
-
-async function startDemoSite(env) {
-    // Serveur intégré de PHP (plusieurs processus), lancé depuis public/ comme « php artisan serve ».
-    const router = join(ROOT, 'vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php');
-    const server = spawn('php', ['-S', `127.0.0.1:${SITE_PORT}`, router], { cwd: join(ROOT, 'public'), env, stdio: ['ignore', 'ignore', 'ignore'] });
-
-    for (let i = 0; i < 60; i++) {
-        try {
-            if ((await fetch(`${SITE}/up`)).ok) {
-                return server;
-            }
-        } catch {}
-
-        await new Promise((ok) => setTimeout(ok, 500));
-    }
-
-    server.kill();
-    throw new Error('Le site de démonstration ne répond pas.');
 }
 
 /** Image neutre choisie comme « capture » dans la scène du paiement : jamais une fausse confirmation, jamais envoyée. */

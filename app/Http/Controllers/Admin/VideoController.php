@@ -8,6 +8,7 @@ use App\Support\Gemini\SpeechFailed;
 use App\Support\PrivateStorage;
 use App\Support\Videos\LessonVideos;
 use App\Support\Videos\PresentationVideos;
+use App\Support\Videos\ScreenCatalogue;
 use App\Support\Videos\VideoEnding;
 use App\Support\Videos\VideoSettings;
 use App\Support\Videos\VideoTopics;
@@ -45,6 +46,7 @@ class VideoController extends Controller
             'reminder' => (string) config('videos.ai_label_reminder'),
             'perDay' => (int) config('videos.per_day'),
             'presentations' => $presentations->all(),
+            'catalogue' => app(ScreenCatalogue::class)->last(),
         ]);
     }
 
@@ -159,5 +161,11 @@ class VideoController extends Controller
             // Disque sans adresse signée (développement) : envoyé par le site.
             return $disk->response($video->video_path, $video->downloadName(), ['Content-Type' => 'video/mp4', 'Cache-Control' => 'private, no-store'], $download ? 'attachment' : 'inline');
         }
+    }
+
+    /** Catalogue des écrans : la vidéo ou la voix de Teacher Joe (fichier à télécharger). */
+    public function catalogue(string $file, ScreenCatalogue $catalogue): Response
+    {
+        return $catalogue->download($file);
     }
 }

@@ -1,0 +1,63 @@
+# Catalogue des écrans de Talkami pour un montage : UNE vidéo muette (1080 × 1920, 30 images par seconde) de tous les
+# écrans du site LOCAL de démonstration (comptes fictifs, aucun paiement, jamais le site en ligne), bout à bout,
+# séparés par une seconde de noir, et la voix de Teacher Joe du passage où il parle, dans un fichier à part.
+# Déposés dans le bucket privé : page « Vidéos » de l'administration, « Catalogue des écrans », « Télécharger ».
+# Seulement à la demande : Actions, « Catalogue des écrans », Run workflow. Mêmes secret et variable que les vidéos.
+name: Catalogue des écrans
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: catalogue
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  fabriquer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    name: Catalogue des écrans (une seule vidéo)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, gd, intl, mbstring
+          coverage: none
+
+      - name: Installer le site de démonstration et ffmpeg
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          cd tools/presentation && npm install --no-audit --no-fund --silent
+
+      - name: Fabriquer et déposer le catalogue
+        working-directory: tools/presentation
+        env:
+          TALKAMI_URL: ${{ vars.TALKAMI_URL }}
+          TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
+          CATALOGUE_OUT: ${{ runner.temp }}/catalogue
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node catalogue.mjs
+
+      # Images de contrôle (trois par passage) et index : à regarder si un passage semble faux. La vidéo elle-même se
+      # télécharge depuis la page « Vidéos » de l'administration (pas d'archive lourde ici).
+      - name: Images de contrôle et index
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalogue-controle
+          path: |
+            ${{ runner.temp }}/catalogue/controle
+            ${{ runner.temp }}/catalogue/index.txt
+          if-no-files-found: ignore
+          retention-days: 14

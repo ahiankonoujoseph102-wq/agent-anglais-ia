@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\CatalogueJobController;
 use App\Http\Controllers\Api\PresentationJobController;
 use App\Http\Controllers\Api\SiteVideoJobController;
 use App\Http\Controllers\Api\VideoJobController;
@@ -30,4 +31,13 @@ Route::middleware(['video.token', 'throttle:120,1'])->prefix('presentations')->n
     Route::put('/{presentation}/fichier/{version}', [PresentationJobController::class, 'upload'])->whereIn('version', ['tiktok', 'whatsapp'])->name('upload');
     Route::post('/{presentation}/prete', [PresentationJobController::class, 'done'])->name('done');
     Route::post('/{presentation}/echec', [PresentationJobController::class, 'failed'])->name('failed');
+});
+
+/*
+| Catalogue des écrans pour un montage (tools/presentation/catalogue.mjs, workflow lancé à la main) : même jeton.
+*/
+Route::middleware(['video.token', 'throttle:60,1'])->prefix('catalogue')->name('api.catalogue.')->group(function () {
+    Route::get('/travail', [CatalogueJobController::class, 'job'])->name('job');
+    Route::put('/fichier/{file}', [CatalogueJobController::class, 'upload'])->whereIn('file', ['video', 'voix'])->name('upload');
+    Route::post('/pret', [CatalogueJobController::class, 'done'])->name('done');
 });
