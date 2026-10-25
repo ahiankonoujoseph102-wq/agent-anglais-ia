@@ -94,19 +94,29 @@
         /** Cercle orange autour d'un élément (coordonnées de l'écran au moment de l'appel). */
         circle(target, pad = 8) {
             ready();
-            const r = box(target);
+            const element = typeof target === 'string' ? document.querySelector(target) : target;
 
-            if (!r) {
+            if (!element) {
                 return false;
             }
 
             const ring = document.createElement('div');
             ring.className = 'fx-circle fx-mark';
-            ring.style.left = `${r.left - pad}px`;
-            ring.style.top = `${r.top - pad}px`;
-            ring.style.width = `${r.width + pad * 2}px`;
-            ring.style.height = `${r.height + pad * 2}px`;
             layer.appendChild(ring);
+            // Suit l'élément à chaque image (blocs qui finissent d'apparaître, défilement, zoom).
+            const place = () => {
+                if (!ring.isConnected) {
+                    return;
+                }
+
+                const r = element.getBoundingClientRect();
+                ring.style.left = `${r.left - pad}px`;
+                ring.style.top = `${r.top - pad}px`;
+                ring.style.width = `${r.width + pad * 2}px`;
+                ring.style.height = `${r.height + pad * 2}px`;
+                requestAnimationFrame(place);
+            };
+            place();
 
             return true;
         },
@@ -114,28 +124,37 @@
         /** Flèche orange qui pointe l'élément, du dessus (ou du dessous s'il est tout en haut). */
         arrow(target) {
             ready();
-            const r = box(target);
+            const element = typeof target === 'string' ? document.querySelector(target) : target;
 
-            if (!r) {
+            if (!element) {
                 return false;
             }
 
-            const below = r.top < 110;
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.setAttribute('viewBox', '0 0 70 70');
             svg.classList.add('fx-arrow', 'fx-mark');
             svg.innerHTML = `<path d="M35 4 V52 M15 34 L35 56 L55 34" fill="none" stroke="${ORANGE}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" style="paint-order:stroke"/>`;
-            // Vers la droite de l'élément : le début d'une ligne (titre, texte) reste lisible.
-            const x = r.width > 200 ? r.left + r.width * 0.8 : r.left + r.width / 2;
-            svg.style.left = `${Math.min(window.innerWidth - 74, Math.max(4, x - 35))}px`;
-            svg.style.top = below ? `${r.bottom + 6}px` : `${r.top - 76}px`;
-
-            if (below) {
-                svg.style.transform = 'rotate(180deg)';
-                svg.style.animation = 'none';
-            }
-
             layer.appendChild(svg);
+            const place = () => {
+                if (!svg.isConnected) {
+                    return;
+                }
+
+                const r = element.getBoundingClientRect();
+                const below = r.top < 110;
+                // Vers la droite de l'élément : le début d'une ligne (titre, texte) reste lisible.
+                const x = r.width > 200 ? r.left + r.width * 0.8 : r.left + r.width / 2;
+                svg.style.left = `${Math.min(window.innerWidth - 74, Math.max(4, x - 35))}px`;
+                svg.style.top = below ? `${r.bottom + 6}px` : `${r.top - 76}px`;
+                svg.style.transform = below ? 'rotate(180deg)' : '';
+
+                if (below) {
+                    svg.style.animation = 'none';
+                }
+
+                requestAnimationFrame(place);
+            };
+            place();
 
             return true;
         },

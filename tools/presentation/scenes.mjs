@@ -48,12 +48,14 @@ export const SCENES = {
     'home.cards': {
         account: 'visitor', path: '/',
         async act(s, ms) {
-            await s.scroll('#pros', Math.min(1800, ms * 0.25), 120);
-            await s.circleAny(['section.audience:has(#pros)', '#pros']);
-            await s.wait(Math.min(3500, ms * 0.4));
+            // Sur téléphone, les cartes des publics glissent de côté : « Vous êtes étudiant ? », puis « Vous travaillez ? ».
+            await s.scroll('.audiences', Math.min(1800, ms * 0.2), 80);
+            await s.circleAny(['section.audience:has(#etudiants)']);
+            await s.wait(Math.min(4000, ms * 0.4));
             await s.clear();
-            await s.scroll('#etudiants', 1200, 120);
-            await s.circleAny(['section.audience:has(#etudiants)', '#etudiants']);
+            await s.page.evaluate(() => document.querySelector('section.audience:has(#pros)')?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' }));
+            await s.wait(900);
+            await s.circleAny(['section.audience:has(#pros)']);
         },
     },
     // Question fréquente « De quoi ai-je besoin (matériel, internet) ? » ouverte, la phrase des mégaoctets entourée.
@@ -69,9 +71,9 @@ export const SCENES = {
                     }
                 }
 
-                return summary?.parentElement?.querySelector('p') ?? null;
+                return summary?.parentElement ?? null;
             });
-            await s.page.evaluate((el) => el && window.__fx.scrollTo(el, 1500, 220), handle);
+            await s.page.evaluate((el) => el && window.__fx.scrollTo(el, 1500, 110), handle);
             await s.wait(300);
             await s.page.evaluate((el) => el && window.__fx.circle(el, 6), handle);
         },

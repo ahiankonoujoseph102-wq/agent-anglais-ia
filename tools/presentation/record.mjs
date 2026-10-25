@@ -103,7 +103,7 @@ function helper(demo, deadline) {
         },
 
         async circleText(container, text) {
-            const locator = page.locator(container).getByText(new RegExp(text, 'i')).first();
+            const locator = page.locator(container).getByText(new RegExp(text, 'i')).filter({ visible: true }).first();
 
             if (await locator.count()) {
                 const handle = await locator.elementHandle();
