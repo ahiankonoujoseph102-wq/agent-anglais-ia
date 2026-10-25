@@ -4,6 +4,7 @@ namespace Tests\Feature\Payment;
 
 use App\Models\Payment;
 use App\Models\User;
+use App\Support\PaymentCountry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Concerns\ConfiguresPayments;
@@ -85,7 +86,8 @@ class PaymentFlowTest extends TestCase
         $html = $this->page(User::factory()->create(['phone' => '+2290190123456']));
 
         $block = $this->visiblePayment($html);
-        $this->assertStringContainsString('Payez avec Celtiis', $block);
+        $this->assertStringContainsString('Bénin · Celtiis', $block);
+        $this->assertStringContainsString('avec Celtiis', $block);
         $this->assertStringContainsString('data-copy="0100000033"', $block);
         $this->assertStringContainsString('name="operator" value="celtiis"', $html);
         // Sans JavaScript, le pays seul mène directement au bloc de paiement.
@@ -93,23 +95,75 @@ class PaymentFlowTest extends TestCase
         $this->assertStringContainsString('pays=TG#moyen', $html);
     }
 
-    public function test_the_payment_block_shows_amount_number_steps_and_capture_button_in_order(): void
+    public function test_the_payment_block_shows_three_numbered_steps_in_order(): void
     {
         $html = $this->page(User::factory()->create(), '?pays=TG&moyen=flooz');
         $block = $this->visiblePayment($html);
 
-        $positions = array_map(fn (string $text) => mb_strpos($block, $text), [
-            'Togo · Flooz', 'Montant exact à envoyer', 'Numéro sur lequel envoyer l\'argent', 'Copier le numéro', 'Ouvrez Flooz',
+        // ① le numéro, ② le montant avec le moyen choisi, puis ③ (commun à tous les moyens) le bouton de la capture.
+        $positions = array_map(fn (string $text) => mb_strpos($html, $text, mb_strpos($html, 'data-pay-block="TG.flooz"')), [
+            'Togo · Flooz', 'Étape 1 sur 3 : </span>Copiez le numéro', '+228 79 16 23 90', 'Au nom de', 'Copier le numéro',
+            'Étape 2 sur 3 : </span>Envoyez', "7\u{202F}500\u{00A0}FCFA", 'avec Flooz',
+            'Vérifiez le nom affiché, puis validez avec votre code secret. Faites une capture de la confirmation.',
+            'Étape 3 sur 3 : </span><span class="pay-when-empty">Revenez ici et touchez ce bouton', 'class="pay-arrow"', 'J\'ai payé, j\'envoie ma capture',
         ]);
         $this->assertNotContains(false, $positions);
         $sorted = $positions;
         sort($sorted);
-        $this->assertSame($sorted, $positions, 'ordre : choix, montant, numéro, copier, étapes');
+        $this->assertSame($sorted, $positions, 'ordre : choix, ① numéro, ② montant, ③ flèche et bouton');
 
-        $this->assertMatchesRegularExpression('/<label for="proof" class="file-pick">\s*<span class="btn btn-accent[^"]*">.*J\'ai payé, j\'envoie ma capture/s', $html);
+        $this->assertStringContainsString('Copiez le numéro', $block);
         $this->assertStringContainsString('Modifier', $block);
+        // Le montant est dit en très gros, dans le titre de l'étape 2.
+        $this->assertMatchesRegularExpression('/Envoyez <strong class="pay-big">7\x{202F}500\x{00A0}FCFA<\/strong> <span class="pay-with">avec Flooz<\/span>/u', $block);
+        // Un seul bouton orange visible à la fois : « Envoyer ma capture » n'apparaît qu'une fois la capture choisie.
+        $this->assertMatchesRegularExpression('/<label for="proof" class="file-pick">\s*<span class="btn btn-accent[^"]*" data-proof-pick>.*J\'ai payé, j\'envoie ma capture/s', $html);
+        $this->assertStringContainsString('.js .pay-form:not([data-has-file]) .pay-submit { display: none; }', file_get_contents(public_path('css/app.css')));
         // Sans JavaScript : chaque moyen de paiement recharge la page sur le bloc de paiement.
         $this->assertStringContainsString('moyen=mixx#paiement', $html);
+        // Plus de longue liste de consignes ni de promesse d'accès immédiat.
+        $this->assertStringNotContainsString('Ouvrez Flooz sur votre téléphone', $html);
+        $this->assertStringNotContainsString('accès immédiat', mb_strtolower($html));
+    }
+
+    public function test_every_payment_country_and_method_has_the_three_steps(): void
+    {
+        $this->configurePayments();
+        $html = $this->page(User::factory()->create());
+
+        foreach (PaymentCountry::available() as $country) {
+            foreach ($country->operators as $method) {
+                $start = mb_strpos($html, 'data-pay-block="'.$country->code.'.'.$method->key.'"');
+                $this->assertNotFalse($start, $country->name.' · '.$method->name);
+                $block = mb_substr($html, $start, mb_strpos($html, 'class="pay-step-text"', $start) - $start);
+                $this->assertStringContainsString('Copiez le numéro', $block);
+                $this->assertStringContainsString('data-copy="'.$method->localNumber().'"', $block);
+                $this->assertStringContainsString('avec '.$method->name, $block);
+            }
+        }
+
+        // L'étape 3 est commune : une seule flèche, un seul champ de capture.
+        $this->assertSame(1, substr_count($html, 'class="pay-arrow"'));
+        $this->assertSame(1, substr_count($html, 'id="proof"'));
+    }
+
+    public function test_the_arrow_and_the_highlight_stop_when_the_phone_asks_for_less_motion(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+
+        $this->assertMatchesRegularExpression('/@media \(prefers-reduced-motion: no-preference\) \{\s*\.pay-arrow \.icon \{ animation:/', $css);
+        $this->assertMatchesRegularExpression('/@media \(prefers-reduced-motion: no-preference\) \{\s*\.pick-first\.is-highlighted \{ animation:/', $css);
+        // Aucune animation de la flèche en dehors de cette condition.
+        $this->assertSame(1, preg_match_all('/\.pay-arrow \.icon \{[^}]*animation/', $css));
+    }
+
+    public function test_the_install_bar_never_covers_the_payment_button(): void
+    {
+        $html = $this->page(User::factory()->create(), '?pays=TG&moyen=mixx');
+
+        $this->assertStringNotContainsString('id="install"', $html);
+        // Pas de barre ni de bouton fixés en bas pour le paiement : le bouton reste dans la page.
+        $this->assertDoesNotMatchRegularExpression('/\.pay[a-z-]*[^{]*\{[^}]*position: (fixed|sticky)/', file_get_contents(public_path('css/app.css')));
     }
 
     public function test_learner_pages_never_say_operateur(): void

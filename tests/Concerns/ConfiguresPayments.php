@@ -33,7 +33,8 @@ trait ConfiguresPayments
      */
     protected function visiblePayment(string $html): string
     {
-        return preg_match('/<div class="pay-block" data-pay-block="[^"]+"\s*>(.*?)<\/ol>/s', $html, $match) ? $match[1] : '';
+        // Le bloc affiché (sans « hidden ») : choix, étape 1 (numéro), étape 2 (montant), jusqu'à la consigne de l'étape 2.
+        return preg_match('/<div class="pay-block" data-pay-block="[^"]+"\s*>(.*?class="pay-step-text">[^<]*<\/p>)/s', $html, $match) ? $match[1] : '';
     }
 
     protected function configurePayments(): void

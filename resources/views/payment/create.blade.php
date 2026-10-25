@@ -65,7 +65,9 @@
                 @endforeach
             </section>
 
-            {{-- 3. Le paiement : montant, numéro, étapes, puis la capture. --}}
+            {{-- 3. Le paiement en trois grandes étapes : ① le numéro, ② le montant, ③ revenir envoyer la capture.
+                 Peu de mots : tout doit se comprendre d'un coup d'œil, et le bouton de l'étape ③ tient dans le premier
+                 écran une fois le moyen de paiement choisi (payment-flow.js fait descendre la page jusque-là). --}}
             <form method="POST" action="{{ route('payment.store', $plan->key) }}" enctype="multipart/form-data"
                   class="card card-accent form-card pay-section pay-form" id="paiement" novalidate data-proof-form
                   @unless ($operator) hidden @endunless>
@@ -77,32 +79,24 @@
                     @foreach ($option->operators as $method)
                         @php($selected = $option->code === $country?->code && $method->key === $operator?->key)
                         <div class="pay-block" data-pay-block="{{ $option->code }}.{{ $method->key }}" @unless ($selected) hidden @endunless>
-                            <p class="pay-choice"><x-icon name="pin" /> <strong>{{ $option->name }} · {{ $method->name }}</strong> · <a href="{{ route('payment.create', ['plan' => $plan->key, 'pays' => $option->code]) }}#moyen" data-pay-edit="moyen">Modifier</a></p>
-                            <h2 tabindex="-1">Payez avec {{ $method->name }}</h2>
+                            <h2 class="pay-choice" tabindex="-1"><x-icon name="pin" /> <strong>{{ $option->name }} · {{ $method->name }}</strong> · <a href="{{ route('payment.create', ['plan' => $plan->key, 'pays' => $option->code]) }}#moyen" data-pay-edit="moyen">Modifier</a></h2>
 
-                            <div class="pay-amount">
-                                <span>Montant exact à envoyer</span>
-                                <strong>{{ $plan->formattedPrice() }}</strong>
-                            </div>
-
-                            <div class="pay-number">
-                                <div>
-                                    <span class="pay-label">Numéro sur lequel envoyer l'argent</span>
+                            <div class="pay-step">
+                                <h3 class="pay-step-title"><span class="pay-step-num" aria-hidden="true">1</span><span><span class="sr-only">Étape 1 sur 3 : </span>Copiez le numéro</span></h3>
+                                <div class="pay-number">
                                     <span class="number">{{ $method->displayNumber() }}</span>
                                     @if ($method->holder)
-                                        <span class="muted">Au nom de <strong>{{ $method->holder }}</strong></span>
+                                        <span class="muted pay-holder">Au nom de <strong>{{ $method->holder }}</strong></span>
                                     @endif
+                                    <button type="button" class="btn btn-light" data-copy="{{ $method->localNumber() }}"
+                                            aria-label="Copier le numéro {{ $method->name }}"><x-icon name="copy" /> Copier le numéro</button>
                                 </div>
-                                <button type="button" class="btn btn-light" data-copy="{{ $method->localNumber() }}"
-                                        aria-label="Copier le numéro {{ $method->name }}"><x-icon name="copy" /> Copier le numéro</button>
                             </div>
 
-                            <ol class="steps steps-short">
-                                <li>Ouvrez {{ $method->name }} sur votre téléphone (l'application ou le menu).</li>
-                                <li>Choisissez l'envoi d'argent, puis entrez le numéro et le montant ci-dessus.</li>
-                                <li>Vérifiez le nom affiché, puis validez avec votre code secret.</li>
-                                <li>Faites une capture d'écran du message de confirmation.</li>
-                            </ol>
+                            <div class="pay-step">
+                                <h3 class="pay-step-title"><span class="pay-step-num" aria-hidden="true">2</span><span><span class="sr-only">Étape 2 sur 3 : </span>Envoyez <strong class="pay-big">{{ $plan->formattedPrice() }}</strong> <span class="pay-with">avec {{ $method->name }}</span></span></h3>
+                                <p class="pay-step-text">Vérifiez le nom affiché, puis validez avec votre code secret. Faites une capture de la confirmation.</p>
+                            </div>
                         </div>
                     @endforeach
                 @endforeach
@@ -111,21 +105,18 @@
                     <div class="error field">{{ $message }}</div>
                 @enderror
 
-                <div class="field pay-proof">
+                <div class="field pay-proof pay-step" id="capture" data-pay-last>
+                    <h3 class="pay-step-title" tabindex="-1" data-pay-last-title><span class="pay-step-num" aria-hidden="true">3</span><span><span class="sr-only">Étape 3 sur 3 : </span><span class="pay-when-empty">Revenez ici et touchez ce bouton <span class="pay-arrow" aria-hidden="true"><x-icon name="arrow-right" /></span></span><span class="pay-when-file">Vérifiez votre capture, puis envoyez-la</span></span></h3>
                     {{-- Champ de fichier habillé en bouton français ; il ouvre directement la galerie du téléphone. --}}
                     <input id="proof" name="proof" type="file" accept="image/jpeg,image/png,image/webp" required data-proof-input
                            class="file-pick-input"
                            data-max-bytes="{{ $maxMegabytes * 1024 * 1024 }}"
                            @error('proof') aria-invalid="true" aria-describedby="proof-error" @enderror>
                     <label for="proof" class="file-pick">
-                        <span class="btn btn-accent btn-lg btn-block btn-plan pick-first"><x-icon name="upload" /> J'ai payé, j'envoie ma capture</span>
+                        <span class="btn btn-accent btn-lg btn-block btn-plan pick-first" data-proof-pick><x-icon name="upload" /> J'ai payé, j'envoie ma capture</span>
                         <span class="btn btn-outline btn-block pick-again"><x-icon name="refresh" /> Choisir une autre capture</span>
                         <span class="file-pick-name" data-proof-name>Aucune capture choisie</span>
                     </label>
-                    <div class="hint">
-                        Une image, {{ $maxMegabytes }} mégaoctets au maximum.
-                        Le montant, la date et le numéro de transaction doivent être bien visibles.
-                    </div>
                     @error('proof')
                         <div class="error" id="proof-error">{{ $message }}</div>
                     @enderror
@@ -134,7 +125,10 @@
                 </div>
 
                 <button type="submit" class="btn btn-accent btn-block btn-lg btn-plan pay-submit" data-proof-submit>Envoyer ma capture</button>
-                <p class="muted small next-step">Votre capture reste privée : seule notre équipe peut la voir.</p>
+                <p class="muted small pay-proof-hint">
+                    Une image, {{ $maxMegabytes }} mégaoctets au maximum : le montant, la date et le numéro de transaction bien visibles.
+                    Votre capture reste privée : seule notre équipe peut la voir.
+                </p>
             </form>
 
             {{-- Premier paiement en ligne : où trouver de l'aide. --}}

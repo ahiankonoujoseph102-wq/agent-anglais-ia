@@ -11,8 +11,9 @@
     $tab = fn (string ...$patterns) => request()->routeIs(...$patterns) ? 'is-active' : null;
     // Proposition d'installer l'application (bandeau) : accueil, et toutes les pages de l'apprenant connecté, jamais
     // pendant une séance avec le professeur, sur la page de bienvenue ni dans l'administration (public/js/app.js
-    // décide ensuite : calendrier de rappel, application déjà installée).
-    $installBar = $install || ($tabbar && ! request()->routeIs('welcome.*', 'install'));
+    // décide ensuite : calendrier de rappel, application déjà installée). Jamais sur la page de paiement : le bandeau,
+    // fixé en bas de l'écran, cacherait le bouton « J'ai payé, j'envoie ma capture ».
+    $installBar = $install || ($tabbar && ! request()->routeIs('welcome.*', 'install', 'payment.create'));
     // Référencement : seules les pages publiques (App\Support\Seo::INDEXABLE_ROUTES) sont indexées.
     $indexable ??= Seo::indexable();
     $pageTitle = $title ? $title.' · '.config('platform.name') : config('platform.name').' · '.config('platform.brand.home_title');
