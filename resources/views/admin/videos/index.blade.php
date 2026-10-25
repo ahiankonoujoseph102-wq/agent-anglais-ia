@@ -168,6 +168,80 @@
         {{ $videos->links() }}
     </section>
 
+    <section id="presentations" aria-labelledby="presentations-titre">
+        <h2 id="presentations-titre">Vidéos de présentation</h2>
+        <div class="card card-soft">
+            <p>
+                Une grande vidéo et six courtes : {{ config('avatar.model.name') }} présente le site, l'écran défile à côté de lui.
+                L'écran est enregistré sur un site de DÉMONSTRATION fabriqué par GitHub (compte fictif, aucune donnée réelle,
+                aucun vrai paiement), jamais sur le site en ligne.
+            </p>
+            <ol class="small">
+                <li>Touchez « Préparer les vidéos de présentation » : la voix est prête en quelques minutes (« Voix prête »).</li>
+                <li>Sur GitHub : Actions, « Vidéos de présentation », Run workflow (environ une heure pour les sept).</li>
+                <li>Revenez ici : « Télécharger pour TikTok » (pleine qualité) ou « Télécharger pour WhatsApp » (plus légère).</li>
+            </ol>
+            <form method="POST" action="{{ route('admin.videos.presentations.request') }}" class="video-prepare">
+                @csrf
+                <button type="submit" class="btn btn-accent"><x-icon name="play" /> Préparer les vidéos de présentation</button>
+            </form>
+        </div>
+
+        @foreach ($presentations as $presentation)
+            <article class="card video-card" id="presentation-{{ $presentation->key }}">
+                <div class="card-title">
+                    <h3>{{ $presentation->title }}</h3>
+                </div>
+                <p class="muted small">
+                    @if ($presentation->duration_seconds){{ \App\Support\Duration::formatPrecise($presentation->duration_seconds) }}@endif
+                    @if ($presentation->size_bytes) · TikTok {{ number_format($presentation->size_bytes / 1048576, 1, ',', ' ') }} mégaoctets @endif
+                    @if ($presentation->light_size_bytes) · WhatsApp {{ number_format($presentation->light_size_bytes / 1048576, 1, ',', ' ') }} mégaoctets @endif
+                </p>
+                <p>
+                    <span @class(['badge', 'badge-accent' => $presentation->status === \App\Models\LessonVideo::READY, 'badge-alert' => $presentation->status === \App\Models\LessonVideo::FAILED])>{{ $presentation->statusLabel() }}</span>
+                </p>
+                @if ($presentation->lips_correlation !== null || $presentation->loudness_lufs !== null)
+                    <p class="small video-measures">
+                        @if ($presentation->lips_correlation !== null)Lèvres : accord {{ number_format($presentation->lips_correlation, 2, ',', ' ') }}@endif
+                        @if ($presentation->lips_correlation !== null && $presentation->loudness_lufs !== null) · @endif
+                        @if ($presentation->loudness_lufs !== null)Son : {{ number_format($presentation->loudness_lufs, 1, ',', ' ') }} LUFS, crête {{ number_format($presentation->true_peak_db ?? 0, 1, ',', ' ') }} dB @endif
+                    </p>
+                @endif
+                @if ($presentation->error)
+                    <p class="muted small">Dernière erreur : {{ $presentation->error }}</p>
+                @endif
+
+                @if ($presentation->video_path)
+                    @if ($presentation->status !== \App\Models\LessonVideo::READY)
+                        <p class="muted small">Ancienne version, visible jusqu'à l'arrivée de la nouvelle.</p>
+                    @endif
+                    <video class="video-preview" controls preload="none" playsinline src="{{ route('admin.videos.presentations.file', ['presentation' => $presentation, 'version' => 'whatsapp']) }}"></video>
+                    <div class="voice-actions">
+                        <a class="btn btn-accent" href="{{ route('admin.videos.presentations.file', ['presentation' => $presentation, 'telecharger' => 1]) }}" download="{{ $presentation->downloadName() }}"><x-icon name="download" /> Télécharger pour TikTok</a>
+                        @if ($presentation->light_path)
+                            <a class="btn btn-light" href="{{ route('admin.videos.presentations.file', ['presentation' => $presentation, 'version' => 'whatsapp', 'telecharger' => 1]) }}" download="{{ $presentation->downloadName(true) }}"><x-icon name="download" /> Télécharger pour WhatsApp</a>
+                        @endif
+                    </div>
+                @endif
+
+                @if ($presentation->status === \App\Models\LessonVideo::READY && $presentation->caption)
+                    <h4>Texte de publication</h4>
+                    <p class="alert alert-info small"><x-icon name="info" /> {{ $reminder }}</p>
+                    <textarea class="video-caption" rows="6" readonly aria-label="Texte de publication">{{ $presentation->caption }}</textarea>
+                    <button type="button" class="btn btn-light" data-copy="{{ $presentation->caption }}" data-copied="Texte copié"><x-icon name="copy" /> Copier le texte</button>
+                @endif
+
+                @if (in_array($presentation->status, [\App\Models\LessonVideo::READY, \App\Models\LessonVideo::FAILED], true))
+                    <form method="POST" action="{{ route('admin.videos.presentations.request') }}" class="voice-actions video-redo">
+                        @csrf
+                        <input type="hidden" name="key" value="{{ $presentation->key }}">
+                        <button type="submit" class="btn btn-light"><x-icon name="refresh" /> Refaire cette vidéo</button>
+                    </form>
+                @endif
+            </article>
+        @endforeach
+    </section>
+
     <script type="module" src="{{ \App\Support\Asset::url('js/copy.js') }}"></script>
     <script type="module" src="{{ \App\Support\Asset::url('js/admin-videos.js') }}"></script>
 </x-layout>

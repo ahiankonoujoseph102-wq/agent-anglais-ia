@@ -122,7 +122,7 @@ class VideoVoice
             $requested = true;
 
             try {
-                $wav = $this->synthesize($provider, (string) ($video->voice_name ?: self::voiceFor($provider)), (string) $segment['spoken'], 'Vidéo de leçon');
+                $wav = $this->synthesize($provider, (string) ($video->voice_name ?: self::voiceFor($provider)), (string) $segment['spoken'], $video->voiceLabel(), $video->voiceStyle());
             } catch (SpeechFailed $e) {
                 if ($e->exhaustsProvider() || $e->isRetryable()) {
                     // Limite : ce fournisseur est mis de côté ; la vidéo entière passera au suivant.
@@ -166,7 +166,7 @@ class VideoVoice
             $bytesPerSecond = $format['rate'] * $format['channels'] * 2;
 
             if ($index > 0) {
-                $gap = (int) round($bytesPerSecond * (int) config('videos.voice.gap_ms') / 1000);
+                $gap = (int) round($bytesPerSecond * $video->voiceGapMs() / 1000);
                 $data .= str_repeat("\0", $gap - $gap % ($format['channels'] * 2));
             }
 
@@ -330,9 +330,9 @@ class VideoVoice
     /**
      * @throws SpeechFailed
      */
-    public function synthesize(SpeechProvider $provider, string $voice, string $text, string $label): string
+    public function synthesize(SpeechProvider $provider, string $voice, string $text, string $label, ?string $style = null): string
     {
-        $style = (string) config('videos.voice.style');
+        $style ??= (string) config('videos.voice.style');
         $timeout = (int) config('videos.voice.timeout');
 
         if ($provider->name() === 'gemini') {

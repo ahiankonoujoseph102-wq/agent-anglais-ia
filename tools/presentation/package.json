@@ -1,0 +1,10 @@
+{
+    "name": "talkami-presentation",
+    "private": true,
+    "description": "Fabrication des vidéos de présentation de Talkami (GitHub Actions) : site local de démonstration, Chromium, ffmpeg.",
+    "type": "module",
+    "dependencies": {
+        "playwright-core": "1.56.1",
+        "ws": "8.18.3"
+    }
+}

@@ -1,0 +1,101 @@
+# Vidéos de présentation de Talkami : fabrication (site LOCAL de démonstration, Chromium sans écran, ffmpeg) des
+# vidéos dont la voix est prête sur Talkami (« Préparer les vidéos de présentation » dans la page « Vidéos »), puis
+# dépôt dans le bucket privé. Seulement à la demande : Actions, « Vidéos de présentation », Run workflow.
+# Secret : TALKAMI_VIDEO_TOKEN ; variable : TALKAMI_URL (les mêmes que les vidéos de leçon).
+name: Vidéos de présentation
+
+on:
+  workflow_dispatch:
+    inputs:
+      videos:
+        description: 'Vidéos à fabriquer'
+        type: choice
+        options: ['toutes', 'grande seulement', 'courtes seulement']
+        default: 'toutes'
+
+concurrency:
+  group: presentations
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  fabriquer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        # Deux machines en même temps : la grande vidéo d'un côté, les six courtes de l'autre.
+        part:
+          - name: grande
+            keys: talkami
+          - name: courtes
+            keys: compte,evaluation,formules,paiement,seance,mes-cours
+    name: Vidéos (${{ matrix.part.name }})
+    steps:
+      - name: Partie demandée ?
+        id: wanted
+        run: |
+          choice='${{ inputs.videos }}'
+          if [ "$choice" = 'toutes' ] || { [ "$choice" = 'grande seulement' ] && [ '${{ matrix.part.name }}' = 'grande' ]; } || { [ "$choice" = 'courtes seulement' ] && [ '${{ matrix.part.name }}' = 'courtes' ]; }; then
+            echo "run=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.wanted.outputs.run == '1'
+
+      - uses: actions/setup-node@v4
+        if: steps.wanted.outputs.run == '1'
+        with:
+          node-version: '22'
+
+      - name: Combien de vidéos attendent ?
+        id: peek
+        if: steps.wanted.outputs.run == '1'
+        working-directory: tools/presentation
+        env:
+          TALKAMI_URL: ${{ vars.TALKAMI_URL }}
+          TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
+          PRESENTATION_KEYS: ${{ matrix.part.keys }}
+          PRESENTATION_PEEK: '1'
+        run: |
+          npm install --no-audit --no-fund --silent
+          node make.mjs
+
+      - uses: shivammathur/setup-php@v2
+        if: steps.wanted.outputs.run == '1' && steps.peek.outputs.waiting != '0'
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, gd, intl, mbstring
+          coverage: none
+
+      - name: Installer le site de démonstration et ffmpeg
+        if: steps.wanted.outputs.run == '1' && steps.peek.outputs.waiting != '0'
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+
+      - name: Fabriquer les vidéos
+        if: steps.wanted.outputs.run == '1' && steps.peek.outputs.waiting != '0'
+        working-directory: tools/presentation
+        env:
+          TALKAMI_URL: ${{ vars.TALKAMI_URL }}
+          TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
+          PRESENTATION_KEYS: ${{ matrix.part.keys }}
+          PRESENTATION_OUT: ${{ runner.temp }}/controle
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node make.mjs
+
+      - name: Images de contrôle
+        if: always() && steps.wanted.outputs.run == '1' && steps.peek.outputs.waiting != '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: images-de-controle-${{ matrix.part.name }}
+          path: ${{ runner.temp }}/controle
+          if-no-files-found: ignore
+          retention-days: 14
