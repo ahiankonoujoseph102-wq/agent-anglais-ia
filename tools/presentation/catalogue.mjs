@@ -215,8 +215,8 @@ function assemble(clips, dir, out) {
     const list = clips.flatMap((clip, index) => (index === 0 ? [clip] : [black, clip])).map((file) => `file '${file}'`).join('\n');
     const listFile = join(dir, 'liste.txt');
     spawnSync('sh', ['-c', `cat > '${listFile}'`], { input: `${list}\n` });
-    // Qualité : CRF 22, « slow » ; écrans de site et noir se compressent très bien (poids raisonnable pour un téléphone).
-    run('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', listFile, '-c:v', 'libx264', '-preset', 'slow', '-crf', process.env.CATALOGUE_CRF || '22',
+    // Qualité : CRF 24, « slow » ; écrans de site et noir se compressent très bien (poids raisonnable pour un téléphone).
+    run('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', listFile, '-c:v', 'libx264', '-preset', 'slow', '-crf', process.env.CATALOGUE_CRF || '24',
         '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-g', String(FPS * 2), '-an', '-movflags', '+faststart', out], 'assemblage');
 }
 
@@ -232,8 +232,8 @@ async function make({ voiceSource, voice, outDir, only }) {
         await mkdir(join(outDir, 'controle'), { recursive: true });
         resetDemo(env, 'CatalogueDemoSeeder');
         const settings = renderSettings(env);
-        const values = demoValues(env);
-        const list = allPassages(values).filter((p) => !only || only.includes(p.key));
+        // Liste des passages (durées, index) ; les valeurs de la base sont relues après sa remise à zéro, plus bas.
+        let list = allPassages({ attestationCode: '', courseId: 0 }).filter((p) => !only || only.includes(p.key));
         const entries = timeline(list);
         const teacherIndex = list.findIndex((p) => p.teacher);
         const teacherSeconds = list[teacherIndex]?.seconds ?? 20;
@@ -252,6 +252,7 @@ async function make({ voiceSource, voice, outDir, only }) {
 
         // 2. Le site de démonstration, passage par passage.
         resetDemo(env, 'CatalogueDemoSeeder');
+        list = allPassages(demoValues(env)).filter((p) => !only || only.includes(p.key));
         site = await startDemoSite(env);
         const effects = await readFile(join(HERE, 'effects.js'), 'utf8');
         const photo = await notebookPhoto(browser);

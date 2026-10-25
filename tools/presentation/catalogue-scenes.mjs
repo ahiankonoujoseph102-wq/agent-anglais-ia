@@ -27,7 +27,7 @@ async function slowTo(s, selector, ms, offset = 80) {
 /** Toute la durée utile (entre les deux temps calmes) à défiler jusqu'en bas, doucement. */
 async function scrollAll(s, ms, from = null) {
     if (from !== null) {
-        await s.page.evaluate((y) => window.scrollTo(0, y), from);
+        await s.page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), from);
     }
 
     await s.wait(CALM);
@@ -46,7 +46,7 @@ function homePart(part, parts) {
     return async (s, ms) => {
         const total = await maxScroll(s);
         const from = Math.round((total * (part - 1)) / parts);
-        await s.page.evaluate((y) => window.scrollTo(0, y), from);
+        await s.page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), from);
         await s.wait(CALM);
         await scrollToY(s, Math.round((total * part) / parts), ms - 2 * CALM);
     };
@@ -59,7 +59,7 @@ export function passages(ctx) {
             key: 'accueil-haut', title: 'Accueil, premier écran : Teacher Joe, l\'accroche, « Passer mon évaluation gratuite »', seconds: 12,
             account: 'visitor', path: '/',
             async act(s) {
-                await s.page.evaluate(() => window.scrollTo(0, 0));
+                await s.page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
                 await s.wait(CALM + 3000);
                 await touch(s, '.hero-cta');
             },
@@ -103,7 +103,7 @@ export function passages(ctx) {
             key: 'evaluation-commencer', title: 'Évaluation gratuite : toucher « Passer mon évaluation gratuite », puis « Commencer »', seconds: 18,
             account: 'fresh', path: '/', live: 'assessment',
             async act(s) {
-                await s.page.evaluate(() => window.scrollTo(0, 0));
+                await s.page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
                 await s.wait(CALM + 500);
                 await s.tap('.hero-cta', { navigate: true });
                 await s.teacherReady();
@@ -118,29 +118,34 @@ export function passages(ctx) {
             key: 'evaluation-a-vous', title: 'Évaluation : « À vous de parler », la réponse de l\'élève, la question suivante', seconds: 18,
             live: 'assessment',
             async act(s) {
-                await s.page.evaluate(() => window.scrollTo(0, 0));
+                await s.page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
                 await s.wait(CALM + 2000);
                 await answer(s, 'My name is Afi. I live in Lomé.');
-                await s.wait(2500);
+                await s.wait(1200);
                 await say(s, 'Nice to meet you, Afi! What do you do in Lomé?', 3.5);
-                await s.wait(5000);
+                await slowTo(s, '#subtitles', 2200, 220);
+                await s.wait(4500);
                 await answer(s, 'I sell clothes at the market.');
             },
-            moments: [[0, '« À vous de parler »'], [4, 'réponse de l\'élève en sous-titres'], [6.5, 'Teacher Joe répond'], [11, 'de nouveau « À vous de parler »']],
+            moments: [[0, '« À vous de parler »'], [4, 'réponse de l\'élève'], [5.5, 'Teacher Joe répond'], [8, 'les sous-titres de la conversation'], [14, 'nouvelle réponse de l\'élève']],
         },
         {
             key: 'evaluation-niveau', title: 'Évaluation : Teacher Joe annonce le niveau, la carte du résultat et la première phrase', seconds: 20,
             live: 'assessment',
             async act(s) {
-                await s.page.evaluate(() => window.scrollTo(0, 0));
+                await s.page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
                 await s.wait(CALM);
                 await s.say({ call: { name: 'record_assessment_result', args: { level: 'A2', feedback: 'Vous comprenez les questions simples et vous répondez avec des phrases courtes.' } } });
                 await s.wait(900);
                 await say(s, 'Thank you! Your level is A2. Well done!', 3);
-                await s.wait(6000);
+                await s.page.waitForFunction(() => !document.getElementById('outcome')?.hidden, null, { timeout: 12000 }).catch(() => {});
+                await s.wait(400);
+                await slowTo(s, '#outcome', 1800, 70);
+                await s.wait(4000);
                 await say(s, 'Let me show you how we will work together. Repeat after me: Nice to meet you.', 4.5);
+                await scrollToY(s, 0, 1800);
             },
-            moments: [[3, 'Teacher Joe annonce le niveau'], [6.5, 'carte du résultat : niveau A2'], [9, 'tableau « Découverte », phrase à répéter']],
+            moments: [[3, 'Teacher Joe annonce le niveau'], [8, 'carte du résultat : « Votre niveau : A2 »'], [14, 'tableau « Découverte », première phrase à répéter']],
         },
         {
             key: 'evaluation-resultat', title: 'Page du résultat de l\'évaluation : niveau, avis de Teacher Joe, première leçon, formules', seconds: 20,
@@ -170,7 +175,7 @@ export function passages(ctx) {
             key: 'niveaux', title: 'Les six niveaux, de A1 à C2 (échelle de l\'accueil)', seconds: 12,
             account: 'visitor', path: '/',
             async before(s) {
-                await s.page.evaluate(() => document.querySelector('.level-dot')?.scrollIntoView({ block: 'center' }));
+                await s.page.evaluate(() => document.querySelector('.level-dot')?.scrollIntoView({ block: 'center', behavior: 'instant' }));
                 await sleep(600);
             },
             async act(s) {
@@ -191,6 +196,7 @@ export function passages(ctx) {
                 await s.wait(4500);
                 const phrase = await s.page.evaluate(() => document.querySelector('#board [data-board-item], #board li')?.textContent?.trim().split('\n')[0] ?? '');
                 await say(s, `Repeat after me: ${phrase || 'Nice to meet you.'}`, 4);
+                await slowTo(s, '#board-home', 3000, 70);
             },
             moments: [[2, 'toucher « Commencer »'], [6, 'Teacher Joe accueille l\'élève'], [10, 'tableau de la leçon ouvert'], [12, 'la phrase dite s\'allume au tableau']],
         },
@@ -215,8 +221,9 @@ export function passages(ctx) {
                 await say(s, "Now, let's talk! Tell me about your work at the market.", 4);
                 await s.wait(5000);
                 await answer(s, 'I sell clothes. I work every day.');
-                await s.wait(1500);
+                await s.wait(800);
                 await say(s, 'Great! What do you sell the most?', 2.5);
+                await slowTo(s, '#subtitles', 2000, 220);
             },
             moments: [[2, '« Now, let\'s talk! », étape « Conversation »'], [9, 'réponse de l\'élève'], [10.5, 'question suivante']],
         },
@@ -249,12 +256,15 @@ export function passages(ctx) {
                 await s.tapText('Ajouter une leçon', { navigate: true });
                 await s.wait(2500);
                 await s.chooseCoursePhoto();
-                await s.wait(2000);
-                await slowTo(s, 'main form button[type="submit"]', 2500, 380);
+                await s.page.waitForFunction(() => !document.querySelector('[data-course-previews]')?.hidden, null, { timeout: 5000 }).catch(() => {});
                 await s.wait(800);
+                await slowTo(s, '[data-course-previews]', 1200, 150);
+                await s.wait(2500);
+                await slowTo(s, 'main form button[type="submit"]', 1800, 380);
+                await s.wait(500);
                 await touch(s, 'main form button[type="submit"]');
             },
-            moments: [[2, 'toucher « Ajouter une leçon »'], [7, 'photo de la leçon ajoutée'], [13, 'bouton d\'envoi']],
+            moments: [[2, 'toucher « Ajouter une leçon »'], [8, 'aperçu de la photo de la leçon'], [14, 'bouton « Envoyer ma leçon »']],
         },
         {
             key: 'mes-cours-lecon', title: 'Mes cours : la leçon lue (résumé, grammaire, vocabulaire, exercices)', seconds: 18,
@@ -270,10 +280,12 @@ export function passages(ctx) {
                 await s.tap('#start');
                 await s.wait(4000);
                 await say(s, 'Bonjour ! Aujourd\'hui, le présent simple. Avec he, she ou it, on ajoute un s : She works in a bank.', 7);
-                await s.wait(8000);
+                await s.wait(2500);
+                await slowTo(s, '#subtitles', 2200, 220);
+                await s.wait(3500);
                 await answer(s, 'He plays football.');
             },
-            moments: [[2, 'toucher « Commencer »'], [6.5, 'Teacher Joe explique en français'], [14.5, 'l\'élève donne un exemple']],
+            moments: [[2, 'toucher « Commencer »'], [6.5, 'Teacher Joe explique en français'], [11, 'les sous-titres de l\'explication'], [16.5, 'l\'élève donne un exemple']],
         },
         {
             key: 'mes-seances', title: 'Mes séances : résumés, devoirs, erreurs à revoir, documents de révision', seconds: 16,
@@ -285,8 +297,8 @@ export function passages(ctx) {
             key: 'attestations', title: 'Mes attestations de niveau (« Bravo, niveau A1 validé ! », « Mes attestations de niveau »)', seconds: 14,
             account: 'active', path: '/espace',
             async before(s) {
-                await s.page.evaluate(() => document.querySelector('.attestation-fresh')?.scrollIntoView({ block: 'start' }));
-                await s.page.evaluate(() => window.scrollBy(0, -80));
+                await s.page.evaluate(() => document.querySelector('.attestation-fresh')?.scrollIntoView({ block: 'start', behavior: 'instant' }));
+                await s.page.evaluate(() => window.scrollBy({ top: -80, behavior: 'instant' }));
                 await sleep(800);
             },
             async act(s) {
@@ -373,8 +385,8 @@ export function passages(ctx) {
             key: 'administration-videos', title: 'Administration, page « Vidéos » : les vidéos de leçon de Teacher Joe (aucun chiffre de revenus)', seconds: 20,
             account: 'admin', path: '/admin/videos',
             async before(s) {
-                await s.page.evaluate(() => document.getElementById('videos')?.scrollIntoView({ block: 'start' }));
-                await s.page.evaluate(() => window.scrollBy(0, -70));
+                await s.page.evaluate(() => document.getElementById('videos')?.scrollIntoView({ block: 'start', behavior: 'instant' }));
+                await s.page.evaluate(() => window.scrollBy({ top: -70, behavior: 'instant' }));
                 await sleep(800);
             },
             async act(s, ms) {
@@ -400,7 +412,7 @@ export function passages(ctx) {
         },
         {
             key: 'bienvenue', title: 'Bienvenue de Teacher Joe, après l\'ouverture d\'un accès', seconds: 14,
-            account: 'welcome', path: '/bienvenue',
+            account: 'welcome', path: '/bienvenue?reecouter=1',
             act: (s, ms) => scrollAll(s, ms, 0),
             moments: [[0, '« Bienvenue, Élève ! »'], [6, 'bouton « Toucher pour écouter Teacher Joe »']],
         },
@@ -444,8 +456,8 @@ export function passages(ctx) {
             key: 'questions-frequentes', title: 'Accueil, questions fréquentes : deux questions ouvertes', seconds: 16,
             account: 'visitor', path: '/',
             async before(s) {
-                await s.page.evaluate(() => document.querySelector('.faq')?.scrollIntoView({ block: 'start' }));
-                await s.page.evaluate(() => window.scrollBy(0, -70));
+                await s.page.evaluate(() => document.querySelector('.faq')?.scrollIntoView({ block: 'start', behavior: 'instant' }));
+                await s.page.evaluate(() => window.scrollBy({ top: -70, behavior: 'instant' }));
                 await sleep(800);
             },
             async act(s) {
