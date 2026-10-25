@@ -53,7 +53,10 @@ class PresentationScripts
                 'chapter' => isset($segment['chapter']) ? self::render($segment['chapter'], false, $site) : null,
                 'medallion' => (bool) ($segment['medallion'] ?? true),
                 'closing' => (bool) ($segment['closing'] ?? false),
-                'card' => array_map(fn (string $line) => self::render($line, false, $site, plain: true), $segment['card'] ?? []),
+                // Bandeau : *mots* en orange ([en]…[/en]), comme les sous-titres.
+                'card' => array_map(fn (string $line) => self::render($line, false, $site), $segment['card'] ?? []),
+                'sfx' => in_array($segment['sfx'] ?? null, self::SFX, true) ? $segment['sfx'] : null,
+                'pause_after' => max(0, min(5000, (int) ($segment['pause_after'] ?? 0))),
             ];
         }
 
@@ -62,14 +65,24 @@ class PresentationScripts
             'caption' => self::render($definition['caption'], false, $site, plain: true),
             'hashtags' => array_values($definition['hashtags']),
             'voice_style' => $definition['voice_style'] ?? null,
+            'layout' => ($definition['layout'] ?? null) === 'ad' ? 'ad' : null,
             'segments' => $segments,
         ];
     }
 
-    /** Empreinte de ce qui est dit (un texte changé refait la voix). */
+    /** Bruitages possibles au début d'une phrase (fabriqués par ffmpeg, aucune licence : tools/presentation/compose.mjs). */
+    public const SFX = ['pop', 'ding'];
+
+    /**
+     * Empreinte de ce qui est dit (un texte changé refait la voix) ; les silences ajoutés (« pause_after ») en font
+     * partie seulement s'il y en a : les vidéos sans silence gardent leur empreinte.
+     */
     public static function hash(array $script): string
     {
-        return hash('sha256', json_encode(array_column($script['segments'], 'spoken')));
+        $spoken = array_column($script['segments'], 'spoken');
+        $pauses = array_map(fn (array $segment) => (int) ($segment['pause_after'] ?? 0), $script['segments']);
+
+        return hash('sha256', json_encode(array_sum($pauses) > 0 ? [$spoken, $pauses] : $spoken));
     }
 
     /**

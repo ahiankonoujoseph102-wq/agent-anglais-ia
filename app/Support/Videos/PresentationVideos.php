@@ -178,7 +178,7 @@ class PresentationVideos
 
         foreach ($video->script['segments'] ?? [] as $index => $segment) {
             $timing = $video->timings['segments'][$index] ?? ['start' => 0, 'end' => 0];
-            $segments[] = array_intersect_key($segment, array_flip(['subtitle', 'shot', 'scene', 'chapter', 'medallion', 'closing', 'card'])) + ['start' => $timing['start'], 'end' => $timing['end']];
+            $segments[] = array_intersect_key($segment, array_flip(['subtitle', 'shot', 'scene', 'chapter', 'medallion', 'closing', 'card', 'sfx'])) + ['start' => $timing['start'], 'end' => $timing['end']];
         }
 
         return [
@@ -195,21 +195,26 @@ class PresentationVideos
             'done_url' => route('api.presentations.done', $video),
             'failed_url' => route('api.presentations.failed', $video),
             // Teacher Joe : mêmes réglages que les vidéos de leçon (salle de classe, caméra, lèvres), à 30 images par seconde.
-            'render' => self::render($segments),
+            'render' => self::render($segments, $video->script['layout'] ?? null),
             'avatar' => array_intersect_key(Avatar::clientConfig()['model'] ?? [], array_flip(['profile', 'camera', 'desk_height', 'resting_smile', 'voice_hz'])),
         ];
     }
 
     /**
      * Réglages de l'image. Avec un bandeau en gros (« card »), le tableau du décor reste vide : son « Let's talk! »
-     * dépasserait sous le bandeau.
+     * dépasserait sous le bandeau. Publicité (« layout » « ad ») : sous-titres, bandeau et médaillon déplacés hors
+     * des boutons de Meta et de TikTok (videos.presentations.ad), seulement pour ces vidéos.
      *
      * @param  list<array<string, mixed>>  $segments
      * @return array<string, mixed>
      */
-    private static function render(array $segments): array
+    private static function render(array $segments, ?string $layout = null): array
     {
         $render = array_merge(config('videos.render'), config('videos.presentations.render'), ['watermark' => null]);
+
+        if ($layout === 'ad') {
+            $render = array_replace_recursive($render, config('videos.presentations.ad'), ['layout' => 'ad']);
+        }
 
         if (collect($segments)->contains(fn (array $segment) => ($segment['card'] ?? []) !== [])) {
             $render['board'] = ['lines' => [' ']] + $render['board'];

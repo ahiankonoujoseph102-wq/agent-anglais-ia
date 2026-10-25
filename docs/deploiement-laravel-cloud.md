@@ -512,6 +512,14 @@ Prérequis : les étapes 0 à 4 de la partie 13 ter (adresse du site, jeton, sec
 
 Fabriquer SEULEMENT certaines vidéos (sans refaire les autres) : sous la vidéo voulue, touchez **Préparer cette vidéo seulement**, attendez « Voix prête », puis **Run workflow** en choisissant **ce soir seulement** (la vidéo « Rendez-vous ce soir à 19 heures », environ 15 minutes) ou **nouvelles seulement** (elle et « Vos questions, mes réponses »). Avant de publier « Rendez-vous ce soir », remplacez « [collez ici le lien du groupe] » dans le texte par le lien du groupe WhatsApp (ou réglez `WHATSAPP_GROUP_URL` dans Laravel Cloud pour qu'il y soit tout seul).
 
+La publicité « Au Grand Marché » (deux durées : 20 secondes et 10 secondes) :
+
+1. Page « Vidéos », partie « Vidéos de présentation » : sous **Publicité : au Grand Marché (20 secondes)**, touchez **Préparer cette vidéo seulement** ; faites de même sous **Publicité : au Grand Marché (10 secondes)**.
+2. Attendez « Voix prête » sous les deux (quelques minutes ; rechargez la page).
+3. GitHub : Actions, **Vidéos de présentation**, **Run workflow**, choisissez **publicité seulement**, puis **Run workflow** (environ 15 à 25 minutes).
+4. Revenez dans « Vidéos » : **Télécharger pour Meta et TikTok** (pleine qualité, pour Facebook, Instagram et TikTok) ou **Télécharger pour WhatsApp** (plus légère, moins de 16 mégaoctets), puis **Copier le texte**.
+5. Sur TikTok seulement, activez l'étiquette « Contenu généré par IA ». Aucune musique n'est dans la vidéo : vous pouvez en ajouter une dans TikTok ou dans Meta au moment de publier.
+
 Contrôle avant publication : dans GitHub, ouvrez l'exécution terminée, en bas **Artifacts**, « images-de-controle-… » : quatre images de chaque vidéo (début, tiers, deux tiers, fin).
 
 Refaire une vidéo : bouton **Refaire cette vidéo** sous la vidéo, puis **Run workflow** de nouveau. Si le texte n'a pas changé, la voix est gardée et seule l'image est refaite.

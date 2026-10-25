@@ -11,8 +11,11 @@ use App\Enums\SubscriptionStatus;
 use App\Models\Attestation;
 use App\Models\CourseLesson;
 use App\Models\CourseReview;
+use App\Models\LessonBoard;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Curriculum\Curriculum;
+use App\Support\Curriculum\LessonBoards;
 use App\Support\Curriculum\ProgramBuilder;
 use App\Support\Plan;
 use App\Support\PrivateStorage;
@@ -40,6 +43,7 @@ class PresentationDemoSeeder extends Seeder
         'welcome' => '+22899000004',   // paiement validé, message de bienvenue et questionnaire à venir
         'active' => '+22899000005',    // formule, programme, séances, « Mes cours », attestation
         'abroad' => '+33600000006',    // pays sans paiement en ligne (WhatsApp)
+        'market' => '+22899000007',    // débutant, leçon du jour « Au Grand Marché de Lomé » (publicité)
     ];
 
     public function run(): void
@@ -81,6 +85,10 @@ class PresentationDemoSeeder extends Seeder
 
         $abroad = $this->learner('abroad', 'FR', Level::A2);
         $this->assessment($abroad, Level::A2);
+
+        $market = $this->learner('market', 'TG', Level::A1);
+        $this->assessment($market, Level::A1);
+        $this->marketLearner($market);
 
         $this->command?->info('Comptes de démonstration créés (mot de passe : '.self::PASSWORD.').');
         unset($fresh);
@@ -170,6 +178,57 @@ class PresentationDemoSeeder extends Seeder
             'user_id' => $user->id, 'course_session_id' => $session->id, 'course_lesson_id' => $course->id,
             'status' => CourseReview::READY, 'path' => $reviewPath, 'prepared_at' => now()->subDay(),
             'content' => ['lesson' => 'Le présent simple'],
+        ]);
+    }
+
+    /**
+     * Débutant dont la leçon du jour est « Au Grand Marché de Lomé » (unité « Au marché » du programme officiel A1,
+     * trois unités faites) ; son tableau est écrit ici à partir de la matière de l'unité (aucun modèle texte appelé).
+     */
+    private function marketLearner(User $user): void
+    {
+        Subscription::factory()->for($user)->forPlan('essentiel')->create(['status' => SubscriptionStatus::Active, 'starts_at' => now()->subDays(10)]);
+
+        $program = app(ProgramBuilder::class)->build($user, Level::A1, [
+            'goal' => 'business', 'occupation' => 'Commerçante au Grand Marché de Lomé', 'interests' => 'cuisine',
+            'study_days' => [1, 2, 3, 4, 5, 6, 7], 'study_time' => '18:30', 'difficulties' => ['speaking'],
+        ]);
+
+        $program->programLessons()->reorder()->where('unit_number', '<', 4)->update(['status' => ProgramLessonStatus::Completed, 'completed_at' => now()->subDays(2), 'attempts' => 1]);
+        $situation = collect(Curriculum::unit(Level::A1, 4)->situations)->search(fn ($s) => str_contains($s->title, 'Grand Marché'));
+        $lesson = $program->programLessons()->reorder()->where('unit_number', 4)->orderBy('position')->get()
+            ->sortBy(fn ($l) => $l->situation_index === $situation ? 0 : 1)->first();
+
+        // La leçon du marché passe en premier de l'unité (aucune autre ne change de place).
+        $first = $program->programLessons()->reorder()->where('unit_number', 4)->orderBy('position')->first();
+
+        if ($first->id !== $lesson->id) {
+            [$a, $b] = [$first->situation_index, $lesson->situation_index];
+            $first->update(['situation_index' => $b]);
+            $lesson->update(['situation_index' => $a]);
+            $lesson = $first->fresh();
+        }
+
+        LessonBoard::query()->create([
+            'key' => LessonBoards::key($lesson, $program), 'level' => Level::A1->value, 'unit_number' => 4,
+            'lesson_number' => $lesson->lesson_number, 'situation_index' => $lesson->situation_index, 'goal' => $program->goal->value,
+            'provider' => 'demonstration',
+            'content' => [
+                'title' => 'At the market: prices',
+                'phrases' => [
+                    ['en' => 'How much is it?', 'fr' => 'C\'est combien ?'],
+                    ['en' => 'It\'s two thousand francs.', 'fr' => 'C\'est deux mille francs.'],
+                    ['en' => 'It\'s too expensive.', 'fr' => 'C\'est trop cher.'],
+                    ['en' => 'OK, I\'ll take it.', 'fr' => 'D\'accord, je le prends.'],
+                ],
+                'vocabulary' => [
+                    ['en' => 'price', 'fr' => 'prix'], ['en' => 'cheap', 'fr' => 'pas cher'], ['en' => 'expensive', 'fr' => 'cher'],
+                    ['en' => 'money', 'fr' => 'argent'], ['en' => 'change', 'fr' => 'monnaie (à rendre)'],
+                ],
+                'verbs' => [['base' => 'buy', 'forms' => 'buy / bought / bought', 'fr' => 'acheter'], ['base' => 'sell', 'forms' => 'sell / sold / sold', 'fr' => 'vendre']],
+                'rule_en' => 'Ask a price with "How much is…?": How much is the fish?',
+                'rule_fr' => 'Pour demander un prix : « How much is… ? » (la voix descend à la fin).',
+            ],
         ]);
     }
 

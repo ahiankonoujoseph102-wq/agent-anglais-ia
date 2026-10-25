@@ -122,6 +122,19 @@ return [
             // Son : même chaîne que les vidéos de leçon, limiteur un peu plus bas (crête sous 0 dB après l'AAC).
             'audio' => ['target_lufs' => -14, 'limit' => 0.7, 'limiter_makeup_db' => 2.5],
         ],
+        // Publicités (« layout » « ad » d'un script) : remplace ces réglages de « render », pour ces vidéos seulement.
+        // Zone libre des boutons de Meta (14 % en haut, 35 % en bas) et de TikTok (240 pixels en haut, 660 en bas,
+        // colonne de 180 pixels à droite à partir de 840) : texte entre 300 et 1 240 pixels de haut, sous-titres à
+        // gauche de 760 pixels, médaillon en haut à droite.
+        'ad' => [
+            'subtitles' => ['top' => 1100, 'size' => 52, 'chars' => 34, 'side_margin' => 120, 'right_margin' => 320],
+            // Bandeau en haut, au-dessus de la colonne de boutons : toute la largeur moins 120 pixels de chaque côté.
+            'card' => ['top' => 300, 'margin_left' => 120, 'margin_right' => 120],
+            'medallion' => ['x' => 700, 'y' => 380, 'size' => 260],
+            'chapter' => ['x' => 625, 'y' => 760, 'width' => 310, 'size' => 44],
+            // Bruitages (ffmpeg, aucune licence), sous la voix : décibels et heure de départ avant la phrase (secondes).
+            'sfx' => ['volume_db' => -14, 'lead' => 0.05],
+        ],
     ],
 
     // Mise en page (lue par tools/video/render.mjs) : gros plan de Teacher Joe dans la salle de classe des séances,

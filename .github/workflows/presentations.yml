@@ -10,7 +10,7 @@ on:
       videos:
         description: 'Vidéos à fabriquer'
         type: choice
-        options: ['nouvelles seulement', 'ce soir seulement', 'toutes', 'grande seulement', 'courtes seulement']
+        options: ['nouvelles seulement', 'publicité seulement', 'ce soir seulement', 'toutes', 'grande seulement', 'courtes seulement']
         default: 'nouvelles seulement'
 
 concurrency:
@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         # Plusieurs machines en même temps : la grande vidéo, les six courtes, et chacune des nouvelles à part (la
-        # vidéo du soir, très courte, est prête la première).
+        # vidéo du soir, très courte, est prête la première ; la publicité : ses deux durées, 20 et 10 secondes).
         part:
           - name: grande
             keys: talkami
@@ -38,6 +38,8 @@ jobs:
             keys: ce-soir
           - name: questions
             keys: questions
+          - name: publicite
+            keys: pub-marche,pub-marche-court
     name: Vidéos (${{ matrix.part.name }})
     steps:
       - name: Partie demandée ?
@@ -46,7 +48,7 @@ jobs:
           choice='${{ inputs.videos }}'
           part='${{ matrix.part.name }}'
           case "$choice:$part" in
-            toutes:*|'grande seulement:grande'|'courtes seulement:courtes'|'nouvelles seulement:ce-soir'|'nouvelles seulement:questions'|'ce soir seulement:ce-soir')
+            toutes:*|'grande seulement:grande'|'courtes seulement:courtes'|'nouvelles seulement:ce-soir'|'nouvelles seulement:questions'|'nouvelles seulement:publicite'|'publicité seulement:publicite'|'ce soir seulement:ce-soir')
               echo "run=1" >> "$GITHUB_OUTPUT" ;;
             *)
               echo "run=0" >> "$GITHUB_OUTPUT" ;;

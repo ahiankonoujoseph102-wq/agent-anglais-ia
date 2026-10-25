@@ -69,6 +69,12 @@ class PresentationVideo extends LessonVideo
         return 'Vidéo de présentation';
     }
 
+    /** Publicité (« layout » « ad » de son script) : le grand fichier sert à Meta et à TikTok. */
+    public function isAd(): bool
+    {
+        return ($this->script['layout'] ?? null) === 'ad' || str_starts_with((string) $this->key, 'pub-');
+    }
+
     /** La grande vidéo (limite de la version légère « long ») ? */
     public function isLong(): bool
     {

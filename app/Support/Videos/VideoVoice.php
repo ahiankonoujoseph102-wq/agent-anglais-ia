@@ -172,6 +172,9 @@ class VideoVoice
 
             $start = strlen($data) / $bytesPerSecond;
             $data .= $wav['data'];
+            // Silence voulu après la phrase (« Réfléchissez… » d'une publicité) : il fait partie de la phrase.
+            $pause = (int) round($bytesPerSecond * (int) ($video->script['segments'][$index]['pause_after'] ?? 0) / 1000);
+            $data .= str_repeat("\0", $pause - $pause % ($format['channels'] * 2));
             $timings[] = ['start' => round($start, 3), 'end' => round(strlen($data) / $bytesPerSecond, 3)];
         }
 

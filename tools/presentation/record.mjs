@@ -14,6 +14,7 @@ const ACCOUNTS = {
     welcome: '+22899000004',
     active: '+22899000005',
     abroad: '+33600000006',
+    market: '+22899000007',
 };
 
 const sleep = (ms) => new Promise((ok) => setTimeout(ok, Math.max(0, ms)));
