@@ -48,6 +48,7 @@
                 <x-plan-card compact :plan="$plan" :href="route('payment.create', $plan->key)" heading="h2" :current="$subscription?->plan === $plan->key" />
             @endforeach
         </div>
+        <x-plans-questions />
 
         <ul class="check-list next-step" aria-label="Comment se passe le paiement">
             <li><x-icon name="check-circle" /> Paiement par Mobile Money depuis votre téléphone{{ $countries ? ' ('.implode(', ', $countries).')' : '' }}.</li>
