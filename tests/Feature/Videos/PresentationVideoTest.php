@@ -352,7 +352,7 @@ class PresentationVideoTest extends TestCase
         $this->actingAs($admin)->get(route('admin.videos.index'))
             ->assertOk()
             ->assertSee('Vidéos de présentation')
-            ->assertSee('Préparer les vidéos de présentation')
+            ->assertSee('Préparer les vidéos pas encore prêtes')
             ->assertSee('Télécharger pour TikTok')
             ->assertSee('Télécharger pour WhatsApp')
             ->assertSee('Contenu généré par IA')
@@ -366,7 +366,9 @@ class PresentationVideoTest extends TestCase
         $this->get(route('admin.videos.presentations.file', PresentationVideo::query()->where('key', 'compte')->first()))->assertNotFound();
 
         $this->post(route('admin.videos.presentations.request'))->assertRedirect(route('admin.videos.index').'#presentations');
-        $this->assertSame(11, PresentationVideo::query()->whereIn('status', [LessonVideo::SCRIPTED, LessonVideo::VOICED])->count());
+        // Toutes sauf « formules », déjà prête : le bouton commun ne refait jamais une vidéo prête.
+        $this->assertSame(10, PresentationVideo::query()->whereIn('status', [LessonVideo::SCRIPTED, LessonVideo::VOICED])->count());
+        $this->assertSame(LessonVideo::READY, $video->fresh()->status);
         $this->post(route('admin.videos.presentations.request'), ['key' => 'inconnue'])->assertNotFound();
     }
 

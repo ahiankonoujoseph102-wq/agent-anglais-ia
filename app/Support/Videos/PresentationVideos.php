@@ -41,7 +41,8 @@ class PresentationVideos
 
     /**
      * « Préparer et fabriquer » : script du fichier (repères remplis), voix à préparer si le texte a changé ou si elle
-     * manque, sinon directement prête pour GitHub. Renvoie le nombre de vidéos demandées (0 sans adresse du site).
+     * manque, sinon directement prête pour GitHub. Sans clé : seulement les vidéos qui ne sont pas encore prêtes.
+     * Renvoie le nombre de vidéos demandées (0 sans adresse du site, ou rien à préparer).
      */
     public function request(?string $key = null): int
     {
@@ -53,6 +54,13 @@ class PresentationVideos
             }
 
             if (in_array($video->status, [LessonVideo::RENDERING], true)) {
+                continue;
+            }
+
+            // « Préparer les vidéos de présentation » (toutes) ne touche JAMAIS une vidéo prête : la refaire se
+            // demande sous elle (« Refaire cette vidéo »). Avant le 25 octobre 2026, ce bouton remettait toutes les
+            // vidéos prêtes en « Voix prête » (migration restore_ready_presentation_videos).
+            if ($key === null && $video->status === LessonVideo::READY) {
                 continue;
             }
 
