@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\LessonVideo;
 use App\Models\PresentationVideo;
+use App\Models\User;
 use App\Support\Videos\PresentationVideos;
 use App\Support\Videos\SiteVideos;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -183,10 +184,29 @@ class HowItWorksTest extends TestCase
         $this->readyVideo('questions', true);
 
         $html = $this->get('/formules')->assertOk()->getContent();
-        $this->assertStringContainsString('Des questions avant de choisir ? <a href="'.route('how').'#questions">Regardez « Vos questions, mes réponses »</a>.', $html);
+        $this->assertStringContainsString('<a href="'.route('how').'#questions">', $html);
+        $this->assertStringContainsString('Des questions avant de choisir ? Regardez « Vos questions, mes réponses ».</span></a>', $html);
         // Une ligne de texte : aucun bouton orange de plus, rien de la vidéo chargé sur cette page.
         $this->assertStringNotContainsString('how.poster', $html);
         $this->assertStringNotContainsString('/comment-ca-marche/questions', $html);
         $this->get('/comment-ca-marche')->assertSee('id="questions"', false);
+    }
+
+    public function test_a_signed_in_learner_sees_the_line_under_the_plans_of_the_subscription_page(): void
+    {
+        // Connecté, « Choisir ma formule » mène à /abonnement, pas à /formules : la ligne y est aussi.
+        $learner = User::factory()->create();
+
+        $this->actingAs($learner)->get('/abonnement')->assertOk()->assertDontSee('Des questions avant de choisir');
+
+        $this->readyVideo('questions', true);
+
+        $html = $this->actingAs($learner)->get('/abonnement')->assertOk()->getContent();
+        $this->assertStringContainsString('Des questions avant de choisir ? Regardez « Vos questions, mes réponses ».', $html);
+        $this->assertStringContainsString('href="'.route('how').'#questions"', $html);
+        // Sous les cartes, avant le détail du paiement ; aucun bouton orange de plus.
+        $this->assertLessThan(strpos($html, 'Comment se passe le paiement'), strpos($html, 'Des questions avant de choisir'));
+        $this->assertGreaterThan(strrpos($html, 'Choisir Intensif'), strpos($html, 'Des questions avant de choisir'));
+        $this->assertStringNotContainsString('/comment-ca-marche/questions', $html);
     }
 }

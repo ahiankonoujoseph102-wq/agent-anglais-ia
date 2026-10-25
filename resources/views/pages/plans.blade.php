@@ -23,10 +23,7 @@
             @endforeach
         </div>
         <p class="muted small next-step">Chaque formule donne un temps par jour, à partager entre la séance orale et « Mes cours ». Il revient chaque jour à minuit, heure de Lomé.</p>
-        @if ($questionsVideo)
-            {{-- Une ligne de texte vers la vidéo (page « Comment ça marche ») : rien n'est chargé ici. --}}
-            <p class="plans-questions"><x-icon name="video" /> <span>Des questions avant de choisir ? <a href="{{ route('how') }}#{{ $questionsVideo->key }}">Regardez « {{ $questionsVideo->title }} »</a>.</span></p>
-        @endif
+        <x-plans-questions />
         <p class="muted small">Pour les francophones de tous les pays, en anglais américain, compris partout dans le monde.</p>
     </section>
 
