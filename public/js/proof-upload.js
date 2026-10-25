@@ -3,6 +3,7 @@
  * quand l'image est trop lourde (connexion mobile, forfait limité).
  * Les calculs sont testés par tests/js/proof-upload.test.mjs.
  */
+import { revealBetween } from './pay-view.js';
 
 // Au-delà, l'image est réduite : le texte d'une capture reste lisible à 2000 pixels.
 export const COMPRESS_ABOVE_BYTES = 1.5 * 1024 * 1024;
@@ -118,9 +119,11 @@ if (typeof document !== 'undefined') {
 
             preview.src = URL.createObjectURL(ready);
             preview.hidden = false;
-            // Capture prête : la page descend jusqu'à l'aperçu et « Envoyer ma capture ».
-            const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-            requestAnimationFrame(() => submit.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }));
+            // Capture prête : la page montre l'étape ③ (« Vérifiez votre capture, puis envoyez-la »), l'aperçu et
+            // « Envoyer ma capture », au-dessus de la barre du bas ; si tout ne tient pas, le bouton passe avant le
+            // titre. La hauteur de l'aperçu n'est connue qu'une fois l'image décodée.
+            if (preview.decode) await preview.decode().catch(() => {});
+            requestAnimationFrame(() => revealBetween(document.querySelector('[data-pay-last]') ?? preview, submit));
         } catch {
             // Format que le navigateur ne sait pas lire : le serveur vérifiera l'image telle quelle.
             say('');

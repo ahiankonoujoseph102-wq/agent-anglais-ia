@@ -573,21 +573,60 @@ main { overflow-x: clip; }
 .pay-choice { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 var(--space-3); padding: 8px 12px; border-radius: var(--radius-pill); background: var(--c-primary-soft); color: var(--c-primary); font-size: var(--fs-sm); width: fit-content; max-width: 100%; }
 .pay-choice .icon { color: var(--c-accent-strong); }
 .pay-choice a { font-weight: var(--fw-heavy); }
-.pay-block h2 { margin: 0 0 var(--space-3); }
-.pay-amount { display: grid; gap: 2px; padding: var(--space-4); border-radius: var(--radius); background: var(--c-accent-soft); box-shadow: inset 0 0 0 1px var(--c-accent-line); }
-.pay-amount span { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--c-accent-ink); }
-.pay-amount strong { font-size: var(--fs-3xl); font-weight: var(--fw-heavy); color: var(--c-primary); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.pay-block h2.pay-choice { margin: 0 0 var(--space-3); padding: 4px 12px; font-size: var(--fs-sm); line-height: 1.3; }
+/* Sur téléphone, la carte du paiement est moins épaisse : les trois étapes tiennent ensemble dans l'écran. */
+@media (max-width: 639px) { .pay-form.form-card { padding: var(--space-4); } }
+/* « Modifier » : zone de toucher de 48 pixels de haut, sans agrandir la pastille. */
+.pay-block h2.pay-choice a { position: relative; display: inline-flex; align-items: center; min-height: 32px; }
+.pay-block h2.pay-choice a::after { content: ""; position: absolute; inset: -8px -10px; }
 .pay-label { display: block; font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--c-muted); }
-.pay-number > div { display: grid; gap: 2px; }
-.pay-block .pay-number .number { font-size: clamp(1.2rem, 6vw, 1.75rem); letter-spacing: .01em; }
-.pay-block .pay-number .btn { width: 100%; }
-.steps-short { margin-top: var(--space-4); }
-.pay-proof { margin-top: var(--space-5); }
-.pay-proof .file-pick { display: grid; gap: var(--space-2); }
+
+/* Les trois grandes étapes du paiement : ① le numéro, ② le montant, ③ la capture. Compactes : à 360 × 640, le bouton
+   de l'étape ③ tient dans l'écran une fois le moyen de paiement choisi (mesures dans le compte rendu du chantier). */
+.pay-step { display: grid; gap: var(--space-2); }
+.pay-step + .pay-step, .pay-block + .pay-step { margin-top: var(--space-3); }
+.pay-step-title { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; font-size: var(--fs-md); line-height: 1.3; color: var(--c-heading); }
+.pay-step-title:focus { outline: none; }
+.pay-step-title:focus-visible { outline: 3px solid var(--c-focus); outline-offset: 4px; border-radius: 4px; }
+.pay-step-num { flex: none; display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--c-primary); color: var(--c-on-dark); font-size: var(--fs-sm); font-weight: var(--fw-heavy); }
+.pay-step-title > span:last-child { padding-top: 3px; min-width: 0; }
+.pay-big { font-size: min(var(--fs-3xl), 8.6vw); font-weight: var(--fw-heavy); color: var(--c-primary); line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pay-with { display: block; }
+.pay-step-text { margin: 0; font-size: var(--fs-xs); line-height: 1.4; color: var(--c-muted); }
+.pay-number { display: grid; gap: 2px; padding: var(--space-2) var(--space-3) var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius); background: var(--c-bg); }
+.pay-block .pay-number .number { font-size: clamp(1.2rem, 6.4vw, 1.75rem); font-weight: var(--fw-heavy); letter-spacing: .01em; line-height: 1.2; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pay-block .pay-number .btn { width: 100%; min-height: 44px; margin-top: 6px; }
+.pay-holder { font-size: var(--fs-xs); line-height: 1.35; }
+.pay-proof { margin-top: var(--space-3); scroll-margin-top: 84px; }
+.pay-proof .file-pick { display: grid; gap: var(--space-2); margin: 0; }
+.pay-proof-hint { margin: var(--space-2) 0 0; }
+.pay-when-file { display: none; }
+.pay-form[data-has-file] .pay-when-file { display: inline; }
+.pay-form[data-has-file] .pay-when-empty, .pay-form[data-has-file] .pay-arrow { display: none; }
+
+/* Flèche vers le bouton de l'étape ③ : elle bouge doucement, sauf si le téléphone demande moins d'animations. */
+.pay-arrow { display: inline-grid; place-items: center; vertical-align: middle; color: var(--c-accent-strong); line-height: 0; }
+.pay-arrow .icon { width: 24px; height: 24px; transform: rotate(90deg); stroke-width: 2.75; }
+@media (prefers-reduced-motion: no-preference) {
+    .pay-arrow .icon { animation: pay-arrow 1.4s var(--ease) infinite; }
+}
+@keyframes pay-arrow { 0%, 100% { translate: 0 -3px; } 50% { translate: 0 4px; } }
+
+/* Retour depuis l'application Mobile Money : le bouton est mis en évidence quelques secondes (payment-flow.js). */
+.pick-first.is-highlighted { box-shadow: 0 0 0 4px var(--c-surface), 0 0 0 8px var(--c-accent); }
+@media (prefers-reduced-motion: no-preference) {
+    .pick-first.is-highlighted { animation: pay-highlight 1.2s var(--ease) 3; }
+}
+@keyframes pay-highlight { 0%, 100% { scale: 1; } 50% { scale: 1.03; } }
+
 .pick-again { display: none; }
 .js .pay-form:not([data-has-file]) .pay-submit { display: none; }
 .pay-form[data-has-file] .pick-first { display: none; }
 .pay-form[data-has-file] .pick-again { display: flex; }
+.pay-form .proof-preview { max-height: min(320px, 28vh); margin: 0 auto; }
+
+/* Texte lu seulement par les lecteurs d'écran (par exemple « Étape 1 sur 3 : »). */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* Champ de capture : bouton français, le vrai champ reste accessible au clavier. */
 .file-pick-input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
