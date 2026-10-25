@@ -242,9 +242,12 @@ async function local() {
 
     await withContext(async (context) => {
         context.avatar = args.avatar ? resolve(args.avatar) : null;
+        await mkdir(join(context.workdir, job.key), { recursive: true });
         const result = await makeOne(context, job, resolve(args.audio), join(context.workdir, job.key), outDir);
         await copyFile(result.full, join(outDir, `${job.key}-tiktok.mp4`));
         await copyFile(result.light, join(outDir, `${job.key}-whatsapp.mp4`));
+        // Teacher Joe gardé pour une autre répétition avec la même voix (--avatar=…).
+        await copyFile(context.avatar ?? join(context.workdir, job.key, 'avatar.mp4'), join(outDir, `${job.key}-avatar.mp4`)).catch(() => {});
         await writeFile(join(outDir, `${job.key}.json`), JSON.stringify({ duration: result.total, lips: result.lips, sound: result.sound, sizes: result.sizes }, null, 2));
         log(`Vidéos écrites dans ${outDir}.`);
     });

@@ -29,7 +29,7 @@ export async function openDemo(browser, { site, fakePort, viewport, scale, effec
         await page.goto(`${site}/connexion`);
         await page.fill('input[name="phone"]', phone);
         await page.fill('input[name="password"]', DEMO_PASSWORD);
-        await Promise.all([page.waitForURL((url) => !url.pathname.startsWith('/connexion')), page.click('form button[type="submit"]')]);
+        await Promise.all([page.waitForURL((url) => !url.pathname.startsWith('/connexion')), page.click('main form button[type="submit"]')]);
         cookies[key] = await context.cookies();
         await context.close();
     }
@@ -56,7 +56,7 @@ function helper(demo, deadline) {
     const fx = (name, ...args) => page.evaluate(([n, a]) => window.__fx?.[n]?.(...a), [name, args]);
 
     const center = async (locator) => {
-        const box = await locator.boundingBox();
+        const box = await locator.boundingBox({ timeout: 3000 }).catch(() => null);
 
         return box ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : null;
     };
@@ -131,11 +131,17 @@ function helper(demo, deadline) {
                 return;
             }
 
+            if (!point) {
+                console.log(`[toucher] élément introuvable : ${typeof selector === 'string' ? selector : 'texte'}`);
+
+                return;
+            }
+
             if (navigate) {
-                await Promise.all([page.waitForNavigation({ waitUntil: 'load' }).catch(() => {}), locator.click()]);
+                await Promise.all([page.waitForNavigation({ waitUntil: 'load', timeout: 15000 }).catch(() => {}), locator.click({ timeout: 5000 })]);
                 await settle(page);
             } else {
-                await locator.click();
+                await locator.click({ timeout: 5000 });
             }
         },
 
@@ -144,7 +150,9 @@ function helper(demo, deadline) {
         async type(selector, text, delay = 80) {
             const locator = page.locator(selector).first();
             await locator.fill('');
-            await locator.pressSequentially(text, { delay });
+            // La saisie tient dans le temps de la phrase (jamais plus lente que « delay »).
+            const fits = Math.floor((deadline - Date.now() - 600) / Math.max(1, text.length));
+            await locator.pressSequentially(text, { delay: Math.max(15, Math.min(delay, fits)) });
         },
 
         select: (selector, value) => page.selectOption(selector, value),
@@ -206,12 +214,12 @@ function helper(demo, deadline) {
                 }
             } else {
                 await choose('input[name="difficulties[]"]');
-                await s.circle('form button[type="submit"]');
+                await s.circle('main form button[type="submit"]');
 
                 return;
             }
 
-            await s.tap('form button[type="submit"]', { navigate: true });
+            await s.tap('main form button[type="submit"]', { navigate: true });
         },
 
         /** Ce que dit le faux professeur, maintenant. */
@@ -311,6 +319,8 @@ export async function recordTake(demo, scenes, dir) {
 
         if (index > 0) {
             await s.clear();
+            // Un zoom laissé par la scène précédente est retiré (sans attendre la fin de l'animation).
+            await page.evaluate(() => window.__fx?.unzoom()).catch(() => {});
             await arrive(demo, sceneDef);
         }
 
@@ -319,7 +329,9 @@ export async function recordTake(demo, scenes, dir) {
         }
 
         try {
-            await sceneDef.act?.(s, Math.max(500, deadline - Date.now()));
+            // Jamais plus d'une seconde et demie au-delà de la phrase : la scène suivante doit rester sous sa phrase.
+            const acting = Promise.resolve(sceneDef.act?.(s, Math.max(500, deadline - Date.now()))).catch((error) => console.log(`[scène ${entry.name}] ${error.message.split('\n')[0]}`));
+            await Promise.race([acting, sleep(deadline - Date.now() + 1500)]);
         } catch (error) {
             console.log(`[scène ${entry.name}] ${error.message.split('\n')[0]}`);
         }

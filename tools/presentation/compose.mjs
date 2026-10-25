@@ -129,6 +129,13 @@ export function buildAss(job, total) {
 
             return list;
         }, []);
+        // Ponctuation collée à un mot en orange (« cloud, ») : le découpage perd ce repère, il est remis ici.
+        const flat = words(w.subtitle);
+        let position = 0;
+        pieces.forEach((piece) => piece.forEach((word, i) => {
+            word.glue = i > 0 && Boolean(flat[position]?.glue);
+            position++;
+        }));
         const weights = pieces.map((piece) => piece.reduce((sum, { word }) => sum + word.length + 1, 0));
         const totalWeight = weights.reduce((sum, value) => sum + value, 0) || 1;
         const span = Math.max(0.5, w.end - w.start);

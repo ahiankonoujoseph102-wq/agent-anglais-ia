@@ -49,3 +49,8 @@ test('l\'écran a une image exacte à chaque trentième de seconde, du noir hors
     assert.equal(list[59], 'b');
     assert.equal(list[60], 'noir');
 });
+
+test('la ponctuation reste collée à un mot en orange', () => {
+    const ass = buildAss({ ...job, segments: [{ ...job.segments[1], subtitle: 'Sur [en]talkami.laravel.cloud[/en], touchez.' }] }, 5);
+    assert.match(ass, /talkami\.laravel\.cloud\{\\c&H00FFFFFF&\},/);
+});

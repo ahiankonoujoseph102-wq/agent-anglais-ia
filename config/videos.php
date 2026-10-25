@@ -119,6 +119,8 @@ return [
             'subtitles' => ['top' => 1408, 'size' => 48, 'chars' => 56, 'side_margin' => 40, 'right_margin' => 140],
             'video_bitrate' => '5000k',
             'audio_bitrate' => '128k',
+            // Son : même chaîne que les vidéos de leçon, limiteur un peu plus bas (crête sous 0 dB après l'AAC).
+            'audio' => ['target_lufs' => -14, 'limit' => 0.75, 'limiter_makeup_db' => 2.0],
         ],
     ],
 

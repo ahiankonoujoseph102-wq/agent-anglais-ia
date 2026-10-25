@@ -116,11 +116,11 @@ export const SCENES = {
             }
         },
         async act(s) {
-            await s.scroll('form button[type="submit"]', 700, 380);
-            await s.arrow('form button[type="submit"]');
+            await s.scroll('main form button[type="submit"]', 700, 380);
+            await s.arrow('main form button[type="submit"]');
             await s.wait(900);
             await s.clear();
-            await s.tap('form button[type="submit"]', { navigate: true });
+            await s.tap('main form button[type="submit"]', { navigate: true });
             await s.registered();
         },
     },
@@ -132,7 +132,7 @@ export const SCENES = {
             await s.wait(500);
             await s.circle('.next-card');
             await s.wait(1500);
-            await s.arrow('.next-card .btn-next');
+            await s.arrow('.next-card a.btn-lg');
         },
     },
     'dashboard.assessment': {
@@ -142,7 +142,7 @@ export const SCENES = {
             await s.circle('.next-card');
             await s.wait(Math.min(2500, ms * 0.5));
             await s.clear();
-            await s.tap('.next-card .btn-next', { navigate: true });
+            await s.tap('.next-card a.btn-lg', { navigate: true });
         },
     },
     'dashboard.lesson': {
@@ -152,7 +152,7 @@ export const SCENES = {
             await s.circle('.next-card');
             await s.wait(1300);
             await s.clear();
-            await s.tap('.next-card .btn-next', { navigate: true });
+            await s.tap('.next-card a.btn-lg', { navigate: true });
         },
     },
 
@@ -560,7 +560,7 @@ export const SCENES = {
         account: 'active', path: '/mes-cours',
         async act(s) {
             await s.wait(300);
-            await s.tapText('Le présent simple', { navigate: true });
+            await s.tap('main a:has-text("Ouvrir")', { navigate: true });
             await s.wait(800);
             await s.circleAny(['#travailler', 'main .card']);
         },
@@ -575,7 +575,7 @@ export const SCENES = {
     'courses.review': {
         account: 'active', path: '/mes-cours',
         async act(s) {
-            await s.tapText('Le présent simple', { navigate: true });
+            await s.tap('main a:has-text("Ouvrir")', { navigate: true });
             await s.wait(500);
             await s.scroll('#documents', 1000, 120);
             await s.circle('#documents');
