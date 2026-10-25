@@ -494,7 +494,8 @@ export const SCENES = {
     'lesson.record': {
         live: 'lesson',
         async act(s) {
-            await s.scroll('#recorder', 800, 250);
+            await s.scroll('#record-start', 800, 300);
+            await s.wait(400);
             await s.circle('#record-start');
         },
     },

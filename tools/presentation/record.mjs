@@ -207,13 +207,14 @@ function helper(demo, deadline) {
                 await choose('input[name="goal"][value="work"]');
             } else if (screen === 2) {
                 await choose('input[name="profile"]');
-                await s.type('input[name="occupation"]', 'Commerçante', 60);
+                await page.fill('input[name="occupation"]', 'Commerçante');
             } else if (screen === 3) {
-                for (const day of [1, 3, 5]) {
-                    await choose(`input[name="study_days[]"][value="${day}"]`);
-                }
+                // Jours déjà proposés : on garde, on continue.
+                await s.circle('.days');
+                await s.wait(500);
             } else {
                 await choose('input[name="difficulties[]"]');
+                await s.scroll('main form button[type="submit"]', 600, 420);
                 await s.circle('main form button[type="submit"]');
 
                 return;
