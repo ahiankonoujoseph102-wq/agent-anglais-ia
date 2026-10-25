@@ -1,7 +1,7 @@
 // Version « site » des vidéos de présentation (page publique « Comment ça marche ») : GitHub Actions lit la version
 // WhatsApp déjà fabriquée (sous-titres déjà dans l'image), la réduit à 480 × 854 (environ 3,5 mégaoctets par minute),
 // tire une image d'aperçu, puis dépose les deux fichiers dans le bucket privé. Aucune image refaite, aucun rendu 3D.
-// Variables : TALKAMI_URL, TALKAMI_VIDEO_TOKEN, PRESENTATION_KEYS (facultative : evaluation,talkami), PRESENTATION_PEEK.
+// Variables : TALKAMI_URL, TALKAMI_VIDEO_TOKEN, PRESENTATION_KEYS (facultative : evaluation,talkami,questions), PRESENTATION_PEEK.
 import { spawnSync } from 'node:child_process';
 import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';

@@ -126,7 +126,7 @@ return [
         // « site » (480 × 854, sous-titres déjà dans l'image), fabriquée par GitHub Actions à partir de la version
         // WhatsApp (tools/presentation/site-version.mjs). Rien n'est chargé avant le toucher sur « Regarder ».
         'site' => [
-            'keys' => ['evaluation', 'talkami'],
+            'keys' => ['evaluation', 'talkami', 'questions'],
             'width' => 480,
             'height' => 854,
             'video_kbps' => 380,
@@ -140,7 +140,10 @@ return [
             'intros' => [
                 'evaluation' => 'Comment se passe votre évaluation orale gratuite avec :teacher, du début à la fin.',
                 'talkami' => 'Tout :platform en quelques minutes : le compte, l\'évaluation, les formules, le paiement et une séance.',
+                'questions' => ':teacher répond aux questions qu\'on se pose avant de commencer : oser parler, le temps, le prix, le paiement, l\'application, « Mes cours »…',
             ],
+            // Page des formules : une ligne de texte vers cette vidéo (seulement si sa version « site » est prête).
+            'plans_link' => 'questions',
         ],
         // Publicités (« layout » « ad » d'un script) : remplace ces réglages de « render », pour ces vidéos seulement.
         // Zone libre des boutons de Meta (14 % en haut, 35 % en bas) et de TikTok (240 pixels en haut, 660 en bas,
