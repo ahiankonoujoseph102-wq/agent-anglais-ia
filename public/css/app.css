@@ -1754,3 +1754,8 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .persuade-face { position: absolute; top: -20px; right: 10px; width: 40px; height: 40px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px var(--c-surface), 0 0 0 4px var(--c-accent); }
 /* Tablette et ordinateur : l'encadré tient sur deux lignes jusqu'au bord, la pastille le rallongerait. */
 @media (min-width: 640px) { .persuade-face { display: none; } }
+
+/* Liens TikTok et chaîne WhatsApp (<x-social-links>) : texte seul, zone de toucher de 44 pixels. */
+.social-links { margin: 0; padding: 0; list-style: none; }
+.social-links a { display: inline-flex; align-items: center; min-height: 44px; }
+.contact-social { display: flex; flex-wrap: wrap; gap: 0 var(--space-4); margin: var(--space-3) 0; font-weight: var(--fw-bold); }

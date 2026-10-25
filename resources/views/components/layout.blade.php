@@ -227,6 +227,9 @@
                     <li><a href="{{ route('privacy') }}">Confidentialité</a></li>
                     <li data-install-link-item><a href="{{ route('install') }}" data-install-link>Installer l'application</a></li>
                 </ul>
+                @if (request()->routeIs(...(array) config('platform.contact.social_routes', [])))
+                    <x-social-links class="footer-links" />
+                @endif
                 @guest
                     {{-- Visiteurs (et moteurs de recherche) : les pages « Apprendre l'anglais » de chaque pays. --}}
                     <ul class="footer-links footer-countries" aria-label="Apprendre l'anglais dans votre pays">
