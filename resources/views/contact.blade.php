@@ -10,6 +10,8 @@
         <a class="btn btn-whatsapp btn-block btn-lg contact-whatsapp rise" href="{{ $whatsappUrl }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Écrire sur WhatsApp</a>
     @endif
 
+    <x-social-links class="contact-social rise" />
+
     {{-- Un visage derrière le numéro : le fondateur (photo et nom de la configuration, rien d'inventé). --}}
     @if ($founderPhoto = \App\Support\Founder::photoUrl())
         <div class="contact-founder rise">

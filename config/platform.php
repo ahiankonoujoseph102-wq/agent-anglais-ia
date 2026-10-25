@@ -463,6 +463,12 @@ return [
         // Lien d'invitation du GROUPE WhatsApp (https://chat.whatsapp.com/…), À COMPLÉTER quand il existe.
         // Vide : le bouton WhatsApp de la page 404 ouvre une conversation avec le numéro ci-dessus.
         'whatsapp_group' => env('WHATSAPP_GROUP_URL'),
+        // Réseaux de la plateforme (liens publics, sans secret) : pied de page des pages publiques
+        // (social_routes, jamais l'accueil, le paiement, l'évaluation ni l'administration) et page Contact.
+        // Vide : le lien n'est pas affiché.
+        'tiktok' => 'https://www.tiktok.com/@talkami8',
+        'whatsapp_channel' => 'https://whatsapp.com/channel/0029VbDtfS2HbFV796odSi0n',
+        'social_routes' => ['plans', 'about', 'country', 'contact', 'register', 'privacy', 'install'],
     ],
 
     /*
