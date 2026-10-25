@@ -54,6 +54,10 @@ Route::get('/contact', ContactController::class)->name('contact');
 // Pages publiques du référencement : formules et prix, « À propos », une page par pays de paiement.
 Route::get('/formules', [PageController::class, 'plans'])->name('plans');
 Route::get('/a-propos', [PageController::class, 'about'])->name('about');
+// « Comment ça marche » : vidéos de présentation en version très légère ; image d'aperçu et vidéo seulement à la demande.
+Route::get('/comment-ca-marche', [PageController::class, 'how'])->name('how');
+Route::get('/comment-ca-marche/{key}/apercu', [PageController::class, 'poster'])->name('how.poster');
+Route::get('/comment-ca-marche/{key}/video', [PageController::class, 'video'])->middleware('throttle:30,1')->name('how.video');
 // Installer l'application : explications pour Android et iPhone (lien du Menu et du pied de page, sans JavaScript).
 Route::view('/installer-l-application', 'pages.install')->name('install');
 Route::get('/apprendre-anglais/{country}', [PageController::class, 'country'])->whereIn('country', CountryPage::slugs())->name('country');

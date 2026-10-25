@@ -122,6 +122,26 @@ return [
             // Son : même chaîne que les vidéos de leçon, limiteur un peu plus bas (crête sous 0 dB après l'AAC).
             'audio' => ['target_lufs' => -14, 'limit' => 0.7, 'limiter_makeup_db' => 2.5],
         ],
+        // Page publique « Comment ça marche » (App\Support\Videos\SiteVideos) : ces vidéos, dans cet ordre, en version
+        // « site » (480 × 854, sous-titres déjà dans l'image), fabriquée par GitHub Actions à partir de la version
+        // WhatsApp (tools/presentation/site-version.mjs). Rien n'est chargé avant le toucher sur « Regarder ».
+        'site' => [
+            'keys' => ['evaluation', 'talkami'],
+            'width' => 480,
+            'height' => 854,
+            'video_kbps' => 380,
+            'audio_kbps' => 64,
+            // Seconde de la vidéo prise pour l'image d'aperçu (JPEG, environ 30 kilooctets).
+            'poster_second' => 4,
+            // Durée de l'adresse signée donnée au toucher sur « Regarder » (la lecture et l'avance rapide en dépendent).
+            'url_minutes' => 180,
+            'max_megabytes' => 60,
+            // Phrase sous le titre de chaque vidéo.
+            'intros' => [
+                'evaluation' => 'Comment se passe votre évaluation orale gratuite avec :teacher, du début à la fin.',
+                'talkami' => 'Tout :platform en quelques minutes : le compte, l\'évaluation, les formules, le paiement et une séance.',
+            ],
+        ],
         // Publicités (« layout » « ad » d'un script) : remplace ces réglages de « render », pour ces vidéos seulement.
         // Zone libre des boutons de Meta (14 % en haut, 35 % en bas) et de TikTok (240 pixels en haut, 660 en bas,
         // colonne de 180 pixels à droite à partir de 840) : texte entre 300 et 1 240 pixels de haut, sous-titres à

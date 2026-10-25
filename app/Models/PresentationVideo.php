@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 /**
  * Vidéo de présentation du site (App\Support\Videos\PresentationVideos) : script de resources/videos/presentations.php,
  * voix préparée par Laravel (même code que les vidéos de leçon : App\Support\Videos\VideoVoice), puis deux fichiers
- * fabriqués par GitHub Actions : la vidéo pour TikTok (1080 × 1920) et une version légère pour WhatsApp.
+ * fabriqués par GitHub Actions : la vidéo pour TikTok (1080 × 1920) et une version légère pour WhatsApp ; pour les
+ * vidéos de la page « Comment ça marche », une version « site » encore plus légère et son aperçu (SiteVideos).
  */
-#[Fillable(['key', 'title', 'status', 'script', 'script_hash', 'caption', 'voice_provider', 'voice_name', 'timings', 'audio_path', 'video_path', 'light_path', 'duration_seconds', 'size_bytes', 'light_size_bytes', 'lips_correlation', 'lips_open', 'loudness_lufs', 'true_peak_db', 'attempts', 'next_attempt_at', 'error', 'render_started_at', 'ready_at'])]
+#[Fillable(['key', 'title', 'status', 'script', 'script_hash', 'caption', 'voice_provider', 'voice_name', 'timings', 'audio_path', 'video_path', 'light_path', 'web_path', 'poster_path', 'duration_seconds', 'size_bytes', 'light_size_bytes', 'web_size_bytes', 'lips_correlation', 'lips_open', 'loudness_lufs', 'true_peak_db', 'attempts', 'next_attempt_at', 'error', 'render_started_at', 'ready_at'])]
 class PresentationVideo extends LessonVideo
 {
     protected $table = 'presentation_videos';
@@ -25,6 +26,7 @@ class PresentationVideo extends LessonVideo
             'duration_seconds' => 'integer',
             'size_bytes' => 'integer',
             'light_size_bytes' => 'integer',
+            'web_size_bytes' => 'integer',
             'lips_correlation' => 'float',
             'lips_open' => 'float',
             'loudness_lufs' => 'float',

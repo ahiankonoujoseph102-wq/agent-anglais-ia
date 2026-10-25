@@ -258,6 +258,9 @@ class PresentationVideos
             return false;
         }
 
+        // Vidéo refaite : sa version « site » (page « Comment ça marche ») est à refaire aussi.
+        SiteVideos::forget($video);
+
         $video->update([
             'status' => LessonVideo::READY,
             'video_path' => $full,

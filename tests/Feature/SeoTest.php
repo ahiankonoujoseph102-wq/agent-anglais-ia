@@ -36,6 +36,7 @@ class SeoTest extends TestCase
         '/' => 'https://talkami.net/',
         '/formules' => 'https://talkami.net/formules',
         '/a-propos' => 'https://talkami.net/a-propos',
+        '/comment-ca-marche' => 'https://talkami.net/comment-ca-marche',
         '/apprendre-anglais/togo' => 'https://talkami.net/apprendre-anglais/togo',
         '/apprendre-anglais/benin' => 'https://talkami.net/apprendre-anglais/benin',
         '/apprendre-anglais/burkina-faso' => 'https://talkami.net/apprendre-anglais/burkina-faso',

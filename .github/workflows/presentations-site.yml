@@ -1,0 +1,49 @@
+# Vidéos de la page « Comment ça marche » du site : version très légère (480 × 854) et image d'aperçu, tirées de la
+# version WhatsApp déjà fabriquée (aucun rendu refait), puis dépôt dans le bucket privé. Seulement à la demande :
+# Actions, « Vidéos du site », Run workflow. Mêmes secret et variable que les vidéos de présentation.
+name: Vidéos du site
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: presentations-site
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  preparer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    name: Version légère pour la page « Comment ça marche »
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Combien de vidéos attendent ?
+        id: peek
+        working-directory: tools/presentation
+        env:
+          TALKAMI_URL: ${{ vars.TALKAMI_URL }}
+          TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
+          PRESENTATION_PEEK: '1'
+        run: node site-version.mjs
+
+      - name: Installer ffmpeg
+        if: steps.peek.outputs.waiting != '0'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+
+      - name: Préparer et déposer
+        if: steps.peek.outputs.waiting != '0'
+        working-directory: tools/presentation
+        env:
+          TALKAMI_URL: ${{ vars.TALKAMI_URL }}
+          TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
+        run: node site-version.mjs

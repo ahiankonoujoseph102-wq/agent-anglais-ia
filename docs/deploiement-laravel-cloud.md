@@ -526,6 +526,17 @@ Refaire une vidéo : bouton **Refaire cette vidéo** sous la vidéo, puis **Run 
 
 Coût : environ 1 heure et demie de minutes GitHub pour les sept vidéos (sur les 2 000 minutes gratuites par mois d'un dépôt privé).
 
+### Les vidéos de la page « Comment ça marche »
+
+La page publique « Comment ça marche » (`/comment-ca-marche`) montre deux vidéos de présentation, d'abord « Votre évaluation orale gratuite », puis « Talkami en 5 minutes », dans une version très légère (480 × 854, environ 3,5 mégaoctets par minute). Cette version est tirée de la version WhatsApp déjà fabriquée : aucune vidéo n'est refaite.
+
+1. Vérifiez dans **Vidéos** que les deux vidéos sont « Prête ».
+2. Dans GitHub, onglet **Actions**, choisissez **Vidéos du site**, puis **Run workflow**, puis **Run workflow** (quelques minutes).
+3. Revenez dans **Vidéos** : sous chaque vidéo, « Sur la page « Comment ça marche » : version du site … mégaoctets ».
+4. Ouvrez la page sur votre téléphone, touchez **Regarder** : la vidéo démarre.
+
+Quand vous refaites une de ces deux vidéos, l'ancienne version du site est retirée et la nouvelle est faite à la fin de la fabrication (même workflow « Vidéos de présentation ») ; sinon, relancez **Vidéos du site**.
+
 ## 14. Savoir si un déploiement a réussi ou échoué
 
 - Chaque fois que du code arrive sur `main` (par exemple après la fusion d'une pull request), Laravel Cloud démarre un déploiement tout seul : onglet **Deployments**.
