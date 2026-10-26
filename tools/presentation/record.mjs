@@ -37,8 +37,10 @@ export async function openDemo(browser, { site, fakePort, viewport, scale, effec
 
     const context = await browser.newContext(options);
     await context.addInitScript({ content: effects });
-    // Proposition d'installation jamais montrée : déjà « fermée » aujourd'hui.
+    // Proposition d'installation jamais montrée : déjà « fermée » aujourd'hui ; Teacher Joe jamais remplacé
+    // par le visage simple à cause de la lenteur de la machine de tournage (window.__filming, teacher-3d.js).
     await context.addInitScript(() => {
+        window.__filming = true;
         try {
             localStorage.setItem('install-reminder', JSON.stringify({ count: 9, at: Date.now() }));
             localStorage.setItem('teacher-view', '3d');

@@ -54,3 +54,10 @@ test('aucun paiement : la capture n\'est jamais choisie ni envoyée', () => {
     const source = readFileSync(new URL('../../tools/presentation/catalogue-scenes.mjs', import.meta.url), 'utf8');
     assert.doesNotMatch(source, /chooseDemoProof|data-proof-submit/);
 });
+
+test('pendant un tournage, Teacher Joe reste animé même sur une machine lente', () => {
+    const record = readFileSync(new URL('../../tools/presentation/record.mjs', import.meta.url), 'utf8');
+    const teacher = readFileSync(new URL('../../public/js/teacher-3d.js', import.meta.url), 'utf8');
+    assert.match(record, /window\.__filming = true/);
+    assert.match(teacher, /s\.quality >= 2 && !window\.__filming\) \{\s*(\/\/[^\n]*\n\s*)*this\.fail\('too slow'\)/);
+});
