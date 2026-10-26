@@ -133,7 +133,7 @@ class PresentationDemoSeeder extends Seeder
             'study_days' => [1, 2, 3, 4, 5, 6, 7], 'study_time' => '18:30', 'difficulties' => ['speaking', 'pronunciation'],
         ]);
 
-        foreach ($program->lessons()->orderBy('position')->take(2)->get() as $index => $programLesson) {
+        foreach ($program->programLessons()->take(2)->get() as $index => $programLesson) {
             $programLesson->update(['status' => ProgramLessonStatus::Completed, 'completed_at' => now()->subDays(2 - $index), 'attempts' => 1]);
             $lesson = $user->lessons()->create([
                 'subscription_id' => $subscription->id, 'program_id' => $program->id, 'program_lesson_id' => $programLesson->id,
