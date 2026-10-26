@@ -852,7 +852,9 @@ class Teacher3D {
             if (s.quality === 2) {
                 this.simplifyMaterials();
             }
-        } else if (mean > 83 && s.quality >= 2) {
+        } else if (mean > 83 && s.quality >= 2 && !window.__filming) {
+            // Tournage d'une vidéo (outil tools/presentation) : machine sans carte graphique, plus lente
+            // qu'un téléphone ; Teacher Joe reste animé, en définition réduite.
             this.fail('too slow');
         }
     }
