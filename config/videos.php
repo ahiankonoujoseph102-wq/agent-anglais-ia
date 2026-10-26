@@ -206,4 +206,21 @@ return [
         // Garde-fou des lèvres (tools/video/lip-check.mjs) : sinon, la vidéo n'est pas déposée.
         'lips' => ['min_correlation' => 0.5, 'min_open' => 0.08],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Catalogue des écrans (pour un montage)
+    |--------------------------------------------------------------------------
+    | UNE vidéo muette (1080 × 1920, 30 images par seconde) de tous les écrans du site de DÉMONSTRATION, bout à bout,
+    | séparés par une seconde de noir, et la voix de Teacher Joe du passage où il parle, dans un fichier à part
+    | (tools/presentation/catalogue.mjs, workflow « Catalogue des écrans » lancé à la main). Gardée sur le disque
+    | privé, téléchargée depuis la page « Vidéos » de l'administration (App\Support\Videos\ScreenCatalogue).
+    */
+    'catalogue' => [
+        // Voix de Teacher Joe : le début (plans où il parle seul) de cette vidéo de présentation, déjà préparée.
+        'voice_key' => 'questions',
+        'voice_max_seconds' => 15.5,
+        'max_megabytes' => 600,
+        'download_url_minutes' => 60,
+    ],
 ];

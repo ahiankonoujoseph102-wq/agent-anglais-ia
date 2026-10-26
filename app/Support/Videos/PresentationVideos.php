@@ -216,7 +216,7 @@ class PresentationVideos
      * @param  list<array<string, mixed>>  $segments
      * @return array<string, mixed>
      */
-    private static function render(array $segments, ?string $layout = null): array
+    public static function render(array $segments, ?string $layout = null): array
     {
         $render = array_merge(config('videos.render'), config('videos.presentations.render'), ['watermark' => null]);
 

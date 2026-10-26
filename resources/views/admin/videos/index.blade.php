@@ -168,6 +168,40 @@
         {{ $videos->links() }}
     </section>
 
+    {{-- Catalogue des écrans pour un montage (tools/presentation/catalogue.mjs) : une vidéo muette et la voix à part. --}}
+    <section class="card" id="catalogue" aria-labelledby="catalogue-titre">
+        <h2 id="catalogue-titre">Catalogue des écrans (pour un montage)</h2>
+        <p class="muted small">
+            Une seule vidéo muette de tous les écrans du site de démonstration (1080 × 1920, 30 images par seconde), séparés par une
+            seconde de noir, et la voix de {{ config('avatar.model.name') }} du passage où il parle, dans un fichier à part.
+            Fabriqué sur GitHub : Actions, « Catalogue des écrans », Run workflow.
+        </p>
+        @if ($catalogue)
+            <p>
+                Fait le {{ \Illuminate\Support\Carbon::parse($catalogue['made_at'])->timezone(config('app.timezone'))->translatedFormat('j F Y à H \h i') }}
+                · {{ \App\Support\Duration::formatPrecise((int) round($catalogue['duration'])) }}
+                · {{ number_format($catalogue['size_bytes'] / 1048576, 0, ',', ' ') }} mégaoctets
+            </p>
+            <div class="voice-actions">
+                <a class="btn btn-accent" href="{{ route('admin.videos.catalogue', 'video') }}"><x-icon name="download" /> Télécharger la vidéo du catalogue</a>
+                <a class="btn btn-light" href="{{ route('admin.videos.catalogue', 'voix') }}"><x-icon name="download" /> Télécharger la voix de {{ config('avatar.model.name') }}</a>
+            </div>
+            @if ($catalogue['voice_start'] !== null)
+                <p class="muted small">La voix se place à {{ \App\Support\Videos\ScreenCatalogue::clock($catalogue['voice_start']) }} dans la vidéo (début du passage où {{ config('avatar.model.name') }} parle).</p>
+            @endif
+            <details>
+                <summary>Index des passages ({{ count($catalogue['passages']) }})</summary>
+                <ol class="catalogue-index">
+                    @foreach ($catalogue['passages'] as $passage)
+                        <li><strong>{{ \App\Support\Videos\ScreenCatalogue::clock($passage['start']) }} à {{ \App\Support\Videos\ScreenCatalogue::clock($passage['end']) }}</strong> · {{ $passage['title'] }}</li>
+                    @endforeach
+                </ol>
+            </details>
+        @else
+            <p class="muted small">Pas encore fabriqué.</p>
+        @endif
+    </section>
+
     <section id="presentations" aria-labelledby="presentations-titre">
         <h2 id="presentations-titre">Vidéos de présentation</h2>
         <div class="card card-soft">

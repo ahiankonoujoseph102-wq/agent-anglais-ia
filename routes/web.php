@@ -232,6 +232,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/videos/refaire-aujourd-hui', [AdminVideoController::class, 'redoToday'])->name('videos.redo-today');
     Route::post('/videos/presentations', [PresentationVideoController::class, 'request'])->middleware('throttle:6,1')->name('videos.presentations.request');
     Route::get('/videos/presentations/{presentation}/fichier', [PresentationVideoController::class, 'file'])->name('videos.presentations.file');
+    Route::get('/videos/catalogue/{file}', [AdminVideoController::class, 'catalogue'])->whereIn('file', ['video', 'voix'])->name('videos.catalogue');
     Route::get('/inactifs', [InactiveLearnerController::class, 'index'])->name('inactive.index');
     Route::get('/inactifs/{user}/whatsapp', [InactiveLearnerController::class, 'whatsapp'])->name('inactive.whatsapp');
 });

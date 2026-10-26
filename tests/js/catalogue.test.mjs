@@ -1,0 +1,56 @@
+// Catalogue des écrans pour un montage (tools/presentation/catalogue-index.mjs, catalogue-scenes.mjs) : passages bout
+// à bout séparés d'une seconde de noir, index en minutes et secondes, rien d'ajouté à l'écran.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { GAP, clock, indexText, timeline } from '../../tools/presentation/catalogue-index.mjs';
+import { CALM, passages } from '../../tools/presentation/catalogue-scenes.mjs';
+
+const list = passages({ attestationCode: 'A1-CODE', courseId: 7 });
+
+test('chaque passage dure de 10 à 20 secondes et commence par 2 secondes calmes', () => {
+    assert.equal(CALM, 2000);
+
+    for (const passage of list) {
+        assert.ok(passage.seconds >= 10 && passage.seconds <= 20, passage.key);
+        assert.ok(passage.title.length > 10, passage.key);
+    }
+
+    assert.equal(new Set(list.map((p) => p.key)).size, list.length);
+});
+
+test('le catalogue couvre tout le site demandé, dans l\'ordre', () => {
+    const keys = list.map((p) => p.key);
+    const order = ['accueil-haut', 'accueil-defilement-1', 'teacher-joe-parle', 'inscription', 'evaluation-commencer', 'evaluation-a-vous', 'evaluation-niveau', 'mon-espace', 'programme', 'seance-lecon', 'seance-pratique', 'seance-conversation', 'seance-bilan', 'mes-cours-ajouter', 'mes-cours-explication', 'attestations', 'formules', 'abonnement', 'paiement', 'comment-ca-marche', 'installer', 'contact', 'a-propos', 'administration-videos'];
+    let previous = -1;
+
+    for (const key of order) {
+        const at = keys.indexOf(key);
+        assert.ok(at > previous, `${key} manquant ou hors de l'ordre`);
+        previous = at;
+    }
+
+    assert.equal(list.filter((p) => p.teacher).length, 1);
+});
+
+test('passages bout à bout, une seconde de noir entre deux, moments forts dans la vidéo unique', () => {
+    const entries = timeline([{ key: 'a', title: 'A', seconds: 12, moments: [[5, 'doigt']] }, { key: 'b', title: 'B', seconds: 20 }]);
+    assert.equal(GAP, 1);
+    assert.deepEqual(entries.map((e) => [e.start, e.end]), [[0, 12], [13, 33]]);
+    assert.deepEqual(entries[0].moments, [[5, 'doigt']]);
+    assert.equal(clock(65.4), '1:05');
+    const text = indexText(entries, 13);
+    assert.match(text, /01\. 0:00 à 0:12 : A/);
+    assert.match(text, /02\. 0:13 à 0:33 : B/);
+    assert.match(text, /à placer à 0:13/);
+});
+
+test('aucune marque ajoutée à l\'écran : ni cercle, ni flèche, ni zoom, ni sous-titre', () => {
+    const source = readFileSync(new URL('../../tools/presentation/catalogue-scenes.mjs', import.meta.url), 'utf8');
+    assert.doesNotMatch(source, /s\.(circle|circleAny|circleText|arrow|arrowText|zoom|scrollText|questionnaireScreen|planCard)\(/);
+});
+
+test('aucun paiement : la capture n\'est jamais choisie ni envoyée', () => {
+    const source = readFileSync(new URL('../../tools/presentation/catalogue-scenes.mjs', import.meta.url), 'utf8');
+    assert.doesNotMatch(source, /chooseDemoProof|data-proof-submit/);
+});

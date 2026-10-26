@@ -204,7 +204,7 @@
                 const step = (now) => {
                     const p = Math.min(1, (now - start) / ms);
                     const eased = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
-                    window.scrollTo(0, from + (to - from) * eased);
+                    window.scrollTo({ top: from + (to - from) * eased, behavior: 'instant' });
 
                     if (p < 1) {
                         requestAnimationFrame(step);
@@ -224,7 +224,7 @@
                 const step = (now) => {
                     const p = Math.min(1, (now - start) / ms);
                     const eased = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
-                    window.scrollTo(0, from + dy * eased);
+                    window.scrollTo({ top: from + dy * eased, behavior: 'instant' });
                     p < 1 ? requestAnimationFrame(step) : ok(true);
                 };
                 requestAnimationFrame(step);
