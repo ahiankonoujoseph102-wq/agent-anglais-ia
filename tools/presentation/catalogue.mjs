@@ -264,6 +264,7 @@ async function make({ voiceSource, voice, outDir, only }) {
         const photo = await notebookPhoto(browser);
         const demo = await openDemo(browser, { site: SITE, fakePort: FAKE_PORT, viewport: VIEWPORT, scale: SCALE, effects, proofImage: photo ?? Buffer.alloc(0), coursePhoto: photo, accounts: { admin: ADMIN_PHONE } });
         const clips = [];
+        const simpleFace = [];
 
         for (const [index, passage] of list.entries()) {
             const out = join(workdir, `passage-${String(index + 1).padStart(2, '0')}.mp4`);
@@ -280,6 +281,11 @@ async function make({ voiceSource, voice, outDir, only }) {
                 }
 
                 const take = await recordTake(demo, [{ name: passage.key, ms: passage.seconds * 1000, def: passage }], join(workdir, `prise-${index + 1}`));
+                // Jamais le visage simple de Teacher Joe dans le catalogue : sinon, rien n'est déposé.
+                if (await demo.page.evaluate(() => document.querySelector('[data-teacher="svg"]') !== null).catch(() => false)) {
+                    simpleFace.push(`${index + 1}. ${passage.key}`);
+                }
+
                 await encodeFrames(take.frames, passage.seconds, out);
                 await rm(join(workdir, `prise-${index + 1}`), { recursive: true, force: true });
             }
@@ -289,6 +295,10 @@ async function make({ voiceSource, voice, outDir, only }) {
         }
 
         await demo.context.close();
+
+        if (simpleFace.length > 0) {
+            throw new Error(`Visage simple de Teacher Joe à l'écran (${simpleFace.join(', ')}) : rien n'est déposé, la vidéo précédente reste en place. Relancez la fabrication.`);
+        }
 
         // 3. La vidéo unique, la voix à part, l'index.
         log('Assemblage de la vidéo unique');

@@ -73,3 +73,11 @@ test('pendant un tournage, Teacher Joe est dessiné plus légèrement (15 images
     assert.match(teacher, /elapsed < 1000 \/ \(window\.__filming \? 15\.5 : 31\)/);
     assert.match(teacher, /this\.video \|\| window\.__filming \? 1 :/);
 });
+
+test('jamais le visage simple : attente plus longue au tournage, et rien n\'est déposé s\'il apparaît', () => {
+    const view = readFileSync(new URL('../../public/js/teacher-view.js', import.meta.url), 'utf8');
+    const catalogue = readFileSync(new URL('../../tools/presentation/catalogue.mjs', import.meta.url), 'utf8');
+    assert.match(view, /withTimeout\(attempt, window\.__filming \? 180000 : LOAD_TIMEOUT_MS\)/);
+    assert.match(catalogue, /\[data-teacher="svg"\]/);
+    assert.match(catalogue, /if \(simpleFace\.length > 0\) \{\s*throw new Error/);
+});
