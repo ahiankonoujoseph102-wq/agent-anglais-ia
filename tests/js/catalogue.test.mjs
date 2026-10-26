@@ -67,3 +67,9 @@ test('avant la séance « Mes cours », les séances du jour restées ouvertes s
     assert.match(source, /passage\.live === 'course'\) \{\s*closeOpenLessons\(env\);/);
     assert.match(source, /LessonStatus::InProgress\)->get\(\)->each\(fn \(\$lesson\) => \$lesson->finish\(now\(\)\)\)/);
 });
+
+test('pendant un tournage, Teacher Joe est dessiné plus légèrement (15 images par seconde, définition 1)', () => {
+    const teacher = readFileSync(new URL('../../public/js/teacher-3d.js', import.meta.url), 'utf8');
+    assert.match(teacher, /elapsed < 1000 \/ \(window\.__filming \? 15\.5 : 31\)/);
+    assert.match(teacher, /this\.video \|\| window\.__filming \? 1 :/);
+});

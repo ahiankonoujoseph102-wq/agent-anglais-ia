@@ -274,7 +274,7 @@ class Teacher3D {
             preserveDrawingBuffer: this.video,
         });
         renderer.outputColorSpace = THREE.SRGBColorSpace;
-        this.pixelRatio = this.video ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
+        this.pixelRatio = this.video || window.__filming ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
         renderer.setPixelRatio(this.pixelRatio);
         renderer.domElement.className = 'teacher3d-canvas';
         renderer.domElement.setAttribute('aria-hidden', 'true');
@@ -795,7 +795,9 @@ class Teacher3D {
         const elapsed = now - this.last;
 
         // 30 images par seconde suffisent et ménagent la batterie.
-        if (elapsed < 1000 / 31) {
+        // Tournage (window.__filming, machine sans carte graphique) : 15 images par seconde, pour laisser au
+        // navigateur le temps de fournir les images de l'écran filmé.
+        if (elapsed < 1000 / (window.__filming ? 15.5 : 31)) {
             return;
         }
 
