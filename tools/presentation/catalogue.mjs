@@ -178,6 +178,12 @@ function demoValues(env) {
     return JSON.parse((out.stdout || '{}').trim().split('\n').pop());
 }
 
+/** Clôt les séances du jour restées ouvertes dans la base de démonstration. */
+function closeOpenLessons(env) {
+    const php = 'App\\Models\\Lesson::query()->where("status", App\\Enums\\LessonStatus::InProgress)->get()->each(fn ($lesson) => $lesson->finish(now()));';
+    spawnSync('php', ['artisan', 'tinker', '--execute', php], { cwd: ROOT, env, encoding: 'utf8' });
+}
+
 /** Teacher Joe en grand, lèvres synchronisées (page de fabrication des vidéos de leçon). */
 async function teacherClip(browser, settings, voiceFile, seconds, out) {
     const render = { ...settings.render, fps: FPS, avatar_width: WIDTH, avatar_height: HEIGHT, antialias: true };
@@ -266,6 +272,13 @@ async function make({ voiceSource, voice, outDir, only }) {
                 await copyFile(teacher.file, out);
             } else {
                 log(`${index + 1}. ${passage.key} (${passage.seconds} secondes)`);
+
+                // Séance « Mes cours » : la séance du jour filmée juste avant peut être encore ouverte sur une machine
+                // lente (sa fin arrive en arrière-plan) et garder tout le temps du jour ; on la clôt d'abord.
+                if (passage.live === 'course') {
+                    closeOpenLessons(env);
+                }
+
                 const take = await recordTake(demo, [{ name: passage.key, ms: passage.seconds * 1000, def: passage }], join(workdir, `prise-${index + 1}`));
                 await encodeFrames(take.frames, passage.seconds, out);
                 await rm(join(workdir, `prise-${index + 1}`), { recursive: true, force: true });

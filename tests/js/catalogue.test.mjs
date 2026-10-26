@@ -61,3 +61,9 @@ test('pendant un tournage, Teacher Joe reste animé même sur une machine lente'
     assert.match(record, /window\.__filming = true/);
     assert.match(teacher, /s\.quality >= 2 && !window\.__filming\) \{\s*(\/\/[^\n]*\n\s*)*this\.fail\('too slow'\)/);
 });
+
+test('avant la séance « Mes cours », les séances du jour restées ouvertes sont closes', () => {
+    const source = readFileSync(new URL('../../tools/presentation/catalogue.mjs', import.meta.url), 'utf8');
+    assert.match(source, /passage\.live === 'course'\) \{\s*closeOpenLessons\(env\);/);
+    assert.match(source, /LessonStatus::InProgress\)->get\(\)->each\(fn \(\$lesson\) => \$lesson->finish\(now\(\)\)\)/);
+});
