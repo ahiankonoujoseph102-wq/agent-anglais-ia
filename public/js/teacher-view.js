@@ -183,7 +183,8 @@ export function createTeacherView(root, config) {
                 onProgress: (ratio) => { bar.value = Math.round(ratio * 100); },
             }));
 
-        loadingPromise = withTimeout(attempt, LOAD_TIMEOUT_MS)
+        // Tournage d'une vidéo (window.__filming) : machine lente, on attend Teacher Joe animé plus longtemps.
+        loadingPromise = withTimeout(attempt, window.__filming ? 180000 : LOAD_TIMEOUT_MS)
             .then((instance) => {
                 teacher = instance;
                 teacher.onrender = onRender;
