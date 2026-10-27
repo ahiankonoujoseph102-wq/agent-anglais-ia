@@ -34,7 +34,7 @@ class TeacherCorrectionTest extends TestCase
             $this->assertStringContainsString('HOW TO CORRECT (daily lesson and « Mes cours »):', $text, $kind);
             $this->assertStringContainsString('1) Let the learner FIND it first', $text, $kind);
             $this->assertStringContainsString('If they do not find it after ONE try, give the right form', $text, $kind);
-            $this->assertStringContainsString('3) Then make them say the WHOLE sentence again', $text, $kind);
+            $this->assertStringContainsString('and make them say the WHOLE sentence again', $text, $kind);
             $this->assertStringContainsString('The goal is to be understood, never to sound like a native speaker.', $text, $kind);
             // Jamais complaisant (B5).
             $this->assertStringContainsString('If the learner insists that a wrong form is right, stay warm but accurate', $text, $kind);

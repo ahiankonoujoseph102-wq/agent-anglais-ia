@@ -199,9 +199,11 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('« Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français. »', $text);
         $this->assertStringContainsString('(in French, 3 questions at most)', $text);
         $this->assertStringContainsString('always answer in FRENCH, briefly (two or three sentences)', $text);
-        $this->assertStringContainsString('Never invent anything (prices, delays, phone numbers, promises)', $text);
-        $this->assertStringContainsString('green button on the « Aide » page', $text);
-        $this->assertStringContainsString('you are here for English and Talkami', $text);
+        $this->assertStringContainsString('Never invent anything (delays, phone numbers, promises)', $text);
+        // Prix : réponse directe, jamais WhatsApp ; WhatsApp seulement pour un vrai problème, après l'échange.
+        $this->assertStringContainsString('A question about the price or the plans gets the real figures at once (never WhatsApp for that)', $text);
+        $this->assertStringContainsString('only for a real problem you cannot solve, say that after the conversation they can touch « Aide »', $text);
+        $this->assertStringContainsString('say you are here for their English', $text);
         $this->assertStringContainsString('says they have no (more) question, or once you have answered question number 3, go to the conclusion at once', $text);
         // Conclusion : niveau, pourquoi l'anglais, comment s'abonner, promesse honnête, phrase fixe.
         $this->assertStringContainsString('recall the level obtained', $text);

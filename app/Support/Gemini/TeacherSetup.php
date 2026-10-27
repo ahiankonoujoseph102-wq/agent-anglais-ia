@@ -279,6 +279,8 @@ class TeacherSetup
             trim((string) config('teacher.american_english')),
             trim((string) config("teacher.{$kind}")),
             trim((string) config('teacher.site_help')),
+            // Conseiller honnête : prix réels, objections, WhatsApp seulement pour un vrai problème (pas l'essai du diagnostic).
+            $kind === 'trial' ? '' : trim((string) config('teacher.advisor')),
         ]));
 
         $text = self::fill($text, $extra + [
@@ -298,7 +300,7 @@ class TeacherSetup
             'closing' => (string) config('platform.assessment.closing_phrase'),
             // Séance du jour : langue d'enseignement selon le niveau et phrases de passage d'un temps à l'autre.
             'language' => trim(config('teacher.lesson_language.common')."\n".config("teacher.lesson_language.{$level}", '')),
-        ] + self::phasePhrases());
+        ] + self::phasePhrases() + PlanFacts::replacements($kind));
 
         // Ajoutés APRÈS le remplacement des marqueurs : le nom de l'apprenant n'est jamais relu comme un marqueur.
         return implode("\n\n", [

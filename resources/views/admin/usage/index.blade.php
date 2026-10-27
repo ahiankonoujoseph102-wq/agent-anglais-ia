@@ -96,6 +96,17 @@
     </div>
     <p class="muted small">Mesuré dans le navigateur de l'élève, de la fin de sa parole au premier son de la réponse, sur les 7 derniers jours. Objectif : moins de 2 secondes.</p>
 
+    {{-- Export anonymisé des conversations (App\Support\Live\TranscriptExport) : pour analyser et améliorer Teacher Joe. --}}
+    <h2 class="next-step" id="export-conversations">Améliorer {{ config('avatar.model.name') }} : export anonymisé</h2>
+    <div class="card">
+        <p>Le texte des conversations récentes des apprenants, dans un fichier texte : prénoms et noms du compte, numéros, adresses e-mail et liens remplacés. Les autres noms propres ne sont pas reconnus : relisez le fichier avant de le partager. Rien n'est gardé sur le site.</p>
+        <p class="actions">
+            @foreach (\App\Support\Live\TranscriptExport::PERIODS as $days)
+                <a class="btn btn-outline" href="{{ route('admin.conversations.export', ['jours' => $days]) }}" download>{{ $days }} derniers jours</a>
+            @endforeach
+        </p>
+    </div>
+
     {{-- Synthèse vocale des messages (bienvenue, résultat de l'évaluation, essais) : jamais mélangée aux conversations. --}}
     <h2 class="next-step">Synthèse vocale des messages</h2>
     <div class="stats">

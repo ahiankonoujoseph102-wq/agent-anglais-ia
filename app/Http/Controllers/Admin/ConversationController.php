@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Live\TranscriptExport;
 use App\Support\Live\Transcripts;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
@@ -47,5 +50,20 @@ class ConversationController extends Controller
 
         return redirect()->to(route('admin.users.show', $user).'#conversations')
             ->with('status', 'Les conversations de '.$user->name.' sont supprimées ('.$deleted.' '.($deleted > 1 ? 'répliques' : 'réplique').').');
+    }
+
+    /**
+     * Export anonymisé des conversations récentes (fichier texte fabriqué à la demande, jamais gardé).
+     */
+    public function export(Request $request): Response
+    {
+        $days = (int) $request->query('jours', 30);
+        $days = in_array($days, TranscriptExport::PERIODS, true) ? $days : 30;
+
+        return response(TranscriptExport::build($days), 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="conversations-anonymisees-'.now()->format('Y-m-d').'.txt"',
+            'Cache-Control' => 'no-store, private',
+        ]);
     }
 }
