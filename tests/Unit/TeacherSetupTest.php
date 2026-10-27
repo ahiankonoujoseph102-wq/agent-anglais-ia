@@ -121,8 +121,13 @@ class TeacherSetupTest extends TestCase
         $this->assertSame(['AUDIO'], $setup['generationConfig']['responseModalities']);
         $this->assertSame('Iapetus', $setup['generationConfig']['speechConfig']['voiceConfig']['prebuiltVoiceConfig']['voiceName']);
         $this->assertSame(['handle' => 'poignee'], $setup['sessionResumption']);
-        $this->assertSame('{}', json_encode($setup['inputAudioTranscription']));
+        // Voix de l'élève reconnue en anglais américain ou en français seulement (jamais en espagnol ou en hindi).
+        $this->assertSame(['languageCodes' => ['en-US', 'fr-FR']], $setup['inputAudioTranscription']);
         $this->assertSame('{}', json_encode($setup['outputAudioTranscription']));
+
+        // Variable vide : détection automatique, comme avant.
+        config(['services.gemini.transcription_languages' => []]);
+        $this->assertSame('{}', json_encode(TeacherSetup::lesson(new User(['name' => 'Afi']), 15)['inputAudioTranscription']));
     }
 
     public function test_cost_estimate_uses_configured_prices(): void

@@ -122,6 +122,9 @@ return [
         // Source : ai.google.dev/gemini-api/docs/models (relevé d'octobre 2026).
         'text_model' => env('GEMINI_TEXT_MODEL', 'gemini-3.5-flash-lite'),
         'text_api_version' => env('GEMINI_TEXT_API_VERSION', 'v1beta'),
+        // Langues reconnues dans la voix de l'élève (codes BCP-47, séparés par des virgules) : anglais américain et
+        // français. Vide (GEMINI_TRANSCRIPTION_LANGUAGES=) : détection automatique de Google, comme avant.
+        'transcription_languages' => array_values(array_filter(array_map('trim', explode(',', (string) env('GEMINI_TRANSCRIPTION_LANGUAGES', 'en-US,fr-FR'))))),
         // Fenêtre de contexte de la séance du jour et de « Mes cours » (App\Support\Gemini\TeacherSetup::contextWindow) :
         // audio gardé au plus, en jetons (environ 25 par seconde d'échange : 12 000 ≈ 8 minutes). 0 : aucune limite
         // (seulement celle de Google). L'évaluation et le bilan de niveau gardent toujours tout.

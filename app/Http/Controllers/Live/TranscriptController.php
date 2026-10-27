@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Live;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Live\TranscriptRequest;
+use App\Support\Live\LivePage;
 use App\Support\Live\Transcripts;
 use Illuminate\Http\JsonResponse;
 
@@ -23,6 +24,11 @@ class TranscriptController extends Controller
 
         if (! Transcripts::accepts($conversation)) {
             return response()->json(['message' => 'Cette séance est trop ancienne.'], 409);
+        }
+
+        // Page qui n'est plus celle de la séance (autre onglet ou autre téléphone) : son texte n'est pas mêlé.
+        if ($refusal = LivePage::refusal($conversation)) {
+            return $refusal;
         }
 
         return response()->json([

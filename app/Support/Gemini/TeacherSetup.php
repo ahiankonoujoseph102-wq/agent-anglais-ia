@@ -215,7 +215,7 @@ class TeacherSetup
      */
     public static function cue(string $key, array $replace = []): string
     {
-        return self::fill((string) config("teacher.cues.{$key}"), $replace + ['closing' => (string) config('platform.assessment.closing_phrase')] + self::phasePhrases());
+        return self::fill((string) config("teacher.cues.{$key}"), $replace + ['closing' => (string) config('platform.assessment.closing_phrase'), 'duration_note' => ''] + self::phasePhrases());
     }
 
     /**
@@ -339,7 +339,9 @@ class TeacherSetup
             'tools' => $functions === [] ? null : [['functionDeclarations' => $functions]],
             'realtimeInputConfig' => self::realtimeInputConfig($paceLevel),
             // Sous-titres : transcription de ce que dit l'apprenant et le professeur.
-            'inputAudioTranscription' => (object) [],
+            // Reconnaissance limitée aux langues de l'élève (anglais, français) : sans cela, des phrases d'élèves
+            // étaient reconnues en espagnol, en portugais, en hindi ou en coréen, et le professeur y répondait.
+            'inputAudioTranscription' => self::transcriptionLanguages() === [] ? (object) [] : ['languageCodes' => self::transcriptionLanguages()],
             'outputAudioTranscription' => (object) [],
             // Au-delà d'environ 15 min d'audio, la fenêtre de contexte doit glisser ; pour la séance du jour et
             // « Mes cours », elle glisse plus tôt (contextWindow), car tout le contexte est refacturé à chaque réponse.
@@ -374,6 +376,16 @@ class TeacherSetup
             'triggerTokens' => $trigger,
             'slidingWindow' => ['targetTokens' => max(2_500, $trigger - intdiv($audio, 2))],
         ];
+    }
+
+    /**
+     * Langues de la reconnaissance de la voix de l'élève (codes BCP-47, services.gemini.transcription_languages).
+     *
+     * @return list<string>
+     */
+    public static function transcriptionLanguages(): array
+    {
+        return array_values(array_filter((array) config('services.gemini.transcription_languages', []), fn ($code) => is_string($code) && preg_match('/^[a-z]{2,3}(-[A-Z]{2})?$/', $code)));
     }
 
     /**

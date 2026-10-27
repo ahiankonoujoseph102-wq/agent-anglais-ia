@@ -11,6 +11,8 @@
         'no_answer_seconds' => (float) config('platform.live.no_answer_seconds'),
         'stuck_seconds' => (float) config('platform.live.stuck_seconds'),
         'voice_stuck_seconds' => (float) config('platform.live.voice_stuck_seconds'),
+        'voice_gap_hold_seconds' => (float) config('platform.live.voice_gap_hold_seconds'),
+        'greeting_wait_seconds' => (float) config('platform.live.greeting_wait_seconds'),
         'messages' => array_map(fn ($text) => strtr($text, [':teacher' => config('avatar.model.name'), ':rule' => config('platform.live.disconnect_rule')]), config('platform.live.messages')),
     ];
 

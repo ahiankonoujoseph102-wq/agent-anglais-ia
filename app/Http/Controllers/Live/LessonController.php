@@ -21,6 +21,8 @@ use App\Support\DailyTime;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\LiveEarlyEnd;
+use App\Support\Live\LivePage;
 use App\Support\Live\WorkingTogether;
 use App\Support\Text\TextProviders;
 use Illuminate\Http\JsonResponse;
@@ -170,7 +172,7 @@ class LessonController extends Controller
         $warningMinutes = (int) config('platform.lessons.warning_minutes_before_end');
 
         return response()->json($live->attach($lesson, $token, $setup, [
-            'start' => TeacherSetup::cue('lesson_start', ['minutes' => $minutes]),
+            'start' => TeacherSetup::cue('lesson_start', ['minutes' => $minutes, 'duration_note' => self::durationNote($minutes, $subscription?->daily_minutes ?? $minutes)]),
             'resume' => TeacherSetup::cue('resume'),
             'warning' => TeacherSetup::cue('lesson_warning', ['remaining' => $warningMinutes]),
             // Séance en quatre temps : reprise selon l'étape en cours, et une seule relance douce vers la conversation.
@@ -193,6 +195,10 @@ class LessonController extends Controller
     {
         $lesson = $this->latestLesson($request->user());
 
+        if ($refusal = LivePage::refusal($lesson)) {
+            return $refusal;
+        }
+
         $lesson->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails());
         $active = $lesson->closeIfOver();
 
@@ -209,9 +215,20 @@ class LessonController extends Controller
     {
         $lesson = $this->latestLesson($request->user());
 
+        if ($refusal = LivePage::refusal($lesson)) {
+            return $refusal;
+        }
+
         // Un seul bilan par séance, envoyé pendant la séance ou juste après sa fin.
         if ($lesson->reported_at !== null || ($lesson->ended_at !== null && $lesson->ended_at->lt(now()->subMinutes(5)))) {
             return $this->refuse('Le bilan de cette séance est déjà enregistré.', 409);
+        }
+
+        // Bilan demandé trop tôt (le professeur avait parcouru la leçon trop vite) : la PREMIÈRE fois, rien n'est
+        // enregistré et le professeur reprend la séance ; une seconde demande (l'élève veut vraiment arrêter) est
+        // acceptée.
+        if ($early = LiveEarlyEnd::lesson($lesson)) {
+            return response()->json($early);
         }
 
         LessonReport::record($lesson, $request->validated());
@@ -228,6 +245,10 @@ class LessonController extends Controller
     {
         $lesson = $this->latestLesson($request->user());
 
+        if ($refusal = LivePage::refusal($lesson)) {
+            return $refusal;
+        }
+
         $lesson->recordSignal($request->inputTokens(), $request->outputTokens(), null, $request->tokenDetails());
 
         if ($lesson->closeIfOver()) {
@@ -237,6 +258,17 @@ class LessonController extends Controller
         $this->prepareNextBoard($request->user());
 
         return response()->json(['status' => $lesson->status->label()]);
+    }
+
+    /**
+     * Séance plus courte que le temps du jour de la formule (une partie est déjà prise aujourd'hui) : le professeur
+     * le dit, pour que la durée annoncée ne surprenne pas (« 7 minutes » un jour, « 15 minutes » le lendemain).
+     */
+    private static function durationNote(int $minutes, int $dailyMinutes): string
+    {
+        return $minutes < $dailyMinutes
+            ? ', and add in French: « C\'est le temps qu\'il vous reste aujourd\'hui. »'
+            : '';
     }
 
     /**

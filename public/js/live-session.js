@@ -26,7 +26,7 @@
 
 const root = document.getElementById('live');
 // Porte du micro (URL versionnée par la page, comme les autres fichiers).
-const { MicGate, voiceEndsAt, voiceLooksOver } = await import(root.dataset.micGate);
+const { MicGate, voiceEndsAt, voiceLooksOver, heldVoiceEnd } = await import(root.dataset.micGate);
 // Jetons consommés, répartis par nature (texte, audio, cache), pour une estimation juste du coût.
 const { TokenTally, geminiUsage, openAiUsage } = await import(root.dataset.tokenUsage);
 // Lecture propre de la voix (décodage, programmation bout à bout, rééchantillonnage continu).
@@ -42,7 +42,7 @@ const { CueTracker } = await import(root.dataset.teacherCues);
 const { GeminiTransport } = await import(root.dataset.liveGemini);
 const { OpenAiTransport } = await import(root.dataset.liveOpenai);
 // Texte de la conversation (jamais l'audio), envoyé au serveur par petits lots.
-const { TranscriptRecorder } = await import(root.dataset.transcript);
+const { TranscriptRecorder, cleanSpeech } = await import(root.dataset.transcript);
 // Mesure des tours de parole (délai de réponse), fin de tour de secours, attente d'une réponse.
 const { VoiceActivity, TurnWatch, learnerMetrics, teacherMetrics } = await import(root.dataset.turnWatch);
 // Tableau de la séance du jour : élément expliqué et étape en cours, d'après la voix du professeur.
@@ -447,6 +447,8 @@ const TURN_TEXTS = {
     paused: 'Conversation en pause',
     muted: 'Micro coupé',
     ending: 'Fin de la conversation…',
+    // Évaluation, premier tour de l'élève : dans les vraies évaluations, des élèves n'avaient rien dit du tout.
+    firstAnswer: 'À vous : répondez à voix haute, par exemple « My name is … »',
 };
 
 const MESSAGES = {
@@ -464,7 +466,13 @@ const MESSAGES = {
     slow: WAIT.slow,
     stuck: WAIT.stuck,
     nudged: WAIT.nudged,
+    superseded: WAIT.superseded,
 };
+
+// Identifiant de CETTE page de séance : la dernière page connectée est celle de la séance (App\Support\Live\LivePage).
+// Une autre page encore ouverte (autre onglet, autre téléphone) s'arrête : deux Teacher Joe ne se parlent plus.
+const PAGE_ID = globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+const pages = 'BroadcastChannel' in globalThis ? new BroadcastChannel('talkami-live') : null;
 
 const state = {
     // Évaluation : niveau reçu, en attente d'être montré quand le professeur le dit (scheduleLevelReveal).
@@ -490,6 +498,12 @@ const state = {
     deadline: 0,
     warningSent: false,
     tokens: new TokenTally(),
+    // Gemini : réponse en cours (jusqu'à turnComplete), heure du dernier morceau de voix, accueil attendu.
+    voicePending: false,
+    // L'élève a déjà parlé au moins une fois (aide du premier tour de l'évaluation).
+    learnerAnswered: false,
+    lastChunkAt: 0,
+    expectingVoiceUntil: 0,
     timers: [],
     audio: null,
     teacherLine: null,
@@ -546,11 +560,16 @@ async function post(url, body = {}) {
     try {
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Live-Page': PAGE_ID },
             credentials: 'same-origin',
             body: JSON.stringify(body),
         });
         const data = await response.json().catch(() => ({}));
+
+        // La séance continue sur une autre page : celle-ci s'arrête, sans clore la séance.
+        if (response.status === 409 && data.superseded) {
+            superseded();
+        }
 
         return { ok: response.ok, status: response.status, data };
     } catch {
@@ -1203,7 +1222,15 @@ function voiceEnd() {
         return voiceEndsAt(Math.max(state.transport.stoppedAt + STREAM_TAIL, state.lastAudibleAt), OUTPUT_DELAY, latency);
     }
 
-    return voiceEndsAt(scheduler.endTime, OUTPUT_DELAY, latency);
+    // Gemini : réponse pas encore finie ou accueil attendu, la porte du micro reste fermée (mic-gate.js).
+    return heldVoiceEnd({
+        scheduledEnd: voiceEndsAt(scheduler.endTime, OUTPUT_DELAY, latency),
+        now: context.currentTime,
+        pending: state.voicePending,
+        lastChunkAt: state.lastChunkAt,
+        hold: audioConfig.voice_gap_hold_seconds ?? 3,
+        expectingUntil: state.expectingVoiceUntil,
+    });
 }
 
 /**
@@ -1284,6 +1311,10 @@ function playAudio(base64) {
     state.awaitingSince = 0;
     state.learnerHeardAt = 0;
     const { context, voice, sources, scheduler, resampler } = state.audio;
+    // Réponse en cours : la porte du micro reste fermée jusqu'à sa fin, même si le son reçu s'épuise un instant.
+    state.voicePending = true;
+    state.lastChunkAt = context.currentTime;
+    state.expectingVoiceUntil = 0;
     const continuing = context.currentTime < scheduler.endTime + 0.5;
     let samples = decodePcm16(atob(base64));
 
@@ -1574,6 +1605,8 @@ async function connect({ planned = false, failed = null } = {}) {
     const switched = isResume && state.config?.provider !== undefined && result.data.provider !== state.config.provider;
     state.config = result.data;
     document.getElementById('whatsapp-help')?.setAttribute('hidden', '');
+    // Les autres onglets de ce navigateur qui ont une séance ouverte s'arrêtent tout de suite.
+    pages?.postMessage({ claim: PAGE_ID });
 
     if (switched) {
         state.resumeHandle = null;
@@ -1690,6 +1723,10 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             // de la pause suffira (inutile de faire parler le professeur).
             if (!planned && !(isResume && state.paused)) {
                 cue(isResume ? resumeCue('resume') : state.config.cues.start);
+                // Accueil ou reprise demandés : micro fermé jusqu'à sa première parole (un bruit l'interrompait).
+                if (state.audio) {
+                    state.expectingVoiceUntil = state.audio.context.currentTime + (audioConfig.greeting_wait_seconds ?? 5);
+                }
             }
 
             if (!isResume && !planned) {
@@ -1793,11 +1830,14 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
         },
 
         onLearnerText(text, key) {
-            if (!current()) {
+            text = cleanSpeech(text);
+
+            if (!current() || text.trim() === '') {
                 return;
             }
 
             state.spoke = true;
+            state.learnerAnswered = true;
             teacher?.learnerSpoke();
             state.teacherLine = null;
             state.teacherUtterance = null;
@@ -1809,8 +1849,10 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
         },
 
         onTeacherText(text) {
+            text = cleanSpeech(text);
+
             // Ce qui n'est pas joué (pause, interruption) n'apparaît pas non plus en sous-titre.
-            if (!current() || !text || state.paused || state.discardTurn) {
+            if (!current() || !text.trim() || state.paused || state.discardTurn) {
                 return;
             }
 
@@ -1835,6 +1877,7 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
 
         onInterrupted() {
             if (current()) {
+                state.voicePending = false;
                 teacherResponseOver();
                 stopPlayback();
                 state.generating = false;
@@ -1849,6 +1892,7 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             }
 
             state.end.turnComplete(clock());
+            state.voicePending = false;
             state.cues.reset();
             state.teacherLine = null;
             teacherResponseOver();
@@ -1966,6 +2010,12 @@ const AFTER_VERDICT = {
     record_level_test_result: 'Saved. Now, if you have not announced it yet, announce the result once, kindly, then say goodbye. Do not ask another question: the test ends after this turn.',
 };
 
+function sendFunctionResult(call, response) {
+    if (state.transport?.isOpen) {
+        state.transport.sendFunctionResult(call, response);
+    }
+}
+
 function showAssessmentResult(level, label, feedback) {
     // Même instant dans la vidéo : le niveau n'y entre que par ici (jamais avant le verdict).
     state.revealed = { level, label };
@@ -2053,7 +2103,10 @@ async function handleFunctionCall(call) {
     } else if (call.name === 'record_assessment_result' && mode === 'assessment') {
         const result = await post(urls.result, { level: args.level, feedback: args.feedback });
 
-        if (result.ok) {
+        if (result.ok && result.data.too_early) {
+            // Trop tôt : rien n'est enregistré, le professeur pose encore quelques questions (LiveEarlyEnd).
+            response = { result: 'not_saved_yet', next_step: result.data.next_step };
+        } else if (result.ok) {
             // Moment des questions ouvert par le serveur : la fin autorisée a été repoussée.
             questions = Boolean(result.data.questions);
             const discovery = questions ? result.data.discovery : null;
@@ -2075,6 +2128,15 @@ async function handleFunctionCall(call) {
     } else if (call.name === 'end_lesson' && mode === 'lesson') {
         // Bilan structuré : leçon terminée ou à reprendre, erreurs, notes, devoir.
         const result = await post(urls.result, args);
+
+        if (result.ok && result.data.too_early) {
+            // Trop tôt : rien n'est enregistré, la séance continue (LiveEarlyEnd).
+            response = { result: 'not_saved_yet', next_step: result.data.next_step };
+            sendFunctionResult(call, response);
+
+            return;
+        }
+
         const errors = (args.errors ?? []).map((error) => `<li><span lang="en">${escapeHtml(error.wrong)}</span> → <strong lang="en">${escapeHtml(error.correct)}</strong></li>`).join('');
 
         showOutcome('<h2>Résumé de la séance</h2>'
@@ -2125,9 +2187,7 @@ async function handleFunctionCall(call) {
         response = { result: 'saved', next_step: nextStep ?? AFTER_VERDICT[call.name] };
     }
 
-    if (state.transport?.isOpen) {
-        state.transport.sendFunctionResult(call, response);
-    }
+    sendFunctionResult(call, response);
 
     if (saved) {
         // Sans questions : le professeur termine sa phrase, puis la conversation se coupe toute seule.
@@ -2333,10 +2393,11 @@ function renderTurn() {
     }
 
     const turn = currentTurn();
+    const text = turn === 'listening' && mode === 'assessment' && !state.learnerAnswered ? TURN_TEXTS.firstAnswer : TURN_TEXTS[turn];
 
-    if (ui.turn.dataset.turn !== turn || !ui.turnText.textContent) {
+    if (ui.turn.dataset.turn !== turn || ui.turnText.textContent !== text) {
         ui.turn.dataset.turn = turn;
-        ui.turnText.textContent = TURN_TEXTS[turn];
+        ui.turnText.textContent = text;
 
         // Attente de sa réponse : léger geste (hochement, sourire), jamais d'écran qui « charge ».
         if (turn === 'thinking') {
@@ -2361,6 +2422,9 @@ function setPressed(button, pressed) {
  */
 function silenceTeacher() {
     stopPlayback();
+    // L'apprenant a choisi d'interrompre (ou la pause) : le micro n'attend plus la fin de la réponse.
+    state.voicePending = false;
+    state.expectingVoiceUntil = 0;
     // OpenAI : réponse annulée et voix pas encore jouée effacée (Gemini : la fin est simplement ignorée).
     state.transport?.cancel();
 
@@ -2425,6 +2489,27 @@ function toggleMute() {
 
     renderTurn();
 }
+
+/**
+ * La séance est maintenant ouverte sur une autre page : celle-ci se tait et s'arrête, sans rien envoyer au serveur
+ * (la séance n'est pas close : elle continue là-bas).
+ */
+function superseded() {
+    if (state.ending || !state.config) {
+        return;
+    }
+
+    logEvent('provider_error', 'séance ouverte sur une autre page');
+    state.config = null;
+    finish('superseded', MESSAGES.superseded);
+}
+
+pages?.addEventListener('message', (event) => {
+    // Autre onglet de ce navigateur qui commence une séance : celle-ci s'arrête tout de suite.
+    if (event.data?.claim && event.data.claim !== PAGE_ID) {
+        superseded();
+    }
+});
 
 function fail(message) {
     finish('error');
@@ -2539,6 +2624,7 @@ window.addEventListener('pagehide', () => {
     if (state.config && !state.ending) {
         const form = new FormData();
         form.append('_token', csrf);
+        form.append('page_id', PAGE_ID);
         Object.entries(takeTokens()).forEach(([name, value]) => form.append(name, value));
 
         const { transcript } = takeTranscript();
@@ -2556,6 +2642,7 @@ window.addEventListener('pagehide', () => {
         if (lines.length > 0 || events.length > 0) {
             const text = new FormData();
             text.append('_token', csrf);
+            text.append('page_id', PAGE_ID);
             TranscriptRecorder.formFields(lines, events).forEach(([name, value]) => text.append(name, value));
             navigator.sendBeacon(state.config.transcript_url, text);
         }

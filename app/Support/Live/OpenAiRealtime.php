@@ -87,7 +87,12 @@ class OpenAiRealtime
         // Sous-titres « Vous » et texte des conversations : transcription de ce que dit l'apprenant (anglais ou
         // français), facturée à part par OpenAI ; désactivable (OPENAI_REALTIME_INPUT_TRANSCRIPTION=false).
         if (config('services.openai.realtime_input_transcription')) {
-            $session['audio']['input']['transcription'] = ['model' => (string) config('services.openai.realtime_transcription_model')];
+            // L'élève parle anglais ou français, jamais une autre langue : le dire au modèle de transcription évite
+            // les phrases reconnues en espagnol, en portugais ou en hindi (un seul code de langue est possible ici).
+            $session['audio']['input']['transcription'] = [
+                'model' => (string) config('services.openai.realtime_transcription_model'),
+                'prompt' => 'A French-speaking learner of English. They speak only English or French.',
+            ];
         }
 
         if ($tools !== []) {
