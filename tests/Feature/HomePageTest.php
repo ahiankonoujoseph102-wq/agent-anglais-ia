@@ -75,8 +75,8 @@ class HomePageTest extends TestCase
             ->assertSee('class="btn btn-whatsapp btn-lg"', false)
             ->getContent();
 
-        // Vocabulaire imposé et aucune promesse d'aide aux cours (pas encore disponible).
-        $this->assertDoesNotMatchRegularExpression('/certificat|diplôme|conversation vidéo|devoirs de classe|aide aux cours/iu', strip_tags($html));
+        // Vocabulaire imposé (l'« Aide aux cours d'anglais » existe : « Mes cours », page d'arrivée du pied de page).
+        $this->assertDoesNotMatchRegularExpression('/certificat|diplôme|conversation vidéo|devoirs de classe/iu', strip_tags($html));
         $this->assertStringNotContainsString('T-Money', $html);
     }
 

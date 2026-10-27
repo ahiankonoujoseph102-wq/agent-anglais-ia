@@ -227,6 +227,7 @@
                     @endif
                     <li><a href="{{ route('contact') }}">Contact</a></li>
                     <li><a href="{{ route('about') }}">À propos</a></li>
+                    <li><a href="{{ route('guides.index') }}">Guides gratuits</a></li>
                     <li><a href="{{ route('privacy') }}">Confidentialité</a></li>
                     <li data-install-link-item><a href="{{ route('install') }}" data-install-link>Installer l'application</a></li>
                 </ul>
@@ -239,6 +240,10 @@
                         @foreach (\App\Support\CountryPage::all() as $countryPage)
                             <li><a href="{{ route('country', $countryPage->slug) }}">{{ $countryPage->heading }}</a></li>
                         @endforeach
+                    </ul>
+                    <ul class="footer-links footer-countries" aria-label="Pages utiles">
+                        <li><a href="{{ route('courses-help') }}">Aide aux cours d'anglais</a></li>
+                        <li><a href="{{ route('interview') }}">Préparer un entretien en anglais</a></li>
                     </ul>
                 @endguest
             </div>

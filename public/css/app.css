@@ -1782,3 +1782,31 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 /* Toute la phrase est le lien : zone de toucher de 44 pixels, jamais un point seul sur sa ligne. */
 .plans-questions a { display: inline-flex; gap: var(--space-2); align-items: center; min-height: 44px; font-weight: var(--fw-bold); text-align: left; }
 .plans-questions .icon { flex: none; color: var(--c-accent-strong); }
+
+/* Guides gratuits et pages d'arrivée (« Aide aux cours d'anglais », « Préparer un entretien ») : texte lisible,
+   phrases anglaises en orange foncé avec leur traduction dessous, appel final à l'évaluation gratuite. */
+.guide-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+@media (min-width: 900px) { .guide-list { grid-template-columns: 1fr 1fr; } }
+.guide-card { display: flex; gap: var(--space-3); align-items: flex-start; margin: 0; }
+.guide-card h2 { font-size: var(--fs-lg); margin: 0 0 var(--space-1); }
+.guide-card p { margin: 0; color: var(--c-muted); }
+.guide { max-width: 720px; margin: 0 auto; }
+.breadcrumb { margin: var(--space-3) 0; color: var(--c-muted); overflow-wrap: anywhere; }
+.guide-head h1 { margin-top: 0; }
+.guide-body h2 { margin-top: var(--space-6); }
+.guide-body h3 { margin-top: var(--space-4); }
+.guide-body p, .guide-body li { line-height: 1.65; }
+.phrases { list-style: none; margin: var(--space-3) 0; padding: 0; display: grid; gap: var(--space-2); }
+.phrase { padding: var(--space-2) var(--space-3); border-left: 3px solid var(--c-accent); background: var(--c-surface); border-radius: var(--radius-sm); }
+.phrase-en { display: block; font-weight: var(--fw-bold); color: var(--c-accent-strong); }
+.phrase-fr { display: block; color: var(--c-muted); font-size: var(--fs-sm); }
+.tip { padding: var(--space-3); border-radius: var(--radius); background: var(--c-primary-soft); }
+.guide-cta { display: flex; gap: var(--space-3); align-items: flex-start; max-width: 720px; margin: var(--space-6) auto; }
+.guide-cta h2 { margin-top: 0; }
+.link-list { list-style: none; padding: 0; }
+.link-list a { display: block; padding: 10px 0; }
+.guide-body span[lang] { color: var(--c-accent-strong); font-weight: var(--fw-bold); }
+@media (max-width: 639px) {
+    .guide-cta { flex-direction: column; }
+    .guide-cta .btn { width: 100%; }
+}

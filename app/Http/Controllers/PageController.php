@@ -33,6 +33,18 @@ class PageController extends Controller
         return view('pages.about', ['countryPages' => CountryPage::all()]);
     }
 
+    /** Page d'arrivée « Aide aux cours d'anglais » : élèves, étudiants, parents (« Mes cours »). */
+    public function coursesHelp(): View
+    {
+        return view('pages.courses-help', ['plans' => Plan::all()]);
+    }
+
+    /** Page d'arrivée « Préparer un entretien en anglais » (mode entretien de la séance du jour). */
+    public function interview(): View
+    {
+        return view('pages.interview');
+    }
+
     public function country(string $country): View
     {
         return view('pages.country', [

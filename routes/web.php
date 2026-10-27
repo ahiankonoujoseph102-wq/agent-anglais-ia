@@ -26,6 +26,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Course\CourseReviewController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GuideController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Live\AssessmentController;
 use App\Http\Controllers\Live\CourseSessionController;
@@ -44,6 +45,7 @@ use App\Http\Controllers\WebAppController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Support\CountryPage;
+use App\Support\Guides;
 use App\Support\Live\Transcripts;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
@@ -59,6 +61,12 @@ Route::get('/a-propos', [PageController::class, 'about'])->name('about');
 Route::get('/comment-ca-marche', [PageController::class, 'how'])->name('how');
 Route::get('/comment-ca-marche/{key}/apercu', [PageController::class, 'poster'])->name('how.poster');
 Route::get('/comment-ca-marche/{key}/video', [PageController::class, 'video'])->middleware('throttle:30,1')->name('how.video');
+// Pages d'arrivée : aide aux cours d'anglais (élèves, étudiants, parents) et préparation d'un entretien.
+Route::get('/aide-aux-cours-d-anglais', [PageController::class, 'coursesHelp'])->name('courses-help');
+Route::get('/preparer-un-entretien-en-anglais', [PageController::class, 'interview'])->name('interview');
+// Guides gratuits (App\Support\Guides).
+Route::get('/guides', [GuideController::class, 'index'])->name('guides.index');
+Route::get('/guides/{guide}', [GuideController::class, 'show'])->whereIn('guide', Guides::slugs())->name('guides.show');
 // Installer l'application : explications pour Android et iPhone (lien du Menu et du pied de page, sans JavaScript).
 Route::view('/installer-l-application', 'pages.install')->name('install');
 Route::get('/apprendre-anglais/{country}', [PageController::class, 'country'])->whereIn('country', CountryPage::slugs())->name('country');
