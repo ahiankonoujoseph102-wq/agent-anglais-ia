@@ -183,17 +183,21 @@ class AdminRecoveryTest extends TestCase
         $this->assertAuthenticatedAs(User::where('phone', '+22890000000')->first());
     }
 
-    public function test_the_one_time_migration_sends_only_in_production(): void
+    public function test_no_link_is_ever_sent_without_running_the_command(): void
     {
-        $this->admin();
-        $migration = require database_path('migrations/2026_11_12_000001_send_admin_recovery_once.php');
+        // Ni migration, ni tâche planifiée, ni démarrage de l'application n'envoie de lien : seulement la commande.
+        $files = [
+            ...glob(database_path('migrations/*.php')),
+            base_path('routes/console.php'),
+            ...glob(base_path('bootstrap/*.php')),
+            ...glob(app_path('Providers/*.php')),
+        ];
 
-        $migration->up();
-        Mail::assertNothingSent();
-
-        $this->app['env'] = 'production';
-        $migration->up();
-        Mail::assertSent(AdminRecoveryMail::class, 1);
+        foreach ($files as $file) {
+            $code = file_get_contents($file);
+            $this->assertStringNotContainsString('AdminRecovery', $code, $file);
+            $this->assertStringNotContainsString('send-admin-recovery', $code, $file);
+        }
     }
 
     public function test_the_mask_hides_the_address(): void
