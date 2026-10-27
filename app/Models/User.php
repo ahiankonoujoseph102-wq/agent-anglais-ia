@@ -104,6 +104,12 @@ class User extends Authenticatable
         return $this->hasOne(Assessment::class);
     }
 
+    /** Provenance de l'inscription (App\Support\Origins). */
+    public function origin(): HasOne
+    {
+        return $this->hasOne(UserOrigin::class);
+    }
+
     /**
      * @return HasMany<Program, $this>
      */

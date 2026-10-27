@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\GrantedAccessController;
 use App\Http\Controllers\Admin\IconPreviewController;
 use App\Http\Controllers\Admin\InactiveLearnerController;
 use App\Http\Controllers\Admin\LiveTrialController;
+use App\Http\Controllers\Admin\OriginController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\PresentationVideoController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -196,6 +197,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/inscrits/{user}/conversations/{type}/{id}', [ConversationController::class, 'show'])->whereIn('type', array_keys(Transcripts::TYPES))->whereNumber('id')->name('conversations.show');
     Route::delete('/inscrits/{user}/conversations', [ConversationController::class, 'destroy'])->middleware('confirm:transcripts.delete')->name('conversations.destroy');
     Route::get('/consommation', [UsageController::class, 'index'])->name('usage.index');
+    Route::get('/provenance', [OriginController::class, 'index'])->name('origins.index');
     Route::get('/reglages', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/reglages', [SettingsController::class, 'update'])->name('settings.update');
     Route::get('/voix', [VoiceController::class, 'index'])->name('voices.index');

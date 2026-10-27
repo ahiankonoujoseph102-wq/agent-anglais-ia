@@ -27,6 +27,8 @@ class PrivacyTest extends TestCase
             ->assertSeeText('les photos ou le PDF des leçons d\'anglais que vous envoyez')
             ->assertSeeText('Le texte de vos conversations')
             ->assertSeeText('Votre voix n\'est jamais enregistrée.')
+            ->assertSeeText('Comment vous êtes arrivé sur le site')
+            ->assertSeeText('Aucun outil de mesure extérieur ni cookie publicitaire n\'est utilisé')
             ->assertSeeText('prestataires techniques d\'intelligence artificielle et d\'hébergement')
             ->assertSeeText('90 jours, puis ils sont effacés automatiquement')
             ->assertSeeText('jusqu\'à la suppression de votre compte')
