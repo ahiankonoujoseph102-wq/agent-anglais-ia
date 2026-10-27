@@ -17,6 +17,11 @@
                 <h1 id="niveau">Votre niveau : <span class="result-level">{{ $found->value }}</span></h1>
                 <p class="result-label">{{ $found->label() }}</p>
                 @include('assessment.result-next')
+                {{-- Partage volontaire du niveau réellement trouvé (App\Support\ShareLinks) : rien ne part sans ce toucher. --}}
+                <div class="result-share">
+                    <a class="btn btn-outline" href="{{ \App\Support\ShareLinks::levelUrl($found) }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Partager mon niveau sur WhatsApp</a>
+                    <p class="muted small">Vous choisissez à qui l'envoyer dans WhatsApp.</p>
+                </div>
                 @if ($assessment->feedback)
                     <div class="result-opinion">
                         <h2 class="result-opinion-title">L'avis de {{ $teacher }}</h2>

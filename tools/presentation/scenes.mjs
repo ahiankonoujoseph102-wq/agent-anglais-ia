@@ -120,7 +120,6 @@ export const SCENES = {
             await s.type('input[name="phone"]', s.newPhone(), 70);
             await s.scroll('input[name="password"]', 700, 160);
             await s.type('input[name="password"]', 'demo-presentation', 45);
-            await s.type('input[name="password_confirmation"]', 'demo-presentation', 45);
             await s.wait(Math.max(0, ms - 9000));
         },
     },
@@ -155,8 +154,6 @@ export const SCENES = {
             await s.scroll('input[name="password"]', 700, 200);
             await s.tap('input[name="password"]');
             await s.type('input[name="password"]', 'demo-presentation', 50);
-            await s.tap('input[name="password_confirmation"]');
-            await s.type('input[name="password_confirmation"]', 'demo-presentation', 50);
         },
     },
     'register.submit': {
@@ -168,7 +165,6 @@ export const SCENES = {
                 await s.page.fill('input[name="name"]', 'Élève');
                 await s.page.fill('input[name="phone"]', s.newPhone());
                 await s.page.fill('input[name="password"]', 'demo-presentation');
-                await s.page.fill('input[name="password_confirmation"]', 'demo-presentation');
             }
         },
         async act(s) {

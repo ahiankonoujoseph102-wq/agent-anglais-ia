@@ -21,7 +21,6 @@ class RegistrationTest extends TestCase
             'name' => 'Kossi Mensah',
             'phone' => '90 12 34 56',
             'password' => 'motdepasse',
-            'password_confirmation' => 'motdepasse',
         ], $overrides);
     }
 
@@ -31,6 +30,18 @@ class RegistrationTest extends TestCase
             ->assertOk()
             ->assertSee('Créer mon compte')
             ->assertSee('Numéro de téléphone');
+    }
+
+    public function test_the_password_is_asked_only_once_with_the_eye_button_and_the_forgotten_password_link(): void
+    {
+        $this->get('/inscription')
+            ->assertOk()
+            ->assertSee('name="password"', false)
+            ->assertDontSee('password_confirmation', false)
+            ->assertDontSee('Confirmer le mot de passe')
+            ->assertSee('data-password-toggle', false);
+
+        $this->get('/connexion')->assertSee(route('password.forgot'), false);
     }
 
     public function test_learner_can_register_and_is_logged_in(): void
@@ -80,7 +91,6 @@ class RegistrationTest extends TestCase
             'téléphone trop court' => [['phone' => '1234'], 'phone'],
             'téléphone avec des lettres' => [['phone' => 'abcdefgh'], 'phone'],
             'mot de passe trop court' => [['password' => 'court', 'password_confirmation' => 'court'], 'password'],
-            'confirmation différente' => [['password_confirmation' => 'autrechose'], 'password'],
         ];
     }
 

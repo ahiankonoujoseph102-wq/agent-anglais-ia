@@ -130,6 +130,7 @@
             <div class="card-title"><span class="icon-bubble icon-bubble-accent"><x-icon name="award" /></span><h2 id="attestation-fresh-title">Bravo, niveau {{ $freshAttestation->level->value }} validé !</h2></div>
             <p>Votre attestation de niveau {{ $freshAttestation->level->value }} ({{ $freshAttestation->level->label() }}) est prête. Chacun peut vérifier qu'elle est authentique grâce à son code.</p>
             <a class="btn btn-outline btn-block" href="{{ route('attestation.download', $freshAttestation) }}"><x-icon name="download" /> Télécharger mon attestation</a>
+            <a class="btn btn-outline btn-block" href="{{ \App\Support\ShareLinks::attestationUrl($freshAttestation) }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Partager mon attestation</a>
         </section>
     @endif
 
@@ -347,6 +348,7 @@
                 <p>
                     Niveau {{ $attestation->level->value }} ({{ $attestation->level->label() }}), le {{ $attestation->issued_at->translatedFormat('j F Y') }}
                     — <a href="{{ route('attestation.download', $attestation) }}"><x-icon name="download" /> Télécharger l'attestation</a>
+                    — <a href="{{ \App\Support\ShareLinks::attestationUrl($attestation) }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Partager mon attestation</a>
                 </p>
             @endforeach
         </section>

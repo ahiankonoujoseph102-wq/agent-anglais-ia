@@ -66,7 +66,8 @@ final class Seo
     {
         $route = ($request ?? request())->route();
 
-        return $route !== null && in_array($route->getName(), self::INDEXABLE_ROUTES, true) && ($request ?? request())->isMethod('GET');
+        // GET et HEAD : un outil qui ne demande que les en-têtes (HEAD) doit lire la même réponse que Google.
+        return $route !== null && in_array($route->getName(), self::INDEXABLE_ROUTES, true) && in_array(($request ?? request())->method(), ['GET', 'HEAD'], true);
     }
 
     /**

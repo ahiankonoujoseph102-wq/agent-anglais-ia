@@ -1760,6 +1760,9 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .social-links a { display: inline-flex; align-items: center; min-height: 44px; }
 .contact-social, .about-social { display: flex; flex-wrap: wrap; gap: 0 var(--space-4); margin: var(--space-3) 0; font-weight: var(--fw-bold); }
 /* « À propos » : l'histoire de la plateforme, texte lisible sur toute la largeur de la carte. */
+.result-share { margin-top: var(--space-3); }
+.result-share .btn { width: 100%; }
+.result-share p { margin: var(--space-1) 0 0; }
 .country-pay { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2); margin: var(--space-3) 0 0; }
 .about-story p { margin: 0 0 var(--space-3); max-width: 68ch; }
 .about-story .about-social { margin-bottom: 0; }

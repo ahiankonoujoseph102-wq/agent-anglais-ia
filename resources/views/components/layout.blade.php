@@ -1,4 +1,4 @@
-@props(['title' => null, 'description' => null, 'narrow' => false, 'install' => false, 'focus' => false, 'indexable' => null])
+@props(['title' => null, 'description' => null, 'narrow' => false, 'install' => false, 'focus' => false, 'indexable' => null, 'share' => false, 'shareImage' => null, 'shareAlt' => null])
 
 @php
     use App\Support\Asset;
@@ -35,24 +35,27 @@
     @if ($indexable)
         <meta name="robots" content="index, follow">
         <link rel="canonical" href="{{ Seo::canonical() }}">
-        {{-- Partage (WhatsApp, Facebook, X) : titre, description et image aux couleurs de la marque. --}}
+    @else
+        <meta name="robots" content="noindex, nofollow">
+    @endif
+    {{-- Partage (WhatsApp, Facebook, X) : titre, description et image aux couleurs de la marque ; aussi sur une page
+         non indexée qui se partage (share : vérification d'une attestation). Image propre à la page : shareImage. --}}
+    @if ($indexable || $share)
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="{{ config('platform.name') }}">
         <meta property="og:locale" content="fr_FR">
         <meta property="og:title" content="{{ $pageTitle }}">
         <meta property="og:description" content="{{ $pageDescription }}">
         <meta property="og:url" content="{{ Seo::canonical() }}">
-        <meta property="og:image" content="{{ Seo::url(Seo::SHARE_IMAGE) }}">
+        <meta property="og:image" content="{{ Seo::url($shareImage ?? Seo::SHARE_IMAGE) }}">
         <meta property="og:image:type" content="image/jpeg">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
-        <meta property="og:image:alt" content="{{ config('platform.name') }} : {{ config('platform.brand.tagline') }}">
+        <meta property="og:image:alt" content="{{ $shareAlt ?? config('platform.name').' : '.config('platform.brand.tagline') }}">
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="{{ $pageTitle }}">
         <meta name="twitter:description" content="{{ $pageDescription }}">
-        <meta name="twitter:image" content="{{ Seo::url(Seo::SHARE_IMAGE) }}">
-    @else
-        <meta name="robots" content="noindex, nofollow">
+        <meta name="twitter:image" content="{{ Seo::url($shareImage ?? Seo::SHARE_IMAGE) }}">
     @endif
     <link rel="manifest" href="{{ route('manifest') }}">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">

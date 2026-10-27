@@ -58,8 +58,10 @@ class SeoTest extends TestCase
             $this->assertSame('index, follow', $this->meta($html, 'name', 'robots'));
             $this->assertStringContainsString('<link rel="canonical" href="'.$canonical.'">', $html);
             $this->assertSame($canonical, $this->meta($html, 'property', 'og:url'));
-            $this->assertSame('https://talkami.net/images/partage-talkami.jpg', $this->meta($html, 'property', 'og:image'));
-            $this->assertSame('https://talkami.net/images/partage-talkami.jpg', $this->meta($html, 'name', 'twitter:image'));
+            // Les pages pays ont leur propre image (ShareAndPreviewTest) ; les autres, celle de l'accueil.
+            $image = str_starts_with($path, '/apprendre-anglais/') ? 'images/partage/pays-'.basename($path).'.jpg' : 'images/partage-talkami.jpg';
+            $this->assertSame('https://talkami.net/'.$image, $this->meta($html, 'property', 'og:image'));
+            $this->assertSame('https://talkami.net/'.$image, $this->meta($html, 'name', 'twitter:image'));
             $this->assertSame('summary_large_image', $this->meta($html, 'name', 'twitter:card'));
             $this->assertSame('fr_FR', $this->meta($html, 'property', 'og:locale'));
             $this->assertStringNotContainsString('localhost', $this->meta($html, 'property', 'og:url'));

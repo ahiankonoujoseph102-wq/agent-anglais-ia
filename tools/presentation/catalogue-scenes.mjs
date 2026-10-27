@@ -90,8 +90,6 @@ export function passages(ctx) {
                 await slowTo(s, 'input[name="password"]', 1400, 180);
                 await s.tap('input[name="password"]');
                 await s.type('input[name="password"]', 'demo-presentation', 60);
-                await s.tap('input[name="password_confirmation"]');
-                await s.type('input[name="password_confirmation"]', 'demo-presentation', 60);
                 await slowTo(s, 'main form button[type="submit"]', 1200, 360);
                 await s.wait(500);
                 await s.tap('main form button[type="submit"]', { navigate: true });
