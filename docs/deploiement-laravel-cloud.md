@@ -402,6 +402,7 @@ La documentation de Laravel Cloud ne dit ni la taille maximale d'un envoi ni la 
 | Générer `APP_KEY` (une seule fois) | Onglet **Commands** | `php artisan key:generate --show` |
 | Créer l'administrateur | Onglet **Commands** | `php artisan app:create-admin --no-interaction` |
 | Mot de passe administrateur oublié | Onglet **Commands** (le mot de passe provisoire s'affiche dans le résultat ; le site demande d'en choisir un nouveau à la connexion) | `php artisan app:reset-admin-password` |
+| Mot de passe administrateur oublié, console qui ne s'ouvre pas | Onglet **Commands** : un lien valable 30 minutes, à usage unique, arrive par e-mail sur l'adresse de récupération (rien ne s'affiche dans le résultat, sauf l'adresse masquée) ; touchez « Retrouver mon accès », puis « Me connecter », puis choisissez un nouveau mot de passe. Regardez aussi dans « Spam » | `php artisan app:send-admin-recovery` |
 | Contrôler la mise en ligne | Onglet **Commands** | `php artisan app:check-deployment` |
 | Voir les tâches planifiées | Onglet **Commands** | `php artisan schedule:list` |
 | Clore à la main les séances abandonnées | Onglet **Commands** | `php artisan live:close-stale` |
