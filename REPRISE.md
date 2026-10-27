@@ -45,7 +45,9 @@
 
 - PR 1 fusionnée (#109).
 - PR 2 (erreurs techniques) sur la branche : `heldVoiceEnd`, `LivePage`, langues de transcription, `cleanSpeech`, `LiveEarlyEnd`, durée annoncée, aide au premier tour. CLAUDE.md à jour (« Erreurs techniques des vraies conversations »).
+- PR 2 fusionnée (#110).
+- PR 3 (pédagogie, prospects, banc d'essai, Confidentialité) sur la branche ; CLAUDE.md à jour.
 
 ## Prochaine étape exacte
 
-Ouvrir la PR 2, vérification GitHub verte, fusionner (fusionner ensuite main dans la branche, sans réécrire l'historique). Puis PR 3 : consignes de pédagogie (config/teacher.php), réponses aux prospects, scénarios inventés de `resources/teacher/rehearsal/scenarios.php`, phrase de Confidentialité.
+Ouvrir la PR 3, vérification GitHub verte, fusionner. Puis le rapport final en français (coût et marge : `docs/cout-et-marge.md` ; erreurs et exemples avant/après : constats ci-dessus, exemples INVENTÉS ; gestes : variables Laravel Cloud, `php artisan migrate` par le déploiement, `php artisan teacher:rehearse --compare` dans « Commands », vérifier le palier Google dans AI Studio).
