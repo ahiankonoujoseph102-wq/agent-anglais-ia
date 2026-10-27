@@ -172,7 +172,7 @@ class LessonController extends Controller
         $warningMinutes = (int) config('platform.lessons.warning_minutes_before_end');
 
         return response()->json($live->attach($lesson, $token, $setup, [
-            'start' => TeacherSetup::cue('lesson_start', ['minutes' => $minutes]),
+            'start' => TeacherSetup::cue('lesson_start', ['minutes' => $minutes, 'duration_note' => self::durationNote($minutes, $subscription?->daily_minutes ?? $minutes)]),
             'resume' => TeacherSetup::cue('resume'),
             'warning' => TeacherSetup::cue('lesson_warning', ['remaining' => $warningMinutes]),
             // Séance en quatre temps : reprise selon l'étape en cours, et une seule relance douce vers la conversation.
@@ -258,6 +258,17 @@ class LessonController extends Controller
         $this->prepareNextBoard($request->user());
 
         return response()->json(['status' => $lesson->status->label()]);
+    }
+
+    /**
+     * Séance plus courte que le temps du jour de la formule (une partie est déjà prise aujourd'hui) : le professeur
+     * le dit, pour que la durée annoncée ne surprenne pas (« 7 minutes » un jour, « 15 minutes » le lendemain).
+     */
+    private static function durationNote(int $minutes, int $dailyMinutes): string
+    {
+        return $minutes < $dailyMinutes
+            ? ', and add in French: « C\'est le temps qu\'il vous reste aujourd\'hui. »'
+            : '';
     }
 
     /**

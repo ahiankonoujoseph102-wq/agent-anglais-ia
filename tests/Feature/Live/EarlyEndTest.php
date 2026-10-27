@@ -87,4 +87,26 @@ class EarlyEndTest extends TestCase
         $this->actingAs($user)->postJson('/seance/bilan', $report)->assertOk()->assertJson(['saved' => true]);
         $this->assertNotNull($user->lessons()->sole()->reported_at);
     }
+
+    public function test_the_announced_duration_is_the_time_left_today_and_says_so_when_it_is_shorter(): void
+    {
+        $user = User::factory()->create();
+        $user->level = Level::A1;
+        $user->save();
+        Subscription::factory()->for($user)->create();
+        $this->buildProgram($user);
+
+        // Formule de 15 minutes, rien d'utilisé : 15 minutes, sans remarque.
+        $start = $this->actingAs($user)->postJson('/seance/connexion')->assertOk()->json('cues.start');
+        $this->assertStringContainsString('lasts 15 minutes (exactly this number', $start);
+        $this->assertStringNotContainsString('qu\'il vous reste', $start);
+        $this->assertStringNotContainsString(':duration_note', $start);
+
+        // 8 minutes déjà prises aujourd'hui : la séance suivante dure 7 minutes, et il le dit.
+        $this->travel(8)->minutes();
+        $this->actingAs($user)->postJson('/seance/fin')->assertOk();
+        $start = $this->actingAs($user)->postJson('/seance/connexion')->assertOk()->json('cues.start');
+        $this->assertStringContainsString('lasts 7 minutes', $start);
+        $this->assertStringContainsString('« C\'est le temps qu\'il vous reste aujourd\'hui. »', $start);
+    }
 }

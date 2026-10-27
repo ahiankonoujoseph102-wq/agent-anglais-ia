@@ -43,6 +43,9 @@
 - Évaluations : 20 sur 115 de moins de 2 minutes, 16 sans aucune parole de l'élève, 58 avec un niveau donné en 3 minutes ou moins (verdict trop tôt).
 - Pédagogie : félicite une réponse incompréhensible (environ 30 fois), invente la réponse de l'élève (un mot mal reconnu devient un nom de ville), répète la même correction sans expliquer la règle, récite sa présentation complète à une question mal comprise, refuse de répondre en anglais pendant le moment des questions en citant ses consignes, lit à voix haute des marques techniques (balises de silence, mise en forme des consignes).
 
+- PR 1 fusionnée (#109).
+- PR 2 (erreurs techniques) sur la branche : `heldVoiceEnd`, `LivePage`, langues de transcription, `cleanSpeech`, `LiveEarlyEnd`, durée annoncée, aide au premier tour. CLAUDE.md à jour (« Erreurs techniques des vraies conversations »).
+
 ## Prochaine étape exacte
 
-Ouvrir la PR 1, attendre la vérification GitHub, fusionner. Puis PR 2 (erreurs techniques) sur la même branche repartie de main.
+Ouvrir la PR 2, vérification GitHub verte, fusionner (fusionner ensuite main dans la branche, sans réécrire l'historique). Puis PR 3 : consignes de pédagogie (config/teacher.php), réponses aux prospects, scénarios inventés de `resources/teacher/rehearsal/scenarios.php`, phrase de Confidentialité.

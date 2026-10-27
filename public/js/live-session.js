@@ -447,6 +447,8 @@ const TURN_TEXTS = {
     paused: 'Conversation en pause',
     muted: 'Micro coupé',
     ending: 'Fin de la conversation…',
+    // Évaluation, premier tour de l'élève : dans les vraies évaluations, des élèves n'avaient rien dit du tout.
+    firstAnswer: 'À vous : répondez à voix haute, par exemple « My name is … »',
 };
 
 const MESSAGES = {
@@ -498,6 +500,8 @@ const state = {
     tokens: new TokenTally(),
     // Gemini : réponse en cours (jusqu'à turnComplete), heure du dernier morceau de voix, accueil attendu.
     voicePending: false,
+    // L'élève a déjà parlé au moins une fois (aide du premier tour de l'évaluation).
+    learnerAnswered: false,
     lastChunkAt: 0,
     expectingVoiceUntil: 0,
     timers: [],
@@ -1833,6 +1837,7 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             }
 
             state.spoke = true;
+            state.learnerAnswered = true;
             teacher?.learnerSpoke();
             state.teacherLine = null;
             state.teacherUtterance = null;
@@ -2388,10 +2393,11 @@ function renderTurn() {
     }
 
     const turn = currentTurn();
+    const text = turn === 'listening' && mode === 'assessment' && !state.learnerAnswered ? TURN_TEXTS.firstAnswer : TURN_TEXTS[turn];
 
-    if (ui.turn.dataset.turn !== turn || !ui.turnText.textContent) {
+    if (ui.turn.dataset.turn !== turn || ui.turnText.textContent !== text) {
         ui.turn.dataset.turn = turn;
-        ui.turnText.textContent = TURN_TEXTS[turn];
+        ui.turnText.textContent = text;
 
         // Attente de sa réponse : léger geste (hochement, sourire), jamais d'écran qui « charge ».
         if (turn === 'thinking') {

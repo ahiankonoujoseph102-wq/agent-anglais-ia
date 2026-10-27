@@ -215,7 +215,7 @@ class TeacherSetup
      */
     public static function cue(string $key, array $replace = []): string
     {
-        return self::fill((string) config("teacher.cues.{$key}"), $replace + ['closing' => (string) config('platform.assessment.closing_phrase')] + self::phasePhrases());
+        return self::fill((string) config("teacher.cues.{$key}"), $replace + ['closing' => (string) config('platform.assessment.closing_phrase'), 'duration_note' => ''] + self::phasePhrases());
     }
 
     /**
