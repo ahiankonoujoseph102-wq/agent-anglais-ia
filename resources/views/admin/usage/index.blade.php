@@ -69,7 +69,7 @@
                 @foreach ($costWatch as $row)
                     <tr data-cost-over="{{ $row['over'] ? 'oui' : 'non' }}">
                         <td data-label="Abonné"><a href="{{ route('admin.users.show', $row['subscription']->user) }}">{{ $row['subscription']->user->name }}</a></td>
-                        <td data-label="Formule">{{ $row['subscription']->plan_name }} · {{ \App\Support\Money::format($row['revenue']) }}@if ($row['subscription']->isGranted()) <span class="badge badge-grant">Accès offert</span>@endif</td>
+                        <td data-label="Formule">{{ $row['subscription']->plan_name }} · {{ \App\Support\Money::format($row['revenue']) }}@if ($row['subscription']->isGranted()) <span class="muted small">(accès offert)</span>@endif</td>
                         <td data-label="Coût estimé">{{ UsageCost::format($row['cost']) }}</td>
                         <td data-label="Part du prix">
                             @if ($row['over'])

@@ -31,8 +31,18 @@
 
 ## Fait
 
-- (rien de poussé encore)
+- PR 1 (coût), branche `claude/sweet-johnson-e6lsds` : comptage des jetons par nature (`public/js/token-usage.js`, colonnes `input_text_tokens`…), coût au tarif de chaque nature (`UsageCost::fromSums`), fiche du site par conversation (`SiteGuide::text($kind)`), fenêtre de contexte bornée (`TeacherSetup::contextWindow`), alerte de coût par abonné (`CostWatch`, `usage:alert-costs`, « Réglages »), note `docs/cout-et-marge.md`, CLAUDE.md à jour. Tests verts en local.
+
+## Constats de l'export pour les PR 2 et 3 (chiffres seulement)
+
+- Écho / deuxième écran : environ 9 répliques « élève » qui sont en fait la voix de Teacher Joe, dans 4 conversations ; dans 3 d'entre elles, DEUX accueils dans la même évaluation : la séance était ouverte deux fois (deux onglets ou deux appareils), les deux Teacher Joe se parlaient. Cause aussi possible : chez Gemini, la porte du micro se rouvre dès que le son reçu est épuisé (trou du réseau), même si la réponse continue.
+- Réponses coupées : environ 30 répliques du professeur sans ponctuation finale (interrompues par un bruit ou l'écho).
+- Mauvaise langue : environ 117 répliques d'élève reconnues en espagnol, portugais ou allemand et 12 en écriture non latine (hindi, coréen, japonais). `inputAudioTranscription.languageCodes` existe (BCP-47) : régler `en-US`, `fr-FR`.
+- Délais : 53 réponses sur 1 350 au-delà de 5 secondes (médiane 1,8 seconde) ; plus fréquent au tout début (6,5 %) ; ne grandit pas avec la longueur de la séance.
+- Durée annoncée : la séance du jour annonce le temps RESTANT du jour (juste), mais la leçon se termine souvent bien avant (« Let's sum up » trop tôt) : 15 minutes annoncées, 5 à 8 réelles.
+- Évaluations : 20 sur 115 de moins de 2 minutes, 16 sans aucune parole de l'élève, 58 avec un niveau donné en 3 minutes ou moins (verdict trop tôt).
+- Pédagogie : félicite une réponse incompréhensible (environ 30 fois), invente la réponse de l'élève (un mot mal reconnu devient « Lomé! »), même correction répétée sans explication, récite « designed and programmed by… » à une question mal comprise, refuse de répondre en anglais pendant les questions (« mes instructions sont… »), texte technique lu (`<no speech>`, `**Wait**`).
 
 ## Prochaine étape exacte
 
-Mesurer les consignes, écrire la PR 1 (voir Plan).
+Ouvrir la PR 1, attendre la vérification GitHub, fusionner. Puis PR 2 (erreurs techniques) sur la même branche repartie de main.
