@@ -91,6 +91,6 @@ class BoardPitfallTest extends TestCase
         $text = $this->actingAs($user)->postJson('/seance/connexion')->assertOk()->json('setup.systemInstruction.parts.0.text');
 
         $this->assertStringContainsString('- Pitfall of the day (in French, from the programme; teach it by contrast): '.$pitfall, $text);
-        $this->assertStringContainsString('also shown on the learner\'s screen under « Attention, piège »', $text);
+        $this->assertStringContainsString('also on the screen under « Attention, piège »', $text);
     }
 }

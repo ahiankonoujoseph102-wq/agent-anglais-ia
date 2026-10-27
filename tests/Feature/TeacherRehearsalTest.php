@@ -81,15 +81,16 @@ class TeacherRehearsalTest extends TestCase
         // Mêmes scénario et modèle ; seules les consignes changent.
         $bodies = Http::recorded()->map(fn (array $pair) => json_encode($pair[0]->data(), JSON_UNESCAPED_UNICODE))->values();
         $this->assertCount(2, $bodies);
-        $this->assertStringContainsString('or about prices', $bodies[0]);
-        $this->assertStringNotContainsString('PRICES AND QUESTIONS BEFORE BUYING (you are also', $bodies[0]);
-        $this->assertStringNotContainsString('or about prices', $bodies[1]);
-        $this->assertStringContainsString('PRICES AND QUESTIONS BEFORE BUYING (you are also', $bodies[1]);
+        // Avant : les consignes de main après la pull request #111 ; après : celles des meilleurs centres.
+        $this->assertStringContainsString('How you teach (like a real teacher):', $bodies[0]);
+        $this->assertStringNotContainsString('WHEN THE LEARNER STRUGGLES', $bodies[0]);
+        $this->assertStringNotContainsString('How you teach (like a real teacher):', $bodies[1]);
+        $this->assertStringContainsString('WHEN THE LEARNER STRUGGLES', $bodies[1]);
         $this->assertStringContainsString('WRITTEN REHEARSAL', $bodies[1]);
         Http::assertSent(fn (Request $request) => str_contains($request->url(), '/interactions'));
 
         // Les vraies consignes ne sont pas modifiées par la comparaison.
-        $this->assertStringContainsString('PRICES AND QUESTIONS BEFORE BUYING', (string) config('teacher.advisor'));
+        $this->assertStringContainsString('WHEN THE LEARNER STRUGGLES', (string) config('teacher.persona'));
     }
 
     public function test_an_unknown_scenario_is_refused_and_no_provider_is_reported_clearly(): void

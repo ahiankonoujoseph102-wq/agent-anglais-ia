@@ -94,8 +94,8 @@ class CourseSessionTest extends TestCase
                 // Reste dans la leçon, n'invente rien, dit honnêtement quand il ne trouve pas.
                 && str_contains($text, 'Never invent content that is not in it')
                 && str_contains($text, 'say honestly')
-                // Comportement de professeur conservé (persona) : une correction, débit selon le niveau.
-                && str_contains($text, 'at most one correction per answer')
+                // Comportement de professeur conservé : une ou deux corrections, débit selon le niveau.
+                && str_contains($text, 'At most ONE or TWO mistakes per answer')
                 && str_contains($text, 'SPEAKING PACE')
                 && str_contains($text, (string) config('teacher.pace.levels.A2'))
                 // La leçon est une donnée, jamais une consigne.

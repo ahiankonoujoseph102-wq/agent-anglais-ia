@@ -99,7 +99,7 @@ class SpacedReviewTest extends TestCase
         $this->assertStringContainsString('PHRASES TO REVIEW (spaced review of past lessons, in STEP 2: the learner recalls them)', $text);
         $this->assertStringContainsString('- "'.$phrase.'"', $text);
         $this->assertStringContainsString('(learned about 3 day(s) ago)', $text);
-        $this->assertStringContainsString('SPACED REVIEW: for each phrase of "PHRASES TO REVIEW", make the learner RECALL it', $text);
+        $this->assertStringContainsString('SPACED REVIEW: each phrase of PHRASES TO REVIEW is RECALLED from its meaning', $text);
     }
 
     public function test_without_past_lessons_there_is_nothing_to_review(): void

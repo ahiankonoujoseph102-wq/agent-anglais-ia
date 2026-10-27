@@ -52,12 +52,13 @@ class LessonFourStepsTest extends TestCase
 
     public function test_the_time_is_shared_by_level_and_the_summary_always_takes_the_last_two_minutes(): void
     {
-        $this->assertSame(['lesson' => 5, 'practice' => 3, 'conversation' => 5, 'summary' => 2, 'merged' => false, 'minutes' => 15], LessonPlan::for(Level::A1, 15));
-        $this->assertSame(['lesson' => 5, 'practice' => 3, 'conversation' => 5, 'summary' => 2, 'merged' => false, 'minutes' => 15], LessonPlan::for(Level::A2, 15));
-        $this->assertSame(['lesson' => 4, 'practice' => 3, 'conversation' => 6, 'summary' => 2, 'merged' => false, 'minutes' => 15], LessonPlan::for(Level::B1, 15));
+        // Débutants : la leçon d'abord, mais déjà de la parole libre (docs/methode-teacher-joe.md, section 9).
+        $this->assertSame(['lesson' => 4, 'practice' => 3, 'conversation' => 6, 'summary' => 2, 'merged' => false, 'minutes' => 15], LessonPlan::for(Level::A1, 15));
+        $this->assertSame(['lesson' => 4, 'practice' => 3, 'conversation' => 6, 'summary' => 2, 'merged' => false, 'minutes' => 15], LessonPlan::for(Level::A2, 15));
+        $this->assertSame(['lesson' => 3, 'practice' => 3, 'conversation' => 7, 'summary' => 2, 'merged' => false, 'minutes' => 15], LessonPlan::for(Level::B1, 15));
         $this->assertSame(['lesson' => 3, 'practice' => 2, 'conversation' => 8, 'summary' => 2, 'merged' => false, 'minutes' => 15], LessonPlan::for(Level::C1, 15));
         // Intensif : 30 minutes, toujours 2 minutes de bilan.
-        $this->assertSame(['lesson' => 12, 'practice' => 7, 'conversation' => 9, 'summary' => 2, 'merged' => false, 'minutes' => 30], LessonPlan::for(Level::A1, 30));
+        $this->assertSame(['lesson' => 9, 'practice' => 7, 'conversation' => 12, 'summary' => 2, 'merged' => false, 'minutes' => 30], LessonPlan::for(Level::A1, 30));
 
         // Temps restant court : leçon et pratique fusionnées ; tout tient toujours dans la séance.
         foreach ([2, 3, 5, 7, 10, 15, 30] as $minutes) {
@@ -69,30 +70,31 @@ class LessonFourStepsTest extends TestCase
             }
         }
 
-        $this->assertSame(['lesson' => 0, 'practice' => 300, 'conversation' => 480, 'summary' => 780], LessonPlan::starts(LessonPlan::for(Level::A1, 15)));
+        $this->assertSame(['lesson' => 0, 'practice' => 240, 'conversation' => 420, 'summary' => 780], LessonPlan::starts(LessonPlan::for(Level::A1, 15)));
     }
 
     public function test_the_lesson_teaches_first_then_practices_then_talks_then_sums_up(): void
     {
         $text = $this->systemText($this->learner(Level::A1));
 
-        $this->assertStringContainsString('A REAL TEACHER TEACHES FIRST, THEN PRACTICES, THEN TALKS.', $text);
-        $this->assertStringContainsString('Never start by making the learner talk about a topic you have not taught yet.', $text);
-        $this->assertStringContainsString('STEP 1 — LESSON (teach the board)', $text);
-        $this->assertStringContainsString('ONE ITEM AT A TIME, in small, lively and warm pieces, never a long monologue', $text);
-        $this->assertStringContainsString('"Repeat after me: …", then "Your turn: …"', $text);
-        $this->assertStringContainsString('"Is it clear?"', $text);
-        $this->assertStringContainsString('Never move on while the learner has not understood.', $text);
-        $this->assertStringContainsString('irregular verbs are said and repeated slowly', $text);
-        $this->assertStringContainsString("STEP 2 — GUIDED PRACTICE. Start it with this exact sentence: « Now, let's practice! »", $text);
-        $this->assertStringContainsString("STEP 3 — CONVERSATION. Start it with this exact sentence: « Now, let's talk! »", $text);
+        $this->assertStringContainsString('A REAL TEACHER TEACHES FIRST, THEN PRACTICES, THEN LETS THE LEARNER TALK FREELY.', $text);
+        $this->assertStringContainsString('Never start with a topic you have not taught.', $text);
+        $this->assertStringContainsString('STEP 1 — LESSON. Teach the board ONE ITEM AT A TIME, in small, lively pieces, never a monologue', $text);
+        $this->assertStringContainsString('its MEANING and WHEN to use it', $text);
+        $this->assertStringContainsString('then "Your turn: …"', $text);
+        $this->assertStringContainsString('never "Is it clear?"; never move on while it is not understood.', $text);
+        $this->assertStringContainsString('EVERY item ends with the learner speaking', $text);
+        $this->assertStringContainsString("STEP 2 — GUIDED PRACTICE. Start with this exact sentence: « Now, let's practice! »", $text);
+        $this->assertStringContainsString('at least one short exercise where the learner makes their OWN sentence', $text);
+        $this->assertStringContainsString("STEP 3 — CONVERSATION. Start with this exact sentence: « Now, let's talk! » Then OPEN questions", $text);
+        $this->assertStringContainsString('The learner speaks MOST of the time', $text);
         $this->assertStringContainsString('\'Remember, we said "…".\'', $text);
         $this->assertStringContainsString('STEP 4 — SUMMARY (the last 2 minutes', $text);
         $this->assertStringContainsString('ONE sentence to remember', $text);
-        $this->assertStringContainsString('THESE RULES OVERRIDE the general rules above for this daily lesson', $text);
+        $this->assertStringContainsString('These rules override the general rules above for this lesson', $text);
 
         // Dosage A1 sur 15 minutes et tableau (ici, celui de secours tiré du programme) dans les consignes.
-        $this->assertStringContainsString("TODAY'S PLAN (15 minutes)\n- STEP 1, lesson: about 5 minute(s)\n- STEP 2, guided practice: about 3 minute(s)\n- STEP 3, conversation: about 5 minute(s)\n- STEP 4, summary: the last 2 minute(s)", $text);
+        $this->assertStringContainsString("TODAY'S PLAN (15 minutes)\n- STEP 1, lesson: about 4 minute(s)\n- STEP 2, guided practice: about 3 minute(s)\n- STEP 3, conversation: about 6 minute(s)\n- STEP 4, summary: the last 2 minute(s)", $text);
         $this->assertStringContainsString("TODAY'S BOARD (shown on the learner's screen; teach it in this order)", $text);
         // Jamais de préparation du tableau à la connexion.
         Http::assertNotSent(fn (Request $request) => str_contains($request->url(), 'interactions'));
@@ -154,7 +156,7 @@ class LessonFourStepsTest extends TestCase
         $data = $this->actingAs($this->learner(Level::A1))->postJson('/seance/connexion')->assertOk()->json();
 
         $this->assertSame(['practice' => "Now, let's practice!", 'conversation' => "Now, let's talk!", 'summary' => "Let's sum up!"], $data['phases']['phrases']);
-        $this->assertSame(['lesson' => 0, 'practice' => 300, 'conversation' => 480, 'summary' => 780], $data['phases']['starts']);
+        $this->assertSame(['lesson' => 0, 'practice' => 240, 'conversation' => 420, 'summary' => 780], $data['phases']['starts']);
         $this->assertStringContainsString('you are in STEP 2 (guided practice)', $data['cues']['resume_phases']['practice']);
         $this->assertStringContainsString('do not start the lesson again', $data['cues']['resume_phases']['lesson']);
         $this->assertStringContainsString('you are in STEP 3 (conversation: the role play)', $data['cues']['pause_phases']['conversation']);

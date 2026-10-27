@@ -49,8 +49,8 @@ class TeacherPaceTest extends TestCase
     {
         $text = TeacherSetup::instructions($kind, $this->learner($level), 10);
 
-        $this->assertSame(1, substr_count($text, 'SPEAKING PACE (always; this replaces any other pace rule):'));
-        $this->assertStringContainsString("SPEAKING PACE (always; this replaces any other pace rule):\n".config("teacher.pace.levels.{$pace}"), $text);
+        $this->assertSame(1, substr_count($text, 'SPEAKING PACE (the only pace rule):'));
+        $this->assertStringContainsString("SPEAKING PACE (the only pace rule):\n".config("teacher.pace.levels.{$pace}"), $text);
         $this->assertStringNotContainsString(':level_pace', $text);
         $this->assertSame($pace, TeacherSetup::paceLevel($kind, $this->learner($level)));
 
@@ -81,14 +81,14 @@ class TeacherPaceTest extends TestCase
     {
         $rules = (string) config('teacher.pace.rules');
 
-        $this->assertStringContainsString('say it ALONE, slowly; then use it in a short sentence; then say it alone again, slowly', $rules);
-        $this->assertStringContainsString('every sentence the learner must repeat ("Repeat after me: …") is said slowly, TWICE', $rules);
+        $this->assertStringContainsString('KEY WORD of the day: say it ALONE, slowly; then in a short sentence; then alone again.', $rules);
+        $this->assertStringContainsString('SENTENCE TO REPEAT: say it slowly TWICE, then wait.', $rules);
         $this->assertStringContainsString('« je ne comprends pas », « plus lentement », « répétez »', $rules);
         $this->assertStringContainsString('"I don\'t understand", "Slowly, please"', $rules);
-        $this->assertStringContainsString('or answers something unrelated to your question: slow down at once', $rules);
-        $this->assertStringContainsString('Keep this slower pace until the end of the session: never speed up again on your own.', $rules);
+        $this->assertStringContainsString('or answers something unrelated: slow down at once', $rules);
+        $this->assertStringContainsString('KEEP this slower pace until the end', $rules);
         // Pauses courtes : une longue fait croire à l'élève que c'est son tour (et la sécurité du micro tient la voix pour finie).
-        $this->assertStringContainsString('about one second, never more than two', $rules);
+        $this->assertStringContainsString('one to two seconds at most', $rules);
         $this->assertDoesNotMatchRegularExpression('/google|gemini|openai|chatgpt/i', $rules.implode(' ', config('teacher.pace.levels')));
     }
 
@@ -103,6 +103,6 @@ class TeacherPaceTest extends TestCase
             $this->assertDoesNotMatchRegularExpression('/natural from B2|(?<!AND )PACE:|at a natural pace|at a moderate pace|moderate for B1/', (string) $text);
         }
 
-        $this->assertStringContainsString('Your pace for this learner is given in SPEAKING PACE below', config('teacher.persona'));
+        $this->assertStringContainsString('slow down clearly (see SPEAKING PACE)', config('teacher.persona'));
     }
 }
