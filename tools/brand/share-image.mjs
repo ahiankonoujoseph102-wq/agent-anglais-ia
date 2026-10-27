@@ -1,12 +1,34 @@
-// EN LOCAL : produit public/images/partage-talkami.jpg (1200 × 630, image de partage Open Graph)
-// à partir de share-image.html, avec Chromium (playwright-core). Usage : node tools/brand/share-image.mjs [chemin-de-chromium]
+// EN LOCAL : produit les images de partage Open Graph (1200 × 630) à partir de share-image.html, avec Chromium
+// (playwright-core) : public/images/partage-talkami.jpg (accueil), une par page pays et une par niveau d'attestation
+// (public/images/partage/). Textes : uniquement des faits déjà écrits sur le site.
+// Usage : node tools/brand/share-image.mjs [chemin-de-chromium]
 import { chromium } from 'playwright-core';
+import { mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
+const out = here + '../../public/images/';
+mkdirSync(out + 'partage', { recursive: true });
+
+const images = [
+    ['partage-talkami.jpg', {}],
+    // Pages « Apprendre l'anglais » par pays (App\Support\CountryPage::shareImage).
+    ['partage/pays-togo.jpg', { title: 'Apprendre l\'anglais', accent: 'au Togo' }],
+    ['partage/pays-benin.jpg', { title: 'Apprendre l\'anglais', accent: 'au Bénin' }],
+    ['partage/pays-burkina-faso.jpg', { title: 'Apprendre l\'anglais', accent: 'au Burkina Faso' }],
+    ['partage/pays-cote-d-ivoire.jpg', { title: 'Apprendre l\'anglais', accent: 'en Côte d\'Ivoire' }],
+    // Vérification d'une attestation (App\Support\AttestationShare::image).
+    ...['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level) => [
+        `partage/attestation-${level.toLowerCase()}.jpg`,
+        { title: 'Niveau d\'anglais', accent: `${level} validé`, pill: 'Attestation de niveau', note: 'Attestation vérifiable par son code' },
+    ]),
+];
+
 const browser = await chromium.launch({ executablePath: process.argv[2] || undefined, args: ['--allow-file-access-from-files'] });
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
-await page.goto('file://' + here + 'share-image.html');
-await page.evaluate(() => document.fonts.ready);
-await page.screenshot({ path: here + '../../public/images/partage-talkami.jpg', type: 'jpeg', quality: 86 });
+for (const [file, params] of images) {
+    await page.goto('file://' + here + 'share-image.html?' + new URLSearchParams(params));
+    await page.evaluate(() => document.fonts.ready);
+    await page.screenshot({ path: out + file, type: 'jpeg', quality: 86 });
+}
 await browser.close();

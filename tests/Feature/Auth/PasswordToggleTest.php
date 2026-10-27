@@ -21,7 +21,7 @@ class PasswordToggleTest extends TestCase
     {
         return [
             'connexion' => ['/connexion', ['password'], false],
-            'inscription' => ['/inscription', ['password', 'password_confirmation'], false],
+            'inscription' => ['/inscription', ['password'], false],
             'nouveau mot de passe' => ['/mot-de-passe/nouveau', ['password', 'password_confirmation'], true],
         ];
     }

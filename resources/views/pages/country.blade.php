@@ -10,7 +10,7 @@
     $minutes = config('platform.assessment.max_minutes');
 @endphp
 
-<x-layout :title="$page->title" :description="$page->description">
+<x-layout :title="$page->title" :description="$page->description" :share-image="$page->shareImage()" :share-alt="$page->heading">
     <section class="section page-hero" aria-labelledby="pays-titre">
         <div class="students reveal">
             <figure class="photo-frame"><x-photo :name="$page->photo" /></figure>

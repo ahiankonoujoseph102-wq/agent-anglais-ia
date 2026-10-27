@@ -35,7 +35,8 @@ class RegisterRequest extends FormRequest
             // Tous les pays du monde, ou « Autre pays » ; absent (ancien formulaire) : déduit de l'indicatif.
             'country' => ['nullable', 'string', Rule::in([...array_keys(Countries::all()), Countries::OTHER])],
             'email' => EmailAddress::rules(),
-            'password' => ['required', 'confirmed', Password::min(8)],
+            // Aucune confirmation : un seul champ, avec le bouton « œil » pour vérifier ce qui a été tapé.
+            'password' => ['required', Password::min(8)],
         ];
     }
 

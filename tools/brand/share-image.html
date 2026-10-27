@@ -24,12 +24,24 @@
 </style>
 </head>
 <body>
-    <div class="left"><h1>Parlez anglais <span>chaque jour</span></h1></div>
+    <div class="left"><h1 id="title">Parlez anglais <span>chaque jour</span></h1></div>
     <div class="center">
         <img class="logo" src="../../public/brand/logo-blanc.png" alt="">
         <div class="teacher"><img src="../../public/images/teacher-joe.webp" alt=""></div>
-        <div class="pill">Évaluation orale gratuite</div>
+        <div class="pill" id="pill">Évaluation orale gratuite</div>
     </div>
-    <div class="right"><p><strong>Teacher Joe</strong>Votre professeur d'anglais à l'oral</p></div>
+    <div class="right"><p><strong>Teacher Joe</strong><span id="note">Votre professeur d'anglais à l'oral</span></p></div>
+    <script>
+        // Variantes (share-image.mjs) : ?title=…&accent=…&pill=…&note=… ; sans paramètre, l'image de l'accueil.
+        const query = new URLSearchParams(location.search);
+        if (query.has('title')) {
+            const title = document.getElementById('title');
+            title.textContent = query.get('title') + ' ';
+            const accent = document.createElement('span');
+            accent.textContent = query.get('accent') || '';
+            title.append(accent);
+        }
+        for (const id of ['pill', 'note']) if (query.has(id)) document.getElementById(id).textContent = query.get(id);
+    </script>
 </body>
 </html>

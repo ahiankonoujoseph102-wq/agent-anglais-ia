@@ -33,9 +33,9 @@
                      hint="Exemple : 90 12 34 56. Hors du Togo, l'indicatif du pays choisi est ajouté ; vous pouvez aussi l'écrire, par exemple +237 6 77 12 34 56." />
             <x-input name="email" label="Adresse e-mail" type="email" inputmode="email" autocomplete="email"
                      :hint="\App\Support\EmailAddress::HINT" />
+            {{-- Un seul champ : le bouton « œil » permet de vérifier ce qui a été tapé. --}}
             <x-input name="password" label="Mot de passe" type="password" autocomplete="new-password" required
-                     hint="8 caractères minimum." />
-            <x-input name="password_confirmation" label="Confirmer le mot de passe" type="password" autocomplete="new-password" required />
+                     hint="8 caractères minimum. Touchez l'œil pour voir ce que vous avez tapé." />
 
             <button type="submit" class="btn btn-accent btn-block btn-lg">Créer mon compte</button>
             <p class="muted small register-privacy">En créant un compte, vous acceptez notre <a href="{{ route('privacy') }}">politique de confidentialité</a>.</p>

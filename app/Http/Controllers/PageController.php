@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\CountryPage;
+use App\Support\LightImage;
 use App\Support\PaymentCountry;
 use App\Support\Plan;
 use App\Support\PrivateStorage;
@@ -46,14 +47,29 @@ class PageController extends Controller
         return view('pages.how', ['videos' => $videos->ready()]);
     }
 
-    /** Image d'aperçu d'une vidéo (environ 30 kilooctets), gardée en cache par le navigateur. */
+    /**
+     * Image d'aperçu d'une vidéo, gardée en cache par le navigateur : en WebP (environ deux fois plus légère que le JPEG
+     * de GitHub), préparée une fois et gardée à côté de l'original ; si GD ne sait pas la faire, le JPEG d'origine.
+     */
     public function poster(string $key, SiteVideos $videos): Response
     {
         $video = $videos->find($key);
         $disk = PrivateStorage::disk();
         abort_if($video === null || ! $disk->exists($video->poster_path), 404);
 
-        return $disk->response($video->poster_path, $key.'.jpg', ['Content-Type' => 'image/jpeg', 'Cache-Control' => 'public, max-age=86400']);
+        $headers = ['Cache-Control' => 'public, max-age=86400'];
+        // Une nouvelle version « site » (vidéo refaite) change la date : une nouvelle copie allégée est préparée.
+        $light = $video->poster_path.'.'.($video->updated_at?->timestamp ?? 0).'.webp';
+
+        if (! $disk->exists($light) && ($webp = LightImage::webp((string) $disk->get($video->poster_path))) !== null) {
+            $disk->put($light, $webp);
+        }
+
+        if ($disk->exists($light)) {
+            return $disk->response($light, $key.'.webp', ['Content-Type' => 'image/webp'] + $headers);
+        }
+
+        return $disk->response($video->poster_path, $key.'.jpg', ['Content-Type' => 'image/jpeg'] + $headers);
     }
 
     /** Toucher sur « Regarder » : adresse signée de la version « site » sur le bucket privé. */

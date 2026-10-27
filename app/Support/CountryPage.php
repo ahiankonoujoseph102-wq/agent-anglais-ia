@@ -94,6 +94,17 @@ final readonly class CountryPage
     }
 
     /**
+     * Image de partage propre au pays (public/images/partage/pays-{slug}.jpg, tools/brand/share-image.mjs), sinon null
+     * (image de l'accueil).
+     */
+    public function shareImage(): ?string
+    {
+        $path = 'images/partage/pays-'.$this->slug.'.jpg';
+
+        return is_file(public_path($path)) ? $path : null;
+    }
+
+    /**
      * « Mixx by Yas ou Flooz », « MTN, Moov ou Celtiis » ; « Mobile Money » si aucun numéro n'est encore saisi.
      */
     private static function operators(?PaymentCountry $country): string
