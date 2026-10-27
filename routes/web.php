@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VideoController as AdminVideoController;
 use App\Http\Controllers\Admin\VoiceController;
 use App\Http\Controllers\Admin\VoiceDiagnosticController;
+use App\Http\Controllers\Auth\AdminRecoveryController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -83,6 +84,9 @@ Route::withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, Pr
     Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
     Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
 });
+// Lien de récupération de l'administrateur (app:send-admin-recovery) : usage unique, quelques minutes.
+Route::get('/recuperation-administrateur', [AdminRecoveryController::class, 'show'])->middleware('throttle:20,1')->name('admin.recovery');
+Route::post('/recuperation-administrateur', [AdminRecoveryController::class, 'store'])->middleware('throttle:5,1')->name('admin.recovery.store');
 Route::get('/attestation/verifier/{code}', [AttestationController::class, 'verify'])->name('attestation.verify');
 
 Route::middleware('guest')->group(function () {

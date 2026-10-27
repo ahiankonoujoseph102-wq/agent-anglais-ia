@@ -21,4 +21,13 @@ return [
         'password' => env('ADMIN_PASSWORD'),
     ],
 
+    /*
+    | Lien de récupération de l'administrateur (php artisan app:send-admin-recovery) :
+    | lien à usage unique, valable quelques minutes, envoyé SEULEMENT à cette adresse (jamais affiché).
+    */
+    'recovery' => [
+        'email' => env('ADMIN_RECOVERY_EMAIL', 'amitalk62@gmail.com'),
+        'minutes' => 30,
+    ],
+
 ];
