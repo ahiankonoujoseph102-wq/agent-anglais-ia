@@ -27,18 +27,21 @@ class ProgramBuilder
     public function __construct(private TextClient $text) {}
 
     /**
-     * @param  array{goal: string, profile?: string|null, occupation: string, interests?: string|null, study_days: list<int|string>, study_time?: string|null, difficulties: list<string>}  $answers
+     * @param  array{goal: string, other_goals?: list<string>, profile?: string|null, occupation: string, interests?: string|null, study_days: list<int|string>, study_time?: string|null, difficulties: list<string>}  $answers
      */
     public function build(User $user, Level $level, array $answers): Program
     {
         $goal = Goal::from($answers['goal']);
         $profile = Profile::tryFrom((string) ($answers['profile'] ?? ''));
+        $otherGoals = self::otherGoals($answers, $goal);
         $profileTags = array_values(array_unique([
             ...($profile?->tags() ?? []),
             ...self::profileTags(($answers['occupation'] ?? '').' '.($answers['interests'] ?? '')),
+            // Autres objectifs : comptent comme le métier (1 point), jamais autant que l'objectif principal.
+            ...array_merge([], ...array_map(fn (Goal $other) => $other->tags(), $otherGoals)),
         ]));
 
-        $program = DB::transaction(function () use ($user, $level, $answers, $goal, $profile, $profileTags) {
+        $program = DB::transaction(function () use ($user, $level, $answers, $goal, $otherGoals, $profile, $profileTags) {
             // Un seul programme actif : l'ancien est archivé (ou reste « validé »).
             $user->programs()->where('is_active', true)->get()->each(function (Program $old) {
                 $old->is_active = false;
@@ -56,6 +59,7 @@ class ProgramBuilder
                 'target_level' => $level->next() ?? $level,
                 'status' => ProgramStatus::Active,
                 'goal' => $goal,
+                'other_goals' => array_map(fn (Goal $other) => $other->value, $otherGoals),
                 'profile' => $profile,
                 'occupation' => trim($answers['occupation']),
                 'interests' => filled($answers['interests'] ?? null) ? trim($answers['interests']) : null,
@@ -101,21 +105,25 @@ class ProgramBuilder
      * réponses, et le calendrier suit les nouveaux jours. Renvoie false sans rien changer si la présentation
      * ne peut pas être rédigée (modèle texte en échec alors qu'un fournisseur est réglé).
      *
-     * @param  array{goal: string, profile?: string|null, occupation: string, interests?: string|null, study_days: list<int|string>, study_time?: string|null, difficulties: list<string>}  $answers
+     * @param  array{goal: string, other_goals?: list<string>, profile?: string|null, occupation: string, interests?: string|null, study_days: list<int|string>, study_time?: string|null, difficulties: list<string>}  $answers
      */
     public function update(User $user, Program $program, array $answers): bool
     {
         $goal = Goal::from($answers['goal']);
         $profile = Profile::tryFrom((string) ($answers['profile'] ?? ''));
+        $otherGoals = self::otherGoals($answers, $goal);
         $profileTags = array_values(array_unique([
             ...($profile?->tags() ?? []),
             ...self::profileTags(($answers['occupation'] ?? '').' '.($answers['interests'] ?? '')),
+            // Autres objectifs : comptent comme le métier (1 point), jamais autant que l'objectif principal.
+            ...array_merge([], ...array_map(fn (Goal $other) => $other->tags(), $otherGoals)),
         ]));
 
         // Les réponses sur une copie : rien n'est enregistré avant la fin.
         $draft = $program->replicate();
         $draft->fill([
             'goal' => $goal,
+            'other_goals' => array_map(fn (Goal $other) => $other->value, $otherGoals),
             'profile' => $profile,
             'occupation' => trim($answers['occupation']),
             'interests' => filled($answers['interests'] ?? null) ? trim($answers['interests']) : null,
@@ -132,7 +140,7 @@ class ProgramBuilder
         }
 
         DB::transaction(function () use ($program, $draft, $goal, $profileTags, $intro) {
-            $program->fill($draft->only(['goal', 'profile', 'occupation', 'interests', 'study_days', 'study_time', 'difficulties']));
+            $program->fill($draft->only(['goal', 'other_goals', 'profile', 'occupation', 'interests', 'study_days', 'study_time', 'difficulties']));
             $program->content = array_merge((array) $program->content, ['intro' => $intro]);
             $program->save();
 
@@ -160,6 +168,19 @@ class ProgramBuilder
         });
 
         return true;
+    }
+
+    /**
+     * Autres objectifs des réponses : connus, sans doublon, jamais l'objectif principal, deux au plus.
+     *
+     * @param  array<string, mixed>  $answers
+     * @return list<Goal>
+     */
+    public static function otherGoals(array $answers, Goal $goal): array
+    {
+        $others = array_filter(array_map(fn ($value) => Goal::tryFrom((string) $value), (array) ($answers['other_goals'] ?? [])));
+
+        return array_slice(array_values(array_unique(array_filter($others, fn (Goal $other) => $other !== $goal), SORT_REGULAR)), 0, 2);
     }
 
     /**
@@ -224,6 +245,7 @@ class ProgramBuilder
             "Présente son programme personnel à l'apprenant.\n"
             ."Prénom : {$user->name}\nNiveau : {$program->level->value} ({$program->level->label()})\n"
             .'Objectif : '.Str::lcfirst($program->goal->label())."\n"
+            .($program->otherGoals() ? 'Autres objectifs : '.implode(' ; ', array_map(fn (Goal $other) => Str::lcfirst($other->label()), $program->otherGoals()))."\n" : '')
             .($program->profile ? 'Profil : '.Str::lcfirst($program->profile->label())."\n" : '')
             ."Métier ou situation : {$program->occupation}\n"
             .'Ce qu\'il trouve difficile : '.$difficulties."\n"

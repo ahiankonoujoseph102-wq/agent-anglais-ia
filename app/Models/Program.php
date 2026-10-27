@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  * découpées en leçons et réparties sur ses jours de travail.
  */
 #[Fillable([
-    'level', 'status', 'start_level', 'target_level', 'goal', 'profile', 'occupation', 'interests',
+    'level', 'status', 'start_level', 'target_level', 'goal', 'other_goals', 'profile', 'occupation', 'interests',
     'study_days', 'study_time', 'difficulties', 'content', 'is_active',
 ])]
 class Program extends Model
@@ -47,11 +47,25 @@ class Program extends Model
             'target_level' => Level::class,
             'goal' => Goal::class,
             'profile' => Profile::class,
+            'other_goals' => 'array',
             'study_days' => 'array',
             'difficulties' => 'array',
             'content' => 'array',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Autres objectifs (deux au plus, jamais l'objectif principal) ; valeurs inconnues ignorées.
+     *
+     * @return list<Goal>
+     */
+    public function otherGoals(): array
+    {
+        return array_values(array_filter(
+            array_map(fn ($value) => Goal::tryFrom((string) $value), (array) $this->other_goals),
+            fn (?Goal $goal) => $goal !== null && $goal !== $this->goal,
+        ));
     }
 
     /**

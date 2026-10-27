@@ -199,6 +199,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--c
 .password-toggle { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); width: 46px; height: 46px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius); background: none; color: var(--c-primary); cursor: pointer; touch-action: manipulation; }
 .password-toggle:hover, .password-toggle:focus-visible { background: var(--c-primary-soft); }
 .hint { color: var(--c-muted); font-size: var(--fs-sm); margin-top: 6px; }
+.other-goals summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: var(--fw-bold); color: var(--c-primary); }
+.other-goals summary:focus-visible { outline: 3px solid var(--c-focus); outline-offset: 2px; border-radius: var(--radius); }
 .error { color: var(--c-danger); font-size: var(--fs-sm); font-weight: var(--fw-bold); margin-top: 6px; }
 .is-invalid { border-color: var(--c-danger) !important; }
 fieldset { border: 0; padding: 0; margin: 0 0 var(--space-4); min-width: 0; }

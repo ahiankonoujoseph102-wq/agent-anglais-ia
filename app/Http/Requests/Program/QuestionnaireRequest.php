@@ -19,7 +19,12 @@ class QuestionnaireRequest extends FormRequest
     public function rules(): array
     {
         return match ((int) $this->route('step')) {
-            1 => ['goal' => ['required', Rule::enum(Goal::class)]],
+            1 => [
+                'goal' => ['required', Rule::enum(Goal::class)],
+                // Autres objectifs : deux au plus, jamais l'objectif principal.
+                'other_goals' => ['nullable', 'array', 'max:2'],
+                'other_goals.*' => ['distinct', Rule::enum(Goal::class), Rule::notIn([(string) $this->input('goal')])],
+            ],
             2 => [
                 'profile' => ['nullable', Rule::enum(Profile::class)],
                 'occupation' => ['required', 'string', 'min:2', 'max:150'],
@@ -44,6 +49,8 @@ class QuestionnaireRequest extends FormRequest
     {
         return [
             'goal.required' => 'Choisissez votre objectif principal.',
+            'other_goals.max' => 'Choisissez deux autres objectifs au plus.',
+            'other_goals.*.not_in' => 'Votre objectif principal est déjà choisi : cochez seulement d\'autres objectifs.',
             'occupation.required' => 'Indiquez votre métier ou votre situation (par exemple : commerçante, étudiant, infirmier).',
             'study_days.required' => 'Choisissez au moins un jour de travail.',
             'study_time.date_format' => 'Indiquez une heure valide, par exemple 18:30.',

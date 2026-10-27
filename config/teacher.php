@@ -345,6 +345,7 @@ return [
             TXT,
         'presentation' => 'Link the role play to a class presentation or a thesis defense when it fits: opening and structuring a short talk, presenting a project, answering questions from a jury or a teacher. Let the learner present for a minute, then correct and help them say it again more clearly.',
         'clients' => 'Link the role play to clients or partners when it fits: welcoming a client, presenting your business or product, taking an order, answering a complaint, a short phone call. You play the client or the partner.',
+        'media' => 'The learner wants to understand movies, TV series and songs. When it fits, take examples from everyday spoken English as heard in movies and songs (short natural phrases, contractions like "gonna", "wanna", "I\'m"), explain what they mean and when people say them, and ask about the series or songs the learner likes. Never quote song lyrics or dialogue at length.',
         'confidence' => 'The learner wants to dare to speak. Create a warm, safe atmosphere with no judgment: short and easy questions first, real encouragement after each try, mistakes treated as normal. Make them speak as much as possible and gently longer each time. Correct only what helps most.',
     ],
 

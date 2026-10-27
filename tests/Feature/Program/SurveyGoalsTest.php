@@ -8,6 +8,7 @@ use App\Enums\Profile;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\Curriculum\Curriculum;
+use App\Support\Curriculum\LessonContext;
 use App\Support\Curriculum\ProgramBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -30,6 +31,7 @@ class SurveyGoalsTest extends TestCase
         'presentation' => 'Faire un exposé ou une soutenance en anglais',
         'clients' => 'Parler avec des clients ou partenaires',
         'confidence' => 'Avoir confiance et oser parler',
+        'media' => 'Comprendre les films, les séries et les chansons',
     ];
 
     private function subscriber(): User
@@ -153,5 +155,50 @@ class SurveyGoalsTest extends TestCase
             $this->assertStringNotContainsStringIgnoringCase($forbidden, $guide);
             $this->assertStringNotContainsStringIgnoringCase($forbidden, json_encode(config('teacher')));
         }
+    }
+
+    public function test_up_to_two_other_goals_are_recorded_and_shape_the_programme_and_the_lesson(): void
+    {
+        $user = $this->subscriber();
+
+        $page = $this->actingAs($user)->get(route('program.questionnaire', 1))->assertOk()
+            ->assertSeeText('Vous avez d\'autres raisons ? Ajoutez-en deux au plus (facultatif)')
+            ->assertSee('name="other_goals[]"', false);
+
+        // Trois autres objectifs : refusé ; l'objectif principal répété : refusé.
+        $this->post(route('program.questionnaire.store', 1), ['goal' => 'work', 'other_goals' => ['clients', 'media', 'travel']])->assertSessionHasErrors('other_goals');
+        $this->post(route('program.questionnaire.store', 1), ['goal' => 'work', 'other_goals' => ['work']])->assertSessionHasErrors('other_goals.0');
+
+        foreach ([
+            1 => ['goal' => 'work', 'other_goals' => ['clients', 'media']],
+            2 => ['occupation' => 'Comptable', 'interests' => ''],
+            3 => ['study_days' => [1, 3, 5]],
+            4 => ['difficulties' => ['speaking']],
+        ] as $step => $answers) {
+            $this->post(route('program.questionnaire.store', $step), $answers);
+        }
+
+        $program = $user->activeProgram()->sole();
+        $this->assertSame(Goal::Work, $program->goal);
+        $this->assertSame([Goal::Clients, Goal::Media], $program->otherGoals());
+
+        // Les autres objectifs comptent comme le métier (1 point), jamais avant l'objectif principal (2 points).
+        $unit = array_values(Curriculum::units(Level::A2))[0];
+        $order = ProgramBuilder::orderSituations($unit, Goal::Work, Goal::Clients->tags());
+        $this->assertCount(3, $order);
+
+        // Le professeur les connaît, et « Modifier mes objectifs » les reprend.
+        $this->assertStringContainsString('- Other goals (for examples and open questions when they fit): Parler avec des clients ou partenaires, Comprendre les films, les séries et les chansons', LessonContext::describe($user->fresh(), $program->fresh(), $program->currentLesson()->firstOrFail(), null, collect()));
+        $this->get(route('program.answers.edit', [$program, 1]))->assertOk()
+            ->assertSee('value="clients" checked', false);
+    }
+
+    public function test_programmes_without_other_goals_and_unknown_values_are_safe(): void
+    {
+        $user = $this->subscriber();
+        $program = $this->buildProgram($user, null, ['goal' => 'travel']);
+        $this->assertSame([], $program->fresh()->otherGoals());
+
+        $this->assertSame([Goal::Media], ProgramBuilder::otherGoals(['other_goals' => ['travel', 'inconnu', 'media', 'media']], Goal::Travel));
     }
 }

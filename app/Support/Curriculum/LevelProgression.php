@@ -53,6 +53,7 @@ class LevelProgression
                 // Le programme du niveau suivant reprend les réponses au questionnaire.
                 $this->builder->build($user, $next, [
                     'goal' => $program->goal->value,
+                    'other_goals' => array_map(fn ($goal) => $goal->value, $program->otherGoals()),
                     'profile' => $program->profile?->value,
                     'occupation' => $program->occupation,
                     'interests' => $program->interests,
