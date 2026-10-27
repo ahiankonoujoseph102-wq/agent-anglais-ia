@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<!-- EN LOCAL : affiche du « Club des membres fondateurs de Talkami » (rendue par club-fondateurs.mjs, Chromium).
+     Paramètre ?format=carre (1080 × 1080) ou ?format=vertical (1080 × 1920, haut et bas laissés libres). -->
+<style>
+@font-face { font-family: Sora; src: url('../../public/fonts/sora-2.000-latin.woff2') format('woff2'); font-weight: 100 800; }
+:root {
+    --navy: #0E2A5C; --navy-2: #163872; --orange: #FF7A1A; --bg: #F4F6FB; --ink: #0E2A5C; --muted: #4A5B7C;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; background: var(--bg); font-family: Sora, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+.poster { position: relative; width: 1080px; overflow: hidden; background: var(--bg); display: flex; flex-direction: column; }
+.carre .poster { height: 1080px; }
+.vertical .poster { height: 1920px; }
+
+/* En-tête bleu nuit */
+.head { position: relative; background: radial-gradient(120% 140% at 85% 0%, #1D4589 0%, var(--navy) 55%, #0A2049 100%); color: #fff; overflow: hidden; }
+.head::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--orange); }
+.head .glow { position: absolute; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle, rgba(255,122,26,.22), rgba(255,122,26,0) 65%); right: -140px; top: -160px; }
+.logo { display: block; height: 66px; }
+.kicker { display: inline-block; margin-top: 26px; padding: 8px 18px; border-radius: 999px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.28); font-size: 22px; font-weight: 600; letter-spacing: .02em; }
+h1 { font-weight: 800; line-height: 1.08; letter-spacing: -.01em; margin-top: 18px; }
+h1 .accent { color: var(--orange); }
+.sub { margin-top: 16px; font-size: 27px; line-height: 1.35; font-weight: 400; color: #DCE5F5; }
+.sub b { color: #fff; font-weight: 700; }
+.teacher { position: absolute; border-radius: 50%; overflow: hidden; border: 7px solid #fff; box-shadow: 0 0 0 7px var(--orange), 0 18px 40px rgba(0,0,0,.35); background: #F6D9B5; }
+.teacher img { width: 100%; height: 100%; object-fit: cover; transform-origin: 63% 6.6%; transform: scale(2.2); }
+.teacher-name { position: absolute; background: var(--orange); color: var(--navy); font-weight: 800; font-size: 20px; padding: 6px 16px; border-radius: 999px; white-space: nowrap; transform: translateX(-50%); box-shadow: 0 6px 14px rgba(0,0,0,.25); }
+
+/* Cartes des niveaux */
+.tiers { display: grid; grid-template-columns: 1fr 1fr; }
+.tier { position: relative; background: #fff; border-radius: 26px; box-shadow: 0 10px 28px rgba(14,42,92,.12); overflow: hidden; display: flex; flex-direction: column; }
+.tier::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 12px; background: var(--metal); }
+.tier-top { display: flex; align-items: center; gap: 16px; }
+.medal { flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--metal); box-shadow: inset 0 -5px 0 rgba(0,0,0,.18), inset 0 4px 0 rgba(255,255,255,.45); }
+.medal span { line-height: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
+.tier-name { font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--metal-ink); }
+.price { font-weight: 800; color: var(--navy); line-height: 1; white-space: nowrap; }
+.price small { font-size: .5em; font-weight: 700; margin-left: 6px; }
+.perks { list-style: none; }
+.perks li { position: relative; line-height: 1.28; color: var(--ink); }
+.perks li::before { content: ""; position: absolute; left: 0; border-radius: 50%; background: var(--orange); }
+.perks b { font-weight: 700; }
+.bronze { --metal: linear-gradient(135deg, #E3A574, #A8622F); --metal-ink: #8A4A1C; }
+.argent { --metal: linear-gradient(135deg, #EEF1F6, #9AA5B5); --metal-ink: #5B6678; }
+.or { --metal: linear-gradient(135deg, #FFE08A, #D29A12); --metal-ink: #8F6400; }
+.platine { --metal: linear-gradient(135deg, #E9F4FF, #8FB3D9 55%, #5E7FA8); --metal-ink: #3D5F8A; }
+.or, .platine { box-shadow: 0 0 0 3px var(--ring), 0 12px 30px rgba(14,42,92,.16); }
+.or { --ring: #E2B33B; }
+.platine { --ring: #8FB3D9; }
+
+.share { text-align: center; color: var(--navy); font-weight: 600; line-height: 1.35; }
+.share .ico { color: var(--orange); }
+
+/* Appel à l'action */
+.cta { background: var(--orange); color: var(--navy); border-radius: 28px; text-align: center; box-shadow: 0 14px 30px rgba(255,122,26,.35); }
+.cta .l1 { font-weight: 700; }
+.cta .l2 { font-weight: 800; letter-spacing: .01em; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 14px; }
+.wa { flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--navy); }
+.wa svg { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.site { text-align: center; font-weight: 800; color: var(--navy); }
+.site span { color: var(--orange); }
+.foot { text-align: center; color: var(--muted); font-weight: 400; }
+.foot b { color: var(--navy); font-weight: 700; }
+
+/* ---------- Carré 1080 × 1080 ---------- */
+.carre .head { min-height: 336px; padding: 40px 56px 34px; }
+.carre .logo { height: 54px; }
+.carre .kicker { display: none; }
+.carre h1 { font-size: 45px; max-width: 720px; margin-top: 22px; }
+.carre .sub { font-size: 23px; max-width: 720px; margin-top: 12px; }
+.carre .teacher { width: 206px; height: 206px; right: 60px; top: 50px; }
+.carre .teacher-name { left: calc(1080px - 60px - 103px); top: 244px; }
+.carre .tiers { gap: 18px; padding: 28px 46px 0; }
+.carre .tier { padding: 24px 22px 16px; }
+.carre .tier-top { gap: 14px; }
+.carre .medal { width: 56px; height: 56px; }
+.carre .medal span { font-size: 32px; }
+.carre .tier-name { font-size: 21px; }
+.carre .price { font-size: 38px; margin-top: 4px; }
+.carre .perks { margin-top: 10px; }
+.carre .perks li { font-size: 20px; padding-left: 20px; }
+.carre .perks li + li { margin-top: 4px; }
+.carre .perks li::before { width: 9px; height: 9px; top: 8px; }
+.carre .share { font-size: 20px; margin: 18px 50px 0; }
+.carre .cta { margin: 16px 46px 0; padding: 14px 20px; }
+.carre .cta .l1 { font-size: 20px; }
+.carre .cta .l2 { font-size: 36px; margin-top: 2px; }
+.carre .wa { width: 44px; height: 44px; }
+.carre .wa svg { width: 26px; height: 26px; }
+.carre .bottom { display: flex; justify-content: space-between; align-items: center; margin: 16px 52px 0; }
+.carre .site { font-size: 26px; }
+.carre .foot { font-size: 17px; }
+
+/* ---------- Vertical 1080 × 1920 : le haut (220 pixels) et le bas (280 pixels) restent libres ---------- */
+.vertical .poster { background: linear-gradient(180deg, var(--navy) 0, var(--navy) 300px, var(--bg) 300px); }
+.vertical .head { padding: 236px 90px 48px; }
+.vertical .head .glow { top: 120px; }
+.vertical .logo { height: 64px; }
+.vertical .kicker { display: none; }
+.vertical h1 { font-size: 58px; margin-top: 28px; max-width: 600px; }
+.vertical .sub { font-size: 28px; margin-top: 18px; max-width: 900px; }
+.vertical .teacher { width: 250px; height: 250px; right: 90px; top: 250px; }
+.vertical .teacher-name { left: calc(1080px - 90px - 125px); top: 478px; }
+.vertical .tiers { gap: 22px; padding: 30px 90px 0; }
+.vertical .tier { padding: 32px 26px 24px; }
+.vertical .medal { width: 64px; height: 64px; }
+.vertical .medal span { font-size: 36px; }
+.vertical .tier-name { font-size: 24px; }
+.vertical .price { font-size: 44px; margin-top: 6px; }
+.vertical .perks { margin-top: 14px; }
+.vertical .perks li { font-size: 23px; padding-left: 22px; }
+.vertical .perks li + li { margin-top: 7px; }
+.vertical .perks li::before { width: 10px; height: 10px; top: 10px; }
+.vertical .share { font-size: 25px; margin: 24px 100px 0; }
+.vertical .cta { margin: 22px 90px 0; padding: 18px 24px; }
+.vertical .cta .l1 { font-size: 24px; }
+.vertical .cta .l2 { font-size: 44px; margin-top: 4px; }
+.vertical .wa { width: 54px; height: 54px; }
+.vertical .wa svg { width: 32px; height: 32px; }
+.vertical .bottom { margin: 22px 90px 0; text-align: center; }
+.vertical .site { font-size: 34px; }
+.vertical .foot { font-size: 20px; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="poster">
+    <header class="head">
+        <div class="glow"></div>
+        <img class="logo" src="../../public/brand/logo-blanc.png" alt="Talkami">
+        <div class="kicker">Club des membres fondateurs</div>
+        <h1>Rejoignez le Club des membres fondateurs de <span class="accent">Talkami</span></h1>
+        <p class="sub">Soutenez le projet togolais qui fait parler anglais à <b>toute l'Afrique&nbsp;francophone</b></p>
+        <div class="teacher"><img src="../../public/images/teacher-joe.webp" alt="Teacher Joe"></div>
+        <div class="teacher-name">Teacher Joe</div>
+    </header>
+
+    <section class="tiers">
+        <article class="tier bronze">
+            <div class="tier-top"><div class="medal"><span>🥉</span></div><div><div class="tier-name">Bronze</div><div class="price">5 000<small>FCFA</small></div></div></div>
+            <ul class="perks">
+                <li><b>1 mois</b> d'abonnement Essentiel</li>
+                <li>Votre nom sur la page «&nbsp;Ils ont soutenu Talkami&nbsp;»</li>
+            </ul>
+        </article>
+        <article class="tier argent">
+            <div class="tier-top"><div class="medal"><span>🥈</span></div><div><div class="tier-name">Argent</div><div class="price">20 000<small>FCFA</small></div></div></div>
+            <ul class="perks">
+                <li><b>3 mois</b> d'abonnement Essentiel</li>
+                <li>Votre nom sur la page «&nbsp;Ils ont soutenu Talkami&nbsp;»</li>
+            </ul>
+        </article>
+        <article class="tier or">
+            <div class="tier-top"><div class="medal"><span>🥇</span></div><div><div class="tier-name">Or</div><div class="price">50 000<small>FCFA</small></div></div></div>
+            <ul class="perks">
+                <li><b>6 mois</b> d'abonnement Essentiel</li>
+                <li>Une formation de Lomé&nbsp;IA&nbsp;School</li>
+                <li>Votre nom mis en avant</li>
+            </ul>
+        </article>
+        <article class="tier platine">
+            <div class="tier-top"><div class="medal"><span>💎</span></div><div><div class="tier-name">Platine</div><div class="price">100 000<small>FCFA</small></div></div></div>
+            <ul class="perks">
+                <li><b>1 an</b> d'abonnement Essentiel</li>
+                <li>Une formation de Lomé&nbsp;IA&nbsp;School</li>
+                <li>Le logo de votre entreprise sur la page des partenaires</li>
+            </ul>
+        </article>
+    </section>
+
+    <p class="share"><span class="ico">♥</span> L'abonnement peut être utilisé par vous ou offert à un enfant, un proche ou un employé.</p>
+
+    <div class="cta">
+        <div class="l1">Rejoignez le Club sur WhatsApp</div>
+        <div class="l2"><span class="wa"><svg viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.2-4.2A8.5 8.5 0 1 1 20.5 12z"/><path d="M9 8.5c0 3.6 2.9 6.5 6.5 6.5l1-1.6-2-1-1 1a4 4 0 0 1-2.4-2.4l1-1-1-2z"/></svg></span>+228 72 24 02 31</div>
+    </div>
+
+    <div class="bottom">
+        <div class="site">talkami<span>.net</span></div>
+        <div class="foot">Fondé par <b>Joseph Ahiankonou</b> — Lomé&nbsp;IA&nbsp;School</div>
+    </div>
+</div>
+<script>
+    const format = new URLSearchParams(location.search).get('format') || 'carre';
+    document.documentElement.className = format;
+</script>
+</body>
+</html>
