@@ -122,6 +122,13 @@ return [
         // Source : ai.google.dev/gemini-api/docs/models (relevé d'octobre 2026).
         'text_model' => env('GEMINI_TEXT_MODEL', 'gemini-3.5-flash-lite'),
         'text_api_version' => env('GEMINI_TEXT_API_VERSION', 'v1beta'),
+        // Fenêtre de contexte de la séance du jour et de « Mes cours » (App\Support\Gemini\TeacherSetup::contextWindow) :
+        // audio gardé au plus, en jetons (environ 25 par seconde d'échange : 12 000 ≈ 8 minutes). 0 : aucune limite
+        // (seulement celle de Google). L'évaluation et le bilan de niveau gardent toujours tout.
+        'context_window' => [
+            'audio_tokens' => (int) env('GEMINI_CONTEXT_AUDIO_TOKENS', 12000),
+            'kinds' => ['lesson', 'course'],
+        ],
         // Tarifs payants de Gemini 3.8 Live en dollars US par million de jetons, pour estimer le coût dans
         // « Consommation » : audio 3 $ en entrée et 12 $ en sortie, texte 0,75 $ et 4,50 $ (réflexion comprise).
         // Les consignes sont du TEXTE, refacturé à chaque tour avec tout le contexte. Aucun tarif de cache n'est
