@@ -119,8 +119,8 @@ boardEl?.querySelector('[data-board-translations]')?.addEventListener('change', 
 });
 
 /**
- * Évaluation : après le verdict, le tableau de la mini-leçon découverte (quelques phrases de la première leçon du
- * niveau trouvé, envoyées par /resultat). Jamais avant le verdict : il trahirait le niveau. Même suivi que la séance
+ * Évaluation : après le verdict, le tableau de la mini-leçon (les vraies erreurs de l'apprenant et leur bonne forme,
+ * ou, en secours, quelques phrases de la première leçon du niveau trouvé ; envoyées par /resultat). Jamais avant le verdict : il trahirait le niveau. Même suivi que la séance
  * du jour (la phrase dite par le professeur s'allume), sans étapes.
  */
 function showDiscoveryBoard(discovery) {
@@ -145,7 +145,7 @@ function showDiscoveryBoard(discovery) {
     boardEl.innerHTML = '<summary class="board-head"><span class="board-label">Tableau</span>'
         + '<span class="board-phase" data-board-phase>Découverte</span><span class="board-now" data-board-now aria-live="polite"></span></summary>'
         + `<div class="board-body"><p class="board-title">${escapeHtml(discovery.title ?? '')}</p>`
-        + `<p class="board-heading">Votre première phrase</p><ul class="board-list">${items}</ul></div>`;
+        + `<p class="board-heading">${escapeHtml(discovery.heading ?? 'Votre première phrase')}</p><ul class="board-list">${items}</ul></div>`;
 
     board = { view: new BoardView(boardEl), tracker: null, nudged: false };
     board.tracker = new BoardTracker(board.view.items());
@@ -2101,7 +2101,8 @@ async function handleFunctionCall(call) {
                 : 'Say only "Goodbye!" if you have not said it yet. Nothing else.',
         };
     } else if (call.name === 'record_assessment_result' && mode === 'assessment') {
-        const result = await post(urls.result, { level: args.level, feedback: args.feedback });
+        // Mini-leçon personnelle : les vraies erreurs de l'apprenant, transmises avec le verdict (facultatif).
+        const result = await post(urls.result, { level: args.level, feedback: args.feedback, lesson: Array.isArray(args.lesson) ? args.lesson : [] });
 
         if (result.ok && result.data.too_early) {
             // Trop tôt : rien n'est enregistré, le professeur pose encore quelques questions (LiveEarlyEnd).
@@ -2113,7 +2114,7 @@ async function handleFunctionCall(call) {
             // Niveau enregistré tout de suite (serveur), mais montré (écran et vidéo) quand le professeur le dit.
             scheduleLevelReveal(result.data.level, () => {
                 showAssessmentResult(result.data.level, result.data.label, args.feedback);
-                // Mini-leçon découverte : son tableau (propre au niveau trouvé : montré avec lui).
+                // Mini-leçon : son tableau (erreurs de l'apprenant, ou phrase de secours ; montré avec le niveau).
                 showDiscoveryBoard(discovery);
             });
 

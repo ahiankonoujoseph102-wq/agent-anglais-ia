@@ -240,7 +240,7 @@ class AssessmentController extends Controller
             'level' => $assessment->level->value,
             'label' => $assessment->level->label(),
             'remaining_seconds' => $assessment->remainingSeconds(),
-        ] + self::ending($assessment) + self::discovery($assessment));
+        ] + self::ending($assessment) + self::discovery($assessment, $request->lesson()));
     }
 
     public function finish(SignalRequest $request): JsonResponse
@@ -287,16 +287,40 @@ class AssessmentController extends Controller
     }
 
     /**
-     * Mini-leçon découverte (seulement si la conversation continue après le verdict) : quelques phrases de la
-     * première leçon du niveau trouvé, montrées au tableau, et la suite donnée au professeur avec la phrase à
-     * enseigner (réponse de la fonction : aucun nouvel appel, mêmes consignes chez Gemini et chez OpenAI).
+     * Mini-leçon de fin (seulement si la conversation continue après le verdict), montrée au tableau, et la suite
+     * donnée au professeur (réponse de la fonction : aucun nouvel appel, mêmes consignes chez Gemini et chez OpenAI).
+     * PERSONNELLE : les une ou deux vraies erreurs de l'apprenant transmises avec le verdict (ou une tournure plus
+     * naturelle du niveau supérieur) ; en secours seulement, quelques phrases de la première leçon du niveau trouvé.
      *
+     * @param  list<array{said: string, correct: string, why: string}>  $lesson
      * @return array<string, mixed>
      */
-    private static function discovery(Assessment $assessment): array
+    private static function discovery(Assessment $assessment, array $lesson = []): array
     {
         if (! $assessment->inQuestions()) {
             return [];
+        }
+
+        if ($lesson !== []) {
+            $items = collect($lesson)->values()->map(fn (array $item, int $i) => '('.($i + 1).') '
+                .($item['said'] !== '' ? 'they said "'.$item['said'].'", right form "'.$item['correct'].'"' : 'a more natural phrase: "'.$item['correct'].'"')
+                .' (why: '.$item['why'].')')->implode(' ');
+
+            return [
+                'discovery' => [
+                    'title' => 'Votre leçon personnelle',
+                    'heading' => count($lesson) > 1 ? 'Vos deux points du jour' : 'Votre point du jour',
+                    'phrases' => array_map(fn (array $item) => [
+                        'en' => $item['correct'],
+                        'fr' => ($item['said'] !== '' ? 'Vous avez dit « '.$item['said'].' ». ' : '').$item['why'],
+                        'note' => null,
+                    ], $lesson),
+                ],
+                'next_step' => strtr((string) config('teacher.assessment_next_step'), [
+                    ':intro' => (string) config('platform.assessment.discovery_intro'),
+                    ':items' => $items,
+                ]),
+            ];
         }
 
         $board = LessonBoards::firstLesson($assessment->level);
@@ -312,8 +336,8 @@ class AssessmentController extends Controller
         $first = $phrases[0];
 
         return [
-            'discovery' => ['title' => $board['title'], 'phrases' => $phrases],
-            'next_step' => strtr((string) config('teacher.assessment_next_step'), [
+            'discovery' => ['title' => $board['title'], 'heading' => 'Votre première phrase', 'phrases' => $phrases],
+            'next_step' => strtr((string) config('teacher.assessment_next_step_phrase'), [
                 ':intro' => (string) config('platform.assessment.discovery_intro'),
                 ':phrase' => $first['en'],
                 ':meaning' => $first['fr'] ? ' (in French: "'.$first['fr'].'")' : '',
