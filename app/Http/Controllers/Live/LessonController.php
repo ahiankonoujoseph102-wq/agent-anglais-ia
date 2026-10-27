@@ -193,7 +193,7 @@ class LessonController extends Controller
     {
         $lesson = $this->latestLesson($request->user());
 
-        $lesson->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected());
+        $lesson->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails());
         $active = $lesson->closeIfOver();
 
         return response()->json([
@@ -228,7 +228,7 @@ class LessonController extends Controller
     {
         $lesson = $this->latestLesson($request->user());
 
-        $lesson->recordSignal($request->inputTokens(), $request->outputTokens());
+        $lesson->recordSignal($request->inputTokens(), $request->outputTokens(), null, $request->tokenDetails());
 
         if ($lesson->closeIfOver()) {
             $lesson->finish(now());

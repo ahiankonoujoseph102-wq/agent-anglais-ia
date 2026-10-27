@@ -257,7 +257,7 @@ export class OpenAiTransport {
                 this.responding = false;
 
                 if (response.usage) {
-                    h.onUsage?.(response.usage.input_tokens ?? 0, response.usage.output_tokens ?? 0);
+                    h.onUsage?.(response.usage.input_tokens ?? 0, response.usage.output_tokens ?? 0, response.usage);
                 }
 
                 // Réponse qui appelle une fonction : le professeur reprend la parole après le résultat ;

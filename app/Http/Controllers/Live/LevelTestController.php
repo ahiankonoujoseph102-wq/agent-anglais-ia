@@ -109,7 +109,7 @@ class LevelTestController extends Controller
     {
         $test = $this->latestTest($request->user());
 
-        $test->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected());
+        $test->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails());
         $active = $test->closeIfOver();
 
         return response()->json([
@@ -161,7 +161,7 @@ class LevelTestController extends Controller
     {
         $test = $this->latestTest($request->user());
 
-        $test->recordSignal($request->inputTokens(), $request->outputTokens());
+        $test->recordSignal($request->inputTokens(), $request->outputTokens(), null, $request->tokenDetails());
 
         if ($test->closeIfOver()) {
             $test->finish(now());

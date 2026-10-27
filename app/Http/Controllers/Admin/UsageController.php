@@ -105,13 +105,15 @@ class UsageController extends Controller
 
     /**
      * @param  Builder<Assessment>|Builder<CourseSession>|Builder<Lesson>|Builder<LevelTest>  $query
-     * @return array{count: int, seconds: int, input: int, output: int, cost: float}
+     * @return array{count: int, seconds: int, input: int, output: int, cost: float, turns: int, context_per_turn: int|null, text_share: int|null}
      */
     private function totals(Builder $query): array
     {
         $cost = LiveUsage::tokenCost(clone $query);
         $row = $query->toBase()
-            ->selectRaw('count(*) as aggregate_count, coalesce(sum(used_seconds), 0) as seconds, coalesce(sum(input_tokens), 0) as input, coalesce(sum(output_tokens), 0) as output')
+            ->selectRaw('count(*) as aggregate_count, coalesce(sum(used_seconds), 0) as seconds, coalesce(sum(input_tokens), 0) as input, coalesce(sum(output_tokens), 0) as output, '
+                .'coalesce(sum(turns), 0) as turns, coalesce(sum(case when turns > 0 then input_tokens else 0 end), 0) as measured_input, '
+                .'coalesce(sum(case when turns > 0 then input_text_tokens + coalesce(cached_text_tokens, 0) else 0 end), 0) as measured_text')
             ->first();
 
         return [
@@ -120,6 +122,10 @@ class UsageController extends Controller
             'input' => (int) $row->input,
             'output' => (int) $row->output,
             'cost' => $cost,
+            // Séances mesurées en détail (après la mise à jour) : contexte moyen relu à chaque tour, part des consignes.
+            'turns' => (int) $row->turns,
+            'context_per_turn' => (int) $row->turns > 0 ? intdiv((int) $row->measured_input, (int) $row->turns) : null,
+            'text_share' => (int) $row->measured_input > 0 ? (int) round(100 * (int) $row->measured_text / (int) $row->measured_input) : null,
         ];
     }
 }

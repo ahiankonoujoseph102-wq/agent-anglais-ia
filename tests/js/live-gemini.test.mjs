@@ -75,7 +75,7 @@ test('les messages de Google deviennent les événements communs de l\'écran', 
         ['onLearnerText', 'Hi', null],
         ['onTurnComplete'],
         ['onFunctionCall', { id: 'f1', name: 'end_lesson', args: { summary: 'Bien' } }],
-        ['onUsage', 10, 5],
+        ['onUsage', 10, 5, { promptTokenCount: 10, responseTokenCount: 5 }],
         ['onResumeHandle', 'h2'],
         ['onGoAway'],
     ]);
