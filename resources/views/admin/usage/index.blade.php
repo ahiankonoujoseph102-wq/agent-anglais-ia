@@ -8,11 +8,16 @@
 
     <h1>Consommation du professeur IA</h1>
     <p class="muted small">
-        Durée réelle et jetons rapportés par le fournisseur de chaque séance. Coût estimé au tarif de ce fournisseur,
-        par million de jetons : Gemini au tarif payant ({{ config('services.gemini.pricing.input_per_million') }} $ en entrée,
-        {{ config('services.gemini.pricing.output_per_million') }} $ en sortie ; nul tant que la formule gratuite de Google est utilisée),
-        OpenAI ({{ config('services.openai.realtime_pricing.input_per_million') }} $ en entrée,
-        {{ config('services.openai.realtime_pricing.output_per_million') }} $ en sortie, tarif audio publié).
+        Durée réelle et jetons rapportés par le fournisseur de chaque séance. À CHAQUE réponse de {{ config('avatar.model.name') }},
+        le fournisseur refacture tout le contexte : les consignes (du texte) et l'audio déjà échangé. Coût estimé au tarif de
+        chaque nature de jeton, par million : Gemini, texte {{ config('services.gemini.pricing.input_text_per_million') }} $ et
+        audio {{ config('services.gemini.pricing.input_per_million') }} $ en entrée, texte {{ config('services.gemini.pricing.output_text_per_million') }} $ et
+        audio {{ config('services.gemini.pricing.output_per_million') }} $ en sortie (tarif payant ; rien n'est facturé tant que
+        la formule gratuite de Google est utilisée) ; OpenAI, texte {{ config('services.openai.realtime_pricing.input_text_per_million') }} $,
+        audio {{ config('services.openai.realtime_pricing.input_per_million') }} $, déjà en cache {{ config('services.openai.realtime_pricing.cached_text_per_million') }} $
+        (texte) et {{ config('services.openai.realtime_pricing.cached_audio_per_million') }} $ (audio) en entrée,
+        texte {{ config('services.openai.realtime_pricing.output_text_per_million') }} $ et audio {{ config('services.openai.realtime_pricing.output_per_million') }} $ en sortie.
+        Les séances d'avant ce détail restent comptées au tarif audio : leur estimation est trop haute.
     </p>
 
     <div class="stats">
@@ -30,10 +35,54 @@
                     @if ($total['seconds'] >= 60)
                         ({{ UsageCost::format($cost / ($total['seconds'] / 60)) }} par minute)
                     @endif
+                    @if ($total['context_per_turn'] !== null)
+                        <br>{{ number_format($total['turns'], 0, ',', ' ') }} réponses mesurées ·
+                        {{ number_format($total['context_per_turn'], 0, ',', ' ') }} jetons relus par réponse en moyenne,
+                        dont {{ $total['text_share'] }} % de consignes en texte
+                    @endif
                 </div>
             </div>
         @endforeach
     </div>
+
+    {{-- Coût des abonnés (App\Support\Live\CostWatch) : séances depuis le début de la formule en cours, comparées au prix. --}}
+    <h2 class="next-step" id="cout-abonnes">Coût des abonnés (formule en cours)</h2>
+    <p class="muted small">
+        Séances du jour, « Mes cours » et bilans de niveau depuis le début de la formule, au tarif payant des fournisseurs, comparés
+        au prix de la formule ({{ \App\Support\Live\CostWatch::xofPerUsd() }} francs CFA pour un dollar). Seuil d'alerte :
+        {{ \App\Support\Live\CostWatch::percent() }} % du prix (<a href="{{ route('admin.settings.edit') }}#alerte-cout">Réglages</a>).
+        Accès offert : comparé au prix de la formule au catalogue.
+    </p>
+    @if ($costWatch->isEmpty())
+        <div class="card empty-state"><span class="icon-bubble"><x-icon name="chart" /></span><p>Aucune séance d'abonné pendant une formule en cours.</p></div>
+    @else
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Abonné</th>
+                    <th>Formule</th>
+                    <th>Coût estimé</th>
+                    <th>Part du prix</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($costWatch as $row)
+                    <tr data-cost-over="{{ $row['over'] ? 'oui' : 'non' }}">
+                        <td data-label="Abonné"><a href="{{ route('admin.users.show', $row['subscription']->user) }}">{{ $row['subscription']->user->name }}</a></td>
+                        <td data-label="Formule">{{ $row['subscription']->plan_name }} · {{ \App\Support\Money::format($row['revenue']) }}@if ($row['subscription']->isGranted()) <span class="muted small">(accès offert)</span>@endif</td>
+                        <td data-label="Coût estimé">{{ UsageCost::format($row['cost']) }}</td>
+                        <td data-label="Part du prix">
+                            @if ($row['over'])
+                                <span class="badge badge-alert">{{ $row['share'] }} %, au-dessus du seuil</span>
+                            @else
+                                {{ $row['share'] }} %
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 
     {{-- Démonstrations : conversations démarrées pendant un accès offert (jamais un revenu). --}}
     <h2 class="next-step">Pendant un accès offert (démonstrations)</h2>
@@ -298,8 +347,13 @@
                             </td>
                             <td data-label="Durée réelle">{{ Duration::formatPrecise($conversation->used_seconds) }} / {{ Duration::formatPrecise($conversation->allowed_seconds) }}</td>
                             <td data-label="Connexions">{{ $conversation->connections }}</td>
-                            <td data-label="Jetons">{{ number_format($conversation->input_tokens, 0, ',', ' ') }} / {{ number_format($conversation->output_tokens, 0, ',', ' ') }}</td>
-                            <td data-label="Coût estimé">{{ UsageCost::format(UsageCost::usd($conversation->input_tokens, $conversation->output_tokens, $conversation->liveProvider())) }}<br><span class="muted small">{{ \App\Support\Live\LiveProviders::label($conversation->liveProvider()) }}</span></td>
+                            <td data-label="Jetons">
+                                {{ number_format($conversation->input_tokens, 0, ',', ' ') }} / {{ number_format($conversation->output_tokens, 0, ',', ' ') }}
+                                @if ($conversation->turns > 0)
+                                    <br><span class="muted small">{{ $conversation->turns }} réponses · contexte le plus grand {{ number_format((int) $conversation->max_context_tokens, 0, ',', ' ') }} jetons</span>
+                                @endif
+                            </td>
+                            <td data-label="Coût estimé">{{ UsageCost::format(UsageCost::forConversation($conversation)) }}<br><span class="muted small">{{ \App\Support\Live\LiveProviders::label($conversation->liveProvider()) }}</span></td>
                         </tr>
                     @endforeach
                 </tbody>

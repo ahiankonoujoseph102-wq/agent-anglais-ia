@@ -19,10 +19,22 @@ class SiteGuide
         return resource_path('teacher/site-guide.md');
     }
 
-    public static function text(): string
+    /**
+     * Fiche du site, entière (null) ou réduite aux parties utiles à une conversation : chaque partie marquée
+     * « <!-- pour : assessment, lesson --> » n'est donnée qu'à ces conversations (assessment, lesson, course,
+     * level_test, trial). Les consignes sont refacturées à chaque réponse du professeur : une partie inutile à
+     * une conversation (le paiement pendant une séance d'abonné, par exemple) coûte à chaque tour.
+     */
+    public static function text(?string $kind = null): string
     {
+        $raw = (string) file_get_contents(self::path());
+
+        if ($kind !== null) {
+            $raw = self::forKind($raw, $kind);
+        }
+
         // Les commentaires HTML sont des notes pour la personne qui modifie la fiche.
-        $text = trim((string) preg_replace('/<!--.*?-->\s*/s', '', (string) file_get_contents(self::path())));
+        $text = trim((string) preg_replace('/<!--.*?-->\s*/s', '', $raw));
 
         return strtr($text, [
             ':platform' => (string) config('platform.name'),
@@ -42,6 +54,22 @@ class SiteGuide
             ':plans' => self::plans(),
             ':operators' => self::operators(),
         ]);
+    }
+
+    /**
+     * Garde les parties sans marque « pour » et celles qui citent cette conversation.
+     */
+    private static function forKind(string $raw, string $kind): string
+    {
+        $sections = preg_split('/^(?=## )/m', $raw) ?: [$raw];
+
+        return implode('', array_filter($sections, function (string $section) use ($kind): bool {
+            if (! preg_match('/<!--\s*pour\s*:\s*([^>]*?)\s*-->/u', $section, $match)) {
+                return true;
+            }
+
+            return in_array($kind, array_map('trim', explode(',', $match[1])), true);
+        }));
     }
 
     private static function plans(): string

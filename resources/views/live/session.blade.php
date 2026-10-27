@@ -43,6 +43,7 @@
          data-urls='@json($urls)'
          data-worklet="{{ \App\Support\Asset::url('js/pcm-capture-worklet.js') }}"
          data-mic-gate="{{ \App\Support\Asset::url('js/mic-gate.js') }}"
+         data-token-usage="{{ \App\Support\Asset::url('js/token-usage.js') }}"
          data-pcm-audio="{{ \App\Support\Asset::url('js/pcm-audio.js') }}"
          data-mic-input="{{ \App\Support\Asset::url('js/mic-input.js') }}"
          data-conversation-end="{{ \App\Support\Asset::url('js/conversation-end.js') }}"

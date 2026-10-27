@@ -191,7 +191,10 @@ trait IsLiveConversation
      * Enregistre un signal du navigateur : temps consommé et jetons utilisés.
      * Les jetons arrivés après la clôture sont tout de même comptés.
      */
-    public function recordSignal(int $inputTokens = 0, int $outputTokens = 0, ?bool $connected = null): void
+    /**
+     * @param  array<string, int>  $details  jetons par nature, tours et plus grand contexte (SignalRequest::tokenDetails)
+     */
+    public function recordSignal(int $inputTokens = 0, int $outputTokens = 0, ?bool $connected = null, array $details = []): void
     {
         if ($this->isInProgress()) {
             // Connexion avec le professeur perdue ou revenue (signal du navigateur), ou long silence du navigateur.
@@ -207,7 +210,24 @@ trait IsLiveConversation
 
         $this->input_tokens += $inputTokens;
         $this->output_tokens += $outputTokens;
+        $this->addTokenDetails($details);
         $this->save();
+    }
+
+    /**
+     * Ajoute le détail des jetons (texte, audio, cache), le nombre de tours et le plus grand contexte d'un tour.
+     *
+     * @param  array<string, int>  $details
+     */
+    private function addTokenDetails(array $details): void
+    {
+        foreach ($details as $field => $value) {
+            match ($field) {
+                'max_context_tokens' => $this->max_context_tokens = max((int) $this->max_context_tokens, $value),
+                'turns' => $this->turns = (int) $this->turns + $value,
+                default => $this->{$field} = (int) $this->{$field} + $value,
+            };
+        }
     }
 
     /**

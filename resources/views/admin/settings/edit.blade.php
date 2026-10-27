@@ -96,6 +96,26 @@
                      :placeholder="$fields['contact.address']['default']" :hint="$defaultHint('contact.address', 'Aucune valeur par défaut.')" />
         </section>
 
+        <section class="card" id="alerte-cout">
+            <h2>Alerte de coût par abonné</h2>
+            <p class="muted small">
+                Quand les séances d'un abonné ont déjà coûté plus que ce pourcentage du prix de sa formule (estimation au tarif
+                payant des fournisseurs), il apparaît dans « Consommation » et vous êtes prévenu une fois.
+            </p>
+            <x-input name="cost_alert[percent]" label="Seuil, en pour cent du prix de la formule" type="number" inputmode="numeric"
+                     :value="old('cost_alert.percent', $fields['cost_alert.percent']['saved'])" :placeholder="$fields['cost_alert.percent']['default']"
+                     :hint="$defaultHint('cost_alert.percent', 'Aucune valeur par défaut.')" />
+            @error('cost_alert.percent')
+                <div class="error field">{{ $message }}</div>
+            @enderror
+            <x-input name="cost_alert[xof_per_usd]" label="Francs CFA pour un dollar US" type="number" inputmode="numeric"
+                     :value="old('cost_alert.xof_per_usd', $fields['cost_alert.xof_per_usd']['saved'])" :placeholder="$fields['cost_alert.xof_per_usd']['default']"
+                     :hint="'Pour comparer le coût (en dollars) au prix (en francs CFA). '.$defaultHint('cost_alert.xof_per_usd', 'Aucune valeur par défaut.')" />
+            @error('cost_alert.xof_per_usd')
+                <div class="error field">{{ $message }}</div>
+            @enderror
+        </section>
+
         <button type="submit" class="btn btn-accent btn-block btn-lg">Enregistrer les réglages</button>
     </form>
 </x-layout>

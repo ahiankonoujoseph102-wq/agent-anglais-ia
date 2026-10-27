@@ -27,6 +27,8 @@
 const root = document.getElementById('live');
 // Porte du micro (URL versionnée par la page, comme les autres fichiers).
 const { MicGate, voiceEndsAt, voiceLooksOver } = await import(root.dataset.micGate);
+// Jetons consommés, répartis par nature (texte, audio, cache), pour une estimation juste du coût.
+const { TokenTally, geminiUsage, openAiUsage } = await import(root.dataset.tokenUsage);
 // Lecture propre de la voix (décodage, programmation bout à bout, rééchantillonnage continu).
 const { VOICE_RATE, decodePcm16, StreamResampler, VoiceScheduler, fadeIn } = await import(root.dataset.pcmAudio);
 // Micro : liste « Micro utilisé », témoin de niveau, alerte de silence.
@@ -487,7 +489,7 @@ const state = {
     resumeHandle: null,
     deadline: 0,
     warningSent: false,
-    tokens: { input: 0, output: 0 },
+    tokens: new TokenTally(),
     timers: [],
     audio: null,
     teacherLine: null,
@@ -557,10 +559,7 @@ async function post(url, body = {}) {
 }
 
 function takeTokens() {
-    const tokens = { input_tokens: state.tokens.input, output_tokens: state.tokens.output };
-    state.tokens = { input: 0, output: 0 };
-
-    return tokens;
+    return state.tokens.take();
 }
 
 /**
@@ -605,8 +604,7 @@ async function heartbeat() {
 
     if (!result.ok) {
         // Le signal sera renvoyé avec les jetons (et les sous-titres) au prochain passage.
-        state.tokens.input += tokens.input_tokens;
-        state.tokens.output += tokens.output_tokens;
+        state.tokens.restore(tokens);
         state.transcript = (transcript.transcript ?? '') + state.transcript;
 
         return;
@@ -1868,9 +1866,10 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             }
         },
 
-        onUsage(input, output) {
-            state.tokens.input += input;
-            state.tokens.output += output;
+        onUsage(input, output, report) {
+            state.tokens.add(report
+                ? (transport.provider === 'openai' ? openAiUsage(report) : geminiUsage(report))
+                : { input, output });
         },
 
         onResumeHandle(handle) {
@@ -2540,9 +2539,7 @@ window.addEventListener('pagehide', () => {
     if (state.config && !state.ending) {
         const form = new FormData();
         form.append('_token', csrf);
-        const tokens = takeTokens();
-        form.append('input_tokens', tokens.input_tokens);
-        form.append('output_tokens', tokens.output_tokens);
+        Object.entries(takeTokens()).forEach(([name, value]) => form.append(name, value));
 
         const { transcript } = takeTranscript();
 

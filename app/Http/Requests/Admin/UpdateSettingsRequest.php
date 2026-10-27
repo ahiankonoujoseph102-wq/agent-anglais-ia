@@ -5,7 +5,7 @@ namespace App\Http\Requests\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Réglages de l'administration : numéros Mobile Money et coordonnées du centre.
+ * Réglages de l'administration : numéros Mobile Money, coordonnées du centre et seuil de l'alerte de coût.
  */
 class UpdateSettingsRequest extends FormRequest
 {
@@ -21,6 +21,9 @@ class UpdateSettingsRequest extends FormRequest
             'contact.phones' => ['nullable', 'string', 'max:300'],
             'contact.email' => ['nullable', 'email', 'max:150'],
             'contact.whatsapp' => ['nullable', 'string', 'max:25', self::PHONE],
+            // Alerte de coût par abonné : pourcentage du prix de la formule, francs CFA pour un dollar US.
+            'cost_alert.percent' => ['nullable', 'integer', 'min:1', 'max:1000'],
+            'cost_alert.xof_per_usd' => ['nullable', 'integer', 'min:100', 'max:5000'],
         ];
 
         foreach (config('payment.countries') as $code => $country) {
@@ -54,6 +57,8 @@ class UpdateSettingsRequest extends FormRequest
             'contact.whatsapp.regex' => 'Le numéro WhatsApp n\'est pas valide. Exemple : +228 90 00 00 00.',
             'operators.*.*.number.regex' => 'Ce numéro n\'est pas valide. Exemple : +228 90 00 00 00.',
             'contact.email.email' => 'L\'adresse e-mail n\'est pas valide.',
+            'cost_alert.percent.*' => 'Indiquez un pourcentage entier entre 1 et 1 000.',
+            'cost_alert.xof_per_usd.*' => 'Indiquez un nombre entier de francs CFA entre 100 et 5 000.',
         ];
     }
 }

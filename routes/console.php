@@ -41,6 +41,9 @@ Schedule::command('transcripts:purge')->dailyAt('03:10')->withoutOverlapping()->
 // Alerte de l'administrateur : un accès provisoire se termine dans moins de deux heures sans validation (une seule par paiement).
 Schedule::command('payments:alert-expiring')->everyTenMinutes()->withoutOverlapping()->onOneServer();
 
+// Coût des abonnés : une alerte quand les séances d'un abonné dépassent le seuil des « Réglages » (une par formule).
+Schedule::command('usage:alert-costs')->hourly()->withoutOverlapping()->onOneServer();
+
 // Documents de révision des séances « Mes cours » : quelques séances par passage, jamais deux passages en même temps
 // (verrou libéré au plus tard après 10 minutes si un passage s'arrête brutalement).
 Schedule::command('courses:prepare-reviews')->everyMinute()->withoutOverlapping(10)->onOneServer();

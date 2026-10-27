@@ -23,6 +23,7 @@ class AdminAlert extends Model
         'payment_captured' => 'Capture de paiement envoyée',
         'payment_expiring' => 'Accès provisoire bientôt terminé',
         'whatsapp_click' => 'Paiement demandé sur WhatsApp',
+        'cost_high' => 'Coût élevé d\'un abonné',
         'test' => 'Alerte d\'essai',
     ];
 

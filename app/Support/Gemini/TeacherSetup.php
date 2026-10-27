@@ -135,6 +135,7 @@ class TeacherSetup
             ]],
             $resumeHandle,
             self::paceLevel('lesson', $user),
+            'lesson',
         );
     }
 
@@ -157,6 +158,7 @@ class TeacherSetup
             [],
             $resumeHandle,
             self::paceLevel('course', $user),
+            'course',
         );
     }
 
@@ -305,7 +307,7 @@ class TeacherSetup
         // Ajoutés APRÈS le remplacement des marqueurs : le nom de l'apprenant n'est jamais relu comme un marqueur.
         return implode("\n\n", [
             $text,
-            "SITE GUIDE (in French)\n".SiteGuide::text(),
+            "SITE GUIDE (in French)\n".SiteGuide::text($kind),
             "LEARNER STATUS (in French)\n".LearnerSituation::describe($user, $kind),
         ]);
     }
@@ -314,7 +316,7 @@ class TeacherSetup
      * @param  array<int, array<string, mixed>>  $functions
      * @return array<string, mixed>
      */
-    private static function setup(string $instructions, array $functions, ?string $resumeHandle, string $paceLevel = 'unknown'): array
+    private static function setup(string $instructions, array $functions, ?string $resumeHandle, string $paceLevel = 'unknown', ?string $kind = null): array
     {
         // Pas de fonction d'expression (set_expression) : les appels de fonction de l'API Live sont
         // synchrones, le modèle s'arrête puis reprend la parole et répète sa dernière phrase. Les
@@ -339,11 +341,39 @@ class TeacherSetup
             // Sous-titres : transcription de ce que dit l'apprenant et le professeur.
             'inputAudioTranscription' => (object) [],
             'outputAudioTranscription' => (object) [],
-            // Au-delà d'environ 15 min d'audio, la fenêtre de contexte doit glisser.
-            'contextWindowCompression' => ['slidingWindow' => (object) []],
+            // Au-delà d'environ 15 min d'audio, la fenêtre de contexte doit glisser ; pour la séance du jour et
+            // « Mes cours », elle glisse plus tôt (contextWindow), car tout le contexte est refacturé à chaque réponse.
+            'contextWindowCompression' => self::contextWindow($instructions, $kind),
             // Permet de reprendre la conversation sur une nouvelle connexion.
             'sessionResumption' => filled($resumeHandle) ? ['handle' => $resumeHandle] : (object) [],
         ], fn ($value) => $value !== null);
+    }
+
+    /**
+     * Fenêtre de contexte : Gemini Live refacture à CHAQUE réponse tout le contexte (consignes + audio déjà échangé,
+     * environ 25 jetons par seconde de conversation). Pour la séance du jour et « Mes cours », l'audio gardé est borné
+     * (services.gemini.context_window.audio_tokens, environ 8 minutes d'échange) : au-delà, les plus anciens échanges
+     * glissent hors du contexte, les consignes (leçon du jour, tableau, erreurs à revoir) restent toujours. L'évaluation
+     * et le bilan de niveau gardent tout : leur verdict dépend de toute la conversation.
+     *
+     * @return array<string, mixed>
+     */
+    public static function contextWindow(string $instructions, ?string $kind): array
+    {
+        $audio = (int) config('services.gemini.context_window.audio_tokens', 0);
+
+        if ($audio <= 0 || ! in_array($kind, (array) config('services.gemini.context_window.kinds', []), true)) {
+            return ['slidingWindow' => (object) []];
+        }
+
+        // Estimation large des consignes (3 caractères par jeton) : la fenêtre n'est jamais plus petite que prévu.
+        $instructionTokens = (int) ceil(mb_strlen($instructions) / 3);
+        $trigger = min(128_000, max(5_000, $instructionTokens + $audio));
+
+        return [
+            'triggerTokens' => $trigger,
+            'slidingWindow' => ['targetTokens' => max(2_500, $trigger - intdiv($audio, 2))],
+        ];
     }
 
     /**

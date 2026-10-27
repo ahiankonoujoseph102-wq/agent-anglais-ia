@@ -54,6 +54,14 @@ return [
     | Évaluation orale gratuite
     |--------------------------------------------------------------------------
     */
+    // Alerte de coût par abonné (« Consommation », alerte à l'administrateur, App\Support\Live\CostWatch) : quand
+    // le coût estimé des séances d'un abonné, depuis le début de sa formule, dépasse ce pourcentage du prix de la
+    // formule. Taux de change pour comparer le coût (dollars US) au prix (francs CFA). Réglables dans « Réglages ».
+    'cost_alert' => [
+        'percent' => 50,
+        'xof_per_usd' => 600,
+    ],
+
     'assessment' => [
         // Durée maximale de l'évaluation, en minutes (une seule par compte).
         'max_minutes' => 5,

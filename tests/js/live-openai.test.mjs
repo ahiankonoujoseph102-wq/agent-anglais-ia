@@ -217,7 +217,7 @@ test('les événements d\'OpenAI deviennent ceux de l\'écran (sous-titres, voix
         ['onTeacherText', 'Great '],
         ['onTeacherText', 'answer!'],
         ['onLearnerText', 'I live in Kara.', 'item_1'],
-        ['onUsage', 120, 80],
+        ['onUsage', 120, 80, { input_tokens: 120, output_tokens: 80 }],
         ['onTurnComplete'],
     ], 'la transcription complète n\'est pas ajoutée une seconde fois');
     assert.equal(transport.speaking, false);

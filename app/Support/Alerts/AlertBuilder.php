@@ -3,7 +3,9 @@
 namespace App\Support\Alerts;
 
 use App\Models\Payment;
+use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Live\CostWatch;
 use App\Support\Money;
 use Illuminate\Support\Carbon;
 
@@ -92,6 +94,35 @@ final class AlertBuilder
                 ['Heure', self::now()],
             ],
             tag: 'whatsapp-'.$user->id,
+        );
+    }
+
+    /**
+     * Les séances d'un abonné ont déjà coûté plus que le seuil des « Réglages » (part du prix de sa formule).
+     *
+     * @param  array{subscription: Subscription, cost: float, revenue: int, threshold: float, share: int, over: bool}  $row
+     */
+    public static function costly(array $row): AlertMessage
+    {
+        $subscription = $row['subscription'];
+        $subscription->loadMissing('user');
+        $cost = number_format($row['cost'], 2, ',', ' ').' $';
+
+        return new AlertMessage(
+            kind: 'cost_high',
+            title: 'Coût élevé : '.$row['share'].' % du prix',
+            body: self::shortName($subscription->user).' · '.$subscription->plan_name.' : environ '.$cost.' de séances depuis le début de sa formule.',
+            url: route('admin.usage.index').'#cout-abonnes',
+            buttonLabel: 'Voir la consommation',
+            details: [
+                ['Apprenant', self::fullName($subscription->user)],
+                ['Formule', $subscription->plan_name.($subscription->isGranted() ? ' (accès offert)' : '')],
+                ['Prix de la formule', Money::format($row['revenue'])],
+                ['Coût estimé des séances', $cost.' (tarif payant des fournisseurs)'],
+                ['Part du prix', $row['share'].' % (seuil : '.CostWatch::percent().' %)'],
+                ['Heure', self::now()],
+            ],
+            tag: 'cout-'.$subscription->id,
         );
     }
 

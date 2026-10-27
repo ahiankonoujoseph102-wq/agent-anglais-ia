@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * Consommation des séances en direct par fournisseur : nombre de séances, minutes réelles et coût estimé
  * (live.gemini_cost_per_minute : 0 en mode gratuit ; openai.realtime_cost_per_minute). Coût d'après les jetons
- * (totaux, par apprenant) : chaque séance au tarif de SON fournisseur (UsageCost::usd).
+ * (totaux, par apprenant) : chaque séance au tarif de SON fournisseur et de chaque nature de jeton (UsageCost::fromSums).
  */
 final class LiveUsage
 {
@@ -116,11 +116,11 @@ final class LiveUsage
     public static function tokenCost(Builder $query): float
     {
         $rows = $query->toBase()
-            ->selectRaw('live_provider, coalesce(sum(input_tokens), 0) as input, coalesce(sum(output_tokens), 0) as output')
+            ->selectRaw('live_provider, '.UsageCost::sumsSql())
             ->groupBy('live_provider')
             ->get();
 
-        return (float) $rows->sum(fn (object $row) => UsageCost::usd((int) $row->input, (int) $row->output, (string) $row->live_provider));
+        return (float) $rows->sum(fn (object $row) => UsageCost::fromSums($row, (string) $row->live_provider));
     }
 
     /**
@@ -147,12 +147,12 @@ final class LiveUsage
             foreach ($queries as $query) {
                 $rows = $query->toBase()
                     ->whereIn('user_id', $userIds)
-                    ->selectRaw('user_id, live_provider, coalesce(sum(input_tokens), 0) as input, coalesce(sum(output_tokens), 0) as output')
+                    ->selectRaw('user_id, live_provider, '.UsageCost::sumsSql())
                     ->groupBy('user_id', 'live_provider')
                     ->get();
 
                 foreach ($rows as $row) {
-                    $costs[(int) $row->user_id][$column] += UsageCost::usd((int) $row->input, (int) $row->output, (string) $row->live_provider);
+                    $costs[(int) $row->user_id][$column] += UsageCost::fromSums($row, (string) $row->live_provider);
                 }
             }
         }

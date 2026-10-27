@@ -113,9 +113,11 @@ export class GeminiTransport {
         }
 
         if (message.usageMetadata) {
+            // Le rapport complet suit : l'écran en tire le détail texte / audio (token-usage.js).
             h.onUsage?.(
                 message.usageMetadata.promptTokenCount ?? 0,
                 message.usageMetadata.responseTokenCount ?? message.usageMetadata.candidatesTokenCount ?? 0,
+                message.usageMetadata,
             );
         }
 

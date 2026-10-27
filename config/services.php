@@ -122,12 +122,25 @@ return [
         // Source : ai.google.dev/gemini-api/docs/models (relevé d'octobre 2026).
         'text_model' => env('GEMINI_TEXT_MODEL', 'gemini-3.5-flash-lite'),
         'text_api_version' => env('GEMINI_TEXT_API_VERSION', 'v1beta'),
-        // Tarifs payants en dollars US par million de jetons, pour estimer le coût
-        // dans l'espace administrateur (tarif « audio », le plus cher).
-        // Source : ai.google.dev/gemini-api/docs/pricing (relevé d'octobre 2026).
+        // Fenêtre de contexte de la séance du jour et de « Mes cours » (App\Support\Gemini\TeacherSetup::contextWindow) :
+        // audio gardé au plus, en jetons (environ 25 par seconde d'échange : 12 000 ≈ 8 minutes). 0 : aucune limite
+        // (seulement celle de Google). L'évaluation et le bilan de niveau gardent toujours tout.
+        'context_window' => [
+            'audio_tokens' => (int) env('GEMINI_CONTEXT_AUDIO_TOKENS', 12000),
+            'kinds' => ['lesson', 'course'],
+        ],
+        // Tarifs payants de Gemini 3.8 Live en dollars US par million de jetons, pour estimer le coût dans
+        // « Consommation » : audio 3 $ en entrée et 12 $ en sortie, texte 0,75 $ et 4,50 $ (réflexion comprise).
+        // Les consignes sont du TEXTE, refacturé à chaque tour avec tout le contexte. Aucun tarif de cache n'est
+        // publié pour l'API Live : le cache, s'il apparaît, est compté au plein tarif (prudent).
+        // Source : ai.google.dev/gemini-api/docs/pricing (relevé du 27 octobre 2026).
         'pricing' => [
             'input_per_million' => (float) env('GEMINI_PRICE_INPUT', 3.00),
             'output_per_million' => (float) env('GEMINI_PRICE_OUTPUT', 12.00),
+            'input_text_per_million' => (float) env('GEMINI_PRICE_INPUT_TEXT', 0.75),
+            'output_text_per_million' => (float) env('GEMINI_PRICE_OUTPUT_TEXT', 4.50),
+            'cached_text_per_million' => (float) env('GEMINI_PRICE_CACHED_TEXT', 0.75),
+            'cached_audio_per_million' => (float) env('GEMINI_PRICE_CACHED_AUDIO', 3.00),
         ],
     ],
 
@@ -240,13 +253,17 @@ return [
         // Environ 0,04 $ par minute de séance avec gpt-realtime-2.1-mini (audio 10 $ / 20 $ le million de
         // jetons, contexte relu en cache, transcription comprise) : estimation pour « Consommation ».
         'realtime_cost_per_minute' => (float) env('OPENAI_REALTIME_COST_PER_MINUTE', 0.04),
-        // Tarif par million de jetons (audio) de gpt-realtime-2.1-mini, pour le coût par apprenant et par séance
-        // de « Consommation » (developers.openai.com/api/docs/models/gpt-realtime-2.1-mini, relevé du 18 octobre
-        // 2026 : audio 10 $ en entrée, 20 $ en sortie ; texte 0,60 $ / 2,40 $). Les jetons rapportés mêlant audio
-        // et texte, le tarif audio donne une estimation prudente (un peu haute).
+        // Tarif par million de jetons de gpt-realtime-2.1-mini, pour le coût par apprenant et par séance de
+        // « Consommation » : audio 10 $ en entrée, 20 $ en sortie ; texte 0,60 $ et 2,40 $ ; ce qui est déjà en
+        // cache (le contexte relu à chaque tour) : texte 0,06 $, audio 0,30 $
+        // (developers.openai.com/api/docs/pricing, relevé du 27 octobre 2026).
         'realtime_pricing' => [
             'input_per_million' => (float) env('OPENAI_REALTIME_INPUT_PRICE', 10.00),
             'output_per_million' => (float) env('OPENAI_REALTIME_OUTPUT_PRICE', 20.00),
+            'input_text_per_million' => (float) env('OPENAI_REALTIME_INPUT_TEXT_PRICE', 0.60),
+            'output_text_per_million' => (float) env('OPENAI_REALTIME_OUTPUT_TEXT_PRICE', 2.40),
+            'cached_text_per_million' => (float) env('OPENAI_REALTIME_CACHED_TEXT_PRICE', 0.06),
+            'cached_audio_per_million' => (float) env('OPENAI_REALTIME_CACHED_AUDIO_PRICE', 0.30),
         ],
     ],
 
