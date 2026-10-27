@@ -17,7 +17,7 @@ final class SessionRecording
             && in_array($mode, (array) config('platform.recording.modes', []), true);
     }
 
-    /** Mention en bas de la vidéo : le nom de domaine de APP_URL (« talkami.laravel.cloud »). */
+    /** Mention en bas de la vidéo : le nom de domaine de APP_URL (« talkami.net »). */
     public static function mention(): string
     {
         return (string) (parse_url(Seo::base(), PHP_URL_HOST) ?: '');

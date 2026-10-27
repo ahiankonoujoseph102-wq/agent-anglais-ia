@@ -15,7 +15,7 @@ class VideoSettings
 
     public const VOICE = 'videos.voice';
 
-    /** Adresse du site des vidéos (« talkami.laravel.cloud »), ou null : la fabrication est alors bloquée. */
+    /** Adresse du site des vidéos (« talkami.net »), ou null : la fabrication est alors bloquée. */
     public static function site(): ?string
     {
         return self::read(self::SITE);

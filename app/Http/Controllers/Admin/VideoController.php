@@ -71,7 +71,7 @@ class VideoController extends Controller
 
         if ($value !== '' && $site === null) {
             return redirect()->to(route('admin.videos.index').'#reglages-videos')
-                ->withErrors(['site' => 'Cette adresse n\'est pas valable. Exemple : talkami.laravel.cloud'])->withInput();
+                ->withErrors(['site' => 'Cette adresse n\'est pas valable. Exemple : talkami.net'])->withInput();
         }
 
         VideoSettings::saveSite($site);

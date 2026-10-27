@@ -56,13 +56,14 @@ return [
     'force_https' => (bool) env('APP_FORCE_HTTPS', env('APP_ENV', 'production') === 'production'),
 
     /*
-    | Changement de domaine : anciennes adresses (sans « https:// », séparées par des virgules,
-    | par exemple « talkami.laravel.cloud ») redirigées en 301 vers APP_URL, même chemin
-    | (App\Http\Middleware\RedirectToPrimaryDomain). Vide : aucune redirection.
+    | Changement de domaine : anciennes adresses (sans « https:// », séparées par des virgules)
+    | redirigées en 301 vers APP_URL, même chemin (App\Http\Middleware\RedirectToPrimaryDomain).
+    | Par défaut, l'ancienne adresse de Laravel Cloud : rien ne se passe tant que APP_URL est
+    | elle-même cette adresse. REDIRECT_FROM_HOSTS= (vide) coupe toute redirection.
     */
     'redirect_from_hosts' => array_values(array_filter(array_map(
         fn (string $host) => strtolower(trim($host)),
-        explode(',', (string) env('REDIRECT_FROM_HOSTS', '')),
+        explode(',', (string) env('REDIRECT_FROM_HOSTS', 'talkami.laravel.cloud')),
     ))),
 
     /*
