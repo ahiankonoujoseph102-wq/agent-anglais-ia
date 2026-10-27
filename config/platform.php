@@ -153,7 +153,7 @@ return [
     */
     'privacy' => [
         'controller' => 'Joseph Ahiankonou',
-        'email' => 'ahiankonoujoseph102@gmail.com',
+        'email' => 'contact@talkami.net',
         'phone' => '+228 72 24 02 31',
     ],
 
@@ -459,7 +459,7 @@ return [
         'address' => 'Adidogomé, Lycée moderne 2, Lomé, Togo',
         'hours' => 'Du lundi au samedi, de 8 heures à 20 heures',
         'phones' => ['+228 72 24 02 31', '+228 79 74 21 27', '+228 79 16 23 90'],
-        'email' => 'ahiankonoujoseph102@gmail.com',
+        'email' => 'contact@talkami.net',
         'whatsapp' => '+228 72 24 02 31',
         // Lien d'invitation du GROUPE WhatsApp (https://chat.whatsapp.com/…), À COMPLÉTER quand il existe.
         // Vide : le bouton WhatsApp de la page 404 ouvre une conversation avec le numéro ci-dessus.

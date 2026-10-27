@@ -35,7 +35,7 @@ class PrivacyTest extends TestCase
             ->assertSeeText('Seul l\'administrateur de Talkami')
             ->assertSeeText('Pour les parents des élèves mineurs')
             ->assertSeeText('Joseph Ahiankonou')
-            ->assertSee('mailto:ahiankonoujoseph102@gmail.com', false)
+            ->assertSee('mailto:contact@talkami.net', false)
             ->assertSee('tel:+22872240231', false)
             ->assertSeeText('+228 72 24 02 31');
     }
