@@ -48,6 +48,8 @@
 - PR 2 fusionnée (#110).
 - PR 3 (pédagogie, prospects, banc d'essai, Confidentialité) sur la branche ; CLAUDE.md à jour.
 
+- PR 3 : vérification GitHub verte (27 octobre 2026), fusion en cours.
+
 ## Prochaine étape exacte
 
-Ouvrir la PR 3, vérification GitHub verte, fusionner. Puis le rapport final en français (coût et marge : `docs/cout-et-marge.md` ; erreurs et exemples avant/après : constats ci-dessus, exemples INVENTÉS ; gestes : variables Laravel Cloud, `php artisan migrate` par le déploiement, `php artisan teacher:rehearse --compare` dans « Commands », vérifier le palier Google dans AI Studio).
+Travail terminé après la fusion de la PR 3 (#111). Il reste seulement les gestes du propriétaire (voir le rapport final) : vérifier le palier Google dans AI Studio ; après le déploiement, lancer `php artisan teacher:rehearse --compare` dans « Commands » ; régler le seuil d'alerte de coût dans « Réglages » si besoin ; surveiller « Consommation » une à deux semaines ; essayer éventuellement `LIVE_PROVIDERS=openai,gemini` ; si une séance Gemini échoue au démarrage, vider `GEMINI_TRANSCRIPTION_LANGUAGES`.
