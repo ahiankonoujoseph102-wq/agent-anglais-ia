@@ -39,6 +39,26 @@
             <p class="muted small">« WhatsApp » et « TikTok » comptent aussi les liens partagés avec utm_source (bouton « Partager mon niveau », liens de vos bios). Beaucoup d'applications n'indiquent pas d'où vient le visiteur : il est alors compté en « Accès direct ou inconnu ».</p>
         </section>
 
+        @if ($stats['distributors']->isNotEmpty())
+            <section class="section-tight" aria-labelledby="par-distributeur">
+                <h2 id="par-distributeur">Prospectus, par distributeur</h2>
+                <table class="table">
+                    <thead><tr><th>Distributeur</th><th>Inscrits</th><th>Évaluation passée</th><th>Abonnés</th></tr></thead>
+                    <tbody>
+                        @foreach ($stats['distributors'] as $row)
+                            <tr>
+                                <td data-label="Distributeur">{{ $row->campaign ?? 'Prospectus commun (sans nom)' }}</td>
+                                <td data-label="Inscrits">{{ $row->registered }}</td>
+                                <td data-label="Évaluation passée">{{ $row->assessed }} ({{ $rate((int) $row->assessed, (int) $row->registered) }})</td>
+                                <td data-label="Abonnés">{{ $row->subscribed }} ({{ $rate((int) $row->subscribed, (int) $row->registered) }})</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                <p class="muted small">D'après le code QR scanné : utm_source=prospectus, et utm_campaign = le prénom du distributeur.</p>
+            </section>
+        @endif
+
         <section class="section-tight" aria-labelledby="par-page">
             <h2 id="par-page">Par page d'arrivée</h2>
             <table class="table">

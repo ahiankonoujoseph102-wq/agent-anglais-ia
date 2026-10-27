@@ -35,6 +35,7 @@ final class Origins
         'youtube' => 'YouTube',
         'linkedin' => 'LinkedIn',
         'x' => 'X (Twitter)',
+        'prospectus' => 'Prospectus (papier)',
         'other' => 'Autre site',
         'direct' => 'Accès direct ou inconnu',
     ];
@@ -50,6 +51,8 @@ final class Origins
         'youtube' => ['youtube', 'youtu.be'],
         'linkedin' => ['linkedin', 'lnkd.in'],
         'x' => ['twitter', 't.co', 'x.com'],
+        // Code QR des prospectus distribués dans la rue (utm_source=prospectus, utm_campaign = prénom du distributeur).
+        'prospectus' => ['prospectus', 'flyer'],
     ];
 
     /** Routes qui ne sont pas des pages vues (fichiers, robots, vidéos). */
@@ -130,7 +133,7 @@ final class Origins
      * Chiffres de l'administration depuis une date (null : depuis toujours), d'après les inscrits qui ont une
      * provenance : par canal, par page d'arrivée, et les dernières inscriptions.
      *
-     * @return array{total: int, channels: Collection<int, object>, pages: Collection<int, object>, recent: Collection<int, UserOrigin>}
+     * @return array{total: int, channels: Collection<int, object>, pages: Collection<int, object>, distributors: Collection<int, object>, recent: Collection<int, UserOrigin>}
      */
     public static function stats(?CarbonInterface $since): array
     {
@@ -154,6 +157,10 @@ final class Origins
             ->sortBy(fn ($row) => array_search($row->channel, array_keys(self::CHANNELS), true))->values();
         $pages = $base()->selectRaw('user_origins.landing_path AS path, '.$counts)->groupBy('user_origins.landing_path')
             ->orderByDesc('registered')->limit(20)->get();
+        // Prospectus : un code QR par distributeur (utm_campaign), « sans nom » pour le prospectus commun.
+        $distributors = $base()->where('user_origins.channel', 'prospectus')
+            ->selectRaw('user_origins.utm_campaign AS campaign, '.$counts)->groupBy('user_origins.utm_campaign')
+            ->orderByDesc('registered')->get();
 
         $recent = UserOrigin::query()
             ->with(['user' => fn ($query) => $query->withExists([
@@ -163,7 +170,7 @@ final class Origins
             ->when($since, fn ($query) => $query->where('created_at', '>=', $since))
             ->latest()->limit(20)->get();
 
-        return ['total' => (int) $channels->sum('registered'), 'channels' => $channels, 'pages' => $pages, 'recent' => $recent];
+        return ['total' => (int) $channels->sum('registered'), 'channels' => $channels, 'pages' => $pages, 'distributors' => $distributors, 'recent' => $recent];
     }
 
     /** Nom de domaine du site d'origine (sans « www. »), ou de l'application Android ; null pour le site lui-même. */

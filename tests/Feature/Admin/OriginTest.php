@@ -126,6 +126,36 @@ class OriginTest extends TestCase
         $this->get('/admin/provenance?jours=tout')->assertSeeText('Par canal (3 inscrits)');
     }
 
+    public function test_a_flyer_qr_code_is_counted_as_prospectus_by_distributor(): void
+    {
+        $this->get('/?utm_source=prospectus&utm_campaign=Afi')->assertOk();
+        $origin = $this->register()->origin;
+        $this->assertSame(['prospectus', 'afi'], [$origin->channel, $origin->utm_campaign]);
+
+        Origins::record(User::factory()->create(), ['path' => '/', 'utm_source' => 'prospectus', 'utm_campaign' => 'afi']);
+        Origins::record(User::factory()->create(), ['path' => '/', 'utm_source' => 'prospectus']);
+        Origins::record(User::factory()->create(), ['path' => '/', 'utm_source' => 'whatsapp', 'utm_campaign' => 'niveau']);
+
+        $html = html_entity_decode($this->actingAs(User::factory()->admin()->create())->get('/admin/provenance')->assertOk()
+            ->assertSeeText('Prospectus (papier)')
+            ->assertSeeText('Prospectus, par distributeur')
+            ->getContent());
+
+        $this->assertMatchesRegularExpression('/Prospectus \(papier\)<\/td>\s*<td[^>]*>3<\/td>/u', $html);
+        $this->assertMatchesRegularExpression('/>afi<\/td>\s*<td[^>]*>2<\/td>/u', $html);
+        $this->assertMatchesRegularExpression('/Prospectus commun \(sans nom\)<\/td>\s*<td[^>]*>1<\/td>/u', $html);
+        // Une campagne d'un autre canal n'est jamais comptée comme distributeur.
+        $this->assertDoesNotMatchRegularExpression('/>niveau<\/td>/u', $html);
+    }
+
+    public function test_without_any_flyer_the_distributor_table_is_hidden(): void
+    {
+        Origins::record(User::factory()->create(), ['path' => '/', 'referrer' => 'google.com']);
+
+        $this->actingAs(User::factory()->admin()->create())->get('/admin/provenance')->assertOk()
+            ->assertDontSeeText('Prospectus, par distributeur');
+    }
+
     public function test_only_admins_see_the_page(): void
     {
         $this->actingAs(User::factory()->create())->get('/admin/provenance')->assertForbidden();
