@@ -314,3 +314,21 @@ Aucun nouvel appel de fonction : tout passe par les consignes (identiques chez G
 
 - **a) Plusieurs objectifs** : **on garde en partie.** Les bons centres font une analyse des besoins qui en relève plusieurs, mais classent : avec 15 minutes par jour, une séance ne peut pas tout viser. On garde UN objectif principal (il ordonne le programme et décide du mode entretien) et on ajoute jusqu'à DEUX autres objectifs, facultatifs, qui donnent un petit bonus aux situations et que Teacher Joe peut utiliser pour ses exemples. Nouvel objectif « Comprendre les films, les séries et les chansons », absent jusqu'ici.
 - **b) Moins répéter, plus parler, correction expliquée** : **on garde**, adapté au niveau. C'est ce que font les centres et les meilleurs tuteurs (questions ouvertes, élève qui parle la majorité du temps, correction différée pendant la parole libre, puis expliquée). Mais un vrai débutant (A1) ne peut pas parler librement sans avoir reçu de mots : il garde plus de pratique guidée, avec des questions ouvertes très simples dès le début. Répartition de la séance : A1 et A2 passent de 40/25/30 à 30/25/40 (leçon, pratique, conversation) ; B1 passe de 30/25/45 à 25/20/50 ; B2 à C2 inchangé.
+
+## 10. Évaluation gratuite : mêmes questions et même mini-leçon pour tout le monde (fin octobre 2026)
+
+### 10.1 Constat
+
+Signalé par le fondateur : pendant l'évaluation, Teacher Joe pose les mêmes questions à tout le monde, et la petite leçon de la fin est la même pour tout le monde.
+
+L'export anonymisé des conversations n'était pas disponible dans la session de travail (il n'est jamais dans le dépôt). La vérification a donc été faite dans le code et les consignes, qui suffisent à l'expliquer :
+
+- **Mini-leçon de la fin : identique, par construction.** Le serveur (`AssessmentController::discovery`) envoyait toujours la phrase la plus courte de l'unité 1, leçon 1 du niveau trouvé (`LessonBoards::firstLesson`). Tous les apprenants d'un même niveau recevaient donc exactement la même phrase, quoi qu'ils aient dit. Ce n'était pas un défaut du modèle : c'était la règle.
+- **Questions : presque identiques, par les exemples.** Les consignes donnaient la première question mot pour mot (« What is your name? ») et une liste fixe de sujets (« name, city, family, work », puis « daily life and past events », puis « opinions »). Un modèle de conversation recopie volontiers ces exemples : tout le monde avait les mêmes questions, dans le même ordre.
+- **Corrections pendant l'évaluation** : une correction après chaque réponse (« You said … We say … ») cassait le rythme et ne servait à rien ensuite : les erreurs relevées n'étaient pas réutilisées dans la mini-leçon.
+
+### 10.2 Décisions
+
+- **Même structure pour tout le monde, questions adaptatives** (comme les tests adaptatifs officiels) : trois paliers communs (personnel et simple ; vie quotidienne et passé ; opinions et hypothèses), pour que le niveau reste juste et comparable ; mais chaque question est inventée à partir de ce que la personne vient de dire, de son prénom, de son travail ou de ses études et de sa raison d'apprendre l'anglais (demandée tôt : à l'évaluation, le questionnaire des objectifs n'a pas encore été rempli). Réussite : la question suivante est plus difficile ; difficulté : plus facile. Plus aucune question donnée mot pour mot ni de liste fixe.
+- **Corrections différées** : pendant les questions, aucune correction (sauf ce qui empêche de comprendre) ; Teacher Joe retient les erreurs les plus utiles.
+- **Mini-leçon personnelle** : au moment du verdict, Teacher Joe transmet une ou deux erreurs vraiment faites (ce qui a été dit, la bonne forme, pourquoi) dans la fonction de résultat déjà existante (nouveau champ facultatif `lesson`, aucune nouvelle fonction) ; le tableau « Découverte » les affiche. Il explique en français simple (ce qu'elle a dit, la bonne forme, pourquoi, quand l'utiliser, un exemple tiré de sa vie), la fait réutiliser une fois dans une phrase à elle, puis termine par un encouragement sincère sur ce qu'elle a bien fait. Presque aucune erreur : une tournure plus naturelle du niveau supérieur. Sans rien de transmis : l'ancienne phrase de la première leçon, en secours.
