@@ -15,6 +15,7 @@ use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LevelMessage;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\LivePage;
 use App\Support\Plan;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
@@ -184,6 +185,10 @@ class AssessmentController extends Controller
     {
         $assessment = $this->current($request);
 
+        if ($refusal = LivePage::refusal($assessment)) {
+            return $refusal;
+        }
+
         $assessment->appendTranscript($request->transcript());
         $assessment->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails());
         $active = $assessment->closeIfOver();
@@ -200,6 +205,10 @@ class AssessmentController extends Controller
     public function result(AssessmentResultRequest $request): JsonResponse
     {
         $assessment = $this->current($request);
+
+        if ($refusal = LivePage::refusal($assessment)) {
+            return $refusal;
+        }
 
         // Un seul résultat, pendant l'évaluation ou juste après sa coupure.
         $tooLate = ! $assessment->isInProgress()
@@ -230,6 +239,10 @@ class AssessmentController extends Controller
     public function finish(SignalRequest $request): JsonResponse
     {
         $assessment = $this->current($request);
+
+        if ($refusal = LivePage::refusal($assessment)) {
+            return $refusal;
+        }
 
         $assessment->appendTranscript($request->transcript());
         $assessment->recordSignal($request->inputTokens(), $request->outputTokens(), null, $request->tokenDetails());

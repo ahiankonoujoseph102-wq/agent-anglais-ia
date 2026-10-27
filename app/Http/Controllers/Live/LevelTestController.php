@@ -15,6 +15,7 @@ use App\Support\Curriculum\LevelProgression;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\LivePage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -109,6 +110,10 @@ class LevelTestController extends Controller
     {
         $test = $this->latestTest($request->user());
 
+        if ($refusal = LivePage::refusal($test)) {
+            return $refusal;
+        }
+
         $test->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails());
         $active = $test->closeIfOver();
 
@@ -124,6 +129,10 @@ class LevelTestController extends Controller
     public function result(LevelTestResultRequest $request, LevelProgression $progression): JsonResponse
     {
         $test = $this->latestTest($request->user());
+
+        if ($refusal = LivePage::refusal($test)) {
+            return $refusal;
+        }
 
         $tooLate = ! $test->isInProgress()
             && ($test->ended_at === null || $test->ended_at->lt(now()->subMinutes(2)));
@@ -160,6 +169,10 @@ class LevelTestController extends Controller
     public function finish(SignalRequest $request): JsonResponse
     {
         $test = $this->latestTest($request->user());
+
+        if ($refusal = LivePage::refusal($test)) {
+            return $refusal;
+        }
 
         $test->recordSignal($request->inputTokens(), $request->outputTokens(), null, $request->tokenDetails());
 

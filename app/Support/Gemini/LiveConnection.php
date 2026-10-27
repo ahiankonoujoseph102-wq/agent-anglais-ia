@@ -7,6 +7,7 @@ use App\Models\CourseSession;
 use App\Models\Lesson;
 use App\Models\LevelTest;
 use App\Support\Live\LiveLog;
+use App\Support\Live\LivePage;
 use App\Support\Live\LiveProviders;
 use App\Support\Live\LiveUnavailable;
 use App\Support\Live\OpenAiRealtime;
@@ -151,6 +152,8 @@ class LiveConnection
         $conversation->connections++;
         $conversation->last_seen_at = now();
         $conversation->save();
+        // Cette page devient celle de la séance : une autre page encore ouverte s'arrêtera d'elle-même.
+        LivePage::claim($conversation);
 
         $connection = $provider === LiveProviders::OPENAI
             ? [

@@ -329,9 +329,16 @@ return [
             'cut' => ':rule Vérifiez votre connexion internet, puis touchez « Reprendre la séance ».',
             'cut_again' => ':rule Touchez « Reprendre la séance » pour réessayer, ou relancez la séance un peu plus tard.',
             'unavailable' => ':teacher n\'est pas joignable pour le moment. Réessayez dans quelques minutes, ou écrivez-nous sur WhatsApp.',
+            // La même séance ouverte sur une autre page (App\Support\Live\LivePage) : cette page s'arrête.
+            'superseded' => 'Cette séance est maintenant ouverte sur un autre écran ou dans un autre onglet : elle continue là-bas.',
         ],
         // OpenAI : voix annoncée mais plus rien d'audible depuis ce temps (fin de voix perdue) : micro rouvert.
         'voice_stuck_seconds' => 4,
+        // Gemini : réponse pas encore finie mais plus de son reçu (trou du réseau) : le micro reste fermé au plus ce
+        // temps (sans cela, l'écho de la suite de sa phrase partait vers Gemini : phrase coupée ou réponse à lui-même).
+        'voice_gap_hold_seconds' => 3,
+        // Accueil ou reprise demandés : micro fermé jusqu'à la première parole du professeur, au plus ce temps.
+        'greeting_wait_seconds' => 5,
     ],
 
     /*

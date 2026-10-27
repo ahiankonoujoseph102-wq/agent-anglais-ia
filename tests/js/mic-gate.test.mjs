@@ -87,3 +87,17 @@ test('aucun audioStreamEnd si rien n\'a été envoyé (début, nouvelle connexio
     gate.reset();
     assert.equal(gate.decide(6.1, SILENT, true), 'hold');
 });
+
+test('Gemini : la porte reste fermée pendant un trou du son tant que la réponse n\'est pas finie', async () => {
+    const { heldVoiceEnd } = await import('../../public/js/mic-gate.js');
+
+    // Son reçu épuisé à 10 s, réponse pas finie, dernier morceau à 9,5 s : voix tenue pour en cours.
+    assert.ok(heldVoiceEnd({ scheduledEnd: 10, now: 10.6, pending: true, lastChunkAt: 9.5, hold: 3 }) > 10.6);
+    // Réponse finie (turnComplete) : la fin programmée compte.
+    assert.equal(heldVoiceEnd({ scheduledEnd: 10, now: 10.6, pending: false, lastChunkAt: 9.5, hold: 3 }), 10);
+    // Plus aucun son depuis plus de 3 secondes : sécurité, la porte se rouvre.
+    assert.equal(heldVoiceEnd({ scheduledEnd: 10, now: 13, pending: true, lastChunkAt: 9.5, hold: 3 }), 10);
+    // Accueil demandé, pas encore de voix : fermée jusqu'au premier son ou jusqu'à la limite.
+    assert.ok(heldVoiceEnd({ scheduledEnd: 0, now: 1, expectingUntil: 5 }) > 1);
+    assert.equal(heldVoiceEnd({ scheduledEnd: 0, now: 6, expectingUntil: 5 }), 0);
+});

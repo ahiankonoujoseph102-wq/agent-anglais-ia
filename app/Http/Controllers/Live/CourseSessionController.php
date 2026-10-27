@@ -14,6 +14,7 @@ use App\Support\Duration;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\LivePage;
 use App\Support\Live\WorkingTogether;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -99,6 +100,10 @@ class CourseSessionController extends Controller
     {
         $session = $this->latestSession($request->user());
 
+        if ($refusal = LivePage::refusal($session)) {
+            return $refusal;
+        }
+
         $session->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails());
         $active = $session->closeIfOver();
 
@@ -111,6 +116,10 @@ class CourseSessionController extends Controller
     public function finish(SignalRequest $request): JsonResponse
     {
         $session = $this->latestSession($request->user());
+
+        if ($refusal = LivePage::refusal($session)) {
+            return $refusal;
+        }
 
         $session->recordSignal($request->inputTokens(), $request->outputTokens(), null, $request->tokenDetails());
 

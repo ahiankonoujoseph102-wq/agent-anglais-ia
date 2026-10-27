@@ -26,7 +26,7 @@
 
 const root = document.getElementById('live');
 // Porte du micro (URL versionnée par la page, comme les autres fichiers).
-const { MicGate, voiceEndsAt, voiceLooksOver } = await import(root.dataset.micGate);
+const { MicGate, voiceEndsAt, voiceLooksOver, heldVoiceEnd } = await import(root.dataset.micGate);
 // Jetons consommés, répartis par nature (texte, audio, cache), pour une estimation juste du coût.
 const { TokenTally, geminiUsage, openAiUsage } = await import(root.dataset.tokenUsage);
 // Lecture propre de la voix (décodage, programmation bout à bout, rééchantillonnage continu).
@@ -464,7 +464,13 @@ const MESSAGES = {
     slow: WAIT.slow,
     stuck: WAIT.stuck,
     nudged: WAIT.nudged,
+    superseded: WAIT.superseded,
 };
+
+// Identifiant de CETTE page de séance : la dernière page connectée est celle de la séance (App\Support\Live\LivePage).
+// Une autre page encore ouverte (autre onglet, autre téléphone) s'arrête : deux Teacher Joe ne se parlent plus.
+const PAGE_ID = globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+const pages = 'BroadcastChannel' in globalThis ? new BroadcastChannel('talkami-live') : null;
 
 const state = {
     // Évaluation : niveau reçu, en attente d'être montré quand le professeur le dit (scheduleLevelReveal).
@@ -490,6 +496,10 @@ const state = {
     deadline: 0,
     warningSent: false,
     tokens: new TokenTally(),
+    // Gemini : réponse en cours (jusqu'à turnComplete), heure du dernier morceau de voix, accueil attendu.
+    voicePending: false,
+    lastChunkAt: 0,
+    expectingVoiceUntil: 0,
     timers: [],
     audio: null,
     teacherLine: null,
@@ -546,11 +556,16 @@ async function post(url, body = {}) {
     try {
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Live-Page': PAGE_ID },
             credentials: 'same-origin',
             body: JSON.stringify(body),
         });
         const data = await response.json().catch(() => ({}));
+
+        // La séance continue sur une autre page : celle-ci s'arrête, sans clore la séance.
+        if (response.status === 409 && data.superseded) {
+            superseded();
+        }
 
         return { ok: response.ok, status: response.status, data };
     } catch {
@@ -1203,7 +1218,15 @@ function voiceEnd() {
         return voiceEndsAt(Math.max(state.transport.stoppedAt + STREAM_TAIL, state.lastAudibleAt), OUTPUT_DELAY, latency);
     }
 
-    return voiceEndsAt(scheduler.endTime, OUTPUT_DELAY, latency);
+    // Gemini : réponse pas encore finie ou accueil attendu, la porte du micro reste fermée (mic-gate.js).
+    return heldVoiceEnd({
+        scheduledEnd: voiceEndsAt(scheduler.endTime, OUTPUT_DELAY, latency),
+        now: context.currentTime,
+        pending: state.voicePending,
+        lastChunkAt: state.lastChunkAt,
+        hold: audioConfig.voice_gap_hold_seconds ?? 3,
+        expectingUntil: state.expectingVoiceUntil,
+    });
 }
 
 /**
@@ -1284,6 +1307,10 @@ function playAudio(base64) {
     state.awaitingSince = 0;
     state.learnerHeardAt = 0;
     const { context, voice, sources, scheduler, resampler } = state.audio;
+    // Réponse en cours : la porte du micro reste fermée jusqu'à sa fin, même si le son reçu s'épuise un instant.
+    state.voicePending = true;
+    state.lastChunkAt = context.currentTime;
+    state.expectingVoiceUntil = 0;
     const continuing = context.currentTime < scheduler.endTime + 0.5;
     let samples = decodePcm16(atob(base64));
 
@@ -1574,6 +1601,8 @@ async function connect({ planned = false, failed = null } = {}) {
     const switched = isResume && state.config?.provider !== undefined && result.data.provider !== state.config.provider;
     state.config = result.data;
     document.getElementById('whatsapp-help')?.setAttribute('hidden', '');
+    // Les autres onglets de ce navigateur qui ont une séance ouverte s'arrêtent tout de suite.
+    pages?.postMessage({ claim: PAGE_ID });
 
     if (switched) {
         state.resumeHandle = null;
@@ -1690,6 +1719,10 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             // de la pause suffira (inutile de faire parler le professeur).
             if (!planned && !(isResume && state.paused)) {
                 cue(isResume ? resumeCue('resume') : state.config.cues.start);
+                // Accueil ou reprise demandés : micro fermé jusqu'à sa première parole (un bruit l'interrompait).
+                if (state.audio) {
+                    state.expectingVoiceUntil = state.audio.context.currentTime + (audioConfig.greeting_wait_seconds ?? 5);
+                }
             }
 
             if (!isResume && !planned) {
@@ -1835,6 +1868,7 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
 
         onInterrupted() {
             if (current()) {
+                state.voicePending = false;
                 teacherResponseOver();
                 stopPlayback();
                 state.generating = false;
@@ -1849,6 +1883,7 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             }
 
             state.end.turnComplete(clock());
+            state.voicePending = false;
             state.cues.reset();
             state.teacherLine = null;
             teacherResponseOver();
@@ -2361,6 +2396,9 @@ function setPressed(button, pressed) {
  */
 function silenceTeacher() {
     stopPlayback();
+    // L'apprenant a choisi d'interrompre (ou la pause) : le micro n'attend plus la fin de la réponse.
+    state.voicePending = false;
+    state.expectingVoiceUntil = 0;
     // OpenAI : réponse annulée et voix pas encore jouée effacée (Gemini : la fin est simplement ignorée).
     state.transport?.cancel();
 
@@ -2425,6 +2463,27 @@ function toggleMute() {
 
     renderTurn();
 }
+
+/**
+ * La séance est maintenant ouverte sur une autre page : celle-ci se tait et s'arrête, sans rien envoyer au serveur
+ * (la séance n'est pas close : elle continue là-bas).
+ */
+function superseded() {
+    if (state.ending || !state.config) {
+        return;
+    }
+
+    logEvent('provider_error', 'séance ouverte sur une autre page');
+    state.config = null;
+    finish('superseded', MESSAGES.superseded);
+}
+
+pages?.addEventListener('message', (event) => {
+    // Autre onglet de ce navigateur qui commence une séance : celle-ci s'arrête tout de suite.
+    if (event.data?.claim && event.data.claim !== PAGE_ID) {
+        superseded();
+    }
+});
 
 function fail(message) {
     finish('error');
@@ -2539,6 +2598,7 @@ window.addEventListener('pagehide', () => {
     if (state.config && !state.ending) {
         const form = new FormData();
         form.append('_token', csrf);
+        form.append('page_id', PAGE_ID);
         Object.entries(takeTokens()).forEach(([name, value]) => form.append(name, value));
 
         const { transcript } = takeTranscript();
@@ -2556,6 +2616,7 @@ window.addEventListener('pagehide', () => {
         if (lines.length > 0 || events.length > 0) {
             const text = new FormData();
             text.append('_token', csrf);
+            text.append('page_id', PAGE_ID);
             TranscriptRecorder.formFields(lines, events).forEach(([name, value]) => text.append(name, value));
             navigator.sendBeacon(state.config.transcript_url, text);
         }

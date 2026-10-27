@@ -21,6 +21,7 @@ use App\Support\DailyTime;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\LivePage;
 use App\Support\Live\WorkingTogether;
 use App\Support\Text\TextProviders;
 use Illuminate\Http\JsonResponse;
@@ -193,6 +194,10 @@ class LessonController extends Controller
     {
         $lesson = $this->latestLesson($request->user());
 
+        if ($refusal = LivePage::refusal($lesson)) {
+            return $refusal;
+        }
+
         $lesson->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails());
         $active = $lesson->closeIfOver();
 
@@ -208,6 +213,10 @@ class LessonController extends Controller
     public function report(LessonReportRequest $request): JsonResponse
     {
         $lesson = $this->latestLesson($request->user());
+
+        if ($refusal = LivePage::refusal($lesson)) {
+            return $refusal;
+        }
 
         // Un seul bilan par séance, envoyé pendant la séance ou juste après sa fin.
         if ($lesson->reported_at !== null || ($lesson->ended_at !== null && $lesson->ended_at->lt(now()->subMinutes(5)))) {
@@ -227,6 +236,10 @@ class LessonController extends Controller
     public function finish(SignalRequest $request): JsonResponse
     {
         $lesson = $this->latestLesson($request->user());
+
+        if ($refusal = LivePage::refusal($lesson)) {
+            return $refusal;
+        }
 
         $lesson->recordSignal($request->inputTokens(), $request->outputTokens(), null, $request->tokenDetails());
 

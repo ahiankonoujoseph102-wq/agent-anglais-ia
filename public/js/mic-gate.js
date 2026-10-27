@@ -16,6 +16,29 @@ export function voiceEndsAt(playHead, outputDelay, outputLatency = 0) {
     return playHead + outputDelay + (outputLatency || 0);
 }
 
+/**
+ * Fin de la voix chez Gemini, où le son passe par nos tampons. Le son reçu peut s'épuiser au milieu d'une réponse
+ * (Gemini produit la voix à peu près au rythme de la lecture : un trou du réseau d'une demi-seconde suffit) : la
+ * porte du micro se rouvrait alors, l'écho de la suite de la réponse partait vers Gemini, qui coupait sa propre
+ * phrase ou se répondait à lui-même. Tant que la réponse n'est pas finie (turnComplete), la voix est tenue pour
+ * en cours, au plus « hold » secondes sans nouveau son (sécurité si la fin de réponse se perd). Juste après la
+ * demande d'accueil, la porte reste aussi fermée jusqu'au premier son (au plus jusqu'à « expectingUntil ») : un
+ * bruit pendant ce temps interrompait l'accueil.
+ *
+ * @param {number} scheduledEnd   fin programmée du dernier tampon (voiceEndsAt)
+ * @param {boolean} pending       réponse commencée et pas encore finie
+ * @param {number} lastChunkAt    heure du dernier morceau de voix reçu
+ */
+export function heldVoiceEnd({ scheduledEnd, now, pending = false, lastChunkAt = 0, hold = 3, expectingUntil = 0 }) {
+    let end = scheduledEnd;
+
+    if ((pending && now - lastChunkAt < hold) || now < expectingUntil) {
+        end = Math.max(end, now + 0.05);
+    }
+
+    return end;
+}
+
 export class MicGate {
     /**
      * @param {number} guard           silence gardé après la voix, en secondes (0,4)
