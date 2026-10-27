@@ -80,11 +80,12 @@ final class Seo
     }
 
     /**
-     * Données structurées « Organization » : nom, adresse du site, logo, coordonnées publiques du centre.
+     * Données structurées « Organization » : nom, adresse du site, logo, coordonnées publiques du centre ;
+     * avec $withProfiles, les comptes publics de la plateforme (sameAs).
      *
      * @return array<string, mixed>
      */
-    public static function organization(): array
+    public static function organization(bool $withProfiles = false): array
     {
         $contact = SiteSettings::contact();
         $countries = array_keys((array) config('payment.countries'));
@@ -100,6 +101,9 @@ final class Seo
             'email' => $contact['email'] ?: null,
             'address' => $contact['address'] ?: null,
             'founder' => array_filter(['@type' => 'Person', '@id' => self::url('a-propos').'#fondateur', 'name' => config('platform.founder.name')]),
+            // Comptes publics (TikTok, chaîne WhatsApp) : seulement sur les pages qui les affichent (« À propos »),
+            // jamais sur l'accueil, qui ne les montre pas (contact.social_routes).
+            'sameAs' => $withProfiles ? (self::profiles() ?: null) : null,
             'contactPoint' => array_filter([
                 '@type' => 'ContactPoint',
                 'contactType' => 'customer service',
@@ -108,6 +112,19 @@ final class Seo
                 'areaServed' => $countries ?: null,
             ]) ?: null,
         ]);
+    }
+
+    /**
+     * Adresses des comptes publics de la plateforme (config/platform.php → contact) ; vides : absentes.
+     *
+     * @return list<string>
+     */
+    public static function profiles(): array
+    {
+        return array_values(array_filter([
+            (string) config('platform.contact.tiktok'),
+            (string) config('platform.contact.whatsapp_channel'),
+        ]));
     }
 
     /**
@@ -141,7 +158,7 @@ final class Seo
             '@type' => 'Person',
             '@id' => self::url('a-propos').'#fondateur',
             'name' => $founder['name'] ?? null,
-            'jobTitle' => $founder['role'] ?? null,
+            'jobTitle' => isset($founder['role']) ? $founder['role'].' de '.config('platform.name') : null,
             'url' => self::url('a-propos'),
             'worksFor' => ['@type' => 'Organization', '@id' => self::url().'#organisation', 'name' => config('platform.name'), 'url' => self::url()],
             'address' => ['@type' => 'PostalAddress', 'addressLocality' => $founder['city'] ?? null, 'addressCountry' => $founder['country_code'] ?? null],

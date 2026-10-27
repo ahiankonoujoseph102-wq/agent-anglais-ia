@@ -18,6 +18,7 @@ final readonly class CountryPage
         public string $slug,
         public string $code,
         public string $name,
+        public string $in,
         public string $title,
         public string $description,
         public string $heading,
@@ -72,6 +73,7 @@ final readonly class CountryPage
             ':course_photos' => (string) CourseFiles::photos(),
             ':course_pages' => (string) CourseFiles::pdfPages(),
             ':dial' => (string) ($all?->dialCode ?? ''),
+            ':prices' => self::prices(),
         ];
         $fill = fn (string $text) => strtr($text, $markers);
 
@@ -79,6 +81,7 @@ final readonly class CountryPage
             $slug,
             $page['code'],
             (string) ($all?->name ?? $page['code']),
+            (string) ($page['in'] ?? 'au'),
             $fill($page['title']),
             $fill($page['description']),
             $fill($page['heading']),
@@ -102,6 +105,18 @@ final readonly class CountryPage
             1 => $names[0],
             default => implode(', ', array_slice($names, 0, -1)).' ou '.end($names),
         };
+    }
+
+    /**
+     * « Semaine à 2 000 FCFA par semaine, Essentiel à 7 500 FCFA par mois et Intensif à 14 000 FCFA par mois »
+     * (prix et ordre des formules de la configuration).
+     */
+    private static function prices(): string
+    {
+        $parts = array_values(array_map(fn (Plan $plan) => $plan->name.' à '.$plan->formattedPrice().' '.$plan->periodLabel(), Plan::all()));
+        $last = array_pop($parts);
+
+        return $parts === [] ? (string) $last : implode(', ', $parts).' et '.$last;
     }
 
     /**

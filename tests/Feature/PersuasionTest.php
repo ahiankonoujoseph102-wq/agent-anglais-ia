@@ -101,12 +101,12 @@ class PersuasionTest extends TestCase
     public function test_home_shows_who_is_behind_the_platform_before_the_questions(): void
     {
         $html = $this->get('/')->assertOk()
-            ->assertSeeInOrder(['id="pays"', 'Qui est derrière Talkami ?', 'Joseph Ahiankonou', 'coach et formateur à Lomé', self::BIO, 'En savoir plus', 'id="questions"'], false)
+            ->assertSeeInOrder(['id="pays"', 'Qui est derrière Talkami ?', 'Joseph Ahiankonou', 'coach et formateur à Lomé', self::BIO, 'Lire l\'histoire de Talkami', 'id="questions"'], false)
             ->getContent();
 
         // Photo ronde, chargée à la demande, avec son texte alternatif ; lien vers « À propos ».
         $this->assertMatchesRegularExpression('/<img class="founder-photo" src="[^"]*images\/fondateur-joseph-ahiankonou\.webp\?v=[^"]+" width="320" height="320" alt="Joseph Ahiankonou, fondateur de Talkami" loading="lazy" decoding="async">/', $html);
-        $this->assertMatchesRegularExpression('/<a href="'.preg_quote(route('about'), '/').'" class="founder-more">En savoir plus/', $html);
+        $this->assertMatchesRegularExpression('/<a href="'.preg_quote(route('about'), '/').'" class="founder-more">Lire l\'histoire de Talkami/', $html);
     }
 
     public function test_about_page_shows_the_founder_bio_and_photo(): void

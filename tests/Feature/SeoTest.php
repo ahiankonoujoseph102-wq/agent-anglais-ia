@@ -81,7 +81,7 @@ class SeoTest extends TestCase
 
         $this->assertCount(count(self::PUBLIC_PAGES), array_unique($titles), 'Un titre par page.');
         $this->assertCount(count(self::PUBLIC_PAGES), array_unique($descriptions), 'Une description par page.');
-        $this->assertSame('Talkami · Apprendre à parler anglais depuis votre téléphone', $titles[0]);
+        $this->assertSame('Talkami · Cours d\'anglais en ligne avec Teacher Joe', $titles[0]);
     }
 
     public function test_the_google_search_console_tag_appears_only_when_the_variable_is_filled(): void
@@ -177,9 +177,9 @@ class SeoTest extends TestCase
                     $this->assertNotContains($forbidden, $keys, "{$forbidden} interdit ({$path}).");
                 }
 
-                // Toute adresse est sur APP_URL (sauf les liens schema.org).
+                // Toute adresse est sur APP_URL (sauf les liens schema.org et les comptes publics de sameAs).
                 array_walk_recursive($block, function ($value) use ($path) {
-                    if (is_string($value) && str_starts_with($value, 'http') && ! str_starts_with($value, 'https://schema.org')) {
+                    if (is_string($value) && str_starts_with($value, 'http') && ! str_starts_with($value, 'https://schema.org') && ! in_array($value, Seo::profiles(), true)) {
                         $this->assertStringStartsWith('https://talkami.net/', $value, $path);
                     }
                 });
@@ -228,7 +228,7 @@ class SeoTest extends TestCase
 
         $this->assertSame('Person', $person['@type']);
         $this->assertSame('Joseph Ahiankonou', $person['name']);
-        $this->assertSame('Fondateur', $person['jobTitle']);
+        $this->assertSame('Fondateur de Talkami', $person['jobTitle']);
         $this->assertSame(['@type' => 'PostalAddress', 'addressLocality' => 'Lomé', 'addressCountry' => 'TG'], $person['address']);
         $this->assertSame('Talkami', $person['worksFor']['name']);
         // Présentation écrite par le fondateur lui-même, et sa photo.

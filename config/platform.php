@@ -27,8 +27,9 @@ return [
     'brand' => [
         'short_name' => env('PLATFORM_SHORT_NAME', 'Talkami'),
         'tagline' => 'Votre professeur d\'anglais à l\'oral',
-        // Titre de l'accueil pour les moteurs de recherche et le partage : « {nom} · {home_title} ».
-        'home_title' => 'Apprendre à parler anglais depuis votre téléphone',
+        // Titre de l'accueil pour les moteurs de recherche et le partage : « {nom} · {home_title} »
+        // (60 caractères au plus en tout ; :teacher = nom du professeur, config('avatar.model.name')).
+        'home_title' => 'Cours d\'anglais en ligne avec :teacher',
         'logo' => [
             'header' => 'brand/logo-horizontal-320.webp',  // fond clair (320 pixels : affiché à environ 130 pixels)
             'footer' => 'brand/logo-blanc-320.webp',       // fond bleu nuit
@@ -480,6 +481,9 @@ return [
     | carte « Qui est derrière … ? » de l'accueil, données structurées) ; vide, elle n'est pas affichée
     | et « php artisan app:check-deployment » le signale. Marqueur :platform = nom de la plateforme. « photo » : chemin dans public/ (carré, WebP).
     | « headline » : ce qui suit le nom sur la carte de l'accueil.
+    | « story » : l'histoire vraie de la plateforme, racontée par le fondateur (page « À propos », un
+    | paragraphe par ligne) ; marqueurs :platform, :founder (nom) et :price_from (formule la moins chère,
+    | « 2 000 FCFA par semaine », lue dans les formules). Aucun chiffre ajouté à ceux qu'il a donnés.
     |
     */
     'founder' => [
@@ -491,6 +495,10 @@ return [
         'country_code' => 'TG',
         'bio' => 'J\'ai créé :platform pour que chaque francophone puisse enfin oser parler anglais, depuis son téléphone, sans gêne.',
         'photo' => 'images/fondateur-joseph-ahiankonou.webp',
+        'story' => [
+            ':founder voulait apprendre à parler anglais. Un cours privé lui coûtait 350 000 FCFA pour six mois.',
+            'Il a donc conçu :platform : un professeur d\'anglais disponible chaque jour sur le téléphone, qui fait parler anglais à l\'oral, du débutant au niveau avancé, avec des formules à partir de :price_from.',
+        ],
     ],
 
     /*
