@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Support\Gemini\TeacherRehearsal;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -14,6 +15,8 @@ use Tests\TestCase;
  */
 class TeacherRehearsalTest extends TestCase
 {
+    use RefreshDatabase;
+
     private function fakeReplies(string ...$replies): void
     {
         config(['services.gemini.key' => 'cle-de-test', 'services.text.providers' => ['gemini']]);
