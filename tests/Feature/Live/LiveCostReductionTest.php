@@ -73,7 +73,9 @@ class LiveCostReductionTest extends TestCase
     {
         $user = User::factory()->level(Level::A1)->create();
 
-        // Avant : environ 52 000 caractères sans le contexte de la leçon (fiche du site entière comprise).
-        $this->assertLessThan(42_000, mb_strlen(TeacherSetup::instructions('lesson', $user, 15, ['context' => ''])));
+        // Avant : environ 52 000 caractères sans le contexte de la leçon (fiche du site entière comprise) ; après les
+        // règles tirées des vraies conversations (réponse incomprise, même erreur deux fois, questions des prospects) :
+        // environ 43 000.
+        $this->assertLessThan(44_000, mb_strlen(TeacherSetup::instructions('lesson', $user, 15, ['context' => ''])));
     }
 }

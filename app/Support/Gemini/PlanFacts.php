@@ -2,6 +2,9 @@
 
 namespace App\Support\Gemini;
 
+use App\Enums\Level;
+use App\Support\Curriculum\Curriculum;
+use App\Support\Curriculum\Unit;
 use App\Support\Duration;
 use App\Support\Plan;
 
@@ -32,7 +35,24 @@ class PlanFacts
             'disconnect_rule' => (string) config('platform.live.disconnect_rule'),
             'assessment_free' => 'The oral assessment is free ('.Duration::format((int) config('platform.assessment.max_minutes') * 60)
                 .', once per account), so they can try before paying.',
+            'level_length' => self::levelLength(),
         ];
+    }
+
+    /**
+     * Longueur d'un niveau du programme, tirée du programme officiel (unités) et de Unit::LESSONS : un fait vrai pour
+     * répondre à « combien de temps pour bien parler ? », jamais une promesse.
+     */
+    public static function levelLength(): string
+    {
+        $units = count(Curriculum::units(Level::A1));
+        $lessons = $units * Unit::LESSONS;
+        $weeks = [intdiv($lessons, 5), (int) ceil($lessons / 5)];
+
+        return "each level of the programme has {$units} units of ".Unit::LESSONS." lessons, so {$lessons} lessons; "
+            .'one lesson per study day chosen by the learner; with 5 study days a week, a level takes about '
+            .($weeks[0] === $weeks[1] ? $weeks[0] : $weeks[0].' to '.$weeks[1]).' weeks if each lesson is passed the first time, '
+            .'longer when a lesson must be done again';
     }
 
     /** Une formule, en une ligne : nom, badge, prix, durée, temps par jour, prix par jour. */

@@ -45,7 +45,11 @@
 
 - PR 1 fusionnée (#109).
 - PR 2 (erreurs techniques) sur la branche : `heldVoiceEnd`, `LivePage`, langues de transcription, `cleanSpeech`, `LiveEarlyEnd`, durée annoncée, aide au premier tour. CLAUDE.md à jour (« Erreurs techniques des vraies conversations »).
+- PR 2 fusionnée (#110).
+- PR 3 (pédagogie, prospects, banc d'essai, Confidentialité) sur la branche ; CLAUDE.md à jour.
+
+- PR 3 : vérification GitHub verte (27 octobre 2026), fusion en cours.
 
 ## Prochaine étape exacte
 
-Ouvrir la PR 2, vérification GitHub verte, fusionner (fusionner ensuite main dans la branche, sans réécrire l'historique). Puis PR 3 : consignes de pédagogie (config/teacher.php), réponses aux prospects, scénarios inventés de `resources/teacher/rehearsal/scenarios.php`, phrase de Confidentialité.
+Travail terminé après la fusion de la PR 3 (#111). Il reste seulement les gestes du propriétaire (voir le rapport final) : vérifier le palier Google dans AI Studio ; après le déploiement, lancer `php artisan teacher:rehearse --compare` dans « Commands » ; régler le seuil d'alerte de coût dans « Réglages » si besoin ; surveiller « Consommation » une à deux semaines ; essayer éventuellement `LIVE_PROVIDERS=openai,gemini` ; si une séance Gemini échoue au démarrage, vider `GEMINI_TRANSCRIPTION_LANGUAGES`.

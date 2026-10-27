@@ -40,7 +40,7 @@
             <li>Construire votre programme personnel et permettre à {{ $teacher }} de vous parler par votre prénom, à votre niveau, sur la leçon du jour.</li>
             <li>Vérifier vos paiements : la capture est lue automatiquement, puis contrôlée par l'administrateur.</li>
             <li>Vous aider sur vos leçons d'anglais de l'école, avec « Mes cours », et vous préparer après chaque séance un document de révision, à télécharger et, si vous avez donné votre adresse, envoyé par e-mail.</li>
-            <li>Relire les conversations pour améliorer {{ $teacher }}, vérifier qu'il se comporte bien et répondre à vos questions ou à vos réclamations.</li>
+            <li>Relire les conversations pour améliorer {{ $teacher }}, vérifier qu'il se comporte bien et répondre à vos questions ou à vos réclamations. Des extraits anonymisés (sans nom, numéro ni adresse) peuvent être analysés, y compris avec un outil d'intelligence artificielle, pour améliorer {{ $teacher }}.</li>
             <li>Vous délivrer une attestation de niveau. Toute personne qui a son code de vérification peut voir sur le site votre nom, le niveau validé et la date.</li>
         </ul>
     </section>

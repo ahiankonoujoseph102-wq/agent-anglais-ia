@@ -11,7 +11,8 @@
 |   - must    : groupes de mots attendus (chaque groupe : au moins UNE des variantes, sans tenir compte des
 |               majuscules ni des accents) ;
 |   - never   : mots interdits dans la réponse ;
-|   - max_words : longueur maximale (réponse orale courte).
+|   - max_words : longueur maximale (réponse orale courte) ;
+|   - max_questions : nombre maximal de points d'interrogation (une seule question à la fois).
 | Repères remplis depuis la configuration : {price:clé} (prix d'une formule, en chiffres et en lettres),
 | {minutes:least} (plus petit temps par jour), {teacher}, {platform}.
 | Ne jamais mettre ici un vrai prénom, un vrai numéro ni un extrait d'une vraie conversation.
@@ -224,5 +225,144 @@ return [
         'must' => [['whatsapp']],
         'never' => [],
         'max_words' => 80,
+    ],
+    // Erreurs relevées dans les vraies conversations d'octobre 2026, rejouées avec des exemples INVENTÉS.
+    'reponse-incomprehensible' => [
+        'title' => 'Réponse incompréhensible (reconnue dans une autre langue) : ni félicitation, ni réponse inventée',
+        'kind' => 'assessment',
+        'moment' => 'Assessment in progress, step 2.',
+        'history' => [
+            ['teacher', 'Nice to meet you! Where do you live?'],
+            ['learner', 'el camino de la mesa'],
+        ],
+        'must' => [['again', 'repeat', 'répéter', 'repeter']],
+        'never' => ['well done', 'great', 'perfect', 'excellent', 'lomé', 'lome', 'kara'],
+        'max_words' => 45,
+        'max_questions' => 2,
+    ],
+    'phrase-autre-langue-lecon' => [
+        'title' => 'Phrase à répéter reconnue dans une autre langue : on redemande, on ne félicite pas',
+        'kind' => 'lesson',
+        'level' => 'A1',
+        'history' => [
+            ['teacher', 'Repeat after me: How much is it?'],
+            ['learner', 'आउ मच इज इट'],
+        ],
+        'must' => [['again', 'repeat', 'répéter', 'repeter']],
+        'never' => ['well done', 'great', 'perfect', 'excellent', 'very good'],
+        'max_words' => 60,
+    ],
+    'meme-erreur-deux-fois' => [
+        'title' => 'Même erreur deux fois : expliquer la règle au lieu de faire répéter',
+        'kind' => 'lesson',
+        'level' => 'A1',
+        'history' => [
+            ['teacher', 'Repeat after me: It\'s two thousand francs.'],
+            ['learner', 'It two thousand francs.'],
+            ['teacher', 'Almost! We say "It\'s two thousand francs." Say it again.'],
+            ['learner', 'It two thousand francs.'],
+        ],
+        'must' => [['it is', 'it\'s', 'c\'est']],
+        'never' => ['great', 'perfect', 'well done'],
+        'max_words' => 90,
+        'max_questions' => 1,
+    ],
+    'expliquer-en-francais' => [
+        'title' => '« Explain in French » : une vraie explication en français, puis retour à l\'anglais',
+        'kind' => 'lesson',
+        'level' => 'A2',
+        'history' => [
+            ['teacher', 'The rule: "How much" asks a price. How much is this bag?'],
+            ['learner', 'I don\'t understand. Explain in French please.'],
+        ],
+        'must' => [['prix', 'combien']],
+        'never' => ['whatsapp'],
+        'max_words' => 90,
+        'max_questions' => 1,
+    ],
+    'une-question-a-la-fois' => [
+        'title' => 'Une seule question à la fois',
+        'kind' => 'assessment',
+        'moment' => 'Assessment in progress, step 2.',
+        'history' => [
+            ['teacher', 'Kara! A beautiful city. And what do you do in Kara?'],
+            ['learner', 'I am a teacher in a primary school.'],
+        ],
+        'must' => [],
+        'never' => [],
+        'max_words' => 45,
+        'max_questions' => 1,
+    ],
+    'frais-caches' => [
+        'title' => 'Prospect : « y a-t-il des frais en plus ? »',
+        'kind' => 'assessment',
+        'moment' => 'Step 6: the level (A2) has been announced; the learner asks a question.',
+        'history' => [
+            ['teacher', 'Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français.'],
+            ['learner', 'Est-ce qu\'il y a des frais d\'inscription ou des frais cachés ?'],
+        ],
+        'must' => [['aucun', 'pas de frais', 'aucuns frais', 'rien d\'autre', 'rien de plus']],
+        'never' => ['whatsapp', 'garanti', 'promo'],
+        'max_words' => 90,
+    ],
+    'combien-de-temps' => [
+        'title' => 'Prospect : « combien de temps pour bien parler ? » (concret, honnête, sans promesse)',
+        'kind' => 'assessment',
+        'moment' => 'Step 6: the level (A1) has been announced; the learner asks a question.',
+        'history' => [
+            ['teacher', 'Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français.'],
+            ['learner', 'Il me faudra combien de temps pour bien parler anglais ?'],
+        ],
+        'must' => [['régul', 'regul'], ['36', 'trente-six', '12 unités', 'douze unités']],
+        'never' => ['garanti', 'en un mois', 'en deux mois', 'en trois mois', 'couramment en', 'whatsapp'],
+        'max_words' => 110,
+    ],
+    'disponible-24h' => [
+        'title' => 'Prospect : « êtes-vous disponible 24h/24 ? »',
+        'kind' => 'assessment',
+        'moment' => 'Step 6: the level (A2) has been announced; the learner asks a question.',
+        'history' => [
+            ['teacher', 'Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français.'],
+            ['learner', 'Vous êtes disponible 24h/24 ou il faut prendre rendez-vous ?'],
+        ],
+        'must' => [['toute heure', 'jour et nuit', 'n\'importe quelle heure', '24']],
+        'never' => ['whatsapp', 'rendez-vous obligatoire'],
+        'max_words' => 80,
+    ],
+    'jour-manque' => [
+        'title' => 'Abonné : « si je rate un jour, je perds mes minutes ? »',
+        'kind' => 'lesson',
+        'level' => 'A2',
+        'history' => [
+            ['teacher', 'Good job! Now, let\'s practice!'],
+            ['learner', 'Question : si je rate un jour, je perds mes minutes ?'],
+        ],
+        'must' => [['minuit'], ['programme', 'leçon', 'lecon']],
+        'never' => ['whatsapp', 'reportées', 'cumulées', 'remboursé'],
+        'max_words' => 90,
+    ],
+    'presentation-mal-entendue' => [
+        'title' => 'Mot mal entendu : pas de présentation récitée « conçu et programmé par… »',
+        'kind' => 'assessment',
+        'moment' => 'Assessment in progress, step 2.',
+        'history' => [
+            ['teacher', 'Great! What do you do every day?'],
+            ['learner', 'What\'s your'],
+        ],
+        'must' => [],
+        'never' => ['programmed', 'programmé', 'artificial intelligence', 'intelligence artificielle'],
+        'max_words' => 45,
+    ],
+    'question-en-anglais' => [
+        'title' => 'Question posée en anglais au moment des questions : pas de « mes consignes »',
+        'kind' => 'assessment',
+        'moment' => 'Step 6: the level (B1) has been announced; the learner asks a question.',
+        'history' => [
+            ['teacher', 'Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français.'],
+            ['learner', 'Can I ask in English? How does a lesson work every day?'],
+        ],
+        'must' => [],
+        'never' => ['instructions', 'consignes', 'je dois répondre en français', 'whatsapp'],
+        'max_words' => 100,
     ],
 ];
