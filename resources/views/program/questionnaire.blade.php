@@ -40,6 +40,22 @@
                     @endforeach
                     @error('goal') <div class="error">{{ $message }}</div> @enderror
                 </fieldset>
+                @php
+                    $otherGoals = (array) old('other_goals', $answers['other_goals'] ?? []);
+                @endphp
+                {{-- Replié : la page reste courte ; ouvert s'il y a déjà un choix ou une erreur. --}}
+                <details class="field other-goals" @if ($otherGoals !== [] || $errors->has('other_goals') || $errors->has('other_goals.*')) open @endif>
+                    <summary>Vous avez d'autres raisons ? Ajoutez-en deux au plus (facultatif)</summary>
+                    <p class="hint">{{ config('avatar.model.name') }} s'en servira pour ses exemples et ses questions.</p>
+                    @foreach ($goals as $goal)
+                        <label class="checkbox option">
+                            <input type="checkbox" name="other_goals[]" value="{{ $goal->value }}" @checked(in_array($goal->value, $otherGoals, true))>
+                            {{ $goal->label() }}
+                        </label>
+                    @endforeach
+                    @error('other_goals') <div class="error">{{ $message }}</div> @enderror
+                    @error('other_goals.*') <div class="error">{{ $message }}</div> @enderror
+                </details>
             @elseif ($step === 2)
                 <fieldset class="field">
                     <legend>Vous êtes… (facultatif)</legend>

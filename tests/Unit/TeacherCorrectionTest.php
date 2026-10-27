@@ -32,17 +32,19 @@ class TeacherCorrectionTest extends TestCase
             $text = TeacherSetup::instructions($kind, $this->learner(), 15);
 
             $this->assertStringContainsString('HOW TO CORRECT (daily lesson and « Mes cours »):', $text, $kind);
-            $this->assertStringContainsString('1) Let the learner FIND it first', $text, $kind);
-            $this->assertStringContainsString('If they do not find it after ONE try, give the right form', $text, $kind);
-            $this->assertStringContainsString('and make them say the WHOLE sentence again', $text, $kind);
-            $this->assertStringContainsString('The goal is to be understood, never to sound like a native speaker.', $text, $kind);
+            $this->assertStringContainsString('1) A clue first, never the answer', $text, $kind);
+            $this->assertStringContainsString('Not found after ONE try: \'We say "…".\'', $text, $kind);
+            $this->assertStringContainsString('3) WHY in one short sentence', $text, $kind);
+            $this->assertStringContainsString('4) The learner says the WHOLE sentence again, correctly.', $text, $kind);
+            $this->assertStringContainsString('The goal is to be understood, never a native accent.', $text, $kind);
             // Jamais complaisant (B5).
-            $this->assertStringContainsString('If the learner insists that a wrong form is right, stay warm but accurate', $text, $kind);
-            // Vérifier en faisant parler, pas seulement « C'est clair ? » (B1).
-            $this->assertStringContainsString('A "yes" is not enough', $text, $kind);
+            $this->assertStringContainsString('Never let a wrong form pass as right to please the learner. If they insist, stay warm and accurate', $text, $kind);
+            // Pendant la parole libre : pas d'interruption pour les petites fautes, retour à la fin de la conversation.
+            $this->assertStringContainsString('DURING FREE CONVERSATION (STEP 3): let the learner speak, do NOT interrupt for small mistakes', $text, $kind);
+            // Vérifier par une question qui fait utiliser (B1), jamais par « C'est clair ? ».
+            $this->assertStringContainsString('ask ONE tiny question that makes them USE or CHOOSE it', $text, $kind);
             // Une seule règle de correction : la règle générale renvoie à HOW TO CORRECT.
-            $this->assertStringContainsString('When the activity below gives "HOW TO CORRECT", follow it instead.', $text, $kind);
-            $this->assertStringContainsString('see HOW TO CORRECT', $text, $kind);
+            $this->assertStringContainsString('Mistakes: follow HOW TO CORRECT when it is given below', $text, $kind);
             $this->assertSame(1, substr_count($text, 'HOW TO CORRECT (daily lesson'), $kind);
         }
     }
@@ -53,10 +55,11 @@ class TeacherCorrectionTest extends TestCase
 
         $this->assertStringContainsString('PITFALL OF THE DAY', $text);
         $this->assertStringContainsString('by CONTRAST', $text);
-        $this->assertStringContainsString('at most twice in the lesson: never turn the lesson into a list of mistakes', $text);
-        $this->assertStringContainsString('SAY IT AGAIN, BETTER: once or twice in this step (never more)', $text);
-        $this->assertStringContainsString('From B1 upward, correct less on the spot', $text);
-        $this->assertStringContainsString('then ask the tiny question that proves it', $text);
+        $this->assertStringContainsString('the same contrast at most twice more in the lesson', $text);
+        // Retour sur la langue à la fin de la conversation : une réussite, puis une ou deux erreurs expliquées, redites mieux.
+        $this->assertStringContainsString('LANGUAGE FEEDBACK (the last minute of this step, before the summary): first ONE thing they said well', $text);
+        $this->assertStringContainsString('what they said, the right form, WHY, and they say it again once, better', $text);
+        $this->assertStringContainsString('ONE checking question (HOW YOU TEACH), never "Is it clear?"', $text);
     }
 
     public function test_the_assessment_and_the_level_test_keep_their_short_correction(): void

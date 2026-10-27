@@ -1,55 +1,33 @@
-# REPRISE — travail en cours (coût, erreurs, pédagogie de Teacher Joe)
+# REPRISE — travail en cours (pédagogie des meilleurs centres)
 
 À lire avec `CLAUDE.md` pour reprendre ce travail dans une autre session. Ce fichier ne contient jamais le contenu de l'export des conversations ni aucune clé (l'export reste hors du dépôt : seuls des exemples INVENTÉS vont dans le code et les tests).
 
+Les chantiers précédents (coût des séances, erreurs techniques, conseiller honnête : pull requests #108 à #111) sont fusionnés ; leur bilan est dans `CLAUDE.md` et `docs/cout-et-marge.md`.
+
 ## Branche
 
-`claude/sweet-johnson-e6lsds`, partie de `main` après la pull request #108 (commit c17a1d1). Pousser après chaque étape.
+`claude/teacher-joe-pedagogie`, partie de `main` après la pull request #111. Pousser après chaque étape.
 
 ## Demande (résumé)
 
-1. **Coût** (priorité) : vérifier ce qui est facturé, marge par formule (utilisation faible, moyenne, totale), cause du coût par minute, optimisations sûres, alerte de coût par abonné (seuil réglable), recommandation chiffrée sur les prix (ne PAS changer les prix).
-2. **Erreurs techniques** vues dans l'export : écho (Teacher Joe se répond à lui-même), réponses coupées, reconnaissance dans la mauvaise langue (hindi, espagnol, portugais, coréen), pics de délai, durée de leçon annoncée incohérente, évaluations courtes et abandons.
-3. **Pédagogie** : jamais féliciter une réponse fausse ou incompréhensible, expliquer la règle après deux fois la même erreur, s'adapter à « je ne comprends pas », répétition avec un but, une question à la fois, encouragements vrais, réponses courtes.
-4. **Questions des prospects** : prix, frais, temps pour bien parler, disponibilité à toute heure, jour manqué, mauvaise connexion, hors sujet, « êtes-vous une vraie personne ? ».
-5. **Mesure** : scénarios inventés dans `teacher:rehearse`, phrase de Confidentialité sur les extraits anonymisés.
-6. Livraison : une pull request par priorité, CI verte, fusion ; rapport final en français.
-
-## Constats (étape 1, analyse)
-
-- Toutes les conversations de l'export sont chez Gemini Live (`gemini-3.8-live`). Aucune chez OpenAI.
-- **Cause du coût par minute** : l'API Live refacture TOUT le contexte (consignes + audio déjà échangé) à CHAQUE tour (documentation Google Cloud sur la tarification Live, confirmé par le forum des développeurs). Les consignes font environ 42 000 caractères pour l'évaluation (dont environ 21 000 pour la fiche du site `resources/teacher/site-guide.md`), 58 000 pour une séance : environ 10 000 à 14 000 jetons répétés à chaque réponse de Teacher Joe (3,5 à 5 réponses par minute).
-- **Estimation trop haute** dans « Consommation » : tous les jetons d'entrée sont comptés au tarif AUDIO (3 $ par million) alors que les consignes sont du TEXTE (0,75 $ par million pour Gemini 3.8 Live ; sortie : texte 4,50 $, audio 12 $ ; tarif relevé le 27 octobre 2026). `usageMetadata.promptTokensDetails` donne la répartition par modalité : à enregistrer.
-- Pas de mise en cache des consignes possible dans l'API Live (aucune prise en charge connue).
-- `inputAudioTranscription.languageCodes` existe (codes BCP-47) : à régler sur anglais et français.
-
-## Plan
-
-- PR 1 (coût) : répartition texte / audio des jetons (colonnes), tarifs par modalité, fiche du site plus courte pour les conversations, compression du contexte bornée, alerte de coût par abonné (seuil réglable), tests, CLAUDE.md.
-- PR 2 (erreurs techniques).
-- PR 3 (pédagogie, prospects, banc d'essai, Confidentialité).
+1. Recherche : meilleurs centres (British Council, Berlitz, Wall Street English), méthodes (approche communicative, tâches, correction, vérification de la compréhension, révision espacée), applications (Speak, Praktika, Duolingo Max), tuteurs (Cambly, italki, Preply), public d'Afrique francophone. Garder le meilleur, rejeter le médiocre, justifier.
+2. Comparer avec ce que fait Teacher Joe (consignes et constats de l'export anonymisé).
+3. Avis d'une apprenante, à juger (garder, garder en partie, rejeter) : a) plusieurs raisons d'apprendre l'anglais ; b) moins répéter, plus de questions ouvertes, parler librement puis être corrigée avec des explications.
+4. Améliorer Teacher Joe (vrai professeur chaleureux, élève en difficulté : français, rassurer, expliquer, astuce, retour à l'anglais ; sens, moment d'emploi et différence de chaque phrase ; vérifier par des questions, jamais « tu as compris ? » ; partir de ce que l'élève sait ; équilibre répétition et parole libre selon le niveau).
+5. Coût : consignes pas plus longues, plus courtes si possible ; taille avant et après.
+6. Vérification : `teacher:rehearse` sur A1, A2, B1 ; trois exemples avant et après ; tests, Pint, CI, fusion si vert ; CLAUDE.md et REPRISE.md.
 
 ## Fait
 
-- PR 1 (coût), branche `claude/sweet-johnson-e6lsds` : comptage des jetons par nature (`public/js/token-usage.js`, colonnes `input_text_tokens`…), coût au tarif de chaque nature (`UsageCost::fromSums`), fiche du site par conversation (`SiteGuide::text($kind)`), fenêtre de contexte bornée (`TeacherSetup::contextWindow`), alerte de coût par abonné (`CostWatch`, `usage:alert-costs`, « Réglages »), note `docs/cout-et-marge.md`, CLAUDE.md à jour. Tests verts en local.
+- Étapes 1 à 3 : `docs/methode-teacher-joe.md`, section 9 (sources, comparaison, verdicts).
+- Étapes 4 et 5 : `config/teacher.php` réécrit (`persona`, `pace`, `coaching` devenu « HOW YOU TEACH », `correction`, `listening`, `lesson`) ; `config/program.php` → `lesson_shares` (A1 et A2 30/25/40, B1 25/20/50). Taille des consignes (caractères, sans le contexte de la leçon) : évaluation 43 277 → 39 638 ; séance du jour A1 43 631 → 35 685 ; séance du jour B1 43 388 → 35 442 ; « Mes cours » A2 43 528 → 37 712 ; bilan de niveau A2 29 916 → 25 621.
+- Objectifs : un principal et jusqu'à deux autres (`programs.other_goals`, `Program::otherGoals()`, `ProgramBuilder::otherGoals()`), nouvel objectif `media` « Comprendre les films, les séries et les chansons ».
+- Banc d'essai : `resources/teacher/rehearsal/previous.php` = consignes de `main` après #111 ; sept scénarios inventés de plus (A1, A2, B1).
 
-## Constats de l'export pour les PR 2 et 3 (chiffres seulement)
+## Limite
 
-- Écho / deuxième écran : environ 9 répliques « élève » qui sont en fait la voix de Teacher Joe, dans 4 conversations ; dans 3 d'entre elles, DEUX accueils dans la même évaluation : la séance était ouverte deux fois (deux onglets ou deux appareils), les deux Teacher Joe se parlaient. Cause aussi possible : chez Gemini, la porte du micro se rouvre dès que le son reçu est épuisé (trou du réseau), même si la réponse continue.
-- Réponses coupées : environ 30 répliques du professeur sans ponctuation finale (interrompues par un bruit ou l'écho).
-- Mauvaise langue : environ 117 répliques d'élève reconnues en espagnol, portugais ou allemand et 12 en écriture non latine (hindi, coréen, japonais). `inputAudioTranscription.languageCodes` existe (BCP-47) : régler `en-US`, `fr-FR`.
-- Délais : 53 réponses sur 1 350 au-delà de 5 secondes (médiane 1,8 seconde) ; plus fréquent au tout début (6,5 %) ; ne grandit pas avec la longueur de la séance.
-- Durée annoncée : la séance du jour annonce le temps RESTANT du jour (juste), mais la leçon se termine souvent bien avant (bilan commencé trop tôt) : 15 minutes annoncées, 5 à 8 réelles.
-- Évaluations : 20 sur 115 de moins de 2 minutes, 16 sans aucune parole de l'élève, 58 avec un niveau donné en 3 minutes ou moins (verdict trop tôt).
-- Pédagogie : félicite une réponse incompréhensible (environ 30 fois), invente la réponse de l'élève (un mot mal reconnu devient un nom de ville), répète la même correction sans expliquer la règle, récite sa présentation complète à une question mal comprise, refuse de répondre en anglais pendant le moment des questions en citant ses consignes, lit à voix haute des marques techniques (balises de silence, mise en forme des consignes).
-
-- PR 1 fusionnée (#109).
-- PR 2 (erreurs techniques) sur la branche : `heldVoiceEnd`, `LivePage`, langues de transcription, `cleanSpeech`, `LiveEarlyEnd`, durée annoncée, aide au premier tour. CLAUDE.md à jour (« Erreurs techniques des vraies conversations »).
-- PR 2 fusionnée (#110).
-- PR 3 (pédagogie, prospects, banc d'essai, Confidentialité) sur la branche ; CLAUDE.md à jour.
-
-- PR 3 : vérification GitHub verte (27 octobre 2026), fusion en cours.
+Aucune clé de fournisseur dans cette session : le banc d'essai n'a pas pu être joué ici. À lancer dans Laravel Cloud (onglet « Commands ») : `php artisan teacher:rehearse --compare --pause=4`.
 
 ## Prochaine étape exacte
 
-Travail terminé après la fusion de la PR 3 (#111). Il reste seulement les gestes du propriétaire (voir le rapport final) : vérifier le palier Google dans AI Studio ; après le déploiement, lancer `php artisan teacher:rehearse --compare` dans « Commands » ; régler le seuil d'alerte de coût dans « Réglages » si besoin ; surveiller « Consommation » une à deux semaines ; essayer éventuellement `LIVE_PROVIDERS=openai,gemini` ; si une séance Gemini échoue au démarrage, vider `GEMINI_TRANSCRIPTION_LANGUAGES`.
+Pull request ouverte, CI verte, fusion ; ensuite, le propriétaire lance `php artisan teacher:rehearse --compare` et essaie une séance du jour sur son téléphone (voir le compte rendu de la pull request). Quand la comparaison ne sert plus, supprimer `resources/teacher/rehearsal/previous.php` et l'option `--compare`.

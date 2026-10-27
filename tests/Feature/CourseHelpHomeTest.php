@@ -194,23 +194,23 @@ class CourseHelpHomeTest extends TestCase
         $course = TeacherSetup::instructions('course', $user, 10, ['lesson' => 'x', 'warning_seconds' => 90]);
 
         foreach ([$daily, $course] as $text) {
-            // Mal compris : autre explication, plus lente et plus simple, en français si c'était en anglais.
-            $this->assertStringContainsString('"je ne comprends pas", "hein ?"', $text);
+            // Mal compris : français, rassurer, autre explication, astuce, retour à l'anglais.
+            $this->assertStringContainsString('« je ne comprends pas », « hein ? »', $text);
             $this->assertStringContainsString('ANOTHER way', $text);
-            $this->assertStringContainsString('switch to French', $text);
-            // N'entend pas / ne suit pas : ralentir nettement, phrases plus courtes.
+            $this->assertStringContainsString('Switch to clear, calm French and reassure', $text);
+            // N'entend pas / ne suit pas : ralentir nettement, et garder ce débit.
             $this->assertStringContainsString('slow down clearly', $text);
-            $this->assertStringContainsString('much shorter sentences', $text);
-            // Ton, âge, encouragements sans flatterie ; une seule correction par réponse conservée.
-            $this->assertStringContainsString('apparent age', $text);
-            $this->assertStringContainsString('never mocking', $text);
-            $this->assertStringContainsString('without excessive flattery', $text);
-            $this->assertStringContainsString('at most one correction per answer', $text);
+            $this->assertStringContainsString('KEEP this slower pace until the end', $text);
+            // Ton, âge, encouragements précis ; une ou deux corrections par réponse.
+            $this->assertStringContainsString('softer and simpler with a young pupil', $text);
+            $this->assertStringContainsString('Never mocking', $text);
+            $this->assertStringContainsString('precise encouragement', $text);
+            $this->assertStringContainsString('At most ONE or TWO mistakes per answer', $text);
         }
 
         // Séance orale : faire parler en anglais, le français seulement pour débloquer.
-        $this->assertStringContainsString('use French only to unblock them, then return to English at once', $daily);
-        $this->assertStringContainsString('French is a short EXPLANATION TOOL', $daily);
+        $this->assertStringContainsString('in the DAILY LESSON the goal is to make the learner SPEAK English', $daily);
+        $this->assertStringContainsString('French is an explanation tool, never the language of the conversation', $daily);
 
         // « Mes cours » : le français est la langue principale ; détail complet de chaque point ; vérifications.
         $this->assertStringContainsString('French is the MAIN language of EXPLANATION', $course);

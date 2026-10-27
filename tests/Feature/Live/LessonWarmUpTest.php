@@ -56,15 +56,18 @@ class LessonWarmUpTest extends TestCase
         $text = $this->systemText($user);
 
         $this->assertStringContainsString('WARM-UP (one minute at most', $text);
-        $this->assertStringContainsString('make the learner REMEMBER, do not repeat it for them', $text);
-        $this->assertStringContainsString('give the first word as a clue', $text);
-        $this->assertStringContainsString('Did you do your homework? Tell me your sentence.', $text);
+        // D'abord une vraie question ouverte sur sa vie, à son niveau, puis le rappel de la veille.
+        $this->assertStringContainsString('(1) ONE real open question about their life, at their level', $text);
+        $this->assertStringContainsString('A2: "What did you do today?"', $text);
+        $this->assertStringContainsString('make them RECALL the sentence to remember from its meaning', $text);
+        $this->assertStringContainsString('the first word as a clue if needed', $text);
+        $this->assertStringContainsString('ONE question on the homework (no reproach if not done)', $text);
         $this->assertStringContainsString('- Summary: "I am from Lomé." = Je viens de Lomé.', $text);
         $this->assertStringContainsString('- Homework given: Dites trois phrases sur votre ville.', $text);
-        $this->assertStringContainsString('Use them for the WARM-UP', $text);
+        $this->assertStringContainsString('Use them for the WARM-UP, after the open question', $text);
         // Ordre du premier tour : accueil, comment travailler, rappel, sujet du jour.
-        $this->assertStringContainsString('then follow HOW TO WORK WITH ME above, then do the WARM-UP below, then announce today\'s topic', $text);
-        $this->assertStringContainsString('do the WARM-UP if there was a previous lesson', TeacherSetup::cue('lesson_start', ['minutes' => 15]));
+        $this->assertStringContainsString('then HOW TO WORK WITH ME, then the WARM-UP, then today\'s topic', $text);
+        $this->assertStringContainsString('do the WARM-UP (an open question, then the recall if there was a previous lesson)', TeacherSetup::cue('lesson_start', ['minutes' => 15]));
     }
 
     public function test_the_first_lesson_has_no_warm_up_and_the_summary_says_what_the_learner_can_do(): void

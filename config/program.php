@@ -27,10 +27,10 @@ return [
 
     // Séance du jour en quatre temps (App\Support\Curriculum\LessonPlan) : part du temps (hors bilan, qui occupe toujours
     // les dernières minutes : platform.lessons.warning_minutes_before_end) donnée à la leçon, à la pratique guidée et à la
-    // conversation. A1 et A2 : surtout leçon et pratique ; B1 : équilibré ; B2 à C2 : leçon courte, surtout conversation.
+    // conversation. A1 et A2 : leçon et pratique d'abord, mais déjà de la parole libre ; B1 : surtout conversation ; B2 à C2 : leçon courte, surtout conversation (docs/methode-teacher-joe.md, section 9).
     'lesson_shares' => [
-        'beginner' => ['lesson' => 40, 'practice' => 25, 'conversation' => 30],
-        'intermediate' => ['lesson' => 30, 'practice' => 25, 'conversation' => 45],
+        'beginner' => ['lesson' => 30, 'practice' => 25, 'conversation' => 40],
+        'intermediate' => ['lesson' => 25, 'practice' => 20, 'conversation' => 50],
         'advanced' => ['lesson' => 20, 'practice' => 15, 'conversation' => 65],
     ],
 

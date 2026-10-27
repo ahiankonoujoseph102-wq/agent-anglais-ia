@@ -73,7 +73,7 @@ class TeacherAdvisorTest extends TestCase
         $this->assertStringNotContainsString('or about prices', $text);
         $this->assertStringNotContainsString('green button on the « Aide » page', $text);
         $this->assertStringNotContainsString('Never invent anything (prices', $text);
-        $this->assertStringContainsString('If the learner asks about prices or plans, answer them directly', $text);
+        $this->assertStringContainsString('If the learner asks about prices or plans, answer directly', $text);
         // Où sont les formules : sous le résultat, à la fin de l'évaluation (rien à chercher ailleurs).
         $this->assertStringContainsString('« Les formules s\'afficheront juste sous votre résultat, à la fin de notre échange', $text);
         $this->assertStringContainsString('ending with « Les formules s\'affichent juste sous votre résultat. »', $text);
@@ -112,7 +112,7 @@ class TeacherAdvisorTest extends TestCase
 
         $this->assertStringContainsString('a VIRTUAL teacher (« un professeur virtuel »)', $text);
         $this->assertStringContainsString('never claim to be a human', $text);
-        $this->assertStringContainsString('Look for the INTENTION behind the words', $text);
+        $this->assertStringContainsString('answer the INTENTION', $text);
         $this->assertStringContainsString('« Vous voulez dire … ? »', $text);
     }
 
@@ -121,15 +121,15 @@ class TeacherAdvisorTest extends TestCase
         foreach (['lesson', 'course'] as $kind) {
             $text = $this->instructions($kind, Level::A2);
 
-            $this->assertStringContainsString('NOTICE DIFFICULTY KINDLY', $text, $kind);
-            $this->assertStringContainsString('EVERY REPETITION HAS A PURPOSE', $text, $kind);
-            $this->assertStringContainsString('Never make them repeat the same item more than twice in a row', $text, $kind);
+            $this->assertStringContainsString('WHEN THE LEARNER STRUGGLES', $text, $kind);
+            $this->assertStringContainsString('REPETITION WITH A PURPOSE', $text, $kind);
+            $this->assertStringContainsString('never more than twice in a row for the same item', $text, $kind);
             $this->assertStringContainsString('PRAISE REAL PROGRESS', $text, $kind);
-            $this->assertStringContainsString('a very short story of daily life linked to the lesson (two sentences at most', $text, $kind);
-            $this->assertStringContainsString('Then say WHY in one short sentence', $text, $kind);
+            $this->assertStringContainsString('a tiny invented story of daily life linked to the lesson (two sentences at most)', $text, $kind);
+            $this->assertStringContainsString('3) WHY in one short sentence', $text, $kind);
         }
 
-        $this->assertStringContainsString('answer briefly and kindly (one sentence; never medical, legal, financial or political advice), then bring them back gently', $this->instructions('lesson', Level::B1));
+        $this->assertStringContainsString('answer briefly and kindly (one sentence; never medical, legal, financial or political advice), then bring them back', $this->instructions('lesson', Level::B1));
     }
 
     public function test_the_new_rules_name_no_provider_and_no_forbidden_wording(): void

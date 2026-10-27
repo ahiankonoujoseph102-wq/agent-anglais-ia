@@ -81,15 +81,16 @@ class TeacherRehearsalTest extends TestCase
         // Mêmes scénario et modèle ; seules les consignes changent.
         $bodies = Http::recorded()->map(fn (array $pair) => json_encode($pair[0]->data(), JSON_UNESCAPED_UNICODE))->values();
         $this->assertCount(2, $bodies);
-        $this->assertStringContainsString('or about prices', $bodies[0]);
-        $this->assertStringNotContainsString('PRICES AND QUESTIONS BEFORE BUYING (you are also', $bodies[0]);
-        $this->assertStringNotContainsString('or about prices', $bodies[1]);
-        $this->assertStringContainsString('PRICES AND QUESTIONS BEFORE BUYING (you are also', $bodies[1]);
+        // Avant : les consignes de main après la pull request #111 ; après : celles des meilleurs centres.
+        $this->assertStringContainsString('How you teach (like a real teacher):', $bodies[0]);
+        $this->assertStringNotContainsString('WHEN THE LEARNER STRUGGLES', $bodies[0]);
+        $this->assertStringNotContainsString('How you teach (like a real teacher):', $bodies[1]);
+        $this->assertStringContainsString('WHEN THE LEARNER STRUGGLES', $bodies[1]);
         $this->assertStringContainsString('WRITTEN REHEARSAL', $bodies[1]);
         Http::assertSent(fn (Request $request) => str_contains($request->url(), '/interactions'));
 
         // Les vraies consignes ne sont pas modifiées par la comparaison.
-        $this->assertStringContainsString('PRICES AND QUESTIONS BEFORE BUYING', (string) config('teacher.advisor'));
+        $this->assertStringContainsString('WHEN THE LEARNER STRUGGLES', (string) config('teacher.persona'));
     }
 
     public function test_an_unknown_scenario_is_refused_and_no_provider_is_reported_clearly(): void
@@ -134,5 +135,24 @@ class TeacherRehearsalTest extends TestCase
         $this->assertStringContainsString('the unused time of a day is not carried over', $text);
         $this->assertStringContainsString('no registration fee and no other fee from Talkami', $text);
         $this->assertStringContainsString('UNCLEAR ANSWER', $text);
+    }
+
+    public function test_the_best_teaching_practices_have_scenarios_for_a1_a2_and_b1(): void
+    {
+        $scenarios = TeacherRehearsal::scenarios();
+        $levels = [];
+
+        foreach (['echauffement-question-ouverte', 'verifier-par-une-question', 'eleve-bloque-astuce', 'sens-et-difference',
+            'debutant-veut-parler', 'conversation-sans-interrompre', 'retour-sur-la-langue'] as $key) {
+            $this->assertArrayHasKey($key, $scenarios);
+            $levels[] = $scenarios[$key]['level'];
+        }
+
+        $this->assertEqualsCanonicalizing(['A1', 'A2', 'B1'], array_values(array_unique($levels)));
+
+        // Jamais « C'est clair ? » : une question qui fait utiliser.
+        $check = TeacherRehearsal::check('Pas de souci. Alors : « j\'ai 30 ans », comment dit-on ?', $scenarios['verifier-par-une-question']);
+        $this->assertSame([true, true, true, true, true, true, true, true], array_column($check, 'ok'));
+        $this->assertFalse(TeacherRehearsal::check('Is it clear? C\'est clair ?', $scenarios['verifier-par-une-question'])[1]['ok']);
     }
 }

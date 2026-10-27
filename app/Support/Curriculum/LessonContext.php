@@ -35,6 +35,10 @@ class LessonContext
         $lines[] = '- Level: '.$program->level->value.' ('.$program->level->label().')';
         $lines[] = '- Main goal: '.$program->goal->value.' ('.$program->goal->label().')';
 
+        if ($others = $program->otherGoals()) {
+            $lines[] = '- Other goals (for examples and open questions when they fit): '.implode(', ', array_map(fn ($goal) => $goal->label(), $others));
+        }
+
         if ($program->profile) {
             $lines[] = '- Profile: '.$program->profile->value.' ('.$program->profile->label().')';
         }
@@ -126,7 +130,7 @@ class LessonContext
         if ($previous?->summary) {
             $lines[] = '- Summary: '.$previous->summary;
             $lines[] = '- Homework given: '.($previous->homework ?: 'none');
-            $lines[] = '- Use them for the WARM-UP: the learner recalls the sentence to remember, then tells you about the homework.';
+            $lines[] = '- Use them for the WARM-UP, after the open question: the learner recalls the sentence to remember, then tells you about the homework.';
         } else {
             $lines[] = '- None: this is the first lesson of the programme (no warm-up today).';
         }

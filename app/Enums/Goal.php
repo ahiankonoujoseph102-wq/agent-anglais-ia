@@ -3,7 +3,7 @@
 namespace App\Enums;
 
 /**
- * Objectif principal de l'apprenant (questionnaire du programme).
+ * Objectif de l'apprenant (questionnaire du programme) : un principal, et jusqu'à deux autres (Program::otherGoals()).
  */
 enum Goal: string
 {
@@ -18,6 +18,7 @@ enum Goal: string
     case Presentation = 'presentation';
     case Clients = 'clients';
     case Confidence = 'confidence';
+    case Media = 'media';
 
     public function label(): string
     {
@@ -33,6 +34,7 @@ enum Goal: string
             self::Presentation => 'Faire un exposé ou une soutenance en anglais',
             self::Clients => 'Parler avec des clients ou partenaires',
             self::Confidence => 'Avoir confiance et oser parler',
+            self::Media => 'Comprendre les films, les séries et les chansons',
         };
     }
 
@@ -55,6 +57,7 @@ enum Goal: string
             self::Presentation => ['studies', 'education'],
             self::Clients => ['business', 'phone'],
             self::Confidence => ['conversation', 'family'],
+            self::Media => ['conversation', 'tech'],
         };
     }
 }

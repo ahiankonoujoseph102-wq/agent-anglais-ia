@@ -94,7 +94,7 @@ class ProgramAnswersController extends Controller
     public static function current(Program $program): array
     {
         return [
-            1 => ['goal' => $program->goal->value],
+            1 => ['goal' => $program->goal->value, 'other_goals' => array_map(fn ($goal) => $goal->value, $program->otherGoals())],
             2 => ['profile' => $program->profile?->value, 'occupation' => $program->occupation, 'interests' => $program->interests],
             3 => ['study_days' => array_map('intval', (array) $program->study_days), 'study_time' => $program->study_time],
             4 => ['difficulties' => array_values((array) $program->difficulties)],
