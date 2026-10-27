@@ -60,7 +60,7 @@ class FaqTest extends TestCase
         $this->assertStringContainsString('écrits au tableau sur votre écran', $faq);
         $this->assertStringContainsString('le français sert de filet de sécurité', $faq);
         // Évaluation : mini-leçon et durée totale tirée de la configuration.
-        $this->assertStringContainsString('avec une première phrase de votre niveau', $faq);
+        $this->assertStringContainsString('une mini-leçon sur une ou deux de vos propres erreurs', $faq);
         $this->assertStringContainsString(Assessment::totalMinutes().' minutes au plus en tout', $faq);
         // Phrases utiles, corrections, révision.
         $this->assertStringContainsString('« Can you repeat, please? »', $faq);

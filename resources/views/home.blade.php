@@ -298,7 +298,7 @@
             </details>
             <details>
                 <summary><x-icon name="gift" /><span>L'évaluation est-elle vraiment gratuite ?</span></summary>
-                <p>Oui. Une évaluation orale par compte, sans paiement ni engagement : {{ $minutes }} minutes pour trouver votre niveau, de A1 à C2. {{ $teacher }} vous montre ensuite comment se passe un cours avec une première phrase de votre niveau, puis répond à vos questions en français : {{ \App\Models\Assessment::totalMinutes() }} minutes au plus en tout. Ensuite, vous décidez.</p>
+                <p>Oui. Une évaluation orale par compte, sans paiement ni engagement : {{ $minutes }} minutes pour trouver votre niveau, de A1 à C2. {{ $teacher }} vous fait ensuite une mini-leçon sur une ou deux de vos propres erreurs, puis répond à vos questions en français : {{ \App\Models\Assessment::totalMinutes() }} minutes au plus en tout. Ensuite, vous décidez.</p>
             </details>
             <details>
                 <summary><x-icon name="mic" /><span>Comment se passe une séance ?</span></summary>
@@ -384,7 +384,7 @@
         </div>
         <div class="cta-band reveal">
             <h2>Votre anglais oral commence aujourd'hui</h2>
-            <p>Une évaluation orale gratuite avec {{ $teacher }} : votre niveau, une première phrase apprise et vos questions.</p>
+            <p>Une évaluation orale gratuite avec {{ $teacher }} : votre niveau, une mini-leçon sur vos propres erreurs et vos questions.</p>
             <div class="cta-actions">
                 <a class="btn btn-accent btn-lg" href="{{ $start }}"><x-icon name="mic" /> {{ $startLabel }}</a>
                 @if ($whatsappUrl)

@@ -112,7 +112,7 @@
             @if (! empty($board))
                 <div id="board-home"><x-live-board :board="$board" :translations="$boardTranslations ?? 'show'" /></div>
             @else
-                {{-- Évaluation : le tableau de la mini-leçon découverte y apparaît après le verdict (live-session.js). --}}
+                {{-- Évaluation : le tableau de la mini-leçon personnelle y apparaît après le verdict (live-session.js). --}}
                 <div id="board-home"></div>
             @endif
 

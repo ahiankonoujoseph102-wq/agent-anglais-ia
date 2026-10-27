@@ -71,7 +71,7 @@ return [
         // pose encore quelques questions (App\Support\Live\LiveEarlyEnd) ; dans les vraies évaluations, il donnait
         // souvent le niveau au bout de deux minutes, pour une évaluation annoncée de cinq.
         'min_verdict_seconds' => 180,
-        // Après l'annonce du niveau : mini-leçon découverte (une phrase du niveau trouvé), questions libres puis
+        // Après l'annonce du niveau : mini-leçon personnelle (les vraies erreurs de l'apprenant, App\Support\Live\AssessmentMiniLesson), questions libres puis
         // conclusion, en français. Ces temps s'ajoutent à partir du verdict (durée totale coupée par le serveur :
         // max_minutes + discovery_seconds + questions_seconds au plus, soit 8 minutes).
         'questions_seconds' => 120,
