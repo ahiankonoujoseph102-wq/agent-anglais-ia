@@ -401,6 +401,7 @@ La documentation de Laravel Cloud ne dit ni la taille maximale d'un envoi ni la 
 | Préparer les messages vocaux à la main | Onglet **Commands** (ou l'administration : « Diagnostic de la voix ») | `php artisan app:prepare-voice` |
 | Générer `APP_KEY` (une seule fois) | Onglet **Commands** | `php artisan key:generate --show` |
 | Créer l'administrateur | Onglet **Commands** | `php artisan app:create-admin --no-interaction` |
+| Mot de passe administrateur oublié | Onglet **Commands** (le mot de passe provisoire s'affiche dans le résultat ; le site demande d'en choisir un nouveau à la connexion) | `php artisan app:reset-admin-password` |
 | Contrôler la mise en ligne | Onglet **Commands** | `php artisan app:check-deployment` |
 | Voir les tâches planifiées | Onglet **Commands** | `php artisan schedule:list` |
 | Clore à la main les séances abandonnées | Onglet **Commands** | `php artisan live:close-stale` |
