@@ -9,6 +9,8 @@ use App\Models\LessonBoard;
 use App\Models\User;
 use App\Support\Curriculum\Curriculum;
 use App\Support\Curriculum\LessonBoards;
+use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\OpenAiRealtime;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -34,12 +36,15 @@ class AssessmentQuestionsTest extends TestCase
         $this->freezeSecond();
     }
 
-    private function verdictAfter(User $user, int $seconds)
+    /**
+     * @param  array<int, mixed>|null  $lesson  mini-leçon personnelle transmise avec le verdict
+     */
+    private function verdictAfter(User $user, int $seconds, ?array $lesson = null)
     {
         $this->actingAs($user)->postJson('/evaluation/connexion')->assertOk()->assertJsonPath('questions', false);
         $this->travel($seconds)->seconds();
 
-        return $this->actingAs($user)->postJson('/evaluation/resultat', ['level' => 'A2', 'feedback' => 'Bonne base.']);
+        return $this->actingAs($user)->postJson('/evaluation/resultat', ['level' => 'A2', 'feedback' => 'Bonne base.'] + ($lesson === null ? [] : ['lesson' => $lesson]));
     }
 
     public function test_the_verdict_opens_three_minutes_of_mini_lesson_and_questions_counted_from_the_verdict(): void
@@ -125,7 +130,7 @@ class AssessmentQuestionsTest extends TestCase
         // Le jeton ne dure jamais au-delà de la nouvelle limite ; les consignes gardent la durée de l'évaluation.
         $this->assertLessThanOrEqual(160, $response->json('token_expires_in'));
         Http::assertSent(fn (Request $request) => str_ends_with($request->url(), '/auth_tokens')
-            && str_contains(json_encode($request->data(), JSON_UNESCAPED_UNICODE), 'The assessment itself lasts 5 minutes at most'));
+            && str_contains(json_encode($request->data(), JSON_UNESCAPED_UNICODE), 'FREE ORAL LEVEL ASSESSMENT: 5 minutes at most'));
     }
 
     public function test_a_verdict_after_the_server_cut_opens_no_questions(): void
@@ -148,6 +153,65 @@ class AssessmentQuestionsTest extends TestCase
         $this->actingAs(User::factory()->create())->get('/evaluation')
             ->assertOk()
             ->assertSee('<span id="timer-label">Temps restant</span>', false);
+    }
+
+    public function test_the_mini_lesson_is_built_on_the_real_mistakes_of_this_learner(): void
+    {
+        // Exemples INVENTÉS : deux apprenants du même niveau reçoivent deux leçons différentes.
+        $kofi = $this->verdictAfter(User::factory()->create(), 150, [
+            ['said' => 'I have 30 years', 'correct' => "I'm 30 years old.", 'why' => 'En anglais, l\'âge se dit avec « be », pas avec « have ».'],
+            ['said' => 'Yesterday I go to the market', 'correct' => 'Yesterday I went to the market.', 'why' => 'Hier, c\'est le passé : « go » devient « went ».'],
+            ['said' => 'troisième', 'correct' => 'ignorée', 'why' => 'Deux points au plus.'],
+        ])->assertOk();
+
+        $this->assertSame('Votre leçon personnelle', $kofi->json('discovery.title'));
+        $this->assertSame('Vos deux points du jour', $kofi->json('discovery.heading'));
+        $this->assertCount(2, $kofi->json('discovery.phrases'));
+        $this->assertSame("I'm 30 years old.", $kofi->json('discovery.phrases.0.en'));
+        $this->assertSame('Vous avez dit « I have 30 years ». En anglais, l\'âge se dit avec « be », pas avec « have ».', $kofi->json('discovery.phrases.0.fr'));
+
+        $next = $kofi->json('next_step');
+        $this->assertStringContainsString('PERSONAL MINI-LESSON', $next);
+        $this->assertStringContainsString('(1) they said "I have 30 years", right form "I\'m 30 years old."', $next);
+        $this->assertStringContainsString('(2) they said "Yesterday I go to the market"', $next);
+        $this->assertStringContainsString('they use it ONCE in a sentence of their own', $next);
+        $this->assertStringContainsString('ONE sincere encouragement about something they really did well today', $next);
+        $this->assertStringNotContainsString('troisième', $next);
+        $this->assertStringNotContainsString(':items', $next);
+
+        // Presque aucune erreur : une tournure plus naturelle du niveau supérieur.
+        $ama = $this->verdictAfter(User::factory()->create(), 150, [
+            ['said' => '', 'correct' => "I'm really looking forward to it.", 'why' => 'Plus naturel que « I wait for it with impatience ».'],
+        ])->assertOk();
+        $this->assertSame('Votre point du jour', $ama->json('discovery.heading'));
+        $this->assertSame('Plus naturel que « I wait for it with impatience ».', $ama->json('discovery.phrases.0.fr'));
+        $this->assertStringContainsString('(1) a more natural phrase: "I\'m really looking forward to it."', $ama->json('next_step'));
+        $this->assertNotSame($kofi->json('discovery'), $ama->json('discovery'));
+    }
+
+    public function test_a_broken_lesson_never_blocks_the_verdict_and_falls_back_to_the_first_lesson(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->verdictAfter($user, 150, [['said' => 'x'], 'texte', ['correct' => '<b>Hi</b>', 'why' => '']])->assertOk();
+
+        $this->assertSame('A2', $user->assessment()->first()->level->value);
+        $this->assertSame('Votre première phrase', $response->json('discovery.heading'));
+        $this->assertStringContainsString('on this phrase instead (nothing else was sent)', $response->json('next_step'));
+    }
+
+    public function test_the_verdict_function_asks_for_the_learner_s_own_mistakes_at_both_providers(): void
+    {
+        $setup = TeacherSetup::assessment(User::factory()->create(), 5);
+        $lesson = $setup['tools'][0]['functionDeclarations'][0]['parameters']['properties']['lesson'];
+
+        $this->assertSame('ARRAY', $lesson['type']);
+        $this->assertSame(['said', 'correct', 'why'], array_keys($lesson['items']['properties']));
+        $this->assertStringContainsString('real mistakes of this learner', $lesson['description']);
+        $this->assertSame(['level', 'feedback'], $setup['tools'][0]['functionDeclarations'][0]['parameters']['required']);
+
+        $openai = OpenAiRealtime::session($setup);
+        $this->assertSame('array', $openai['tools'][0]['parameters']['properties']['lesson']['type']);
     }
 
     public function test_the_verdict_brings_a_one_phrase_discovery_mini_lesson_from_the_first_lesson_of_the_level(): void

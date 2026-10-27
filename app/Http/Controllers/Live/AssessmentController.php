@@ -15,6 +15,7 @@ use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LevelMessage;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\AssessmentMiniLesson;
 use App\Support\Live\LiveEarlyEnd;
 use App\Support\Live\LivePage;
 use App\Support\Plan;
@@ -240,7 +241,7 @@ class AssessmentController extends Controller
             'level' => $assessment->level->value,
             'label' => $assessment->level->label(),
             'remaining_seconds' => $assessment->remainingSeconds(),
-        ] + self::ending($assessment) + self::discovery($assessment));
+        ] + self::ending($assessment) + self::discovery($assessment, $request->lesson()));
     }
 
     public function finish(SignalRequest $request): JsonResponse
@@ -287,38 +288,21 @@ class AssessmentController extends Controller
     }
 
     /**
-     * Mini-leçon découverte (seulement si la conversation continue après le verdict) : quelques phrases de la
-     * première leçon du niveau trouvé, montrées au tableau, et la suite donnée au professeur avec la phrase à
-     * enseigner (réponse de la fonction : aucun nouvel appel, mêmes consignes chez Gemini et chez OpenAI).
+     * Mini-leçon de fin (seulement si la conversation continue après le verdict), montrée au tableau, et la suite
+     * donnée au professeur (réponse de la fonction : aucun nouvel appel, mêmes consignes chez Gemini et chez OpenAI).
+     * PERSONNELLE : les une ou deux vraies erreurs de l'apprenant transmises avec le verdict (ou une tournure plus
+     * naturelle du niveau supérieur) ; en secours seulement, quelques phrases de la première leçon du niveau trouvé.
      *
+     * @param  list<array{said: string, correct: string, why: string}>  $lesson
      * @return array<string, mixed>
      */
-    private static function discovery(Assessment $assessment): array
+    private static function discovery(Assessment $assessment, array $lesson = []): array
     {
         if (! $assessment->inQuestions()) {
             return [];
         }
 
-        $board = LessonBoards::firstLesson($assessment->level);
-        $phrases = array_slice($board['phrases'], 0, max(1, (int) config('platform.assessment.discovery_phrases')));
-
-        if ($phrases === []) {
-            return [];
-        }
-
-        $phrases = array_map(fn (array $phrase) => ['en' => $phrase['en'], 'fr' => $phrase['fr'] ?? null, 'note' => $phrase['use'] ?? null], $phrases);
-        // En une minute : la phrase la plus courte est enseignée, et vient en premier au tableau.
-        usort($phrases, fn (array $a, array $b) => mb_strlen($a['en']) <=> mb_strlen($b['en']));
-        $first = $phrases[0];
-
-        return [
-            'discovery' => ['title' => $board['title'], 'phrases' => $phrases],
-            'next_step' => strtr((string) config('teacher.assessment_next_step'), [
-                ':intro' => (string) config('platform.assessment.discovery_intro'),
-                ':phrase' => $first['en'],
-                ':meaning' => $first['fr'] ? ' (in French: "'.$first['fr'].'")' : '',
-            ]),
-        ];
+        return AssessmentMiniLesson::for($assessment->level, $lesson);
     }
 
     private function resultPage(Request $request, Assessment $assessment): View

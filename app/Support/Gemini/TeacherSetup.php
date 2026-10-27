@@ -53,6 +53,20 @@ class TeacherSetup
                             'type' => 'STRING',
                             'description' => self::FEEDBACK_RULE,
                         ],
+                        // Mini-leçon personnelle : les vraies erreurs de CET apprenant (App\Http\Controllers\Live\AssessmentController::discovery).
+                        'lesson' => [
+                            'type' => 'ARRAY',
+                            'description' => 'One or two real mistakes of this learner, most useful first; if almost none, one more natural phrase of the next level.',
+                            'items' => [
+                                'type' => 'OBJECT',
+                                'properties' => [
+                                    'said' => ['type' => 'STRING', 'description' => 'What the learner said (empty for a new phrase).'],
+                                    'correct' => ['type' => 'STRING', 'description' => 'Right or more natural form, in English.'],
+                                    'why' => ['type' => 'STRING', 'description' => 'Why, one short French sentence.'],
+                                ],
+                                'required' => ['correct', 'why'],
+                            ],
+                        ],
                     ],
                     'required' => ['level', 'feedback'],
                 ],

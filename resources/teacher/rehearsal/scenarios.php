@@ -464,4 +464,92 @@ return [
         'never' => ['is it clear', 'c\'est clair'],
         'max_words' => 120,
     ],
+
+    // Évaluation personnalisée (fin octobre 2026) : trois profils INVENTÉS (débutant, intermédiaire, bon niveau). Mêmes
+    // paliers pour tous, mais la question suivante part de ce que la personne vient de dire, et la mini-leçon de la fin
+    // porte sur SES erreurs (« verdict » : suite renvoyée par la fonction ; avant : la même phrase pour tout un niveau).
+    'evaluation-debutant-question' => [
+        'title' => 'Évaluation, débutant : la question suivante part de sa réponse, plus simple, sans correction',
+        'kind' => 'assessment',
+        'moment' => 'Step 2, stage (a): the learner answers with difficulty.',
+        'history' => [
+            ['teacher', 'Nice to meet you, Afi! What do you do every day?'],
+            ['learner', 'I sell... euh... clothes. In market. Grand Marché.'],
+        ],
+        'must' => [['clothes', 'market', 'sell']],
+        'never' => ['you said', 'we say', 'what is your name', 'opinion'],
+        'max_questions' => 1,
+        'max_words' => 35,
+    ],
+    'evaluation-intermediaire-question' => [
+        'title' => 'Évaluation, intermédiaire : réponse facile, la question monte d\'un palier et reprend son histoire',
+        'kind' => 'assessment',
+        'moment' => 'Step 2, stage (b): the learner answers easily and correctly.',
+        'history' => [
+            ['teacher', 'You are a nurse in Kara, great. What did you do last weekend?'],
+            ['learner', 'Last weekend I went to my village to visit my parents, and on Sunday I helped my father in his field. It was tiring but I enjoyed it.'],
+        ],
+        'must' => [['village', 'parents', 'father', 'field', 'nurse', 'hospital']],
+        'never' => ['you said', 'we say', 'what is your name', 'where do you live'],
+        'max_questions' => 1,
+        'max_words' => 45,
+    ],
+    'evaluation-bon-niveau-question' => [
+        'title' => 'Évaluation, bon niveau : question d\'opinion ou d\'hypothèse tirée de son métier',
+        'kind' => 'assessment',
+        'moment' => 'Step 2, stage (c): the learner is fluent.',
+        'history' => [
+            ['teacher', 'You manage a team at the port of Lomé. Why do you want to improve your English?'],
+            ['learner', 'Because more and more of our clients are foreign shipping companies, and I\'d like to negotiate directly with them instead of relying on an interpreter.'],
+        ],
+        'must' => [['negotiat', 'client', 'interpreter', 'shipping', 'team']],
+        'never' => ['you said', 'we say', 'what is your name', 'where do you live', 'how old'],
+        'max_questions' => 1,
+        'max_words' => 50,
+    ],
+    'evaluation-debutant-lecon' => [
+        'title' => 'Évaluation, débutant : mini-leçon sur SON erreur (« I live Lomé »)',
+        'kind' => 'assessment',
+        'moment' => 'Steps 3 and 4 are done (verdict A1 saved, level announced). Now step 5, following the function result below.',
+        'history' => [
+            ['teacher', 'Your level is A1: you can already say simple things about yourself. Great start!'],
+            ['learner', 'Ok, thank you.'],
+        ],
+        'verdict' => ['level' => 'A1', 'lesson' => [
+            ['said' => 'I live Lomé', 'correct' => 'I live in Lomé.', 'why' => 'Avec « live », on met « in » avant le nom de la ville.'],
+        ]],
+        'must' => [['in Lomé'], ['live Lomé']],
+        'never' => ['you said "', 'what is your name'],
+        'max_words' => 160,
+    ],
+    'evaluation-intermediaire-lecon' => [
+        'title' => 'Évaluation, intermédiaire : mini-leçon sur SON erreur de temps',
+        'kind' => 'assessment',
+        'moment' => 'Steps 3 and 4 are done (verdict B1 saved, level announced). Now step 5, following the function result below.',
+        'history' => [
+            ['teacher', 'Your level is B1: you can talk about your work and your weekend with confidence.'],
+            ['learner', 'Really? Good!'],
+        ],
+        'verdict' => ['level' => 'B1', 'lesson' => [
+            ['said' => 'I am working at the hospital since two years', 'correct' => 'I have been working at the hospital for two years.', 'why' => 'Pour une action qui a commencé dans le passé et continue : « have been + -ing » et « for ».'],
+        ]],
+        'must' => [['have been working', 've been working'], ['for two years']],
+        'never' => ['what is your name'],
+        'max_words' => 170,
+    ],
+    'evaluation-bon-niveau-lecon' => [
+        'title' => 'Évaluation, bon niveau : presque aucune erreur, une tournure plus naturelle du niveau supérieur',
+        'kind' => 'assessment',
+        'moment' => 'Steps 3 and 4 are done (verdict B2 saved, level announced). Now step 5, following the function result below.',
+        'history' => [
+            ['teacher', 'Your level is B2: you express complex ideas clearly. Impressive!'],
+            ['learner', 'Thank you, I use English at work.'],
+        ],
+        'verdict' => ['level' => 'B2', 'lesson' => [
+            ['said' => '', 'correct' => 'We\'d like to cut out the middleman.', 'why' => 'Plus naturel que « negotiate without an interpreter » pour dire qu\'on veut traiter sans intermédiaire.'],
+        ]],
+        'must' => [['middleman']],
+        'never' => ['what is your name'],
+        'max_words' => 170,
+    ],
 ];

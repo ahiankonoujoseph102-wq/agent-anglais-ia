@@ -81,16 +81,16 @@ class TeacherRehearsalTest extends TestCase
         // Mêmes scénario et modèle ; seules les consignes changent.
         $bodies = Http::recorded()->map(fn (array $pair) => json_encode($pair[0]->data(), JSON_UNESCAPED_UNICODE))->values();
         $this->assertCount(2, $bodies);
-        // Avant : les consignes de main après la pull request #111 ; après : celles des meilleurs centres.
-        $this->assertStringContainsString('How you teach (like a real teacher):', $bodies[0]);
-        $this->assertStringNotContainsString('WHEN THE LEARNER STRUGGLES', $bodies[0]);
-        $this->assertStringNotContainsString('How you teach (like a real teacher):', $bodies[1]);
-        $this->assertStringContainsString('WHEN THE LEARNER STRUGGLES', $bodies[1]);
+        // Avant : les consignes de main après la pull request #112 ; après : l'évaluation personnalisée.
+        $this->assertStringContainsString('DISCOVERY MINI-LESSON', $bodies[0]);
+        $this->assertStringNotContainsString('ADAPTIVE QUESTIONS', $bodies[0]);
+        $this->assertStringNotContainsString('DISCOVERY MINI-LESSON', $bodies[1]);
+        $this->assertStringContainsString('ADAPTIVE QUESTIONS', $bodies[1]);
         $this->assertStringContainsString('WRITTEN REHEARSAL', $bodies[1]);
         Http::assertSent(fn (Request $request) => str_contains($request->url(), '/interactions'));
 
         // Les vraies consignes ne sont pas modifiées par la comparaison.
-        $this->assertStringContainsString('WHEN THE LEARNER STRUGGLES', (string) config('teacher.persona'));
+        $this->assertStringContainsString('ADAPTIVE QUESTIONS', (string) config('teacher.assessment'));
     }
 
     public function test_an_unknown_scenario_is_refused_and_no_provider_is_reported_clearly(): void
@@ -154,5 +154,37 @@ class TeacherRehearsalTest extends TestCase
         $check = TeacherRehearsal::check('Pas de souci. Alors : « j\'ai 30 ans », comment dit-on ?', $scenarios['verifier-par-une-question']);
         $this->assertSame([true, true, true, true, true, true, true, true], array_column($check, 'ok'));
         $this->assertFalse(TeacherRehearsal::check('Is it clear? C\'est clair ?', $scenarios['verifier-par-une-question'])[1]['ok']);
+    }
+
+    public function test_three_assessment_profiles_get_their_own_questions_and_their_own_mini_lesson(): void
+    {
+        $scenarios = TeacherRehearsal::scenarios();
+        $questions = ['evaluation-debutant-question', 'evaluation-intermediaire-question', 'evaluation-bon-niveau-question'];
+        $lessons = ['evaluation-debutant-lecon', 'evaluation-intermediaire-lecon', 'evaluation-bon-niveau-lecon'];
+
+        foreach ([...$questions, ...$lessons] as $key) {
+            $this->assertSame('assessment', $scenarios[$key]['kind'], $key);
+        }
+
+        // La mini-leçon : après, la suite renvoyée par la fonction porte sur l'erreur de CHAQUE profil ; avant, la même
+        // phrase de la première leçon pour tous les apprenants d'un niveau.
+        $after = array_map(fn ($key) => TeacherRehearsal::transcript($scenarios[$key]), $lessons);
+        $this->assertStringContainsString('they said "I live Lomé", right form "I live in Lomé."', $after[0]);
+        $this->assertStringContainsString('they said "I am working at the hospital since two years"', $after[1]);
+        $this->assertStringContainsString('a more natural phrase: "We\'d like to cut out the middleman."', $after[2]);
+        $this->assertCount(3, array_unique($after));
+
+        foreach ($lessons as $key) {
+            $before = TeacherRehearsal::transcript($scenarios[$key], before: true);
+            $this->assertStringContainsString('on this phrase instead (nothing else was sent)', $before, $key);
+            $this->assertStringNotContainsString('they said', $before, $key);
+        }
+
+        // Les questions : la réponse attendue reprend ce que CHAQUE personne vient de dire ; jamais une question fixe.
+        $this->assertCount(3, array_unique(array_map(fn ($key) => json_encode($scenarios[$key]['must']), $questions)));
+        foreach ($questions as $key) {
+            $this->assertContains('what is your name', $scenarios[$key]['never'], $key);
+            $this->assertSame(1, $scenarios[$key]['max_questions'], $key);
+        }
     }
 }
