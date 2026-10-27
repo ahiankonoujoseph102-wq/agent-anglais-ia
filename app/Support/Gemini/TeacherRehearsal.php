@@ -5,6 +5,7 @@ namespace App\Support\Gemini;
 use App\Enums\Level;
 use App\Models\User;
 use App\Support\Duration;
+use App\Support\Live\AssessmentMiniLesson;
 use App\Support\Plan;
 use App\Support\Text\TextProviders;
 use App\Support\Text\TextRequest;
@@ -51,7 +52,7 @@ final class TeacherRehearsal
         $result = TextProviders::generate(new TextRequest(
             kind: 'rehearsal',
             instructions: $instructions,
-            parts: [TextRequest::text(self::transcript($scenario))],
+            parts: [TextRequest::text(self::transcript($scenario, $before))],
             maxTokens: 400,
             timeout: 30,
             effort: 'minimal',
@@ -103,13 +104,20 @@ final class TeacherRehearsal
     /**
      * @param  array<string, mixed>  $scenario
      */
-    public static function transcript(array $scenario): string
+    public static function transcript(array $scenario, bool $before = false): string
     {
         $teacher = (string) config('avatar.model.name');
+        $lines = collect($scenario['history'])
+            ->map(fn (array $turn) => ($turn[0] === 'teacher' ? $teacher : 'Learner').': '.$turn[1]);
 
-        return collect($scenario['history'])
-            ->map(fn (array $turn) => ($turn[0] === 'teacher' ? $teacher : 'Learner').': '.$turn[1])
-            ->implode("\n")."\n".$teacher.':';
+        // Évaluation : verdict déjà enregistré ; la suite renvoyée par la fonction (mini-leçon), comme en vraie séance.
+        // Avant : la phrase fixe de la première leçon du niveau ; après : les vraies erreurs de l'apprenant.
+        if (isset($scenario['verdict'])) {
+            $next = AssessmentMiniLesson::for(Level::from($scenario['verdict']['level']), $before ? [] : $scenario['verdict']['lesson'])['next_step'] ?? '';
+            $lines->push('(Result of record_assessment_result: '.$next.')');
+        }
+
+        return $lines->implode("\n")."\n".$teacher.':';
     }
 
     /**
