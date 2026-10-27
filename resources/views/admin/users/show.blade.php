@@ -25,6 +25,9 @@
             @endif
             <dt>Rôle</dt><dd>{{ $user->role->label() }}</dd>
             <dt>Inscription</dt><dd>{{ $user->created_at->format('d/m/Y H:i') }}</dd>
+            @if ($user->origin)
+                <dt>Provenance</dt><dd>{{ \App\Support\Origins::label($user->origin->channel) }}@if ($user->origin->referrer_host) ({{ $user->origin->referrer_host }})@endif, arrivé sur <code>{{ $user->origin->landing_path ?? 'page inconnue' }}</code></dd>
+            @endif
             <dt>Niveau</dt><dd>{{ $user->level ? $user->level->value.' — '.$user->level->label() : 'Pas encore évalué' }}</dd>
             <dt>Formule en cours</dt>
             <dd>

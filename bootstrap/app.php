@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\MarkPrivatePagesNoIndex;
 use App\Http\Middleware\RedirectToHttps;
 use App\Http\Middleware\RedirectToPrimaryDomain;
+use App\Http\Middleware\RememberLanding;
 use App\Http\Middleware\RequireConfirmation;
 use App\Http\Middleware\VerifyVideoToken;
 use Illuminate\Foundation\Application;
@@ -42,6 +43,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Mot de passe provisoire : changement obligatoire avant tout le reste.
         $middleware->appendToGroup('web', EnsurePasswordIsChanged::class);
+
+        // Provenance des inscrits : première page vue par un visiteur, gardée dans sa session (App\Support\Origins).
+        $middleware->appendToGroup('web', RememberLanding::class);
 
         // Pages privées : jamais dans les moteurs de recherche (X-Robots-Tag).
         $middleware->appendToGroup('web', MarkPrivatePagesNoIndex::class);

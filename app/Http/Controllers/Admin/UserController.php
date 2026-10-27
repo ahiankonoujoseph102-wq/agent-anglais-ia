@@ -63,7 +63,7 @@ class UserController extends Controller
      */
     public function show(Request $request, User $user): View
     {
-        $user->load(['assessment', 'activeSubscription']);
+        $user->load(['assessment', 'activeSubscription', 'origin']);
 
         $temporaryPassword = $request->session()->get('temporary_password');
         $whatsappUrl = null;
