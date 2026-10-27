@@ -47,7 +47,7 @@ class SiteSettings
     {
         if (preg_match('/^payment\.([A-Z]{2})\.(\w+)\.(number|holder)$/', $key, $match)) {
             $value = config("payment.countries.{$match[1]}.operators.{$match[2]}.{$match[3]}");
-        } elseif (str_starts_with($key, 'contact.')) {
+        } elseif (str_starts_with($key, 'contact.') || str_starts_with($key, 'cost_alert.')) {
             $value = config('platform.'.$key);
         } else {
             $value = null;

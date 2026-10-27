@@ -45,6 +45,45 @@
         @endforeach
     </div>
 
+    {{-- Coût des abonnés (App\Support\Live\CostWatch) : séances depuis le début de la formule en cours, comparées au prix. --}}
+    <h2 class="next-step" id="cout-abonnes">Coût des abonnés (formule en cours)</h2>
+    <p class="muted small">
+        Séances du jour, « Mes cours » et bilans de niveau depuis le début de la formule, au tarif payant des fournisseurs, comparés
+        au prix de la formule ({{ \App\Support\Live\CostWatch::xofPerUsd() }} francs CFA pour un dollar). Seuil d'alerte :
+        {{ \App\Support\Live\CostWatch::percent() }} % du prix (<a href="{{ route('admin.settings.edit') }}#alerte-cout">Réglages</a>).
+        Accès offert : comparé au prix de la formule au catalogue.
+    </p>
+    @if ($costWatch->isEmpty())
+        <div class="card empty-state"><span class="icon-bubble"><x-icon name="chart" /></span><p>Aucune séance d'abonné pendant une formule en cours.</p></div>
+    @else
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Abonné</th>
+                    <th>Formule</th>
+                    <th>Coût estimé</th>
+                    <th>Part du prix</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($costWatch as $row)
+                    <tr data-cost-over="{{ $row['over'] ? 'oui' : 'non' }}">
+                        <td data-label="Abonné"><a href="{{ route('admin.users.show', $row['subscription']->user) }}">{{ $row['subscription']->user->name }}</a></td>
+                        <td data-label="Formule">{{ $row['subscription']->plan_name }} · {{ \App\Support\Money::format($row['revenue']) }}@if ($row['subscription']->isGranted()) <span class="badge badge-grant">Accès offert</span>@endif</td>
+                        <td data-label="Coût estimé">{{ UsageCost::format($row['cost']) }}</td>
+                        <td data-label="Part du prix">
+                            @if ($row['over'])
+                                <span class="badge badge-alert">{{ $row['share'] }} %, au-dessus du seuil</span>
+                            @else
+                                {{ $row['share'] }} %
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+
     {{-- Démonstrations : conversations démarrées pendant un accès offert (jamais un revenu). --}}
     <h2 class="next-step">Pendant un accès offert (démonstrations)</h2>
     <div class="stats">

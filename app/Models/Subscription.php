@@ -30,6 +30,7 @@ class Subscription extends Model
             'provisional_until' => 'datetime',
             'granted_days' => 'integer',
             'revoked_at' => 'datetime',
+            'cost_alert_sent_at' => 'datetime',
             'status' => SubscriptionStatus::class,
         ];
     }

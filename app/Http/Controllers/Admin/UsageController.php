@@ -10,6 +10,7 @@ use App\Models\LevelTest;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\CourseReviews;
+use App\Support\Live\CostWatch;
 use App\Support\Live\LiveUsage;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\SpeechUsage;
@@ -100,6 +101,8 @@ class UsageController extends Controller
             'textKinds' => TextUsage::byKind(),
             'textProviders' => TextProviders::all(),
             'reviews' => CourseReviews::stats(),
+            // Coût des abonnés depuis le début de leur formule, comparé au prix (seuil des « Réglages »).
+            'costWatch' => CostWatch::current()->take(20),
         ]);
     }
 
