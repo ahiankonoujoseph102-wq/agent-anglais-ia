@@ -16,10 +16,10 @@ use Illuminate\Http\Request;
 final class Seo
 {
     /** Pages publiques indexées, dans l'ordre du sitemap (« country » : une page par pays, CountryPage). */
-    public const INDEXABLE_ROUTES = ['home', 'plans', 'about', 'how', 'country', 'contact', 'register', 'privacy'];
+    public const INDEXABLE_ROUTES = ['home', 'plans', 'about', 'how', 'courses-help', 'interview', 'guides.index', 'guides.show', 'country', 'contact', 'register', 'privacy'];
 
     /** Types de données structurées autorisés : aucune note, aucun avis, aucun nombre d'apprenants. */
-    public const SCHEMA_TYPES = ['Organization', 'WebSite', 'Person', 'Service', 'Offer', 'FAQPage', 'Question', 'Answer', 'ContactPoint', 'PostalAddress', 'Country'];
+    public const SCHEMA_TYPES = ['Organization', 'WebSite', 'Person', 'Service', 'Offer', 'FAQPage', 'Question', 'Answer', 'ContactPoint', 'PostalAddress', 'Country', 'Article', 'BreadcrumbList', 'ListItem'];
 
     /** Image de partage (WhatsApp, Facebook…), 1200 × 630 pixels, produite par tools/brand/share-image.mjs. */
     public const SHARE_IMAGE = 'images/partage-talkami.jpg';
@@ -52,7 +52,11 @@ final class Seo
         $urls = [];
 
         foreach (self::INDEXABLE_ROUTES as $route) {
-            $parameters = $route === 'country' ? array_map(fn (string $slug) => ['country' => $slug], CountryPage::slugs()) : [[]];
+            $parameters = match ($route) {
+                'country' => array_map(fn (string $slug) => ['country' => $slug], CountryPage::slugs()),
+                'guides.show' => array_map(fn (string $slug) => ['guide' => $slug], Guides::slugs()),
+                default => [[]],
+            };
 
             foreach ($parameters as $parameter) {
                 $urls[] = self::url(route($route, $parameter, false));
@@ -197,6 +201,47 @@ final class Seo
                 'availability' => 'https://schema.org/InStock',
             ], Plan::all())),
         ];
+    }
+
+    /**
+     * Données structurées « Article » d'un guide gratuit : écrit et publié par la plateforme (aucun auteur inventé).
+     *
+     * @return array<string, mixed>
+     */
+    public static function article(Guides $guide): array
+    {
+        $url = self::url(route('guides.show', $guide->slug, false));
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => $guide->heading,
+            'description' => $guide->description,
+            'inLanguage' => 'fr',
+            'datePublished' => $guide->published->toDateString(),
+            'image' => self::url(self::SHARE_IMAGE),
+            'mainEntityOfPage' => $url,
+            'url' => $url,
+            'author' => ['@type' => 'Organization', '@id' => self::url().'#organisation', 'name' => config('platform.name'), 'url' => self::url()],
+            'publisher' => ['@type' => 'Organization', '@id' => self::url().'#organisation', 'name' => config('platform.name'), 'url' => self::url()],
+        ];
+    }
+
+    /**
+     * Fil d'Ariane (« BreadcrumbList ») : Accueil, puis les pages données (nom => chemin relatif), dans l'ordre.
+     *
+     * @param  array<string, string>  $pages
+     * @return array<string, mixed>
+     */
+    public static function breadcrumbs(array $pages): array
+    {
+        $items = [['@type' => 'ListItem', 'position' => 1, 'name' => 'Accueil', 'item' => self::url()]];
+
+        foreach ($pages as $name => $path) {
+            $items[] = ['@type' => 'ListItem', 'position' => count($items) + 1, 'name' => $name, 'item' => self::url($path)];
+        }
+
+        return ['@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => $items];
     }
 
     /**
