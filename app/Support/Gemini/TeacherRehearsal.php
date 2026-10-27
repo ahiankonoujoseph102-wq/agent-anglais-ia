@@ -135,6 +135,11 @@ final class TeacherRehearsal
             $checks[] = ['label' => 'ne dit pas « '.trim($word).' »', 'ok' => ! str_contains($haystack, self::normalize($word))];
         }
 
+        if (isset($scenario['max_questions'])) {
+            $questions = substr_count($reply, '?');
+            $checks[] = ['label' => 'une seule question à la fois ('.$questions.' point'.($questions > 1 ? 's' : '').' d\'interrogation, '.$scenario['max_questions'].' au plus)', 'ok' => $questions <= $scenario['max_questions']];
+        }
+
         if (isset($scenario['max_words'])) {
             $words = str_word_count(Str::ascii($reply));
             $checks[] = ['label' => 'réponse courte ('.$words.' mots, '.$scenario['max_words'].' au plus)', 'ok' => $words <= $scenario['max_words']];

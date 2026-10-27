@@ -102,4 +102,37 @@ class TeacherRehearsalTest extends TestCase
             ->expectsOutputToContain('aucun fournisseur n\'a répondu')
             ->assertSuccessful();
     }
+
+    public function test_the_errors_seen_in_real_conversations_have_invented_scenarios(): void
+    {
+        $scenarios = TeacherRehearsal::scenarios();
+
+        foreach (['reponse-incomprehensible', 'phrase-autre-langue-lecon', 'meme-erreur-deux-fois', 'expliquer-en-francais', 'une-question-a-la-fois',
+            'frais-caches', 'combien-de-temps', 'disponible-24h', 'jour-manque', 'presentation-mal-entendue', 'question-en-anglais',
+            'objection-connexion', 'vraie-personne', 'hors-sujet', 'eleve-fatigue', 'repetition-mecanique'] as $key) {
+            $this->assertArrayHasKey($key, $scenarios);
+        }
+    }
+
+    public function test_one_question_at_a_time_is_checked(): void
+    {
+        $scenario = ['must' => [], 'never' => [], 'max_questions' => 1];
+
+        $this->assertSame([true], array_column(TeacherRehearsal::check('A teacher! What do you teach?', $scenario), 'ok'));
+        $this->assertSame([false], array_column(TeacherRehearsal::check('A teacher! What do you teach? And where?', $scenario), 'ok'));
+    }
+
+    public function test_the_new_facts_for_future_learners_are_in_the_instructions(): void
+    {
+        $text = TeacherRehearsal::instructions(TeacherRehearsal::scenarios()['combien-de-temps']);
+
+        // Faits tirés du programme officiel (12 unités, 3 leçons par unité) : jamais une promesse.
+        $this->assertStringContainsString('each level of the programme has 12 units of 3 lessons, so 36 lessons', $text);
+        $this->assertStringContainsString('about 7 to 8 weeks', $text);
+        $this->assertStringContainsString('Never promise fluency, a level or a delay.', $text);
+        $this->assertStringContainsString('at any hour of the day or night', $text);
+        $this->assertStringContainsString('the unused time of a day is not carried over', $text);
+        $this->assertStringContainsString('no registration fee and no other fee from Talkami', $text);
+        $this->assertStringContainsString('UNCLEAR ANSWER', $text);
+    }
 }

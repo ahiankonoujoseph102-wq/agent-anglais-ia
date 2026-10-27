@@ -26,6 +26,7 @@ class PrivacyTest extends TestCase
             ->assertSeeText('la capture d\'écran de confirmation que vous envoyez')
             ->assertSeeText('les photos ou le PDF des leçons d\'anglais que vous envoyez')
             ->assertSeeText('Le texte de vos conversations')
+            ->assertSeeText('Des extraits anonymisés (sans nom, numéro ni adresse) peuvent être analysés, y compris avec un outil d\'intelligence artificielle, pour améliorer Teacher Joe.')
             ->assertSeeText('Votre voix n\'est jamais enregistrée.')
             ->assertSeeText('Comment vous êtes arrivé sur le site')
             ->assertSeeText('Aucun outil de mesure extérieur ni cookie publicitaire n\'est utilisé')

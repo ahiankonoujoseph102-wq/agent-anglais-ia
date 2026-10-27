@@ -101,7 +101,7 @@ class TeacherSetupTest extends TestCase
             $this->assertStringContainsString('ONE short, gentle and funny remark', $text);
             $this->assertStringContainsString('never mock the learner, never target a person, and never touch politics, religion or real people', $text);
             $this->assertStringContainsString('Then go straight back to the lesson', $text);
-            $this->assertStringContainsString('Adapt to the learner\'s tone, rhythm and apparent age', $text);
+            $this->assertStringContainsString('Adapt to the learner\'s apparent age', $text);
             $this->assertStringContainsString('French only unblocks them, then you return to English at once', $text);
             $this->assertStringContainsString('"Try in English: …"', $text);
             $this->assertStringContainsString('In « MY COURSES » sessions, French remains the main language of the explanation', $text);
@@ -176,7 +176,7 @@ class TeacherSetupTest extends TestCase
 
         $this->assertStringContainsString('Greet the learner only ONCE', $text);
         $this->assertStringContainsString('Never repeat your introduction', $text);
-        $this->assertStringContainsString('Ask ONE simple question at a time, then wait.', $text);
+        $this->assertStringContainsString('Ask ONE simple question at a time, then wait: never end a turn with two different questions.', $text);
         $this->assertStringContainsString('rephrase the question ONCE, more simply', $text);
         $this->assertStringContainsString('move on to another, easier question', $text);
         $this->assertStringContainsString('Never speak over the learner', $text);
@@ -202,8 +202,8 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('BEFORE saying anything about the level. Call it only once.', $text);
         // Questions libres, en français, trois au plus, sans rien inventer.
         $this->assertStringContainsString('« Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français. »', $text);
-        $this->assertStringContainsString('(in French, 3 questions at most)', $text);
-        $this->assertStringContainsString('always answer in FRENCH, briefly (two or three sentences)', $text);
+        $this->assertStringContainsString('(3 questions at most)', $text);
+        $this->assertStringContainsString('answer in FRENCH by default, or in simple English if they ask in English and clearly want English; briefly (two or three sentences)', $text);
         $this->assertStringContainsString('Never invent anything (delays, phone numbers, promises)', $text);
         // Prix : réponse directe, jamais WhatsApp ; WhatsApp seulement pour un vrai problème, après l'échange.
         $this->assertStringContainsString('A question about the price or the plans gets the real figures at once (never WhatsApp for that)', $text);
