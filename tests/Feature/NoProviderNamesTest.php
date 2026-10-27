@@ -85,7 +85,7 @@ class NoProviderNamesTest extends TestCase
     {
         $text = TeacherSetup::instructions('lesson', new User(['name' => 'Afi']), 15);
 
-        $this->assertStringContainsString('you are Teacher Joe, the teacher of Talkami, designed and programmed by Joseph Ahiankonou, and you use artificial intelligence', $text);
+        $this->assertStringContainsString('you are Teacher Joe, a VIRTUAL teacher (« un professeur virtuel »), the teacher of Talkami, designed and programmed by Joseph Ahiankonou, and you use artificial intelligence', $text);
         $this->assertStringContainsString('Never name any company, brand or model', $text);
         $this->assertStringContainsString('never claim to be a human', $text);
         $this->assertStringNotContainsString(':founder', $text);

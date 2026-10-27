@@ -208,6 +208,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Texte des conversations d'un apprenant : lecture d'une séance, suppression de toutes (demande de suppression).
     Route::get('/inscrits/{user}/conversations/{type}/{id}', [ConversationController::class, 'show'])->whereIn('type', array_keys(Transcripts::TYPES))->whereNumber('id')->name('conversations.show');
     Route::delete('/inscrits/{user}/conversations', [ConversationController::class, 'destroy'])->middleware('confirm:transcripts.delete')->name('conversations.destroy');
+    // Export anonymisé du texte des conversations, pour analyser et améliorer Teacher Joe (rien n'est gardé).
+    Route::get('/conversations/export-anonymise', [ConversationController::class, 'export'])->middleware('throttle:6,1')->name('conversations.export');
     Route::get('/consommation', [UsageController::class, 'index'])->name('usage.index');
     Route::get('/provenance', [OriginController::class, 'index'])->name('origins.index');
     Route::get('/reglages', [SettingsController::class, 'edit'])->name('settings.edit');

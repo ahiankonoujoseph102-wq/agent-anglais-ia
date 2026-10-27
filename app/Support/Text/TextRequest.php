@@ -20,6 +20,7 @@ final class TextRequest
         'review' => 'Documents de révision (Mes cours)',
         'video' => 'Scripts des vidéos de leçon',
         'diagnostic' => 'Essai du diagnostic',
+        'rehearsal' => 'Banc d\'essai du professeur',
     ];
 
     /**
