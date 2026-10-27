@@ -54,7 +54,7 @@ class PresentationDemoSeeder extends Seeder
             return;
         }
 
-        VideoSettings::saveSite(VideoSettings::site() ?? 'talkami.laravel.cloud');
+        VideoSettings::saveSite(VideoSettings::site() ?? 'talkami.net');
         config(['services.gemini.key' => null, 'services.openai.key' => null]);
 
         $fresh = $this->learner('fresh', 'TG', null);

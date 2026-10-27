@@ -21,7 +21,7 @@
         <form method="POST" action="{{ route('admin.videos.site') }}" class="video-site">
             @csrf
             @method('PUT')
-            <x-input name="site" label="Adresse du site dans les vidéos" :value="old('site', $site)" placeholder="talkami.laravel.cloud" hint="Sans « https:// ». Dite et affichée à la fin de chaque vidéo. Champ vide : la fabrication est bloquée." />
+            <x-input name="site" label="Adresse du site dans les vidéos" :value="old('site', $site)" placeholder="talkami.net" hint="Sans « https:// ». Dite et affichée à la fin de chaque vidéo. Champ vide : la fabrication est bloquée." />
             <button type="submit" class="btn btn-accent">Enregistrer l'adresse</button>
         </form>
     </section>

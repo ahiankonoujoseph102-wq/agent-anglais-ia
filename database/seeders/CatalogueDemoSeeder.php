@@ -78,7 +78,7 @@ class CatalogueDemoSeeder extends Seeder
             $video = LessonVideo::query()->create([
                 'topic_key' => $topic['key'], 'day' => today(), 'slot' => $index + 1, 'level' => $topic['level'], 'title' => $topic['title'],
                 'status' => LessonVideo::READY, 'duration_seconds' => 118, 'lips_correlation' => 0.86, 'loudness_lufs' => -14.1, 'true_peak_db' => -1.2,
-                'caption' => "{$topic['title']} : la leçon du jour avec ".config('avatar.model.name').". Évaluation orale gratuite sur talkami.laravel.cloud\n#anglais #apprendrelanglais",
+                'caption' => "{$topic['title']} : la leçon du jour avec ".config('avatar.model.name').". Évaluation orale gratuite sur talkami.net\n#anglais #apprendrelanglais",
                 'ready_at' => now()->subHours(3 - $index),
             ]);
             $path = "videos/{$video->day->format('Y-m-d')}/{$video->id}/".$video->downloadName();

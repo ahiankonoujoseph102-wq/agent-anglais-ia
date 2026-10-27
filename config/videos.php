@@ -27,8 +27,7 @@ return [
     // Niveaux visés, dans l'ordre du programme des sujets.
     'levels' => ['A1', 'A2', 'B1'],
 
-    // Fin obligatoire, dite et affichée. :site = adresse du site tirée de APP_URL (talkami.laravel.cloud, puis
-    // talkami.net au changement de domaine, sans rien toucher ici).
+    // Fin obligatoire, dite et affichée. :site = adresse du site réglée dans la page « Vidéos » (talkami.net).
     'closing' => 'Et pour aller plus loin, évaluez gratuitement votre niveau d\'anglais sur :site',
 
     // Fin de CHAQUE vidéo, dans cet ordre, dite et sous-titrée (environ 10 à 12 secondes) : la question du jour

@@ -122,7 +122,7 @@ Dans **Settings, General** (section **Environment variables**), ajoutez les vari
 | `APP_ENV` | Environnement. Doit valoir `production`. | `production` |
 | `APP_KEY` | Clé de chiffrement de Laravel (voir l'étape 8 pour la générer). **Secrète.** | `base64:EXEMPLE_FICTIF_A_REMPLACER_PAR_VOTRE_CLE=` |
 | `APP_DEBUG` | Affiche les erreurs détaillées. Doit valoir `false`. | `false` |
-| `APP_URL` | Adresse publique du site, en `https://`. Au début : l'adresse en `laravel.cloud` donnée par Laravel Cloud ; ensuite votre domaine. | `https://www.exemple-talkami.com` |
+| `APP_URL` | Adresse officielle du site, en `https://`, sans barre finale : canonique, partage, plan du site, e-mails, PDF des attestations. | `https://talkami.net` |
 | `APP_TIMEZONE` | Fuseau horaire des séances, des abonnements et du planificateur. | `Africa/Lome` |
 | `APP_LOCALE` | Langue de l'interface. | `fr` |
 | `APP_FALLBACK_LOCALE` | Langue de secours. | `en` |
@@ -175,7 +175,7 @@ Dans **Settings, General** (section **Environment variables**), ajoutez les vari
 | `OPENAI_TTS_SPEED` | Vitesse des messages vocaux chez OpenAI (0,25 à 4 ; 1 = normal). Facultative. Changer la valeur fait préparer de nouveaux messages. | absente (0,95 : un peu plus calme que la normale) |
 | `GEMINI_END_OF_SPEECH_SENSITIVITY` | Fin de parole de l'apprenant chez Gemini : `END_SENSITIVITY_HIGH` (par défaut, la valeur de Google) ou `END_SENSITIVITY_LOW` (Gemini attend davantage avant de répondre ; avec du bruit de fond, il peut ne jamais répondre). Ne la créez pas sans raison. | absente |
 | `GOOGLE_SITE_VERIFICATION` | Code de Google Search Console (méthode « Balise HTML » : seulement ce qui est entre les guillemets de `content="…"`). Remplie, la balise est ajoutée en haut de chaque page. Ce n'est pas un secret. | absente |
-| `REDIRECT_FROM_HOSTS` | Changement de domaine : anciennes adresses, sans `https://`, séparées par une virgule (par exemple `talkami.laravel.cloud`). Chaque page ouverte sur l'une d'elles est redirigée (301) vers la même page sur `APP_URL`. Voir l'étape 11 bis. | absente |
+| `REDIRECT_FROM_HOSTS` | Anciennes adresses, sans `https://`, séparées par une virgule. Chaque page ouverte sur l'une d'elles est redirigée (301) vers la même page sur `APP_URL` (jamais l'API des workflows GitHub, les envois, ni l'application installée). Absente : `talkami.laravel.cloud`. Ne la créez pas. Voir l'étape 11 bis. | absente |
 | `WHATSAPP_GROUP_URL` | Lien d'invitation du **groupe** WhatsApp (`https://chat.whatsapp.com/…`). Rempli, le bouton WhatsApp de la page « introuvable » (404) ouvre le groupe ; absent, il ouvre une conversation avec le numéro WhatsApp de l'équipe. | absente |
 | `GEMINI_TOKEN_MINUTES` | Durée d'un jeton éphémère, en minutes. | `5` |
 | `AVATAR_3D_ENABLED` | `false` désactive le professeur 3D partout. | `true` |
@@ -317,15 +317,16 @@ L'offre Starter inclut 10 domaines personnalisés par organisation.
 ## 11 bis. Changer de domaine sans perdre le référencement (talkami.laravel.cloud vers talkami.net)
 
 1. Branchez le nouveau domaine (étape 11, points 1 à 5) et attendez **Connected**.
-2. Dans **Settings, Environment variables** : `APP_URL=https://talkami.net` et `REDIRECT_FROM_HOSTS=talkami.laravel.cloud`, **Save**, **Deploy**.
+2. Dans **Settings, Environment variables** : changez seulement `APP_URL` en `https://talkami.net` (sans barre finale), **Save**, **Deploy**. La redirection de l'ancienne adresse `talkami.laravel.cloud` est déjà prévue dans le code (aucune variable à ajouter) ; elle ne redirige jamais l'API des workflows GitHub, les envois de formulaires, les adresses signées ni les fichiers de l'application installée.
 3. Vérifiez sur le téléphone : `https://talkami.laravel.cloud/formules` doit ouvrir `https://talkami.net/formules` (redirection 301 : Google transfère le référencement de chaque page) ; `https://talkami.net/robots.txt` montre `Sitemap: https://talkami.net/sitemap.xml`.
+3 bis. GitHub, **Settings**, **Secrets and variables**, **Actions**, onglet **Variables** : modifiez `TALKAMI_URL` en `https://talkami.net` (le secret `TALKAMI_VIDEO_TOKEN` ne change pas ; l'ancienne adresse continue aussi de marcher pour l'API).
 4. Google Search Console : ajoutez la propriété `https://talkami.net/` (étape 11 ter), puis dans l'**ancienne** propriété : **Paramètres**, **Changement d'adresse**, choisissez la nouvelle, **Valider et mettre à jour**. Envoyez ensuite `https://talkami.net/sitemap.xml` dans la nouvelle propriété.
-5. Gardez `REDIRECT_FROM_HOSTS` au moins un an (Google conseille de garder les redirections longtemps).
+5. Gardez l'ancienne adresse active dans Laravel Cloud au moins un an (Google conseille de garder les redirections longtemps) ; ne créez pas `REDIRECT_FROM_HOSTS` vide, qui couperait la redirection.
 
 ## 11 ter. Google Search Console, depuis un téléphone
 
 1. Ouvrez `search.google.com/search-console` dans Chrome, connectez-vous avec le compte Google de l'équipe.
-2. **Ajouter une propriété**, choisissez **Préfixe de l'URL**, entrez l'adresse exacte du site (`https://talkami.laravel.cloud/` aujourd'hui, `https://talkami.net/` après le changement), **Continuer**.
+2. **Ajouter une propriété**, choisissez **Préfixe de l'URL**, entrez l'adresse exacte du site (`https://talkami.net/`), **Continuer**.
 3. Méthode **Balise HTML** : copiez seulement le code entre les guillemets de `content="…"`.
 4. Laravel Cloud : variable `GOOGLE_SITE_VERIFICATION` = ce code, **Save**, **Deploy**.
 5. Revenez sur Search Console, touchez **Valider**.
@@ -373,7 +374,7 @@ Pour une attestation : téléchargez-en une depuis le compte d'un apprenant qui 
 Une vraie application apparaît **parmi les applications du téléphone** (et dans Réglages, Applis), avec son icône **sans** le petit logo de Chrome. Une icône avec le logo de Chrome n'est qu'un raccourci vers le site.
 
 1. **Retirer l'ancien raccourci** : appui long sur l'icône Talkami, puis **Supprimer** (ou glissez-la vers « Supprimer »).
-2. **Remettre le site à zéro dans Chrome** : Chrome, ⋮, **Paramètres**, **Paramètres des sites**, **Toutes les données de sites**, `talkami.laravel.cloud` (ou votre domaine), **Effacer et réinitialiser**. Cela efface aussi un ancien refus d'installation.
+2. **Remettre le site à zéro dans Chrome** : Chrome, ⋮, **Paramètres**, **Paramètres des sites**, **Toutes les données de sites**, `talkami.net` (et l'ancienne adresse `talkami.laravel.cloud` si l'application avait été installée depuis elle), **Effacer et réinitialiser**. Cela efface aussi un ancien refus d'installation.
 3. Ouvrez le site dans Chrome, connectez-vous, **touchez la page** puis attendez une trentaine de secondes : Chrome ne propose l'installation qu'après un toucher et quelques secondes.
 4. Touchez **Installer** (bandeau en bas, Menu ou page « Installer l'application ») : la fenêtre de Chrome « Installer l'application » s'ouvre, avec les captures de Talkami. Touchez **Installer**. Si vous passez par le menu ⋮ et ne voyez que « Ajouter à l'écran d'accueil », touchez-le puis choisissez **Installer**, jamais « Créer un raccourci ».
 5. Vous devez voir, après quelques secondes : le message « Talkami est installée », Talkami dans la liste des applications et dans Réglages, Applis, et dans Chrome, à l'adresse `chrome://webapks`, une ligne pour Talkami.
@@ -459,7 +460,7 @@ Chaque jour, le site prépare 3 vidéos (sujet, script, voix) ; GitHub les fabri
 2. Si le menu du dépôt n'apparaît pas, touchez les trois points en haut à droite de Chrome et cochez **Version pour ordinateur** : les réglages s'affichent alors comme sur un ordinateur.
 3. Touchez **Settings** (onglet du dépôt), puis dans la liste à gauche **Secrets and variables**, puis **Actions**.
 4. Onglet **Secrets**, bouton **New repository secret** : nom `TALKAMI_VIDEO_TOKEN`, valeur : collez le même jeton. Touchez **Add secret**.
-5. Onglet **Variables**, bouton **New repository variable** : nom `TALKAMI_URL`, valeur `https://talkami.laravel.cloud` (puis `https://talkami.net` au changement de domaine). Touchez **Add variable**.
+5. Onglet **Variables**, bouton **New repository variable** : nom `TALKAMI_URL`, valeur `https://talkami.net`. Touchez **Add variable**.
 
 ### Étape 4 : protéger votre facture GitHub
 
@@ -477,7 +478,7 @@ Ensuite, c'est automatique : 3 vidéos sont ajoutées chaque matin à 4 heures 4
 
 ### Étape 0 : l'adresse du site (obligatoire)
 
-Administration, onglet **« Vidéos »**, bloc **« Fin de chaque vidéo »** : saisissez l'adresse (par exemple `talkami.laravel.cloud`, puis `talkami.net` au changement de domaine), touchez **Enregistrer l'adresse**. Tant qu'elle est vide, aucune vidéo n'est préparée ni fabriquée, et la page l'explique en rouge.
+Administration, onglet **« Vidéos »**, bloc **« Fin de chaque vidéo »** : saisissez l'adresse (`talkami.net`), touchez **Enregistrer l'adresse**. Tant qu'elle est vide, aucune vidéo n'est préparée ni fabriquée, et la page l'explique en rouge.
 
 ### Refaire une vidéo
 

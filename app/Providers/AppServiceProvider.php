@@ -38,6 +38,12 @@ class AppServiceProvider extends ServiceProvider
 
         if ($this->app->isProduction()) {
             config(['app.debug' => false]);
+
+            // Tous les liens complets (e-mails, PDF des attestations, manifeste, partage) prennent l'adresse
+            // officielle APP_URL, même pour une requête arrivée par une ancienne adresse.
+            if (str_starts_with((string) config('app.url'), 'http')) {
+                URL::forceRootUrl(rtrim((string) config('app.url'), '/'));
+            }
         }
 
         // Signale les requêtes N+1 et les attributs inconnus hors production.
