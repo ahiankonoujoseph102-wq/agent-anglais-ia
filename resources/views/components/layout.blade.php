@@ -16,7 +16,7 @@
     $installBar = $install || ($tabbar && ! request()->routeIs('welcome.*', 'install', 'payment.create'));
     // Référencement : seules les pages publiques (App\Support\Seo::INDEXABLE_ROUTES) sont indexées.
     $indexable ??= Seo::indexable();
-    $pageTitle = $title ? $title.' · '.config('platform.name') : config('platform.name').' · '.config('platform.brand.home_title');
+    $pageTitle = $title ? $title.' · '.config('platform.name') : config('platform.name').' · '.str_replace(':teacher', (string) config('avatar.model.name'), (string) config('platform.brand.home_title'));
     $pageDescription = $description ?: config('platform.brand.tagline');
 @endphp
 

@@ -29,8 +29,8 @@
 
     <section class="section" aria-labelledby="pays-pourquoi">
         <div class="section-head reveal">
-            <span class="eyebrow">{{ config('platform.name') }} {{ in_array($page->code, ['CI'], true) ? 'en' : 'au' }} {{ $page->name }}</span>
-            <h2 id="pays-pourquoi">Ce qui vous attend</h2>
+            <span class="eyebrow">{{ config('platform.name') }} {{ $page->in }} {{ $page->name }}</span>
+            <h2 id="pays-pourquoi">Votre cours d'anglais en ligne {{ $page->in }} {{ $page->name }}</h2>
         </div>
         <div class="features">
             @foreach ($page->sections as $section)
@@ -48,8 +48,13 @@
     <section class="section" aria-labelledby="pays-formules">
         <div class="section-head reveal">
             <span class="eyebrow">Prix en francs CFA</span>
-            <h2 id="pays-formules">Les formules, au même prix dans tous les pays</h2>
-            <p class="muted">L'évaluation orale de {{ $minutes }} minutes est gratuite. Ensuite, choisissez votre formule.</p>
+            <h2 id="pays-formules">Prix des formules {{ $page->in }} {{ $page->name }}</h2>
+            <p class="muted">L'évaluation orale de {{ $minutes }} minutes est gratuite. Ensuite, choisissez votre formule : les prix sont les mêmes dans tous les pays.</p>
+            @if ($page->country)
+                <p class="country-pay"><strong>Moyens de paiement {{ $page->in }} {{ $page->name }} :</strong>
+                    @foreach ($page->country->operators as $operator)<span class="tag">{{ $operator->name }}</span> @endforeach
+                </p>
+            @endif
         </div>
         <div class="plans">
             @foreach ($plans as $plan)
@@ -61,7 +66,7 @@
     <section class="section" aria-labelledby="pays-questions">
         <div class="section-head reveal">
             <span class="eyebrow">Vos questions</span>
-            <h2 id="pays-questions">Questions fréquentes {{ in_array($page->code, ['CI'], true) ? 'en' : 'au' }} {{ $page->name }}</h2>
+            <h2 id="pays-questions">Questions fréquentes {{ $page->in }} {{ $page->name }}</h2>
         </div>
         @php(ob_start())
         <div class="faq reveal">
@@ -84,6 +89,7 @@
             <h2 id="pays-autres">{{ config('platform.name') }} dans les autres pays</h2>
         </div>
         <x-country-links :pages="$countryPages" :current="$page->slug" />
-        <p class="muted small next-step"><a href="{{ route('about') }}">Qui sommes-nous ? Découvrez {{ config('platform.name') }} et {{ $teacher }}</a></p>
+        <p class="muted small next-step"><a href="{{ route('how') }}">Voir {{ $teacher }} en vidéo : comment ça marche</a></p>
+        <p class="muted small"><a href="{{ route('about') }}">Qui sommes-nous ? L'histoire de {{ config('platform.name') }} et de son fondateur</a></p>
     </section>
 </x-layout>

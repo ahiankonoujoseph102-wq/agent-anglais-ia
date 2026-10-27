@@ -15,8 +15,8 @@
     $intros = config('videos.presentations.site.intros', []);
 @endphp
 
-<x-layout title="Comment ça marche, en vidéo"
-          :description="'Voyez en vidéo l\'évaluation orale gratuite et une séance avec '.$teacher.'. La vidéo ne se charge que si vous touchez « Regarder ».'">
+<x-layout title="Apprendre l'anglais sur téléphone, en vidéo"
+          :description="'Voyez en vidéo comment apprendre l\'anglais sur votre téléphone avec '.$teacher.' : l\'évaluation orale gratuite, une séance et les réponses à vos questions.'">
     <div class="auth-head rise">
         <span class="icon-bubble icon-bubble-primary"><x-icon name="video" /></span>
         <h1>Comment ça marche ?</h1>

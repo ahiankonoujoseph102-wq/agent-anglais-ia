@@ -11,7 +11,7 @@
           :description="'Prix des cours d\'anglais en ligne avec '.$teacher.' : '.implode(', ', array_map(fn ($plan) => $plan->name.' '.$plan->formattedPrice(), $plans)).'. Évaluation orale gratuite.'">
     <div class="auth-head rise">
         <span class="icon-bubble icon-bubble-primary"><x-icon name="wallet" /></span>
-        <h1>Formules et prix</h1>
+        <h1>Formules et prix des cours d'anglais</h1>
         <p>Des formules à la semaine ou au mois, au même prix au Togo, au Bénin, au Burkina Faso et en Côte d'Ivoire.</p>
     </div>
 

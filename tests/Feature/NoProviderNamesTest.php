@@ -78,7 +78,7 @@ class NoProviderNamesTest extends TestCase
             $this->assertStringNotContainsString($brand, strip_tags($html));
         }
 
-        $this->get('/a-propos')->assertSee('Teacher Joe a été conçu et programmé par Joseph Ahiankonou. Il s\'appuie sur une intelligence artificielle de pointe, encadrée par la méthode pédagogique de Talkami.', false);
+        $this->get('/a-propos')->assertSee('Teacher Joe a été conçu et programmé par Joseph Ahiankonou, selon la méthode pédagogique de Talkami.', false)->assertDontSee('intelligence artificielle');
     }
 
     public function test_teacher_joe_says_who_made_him_without_naming_any_brand(): void

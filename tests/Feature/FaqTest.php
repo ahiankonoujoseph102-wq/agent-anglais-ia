@@ -93,7 +93,7 @@ class FaqTest extends TestCase
 
     public function test_country_pages_and_the_site_guide_match_the_faq(): void
     {
-        $this->assertStringContainsString('il vous laisse chercher la bonne forme avant de vous corriger', CountryPage::find('togo')->faq[1]['answer']);
+        $this->assertStringContainsString('il vous laisse chercher la bonne forme avant de vous corriger', CountryPage::find('togo')->faq[2]['answer']);
         $this->assertStringContainsString(Assessment::totalMinutes().' minutes au plus en tout', CountryPage::find('cote-d-ivoire')->faq[0]['answer']);
 
         $guide = SiteGuide::text();

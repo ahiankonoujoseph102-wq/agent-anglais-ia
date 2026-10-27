@@ -15,7 +15,7 @@
     $coursesIcon = $hasAccess ? 'book' : 'mic';
 @endphp
 
-<x-layout install :description="'Apprenez à parler anglais avec '.$teacher.', professeur d\'anglais en ligne disponible chaque jour sur votre téléphone. Évaluation orale gratuite.'">
+<x-layout install :description="'Apprenez à parler anglais sur votre téléphone avec '.$teacher.', professeur d\'anglais en ligne. Débutant ou avancé : évaluation orale gratuite de '.config('platform.assessment.max_minutes').' minutes.'">
     {{--
         Haut de page : Teacher Joe, une accroche courte et le bouton orange, visibles sans faire défiler, même sur un
         petit téléphone (360 × 640). Sur téléphone, l'image de Teacher Joe passe en bandeau en haut (même fichier, aucun
@@ -278,7 +278,7 @@
                     <h2 id="fondateur-accueil">Qui est derrière {{ $platform }} ?</h2>
                     <p class="founder-name"><strong>{{ config('platform.founder.name') }}</strong>, {{ config('platform.founder.headline') }}</p>
                     <p class="founder-bio">{{ \App\Support\Founder::bio() }}</p>
-                    <a href="{{ route('about') }}" class="founder-more">En savoir plus <x-icon name="arrow-right" /></a>
+                    <a href="{{ route('about') }}" class="founder-more">Lire l'histoire de {{ $platform }} <x-icon name="arrow-right" /></a>
                 </div>
             </div>
         </section>
