@@ -22,6 +22,10 @@ abstract class TestCase extends BaseTestCase
 
         // Réglages de l'administration relus à chaque test (base vidée entre deux tests).
         SiteSettings::flush();
+
+        // Fin trop tôt (LiveEarlyEnd) : vérifiée par tests/Feature/Live/EarlyEndTest.php seulement ; les autres tests
+        // enregistrent un verdict ou un bilan sans attendre les minutes d'une vraie séance.
+        config(['platform.live.refuse_early_end' => false]);
     }
 
     /**

@@ -42,7 +42,7 @@ const { CueTracker } = await import(root.dataset.teacherCues);
 const { GeminiTransport } = await import(root.dataset.liveGemini);
 const { OpenAiTransport } = await import(root.dataset.liveOpenai);
 // Texte de la conversation (jamais l'audio), envoyé au serveur par petits lots.
-const { TranscriptRecorder } = await import(root.dataset.transcript);
+const { TranscriptRecorder, cleanSpeech } = await import(root.dataset.transcript);
 // Mesure des tours de parole (délai de réponse), fin de tour de secours, attente d'une réponse.
 const { VoiceActivity, TurnWatch, learnerMetrics, teacherMetrics } = await import(root.dataset.turnWatch);
 // Tableau de la séance du jour : élément expliqué et étape en cours, d'après la voix du professeur.
@@ -1826,7 +1826,9 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
         },
 
         onLearnerText(text, key) {
-            if (!current()) {
+            text = cleanSpeech(text);
+
+            if (!current() || text.trim() === '') {
                 return;
             }
 
@@ -1842,8 +1844,10 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
         },
 
         onTeacherText(text) {
+            text = cleanSpeech(text);
+
             // Ce qui n'est pas joué (pause, interruption) n'apparaît pas non plus en sous-titre.
-            if (!current() || !text || state.paused || state.discardTurn) {
+            if (!current() || !text.trim() || state.paused || state.discardTurn) {
                 return;
             }
 
@@ -2001,6 +2005,12 @@ const AFTER_VERDICT = {
     record_level_test_result: 'Saved. Now, if you have not announced it yet, announce the result once, kindly, then say goodbye. Do not ask another question: the test ends after this turn.',
 };
 
+function sendFunctionResult(call, response) {
+    if (state.transport?.isOpen) {
+        state.transport.sendFunctionResult(call, response);
+    }
+}
+
 function showAssessmentResult(level, label, feedback) {
     // Même instant dans la vidéo : le niveau n'y entre que par ici (jamais avant le verdict).
     state.revealed = { level, label };
@@ -2088,7 +2098,10 @@ async function handleFunctionCall(call) {
     } else if (call.name === 'record_assessment_result' && mode === 'assessment') {
         const result = await post(urls.result, { level: args.level, feedback: args.feedback });
 
-        if (result.ok) {
+        if (result.ok && result.data.too_early) {
+            // Trop tôt : rien n'est enregistré, le professeur pose encore quelques questions (LiveEarlyEnd).
+            response = { result: 'not_saved_yet', next_step: result.data.next_step };
+        } else if (result.ok) {
             // Moment des questions ouvert par le serveur : la fin autorisée a été repoussée.
             questions = Boolean(result.data.questions);
             const discovery = questions ? result.data.discovery : null;
@@ -2110,6 +2123,15 @@ async function handleFunctionCall(call) {
     } else if (call.name === 'end_lesson' && mode === 'lesson') {
         // Bilan structuré : leçon terminée ou à reprendre, erreurs, notes, devoir.
         const result = await post(urls.result, args);
+
+        if (result.ok && result.data.too_early) {
+            // Trop tôt : rien n'est enregistré, la séance continue (LiveEarlyEnd).
+            response = { result: 'not_saved_yet', next_step: result.data.next_step };
+            sendFunctionResult(call, response);
+
+            return;
+        }
+
         const errors = (args.errors ?? []).map((error) => `<li><span lang="en">${escapeHtml(error.wrong)}</span> → <strong lang="en">${escapeHtml(error.correct)}</strong></li>`).join('');
 
         showOutcome('<h2>Résumé de la séance</h2>'
@@ -2160,9 +2182,7 @@ async function handleFunctionCall(call) {
         response = { result: 'saved', next_step: nextStep ?? AFTER_VERDICT[call.name] };
     }
 
-    if (state.transport?.isOpen) {
-        state.transport.sendFunctionResult(call, response);
-    }
+    sendFunctionResult(call, response);
 
     if (saved) {
         // Sans questions : le professeur termine sa phrase, puis la conversation se coupe toute seule.

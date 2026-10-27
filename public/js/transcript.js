@@ -8,6 +8,18 @@
  * Testé par tests/js/transcript.test.mjs.
  */
 
+/**
+ * Retire les marques techniques que la reconnaissance vocale glisse parfois dans le texte (« <noise> »,
+ * « <no speech> », « {pause} », « [inaudible] ») : elles ne sont ni des paroles ni des sous-titres.
+ */
+export function cleanSpeech(text) {
+    return String(text ?? '')
+        .replace(/<\s*\/?\s*[a-z_ -]{1,20}\s*>/gi, '')
+        .replace(/\{\s*[a-z_ -]{1,20}\s*\}/gi, '')
+        .replace(/\[\s*(?:noise|inaudible|silence|music|laughter|applause|no speech)\s*\]/gi, '')
+        .replace(/[ \t]{2,}/g, ' ');
+}
+
 export class TranscriptRecorder {
     /**
      * @param {object} options  maxBatch (répliques par envoi), maxEvents (événements par envoi et en attente),

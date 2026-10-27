@@ -15,6 +15,7 @@ use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LevelMessage;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\LiveEarlyEnd;
 use App\Support\Live\LivePage;
 use App\Support\Plan;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -216,6 +217,12 @@ class AssessmentController extends Controller
 
         if ($assessment->level !== null || $tooLate) {
             return $this->refuse('Le résultat de cette évaluation est déjà enregistré.', 409);
+        }
+
+        // Niveau demandé trop tôt (deux ou trois questions seulement) : la PREMIÈRE fois, rien n'est enregistré et
+        // le professeur pose encore quelques questions ; une seconde demande est acceptée.
+        if ($early = LiveEarlyEnd::assessment($assessment)) {
+            return response()->json($early);
         }
 
         $assessment->recordResult($request->level(), $request->feedback());

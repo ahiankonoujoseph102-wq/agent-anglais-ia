@@ -64,3 +64,13 @@ test('une réplique vide n\'est jamais envoyée', () => {
 
     assert.deepEqual(recorder.takeBatch(), []);
 });
+
+test('les marques techniques de la reconnaissance vocale sont retirées du texte', async () => {
+    const { cleanSpeech } = await import('../../public/js/transcript.js');
+
+    assert.equal(cleanSpeech('<no speech>{pause}'), '');
+    assert.equal(cleanSpeech('Hello <noise> there'), 'Hello there');
+    assert.equal(cleanSpeech('I live [inaudible] in Kara.'), 'I live in Kara.');
+    // Le texte ordinaire ne change pas (espaces au début gardés : les morceaux sont recollés).
+    assert.equal(cleanSpeech(' you said "I am".'), ' you said "I am".');
+});

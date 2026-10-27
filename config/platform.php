@@ -67,6 +67,10 @@ return [
         'max_minutes' => 5,
         // Le professeur est prévenu ce nombre de minutes avant la fin pour conclure.
         'warning_minutes_before_end' => 1,
+        // Niveau demandé avant ce temps d'évaluation (en secondes) : la première demande est refusée et le professeur
+        // pose encore quelques questions (App\Support\Live\LiveEarlyEnd) ; dans les vraies évaluations, il donnait
+        // souvent le niveau au bout de deux minutes, pour une évaluation annoncée de cinq.
+        'min_verdict_seconds' => 180,
         // Après l'annonce du niveau : mini-leçon découverte (une phrase du niveau trouvé), questions libres puis
         // conclusion, en français. Ces temps s'ajoutent à partir du verdict (durée totale coupée par le serveur :
         // max_minutes + discovery_seconds + questions_seconds au plus, soit 8 minutes).
@@ -98,6 +102,9 @@ return [
     'lessons' => [
         // Le professeur prévient l'apprenant ce nombre de minutes avant la fin.
         'warning_minutes_before_end' => 2,
+        // Bilan demandé alors qu'il reste plus que (warning + ceci) minutes, et plus du tiers de la séance : la
+        // première demande est refusée et le professeur reprend la séance (App\Support\Live\LiveEarlyEnd).
+        'early_end_extra_minutes' => 3,
         // Phrases de passage d'un temps à l'autre de la séance du jour, dites MOT POUR MOT par le professeur
         // (config/teacher.php → lesson) : l'écran les reconnaît dans sa transcription et affiche la phase en cours.
         'phase_phrases' => [
@@ -334,6 +341,9 @@ return [
         ],
         // OpenAI : voix annoncée mais plus rien d'audible depuis ce temps (fin de voix perdue) : micro rouvert.
         'voice_stuck_seconds' => 4,
+        // Niveau ou bilan demandé trop tôt : la première demande est refusée, le professeur continue
+        // (App\Support\Live\LiveEarlyEnd ; seuils : assessment.min_verdict_seconds, lessons.early_end_extra_minutes).
+        'refuse_early_end' => true,
         // Gemini : réponse pas encore finie mais plus de son reçu (trou du réseau) : le micro reste fermé au plus ce
         // temps (sans cela, l'écho de la suite de sa phrase partait vers Gemini : phrase coupée ou réponse à lui-même).
         'voice_gap_hold_seconds' => 3,
