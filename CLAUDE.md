@@ -158,7 +158,7 @@ Formules et **prix définitifs** (dans `config/platform.php`), affichés sur les
 
 ```
 app/
-  Console/Commands/      app:create-admin (demande numéro et mot de passe), app:check-deployment (contrôle de la mise en ligne), payments:alert-expiring (alerte 2 heures avant la fin d'un accès provisoire), alerts:generate-vapid (clés des notifications), subscriptions:expire, live:close-stale (évaluations, séances, bilans de niveau), app:prepare-voice (messages vocaux communs, jamais en échec), courses:prepare-reviews (documents de révision de « Mes cours », quelques séances par passage), transcripts:purge (texte des conversations de plus de 90 jours), app:reset-learners et app:restore-learners (remise à zéro des apprenants, sauvegarde), app:inspect-backup (lecture seule d'une sauvegarde), learners:queue-invitations (invitations d'une sauvegarde, sans rien effacer), learners:send-invitations (invitations à refaire l'évaluation, chaque heure)
+  Console/Commands/      app:create-admin (demande numéro et mot de passe), app:reset-admin-password (mot de passe provisoire de l'administrateur, à changer à la connexion), app:check-deployment (contrôle de la mise en ligne), payments:alert-expiring (alerte 2 heures avant la fin d'un accès provisoire), alerts:generate-vapid (clés des notifications), subscriptions:expire, live:close-stale (évaluations, séances, bilans de niveau), app:prepare-voice (messages vocaux communs, jamais en échec), courses:prepare-reviews (documents de révision de « Mes cours », quelques séances par passage), transcripts:purge (texte des conversations de plus de 90 jours), app:reset-learners et app:restore-learners (remise à zéro des apprenants, sauvegarde), app:inspect-backup (lecture seule d'une sauvegarde), learners:queue-invitations (invitations d'une sauvegarde, sans rien effacer), learners:send-invitations (invitations à refaire l'évaluation, chaque heure)
   Enums/                 Level (A1…C2), Role, *Status — valeurs stockées en anglais, libellés FR via label()
   Http/Controllers/      HomeController, ContactController, DashboardController, AccountController (e-mail facultatif), Auth/* (dont PasswordController),
                          Admin/* (PaymentController, UserController, UsageController, AssessmentController)
@@ -519,6 +519,7 @@ Temps restant du jour = `subscription.daily_minutes × 60 − Σ (lessons + cour
 - `/mot-de-passe-oublie` : explications + bouton WhatsApp avec un message contenant le numéro du compte.
 - Fiche inscrit (`/admin/inscrits/{id}`) : « Générer un mot de passe provisoire » → affiché **une seule fois** (donnée flash), sessions de l'apprenant fermées, `must_change_password = true`.
 - Le middleware `EnsurePasswordIsChanged` redirige alors vers `/mot-de-passe/nouveau` avant tout le reste (403 JSON pour les appels JavaScript).
+- **Administrateur qui a oublié son mot de passe** (la récupération par WhatsApp passe par lui-même) : `php artisan app:reset-admin-password` (onglet « Commands » de Laravel Cloud, aucune question, aucune variable à créer) : trouve le compte administrateur (plusieurs : liste les numéros masqués et demande `--id=`), lui donne un mot de passe provisoire de 12 caractères (`TemporaryPassword`) affiché UNE fois dans le résultat de la commande, jamais journalisé, ferme ses sessions et pose `must_change_password`. `tests/Feature/Console/ResetAdminPasswordTest.php`.
 
 ### Séances en direct : Gemini, puis OpenAI en secours
 
@@ -749,6 +750,7 @@ php artisan test                  # SQLite en mémoire (rapide)
 DB_CONNECTION=mysql DB_DATABASE=… php artisan test   # contre MySQL, comme la CI
 vendor/bin/pint                   # formatage
 php artisan app:create-admin      # créer / promouvoir un administrateur (demande numéro et mot de passe)
+php artisan app:reset-admin-password  # mot de passe provisoire de l'administrateur (à changer à la connexion)
 php artisan app:check-deployment  # contrôle de la mise en ligne (sécurité, base, disque privé, planificateur)
 php artisan subscriptions:expire  # aussi lancée chaque heure par le planificateur
 php artisan live:close-stale      # clôt les conversations finies/abandonnées (chaque minute par le planificateur)
