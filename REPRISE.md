@@ -39,9 +39,9 @@
 - Réponses coupées : environ 30 répliques du professeur sans ponctuation finale (interrompues par un bruit ou l'écho).
 - Mauvaise langue : environ 117 répliques d'élève reconnues en espagnol, portugais ou allemand et 12 en écriture non latine (hindi, coréen, japonais). `inputAudioTranscription.languageCodes` existe (BCP-47) : régler `en-US`, `fr-FR`.
 - Délais : 53 réponses sur 1 350 au-delà de 5 secondes (médiane 1,8 seconde) ; plus fréquent au tout début (6,5 %) ; ne grandit pas avec la longueur de la séance.
-- Durée annoncée : la séance du jour annonce le temps RESTANT du jour (juste), mais la leçon se termine souvent bien avant (« Let's sum up » trop tôt) : 15 minutes annoncées, 5 à 8 réelles.
+- Durée annoncée : la séance du jour annonce le temps RESTANT du jour (juste), mais la leçon se termine souvent bien avant (bilan commencé trop tôt) : 15 minutes annoncées, 5 à 8 réelles.
 - Évaluations : 20 sur 115 de moins de 2 minutes, 16 sans aucune parole de l'élève, 58 avec un niveau donné en 3 minutes ou moins (verdict trop tôt).
-- Pédagogie : félicite une réponse incompréhensible (environ 30 fois), invente la réponse de l'élève (un mot mal reconnu devient « Lomé! »), même correction répétée sans explication, récite « designed and programmed by… » à une question mal comprise, refuse de répondre en anglais pendant les questions (« mes instructions sont… »), texte technique lu (`<no speech>`, `**Wait**`).
+- Pédagogie : félicite une réponse incompréhensible (environ 30 fois), invente la réponse de l'élève (un mot mal reconnu devient un nom de ville), répète la même correction sans expliquer la règle, récite sa présentation complète à une question mal comprise, refuse de répondre en anglais pendant le moment des questions en citant ses consignes, lit à voix haute des marques techniques (balises de silence, mise en forme des consignes).
 
 ## Prochaine étape exacte
 
