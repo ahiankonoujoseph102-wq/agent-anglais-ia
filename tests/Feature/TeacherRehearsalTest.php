@@ -136,4 +136,23 @@ class TeacherRehearsalTest extends TestCase
         $this->assertStringContainsString('no registration fee and no other fee from Talkami', $text);
         $this->assertStringContainsString('UNCLEAR ANSWER', $text);
     }
+
+    public function test_the_best_teaching_practices_have_scenarios_for_a1_a2_and_b1(): void
+    {
+        $scenarios = TeacherRehearsal::scenarios();
+        $levels = [];
+
+        foreach (['echauffement-question-ouverte', 'verifier-par-une-question', 'eleve-bloque-astuce', 'sens-et-difference',
+            'debutant-veut-parler', 'conversation-sans-interrompre', 'retour-sur-la-langue'] as $key) {
+            $this->assertArrayHasKey($key, $scenarios);
+            $levels[] = $scenarios[$key]['level'];
+        }
+
+        $this->assertEqualsCanonicalizing(['A1', 'A2', 'B1'], array_values(array_unique($levels)));
+
+        // Jamais « C'est clair ? » : une question qui fait utiliser.
+        $check = TeacherRehearsal::check('Pas de souci. Alors : « j\'ai 30 ans », comment dit-on ?', $scenarios['verifier-par-une-question']);
+        $this->assertSame([true, true, true, true, true, true, true, true], array_column($check, 'ok'));
+        $this->assertFalse(TeacherRehearsal::check('Is it clear? C\'est clair ?', $scenarios['verifier-par-une-question'])[1]['ok']);
+    }
 }
