@@ -27,7 +27,7 @@ class ProspectusTest extends TestCase
     {
         $template = $this->template();
 
-        foreach (['{{price}}', '{{period}}', '{{minutes}}', '{{teacher}}', '{{platform}}', '{{phone}}', '{{site}}', '{{qr}}'] as $marker) {
+        foreach (['{{price}}', '{{period}}', '{{minutes}}', '{{teacher_nb}}', '{{platform}}', '{{phone}}', '{{phone2}}', '{{email}}', '{{address}}', '{{site}}', '{{qr}}'] as $marker) {
             $this->assertStringContainsString($marker, $template);
         }
         $this->assertDoesNotMatchRegularExpression('/\d[\d  ]*\s*FCFA/u', $template);

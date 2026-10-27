@@ -22,8 +22,14 @@ const url = `https://${SITE}/?utm_source=prospectus` + (campaign ? `&utm_campaig
 const values = JSON.parse(execFileSync('php', [here + 'values.php'], { encoding: 'utf8' }));
 const qr = execFileSync('python3', [here + 'qr.py', url], { encoding: 'utf8' }).replace('<svg ', '<svg class="qr" role="img" aria-label="Code QR vers ' + SITE + '" ');
 
-// Numéro local du Togo écrit comme sur le site (« 72 24 02 31 »), sans l'indicatif.
-const phone = values.whatsapp.replace(/^\+228\s*/, '');
+// Numéros locaux du Togo écrits comme sur le site (« 72 24 02 31 »), sans l'indicatif : le WhatsApp de l'équipe, puis
+// le second numéro choisi pour le prospectus (il doit exister dans la configuration). Adresse du bureau telle que le
+// fondateur veut la voir sur papier.
+const local = (number) => number.replace(/^\+228\s*/, '').replace(/ /g, '\u00a0');
+const SECOND_PHONE = '79 16 23 90';
+const ADDRESS = 'Adidogomé, près du Lycée moderne 2, Lomé';
+if (!values.phones.some((n) => n.endsWith(SECOND_PHONE))) throw new Error(`Le numéro ${SECOND_PHONE} n'est plus dans la configuration.`);
+const phone = local(values.whatsapp);
 const period = values.period_days === 7 ? 'la semaine' : values.period_days === 30 ? 'le mois' : `pour ${values.period_days} jours`;
 const price = new Intl.NumberFormat('fr-FR').format(values.price).replace(/\s/g, ' ');
 
@@ -34,7 +40,10 @@ const fill = (layout) => readFileSync(here + 'prospectus.html', 'utf8')
     .replaceAll('{{minutes}}', String(values.assessment_minutes))
     .replaceAll('{{price}}', price)
     .replaceAll('{{period}}', period)
-    .replaceAll('{{phone}}', phone.replace(/ /g, ' '))
+    .replaceAll('{{phone2}}', local(SECOND_PHONE))
+    .replaceAll('{{phone}}', phone)
+    .replaceAll('{{email}}', values.email)
+    .replaceAll('{{address}}', ADDRESS.replace(/ (\d)/g, '\u00a0$1'))
     .replaceAll('{{site}}', SITE)
     .replaceAll('{{qr}}', qr)
     .replaceAll('{{ref}}', campaign ? `<p class="ref">Réf. ${campaign}</p>` : '')
