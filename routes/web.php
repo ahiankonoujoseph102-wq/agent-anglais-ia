@@ -218,6 +218,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('/inscrits', [UserController::class, 'index'])->name('users.index');
     Route::get('/inscrits/{user}', [UserController::class, 'show'])->name('users.show');
+    Route::put('/inscrits/{user}/compte-de-test', [UserController::class, 'testAccount'])->name('users.test-account');
     Route::post('/inscrits/{user}/mot-de-passe', [UserController::class, 'temporaryPassword'])->middleware('confirm:password.temporary')->name('users.password');
     Route::post('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'store'])->middleware('confirm:access.grant')->name('users.grant');
     Route::delete('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'destroy'])->middleware('confirm:access.revoke')->name('users.revoke');

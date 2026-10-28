@@ -8,6 +8,7 @@ use App\Models\Assessment;
 use App\Models\User;
 use App\Support\Curriculum\Curriculum;
 use App\Support\Curriculum\Unit;
+use App\Support\Live\AssessmentVersion;
 use App\Support\Live\WorkingTogether;
 
 /**
@@ -293,7 +294,8 @@ class TeacherSetup
             in_array($kind, ['lesson', 'course', 'level_test'], true) ? trim((string) config('teacher.listening')) : '',
             // Anglais américain, toutes les conversations (aucun réglage d'accent chez les fournisseurs : voir config/teacher.php).
             trim((string) config('teacher.american_english')),
-            trim((string) config("teacher.{$kind}")),
+            // Évaluation : nouvelle version pour les apprenants désignés par l'interrupteur des Réglages.
+            trim((string) config('teacher.'.($kind === 'assessment' && AssessmentVersion::isNewFor($user) ? 'assessment_new' : $kind))),
             trim((string) config('teacher.site_help')),
             // Conseiller honnête : prix réels, objections, WhatsApp seulement pour un vrai problème (pas l'essai du diagnostic).
             $kind === 'trial' ? '' : trim((string) config('teacher.advisor')),

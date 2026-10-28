@@ -237,7 +237,7 @@ class TeacherSetupTest extends TestCase
 
         // L'indication unique de conclusion contient la phrase fixe.
         $this->assertSame(
-            '[System] About 30 seconds remain. Do not take any more questions. If you have not given your conclusion yet, give it now, in French, once, ending with « On se retrouve de l\'autre côté ! ». If you have already said this sentence, say nothing.',
+            '[System] About 30 seconds remain. Do not take any more questions. If you have not given your conclusion yet, give it now, in French, once, ending with « On se retrouve de l\'autre côté ! ». If you have already given it, say only this closing sentence again, in one short goodbye.',
             TeacherSetup::cue('assessment_conclusion', ['seconds' => 30]),
         );
     }

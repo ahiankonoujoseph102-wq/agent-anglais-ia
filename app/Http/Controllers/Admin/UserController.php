@@ -124,4 +124,17 @@ class UserController extends Controller
         // Donnée « flash » : disparaît après le prochain affichage de la fiche.
         return redirect()->to(route('admin.users.show', $user).'#mot-de-passe-provisoire')->with('temporary_password', $password);
     }
+
+    /**
+     * Case « Compte de test » : un compte de test passe la nouvelle évaluation quand l'interrupteur des Réglages vaut
+     * « Comptes de test seulement » (App\Support\Live\AssessmentVersion).
+     */
+    public function testAccount(Request $request, User $user): RedirectResponse
+    {
+        $user->forceFill(['is_test_account' => $request->boolean('is_test_account')])->save();
+
+        return redirect()->to(route('admin.users.show', $user).'#compte-de-test')->with('status', $user->is_test_account
+            ? 'Ce compte est maintenant un compte de test.'
+            : 'Ce compte n\'est plus un compte de test.');
+    }
 }

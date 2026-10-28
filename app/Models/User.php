@@ -40,6 +40,8 @@ class User extends Authenticatable
     protected $attributes = [
         'role' => Role::Learner->value,
         'must_change_password' => false,
+        // « Compte de test » (fiche d'un inscrit) : non par défaut, aussi pour un compte créé en mémoire.
+        'is_test_account' => false,
     ];
 
     /**
@@ -53,6 +55,8 @@ class User extends Authenticatable
             'role' => Role::class,
             'must_change_password' => 'boolean',
             'welcomed_at' => 'datetime',
+            // « Compte de test » : jamais rempli par un formulaire de l'apprenant (non fillable), seulement par l'administration.
+            'is_test_account' => 'boolean',
         ];
     }
 

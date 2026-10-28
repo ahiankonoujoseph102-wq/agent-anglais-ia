@@ -16,6 +16,7 @@ use App\Support\Gemini\LevelMessage;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
 use App\Support\Live\AssessmentMiniLesson;
+use App\Support\Live\AssessmentVersion;
 use App\Support\Live\LiveEarlyEnd;
 use App\Support\Live\LivePage;
 use App\Support\Plan;
@@ -176,7 +177,7 @@ class AssessmentController extends Controller
         $warningMinutes = (int) config('platform.assessment.warning_minutes_before_end');
 
         return response()->json($live->attach($assessment, $token, $setup, [
-            'start' => TeacherSetup::cue('assessment_start'),
+            'start' => TeacherSetup::cue(AssessmentVersion::isNewFor($user) ? 'assessment_start_new' : 'assessment_start'),
             'resume' => TeacherSetup::cue('resume'),
             'warning' => TeacherSetup::cue('assessment_warning', ['remaining' => $warningMinutes]),
             'conclusion' => TeacherSetup::cue('assessment_conclusion', ['seconds' => (int) config('platform.assessment.conclusion_cue_seconds')]),
@@ -281,6 +282,8 @@ class AssessmentController extends Controller
             'conclusion_cue_seconds' => (int) config('platform.assessment.conclusion_cue_seconds'),
             'closing_phrase' => (string) config('platform.assessment.closing_phrase'),
             'closing_grace_seconds' => (int) config('platform.assessment.closing_grace_seconds'),
+            // Après l'indication de conclusion, fin si le professeur ne dit plus rien ce temps (jamais de séance muette).
+            'silent_end_seconds' => (int) config('platform.assessment.silent_end_seconds'),
             // Niveau montré quand le professeur le dit (écran et vidéo), jamais avant : délai de sécurité et maximum.
             'level_reveal_delay_seconds' => (float) config('platform.assessment.level_reveal_delay_seconds'),
             'level_reveal_max_seconds' => (float) config('platform.assessment.level_reveal_max_seconds'),

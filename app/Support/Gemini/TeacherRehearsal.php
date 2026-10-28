@@ -6,6 +6,7 @@ use App\Enums\Level;
 use App\Models\User;
 use App\Support\Duration;
 use App\Support\Live\AssessmentMiniLesson;
+use App\Support\Live\AssessmentVersion;
 use App\Support\Plan;
 use App\Support\Text\TextProviders;
 use App\Support\Text\TextRequest;
@@ -78,9 +79,12 @@ final class TeacherRehearsal
         $user = new User(['name' => 'Afi']);
         $user->level = isset($scenario['level']) ? Level::from($scenario['level']) : null;
 
+        // Scénarios de la nouvelle évaluation : « après » = nouvelle évaluation ; « avant » = évaluation actuelle (consignes
+        // d'aujourd'hui, sans previous.php). Les autres scénarios passent toujours l'évaluation actuelle.
+        $newAssessment = (bool) ($scenario['new_assessment'] ?? false);
         $saved = [];
 
-        if ($before) {
+        if ($before && ! $newAssessment) {
             foreach (self::previous() as $key => $value) {
                 $saved[$key] = config("teacher.{$key}");
                 config(["teacher.{$key}" => $value]);
@@ -89,7 +93,7 @@ final class TeacherRehearsal
 
         try {
             $extra = $kind === 'lesson' ? ['context' => self::LESSON_CONTEXT] : [];
-            $text = TeacherSetup::instructions($kind, $user, $kind === 'assessment' ? (int) config('platform.assessment.max_minutes') : 15, $extra);
+            $text = AssessmentVersion::forcing($newAssessment && ! $before, fn () => TeacherSetup::instructions($kind, $user, $kind === 'assessment' ? (int) config('platform.assessment.max_minutes') : 15, $extra));
         } finally {
             foreach ($saved as $key => $value) {
                 config(["teacher.{$key}" => $value]);

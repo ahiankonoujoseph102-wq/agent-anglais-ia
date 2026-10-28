@@ -92,6 +92,13 @@ return [
         // et au plus tard level_reveal_max_seconds après. L'enregistrement en base n'attend jamais.
         'level_reveal_delay_seconds' => 4,
         'level_reveal_max_seconds' => 12,
+        // Nouvelle évaluation (accueil humain, hésitation remarquée, français quand la personne bloque, vrai niveau :
+        // consignes teacher.assessment_new) : « off » (personne), « test » (comptes de test seulement), « all » (tout le
+        // monde). Réglable dans « Réglages » (App\Support\Live\AssessmentVersion) ; par défaut, comptes de test seulement.
+        'new_version' => 'test',
+        // Après l'indication de conclusion, s'il ne dit plus rien pendant ce nombre de secondes, la conversation se
+        // termine (jamais de séance en direct et muette jusqu'au bout du minuteur).
+        'silent_end_seconds' => 10,
     ],
 
     /*

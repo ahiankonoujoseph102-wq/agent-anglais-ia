@@ -135,7 +135,35 @@ test('UNE seule indication de conclusion, environ 30 secondes avant la fin, pas 
     assert.equal(end.shouldConclude(20, true), false);
     assert.equal(end.shouldConclude(15, true), true, 'à la moitié du délai, on l\'envoie quand même');
     assert.equal(end.shouldConclude(10, false), false, 'jamais une deuxième fois');
-    assert.equal(end.micOpen, false, 'conclusion demandée : micro fermé');
+    // Correction du bug du 28 octobre 2026 : le micro restait fermé 30 secondes avant la fin, Teacher Joe n'entendait
+    // plus rien alors que la séance tournait encore. Désormais il reste ouvert jusqu'à la phrase fixe.
+    assert.equal(end.micOpen, true, 'conclusion demandée : micro encore ouvert');
+    end.teacherSaid(CLOSING, 20);
+    assert.equal(end.micOpen, false, 'phrase fixe dite : micro fermé');
+});
+
+test('après l\'indication de conclusion, jamais de séance muette : fin après le silence du professeur', () => {
+    const end = new ConversationEnd({ closingPhrase: CLOSING, cueSeconds: 30, silentEnd: 10 });
+    end.recordVerdict(0, { questions: true });
+    assert.equal(end.shouldConclude(30, false, 100), true);
+
+    assert.equal(end.shouldFinish(105, false), false, 'il a encore le temps de répondre');
+    end.teacherSaid('Merci beaucoup, ', 106);
+    assert.equal(end.shouldFinish(112, true), false, 'il parle : on attend');
+    assert.equal(end.shouldFinish(115, false), false, 'compté depuis sa dernière parole');
+    assert.equal(end.shouldFinish(116, false), true, 'plus un mot depuis 10 secondes : fin');
+
+    // Sans ce réglage (séance du jour, ancien comportement), rien ne change.
+    const old = new ConversationEnd({ closingPhrase: CLOSING, cueSeconds: 30 });
+    old.recordVerdict(0, { questions: true });
+    old.shouldConclude(30, false, 100);
+    assert.equal(old.shouldFinish(200, false), false);
+});
+
+test('la phrase fixe est reconnue même si son début est dit autrement', () => {
+    const end = new ConversationEnd({ closingPhrase: 'On se retrouve de l\'autre côté !' });
+    end.recordVerdict(0, { questions: true });
+    assert.equal(end.teacherSaid('Allez, à très vite, et rendez-vous de l\'autre côté !', 50), true);
 });
 
 test('pas d\'indication de conclusion si elle est déjà faite, ni sans moment des questions', () => {

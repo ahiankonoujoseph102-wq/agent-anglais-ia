@@ -1625,6 +1625,7 @@ async function connect({ planned = false, failed = null } = {}) {
             closingPhrase: state.config.closing_phrase,
             cueSeconds: state.config.conclusion_cue_seconds,
             grace: state.config.closing_grace_seconds,
+            silentEnd: state.config.silent_end_seconds ?? 0,
         });
     }
 
@@ -2023,8 +2024,8 @@ function showAssessmentResult(level, label, feedback) {
     showOutcome(`<h2>Votre niveau : ${escapeHtml(level)}</h2>`
         + `<p><strong>${escapeHtml(label)}</strong></p>`
         + `<p>${escapeHtml(feedback)}</p>`);
-    // Les formules s'affichent juste en dessous du résultat (bouton orange).
-    ui.plans?.removeAttribute('hidden');
+    // Les formules (bouton orange) n'apparaissent qu'à la fin réelle de la conversation (finish) : jamais pendant
+    // la mini-leçon, les questions ou la conclusion de Teacher Joe.
     // À la fin de la conversation, la carte « La suite » rappelle le niveau trouvé.
     state.next = { ...state.next, title: `Votre niveau : ${level}` };
 }
@@ -2326,9 +2327,9 @@ function tick() {
     }
 
     // UNE indication après le verdict : passer à la conclusion, environ 30 secondes avant la fin.
-    if (state.connected && state.end.shouldConclude(seconds, teacherSpeaking() || state.generating)) {
+    // Le micro reste ouvert : l'apprenant peut encore être entendu jusqu'à la phrase fixe (jamais de séance muette).
+    if (state.connected && state.end.shouldConclude(seconds, teacherSpeaking() || state.generating, clock())) {
         sendText(state.config.cues.conclusion);
-        endMicStream();
         state.awaitingSince = Date.now();
     }
 
@@ -2588,6 +2589,11 @@ async function finish(reason, message = '') {
 
     state.config = state.config && { ...state.config, warning_seconds: 0 };
     setRemaining(0);
+
+    // Évaluation : les formules, juste sous le résultat, une fois la conversation vraiment finie.
+    if (mode === 'assessment' && state.revealed) {
+        ui.plans?.removeAttribute('hidden');
+    }
 
     // La suite : en haut de la colonne, avant le résumé (texte adapté au résultat : niveau, bilan réussi…).
     // Conversation jamais commencée (connexion refusée) : seulement le lien de retour.
