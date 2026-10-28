@@ -229,6 +229,7 @@
                     <li><a href="{{ route('contact') }}">Contact</a></li>
                     <li><a href="{{ route('about') }}">À propos</a></li>
                     <li><a href="{{ route('guides.index') }}">Guides gratuits</a></li>
+                    <li><a href="{{ route('ambassador.join') }}">Devenir ambassadeur</a></li>
                     <li><a href="{{ route('privacy') }}">Confidentialité</a></li>
                     <li data-install-link-item><a href="{{ route('install') }}" data-install-link>Installer l'application</a></li>
                 </ul>
