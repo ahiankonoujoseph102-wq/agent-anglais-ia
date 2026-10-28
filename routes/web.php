@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AlertController;
+use App\Http\Controllers\Admin\AmbassadorController as AdminAmbassadorController;
 use App\Http\Controllers\Admin\AssessmentController as AdminAssessmentController;
 use App\Http\Controllers\Admin\ConversationController;
 use App\Http\Controllers\Admin\GrantedAccessController;
@@ -19,6 +20,8 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VideoController as AdminVideoController;
 use App\Http\Controllers\Admin\VoiceController;
 use App\Http\Controllers\Admin\VoiceDiagnosticController;
+use App\Http\Controllers\Ambassador\AmbassadorLinkController;
+use App\Http\Controllers\Ambassador\AmbassadorSpaceController;
 use App\Http\Controllers\Auth\AdminRecoveryController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordController;
@@ -88,6 +91,8 @@ Route::withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, Pr
 Route::get('/recuperation-administrateur', [AdminRecoveryController::class, 'show'])->middleware('throttle:20,1')->name('admin.recovery');
 Route::post('/recuperation-administrateur', [AdminRecoveryController::class, 'store'])->middleware('throttle:5,1')->name('admin.recovery.store');
 Route::get('/attestation/verifier/{code}', [AttestationController::class, 'verify'])->name('attestation.verify');
+// Lien personnel d'un ambassadeur (aussi derrière son code QR) : mène toujours à l'accueil.
+Route::get('/a/{code}', AmbassadorLinkController::class)->where('code', '[A-Za-z0-9]{1,20}')->middleware('throttle:60,1')->name('ambassador.link');
 
 Route::middleware('guest')->group(function () {
     Route::get('/inscription', [RegisteredUserController::class, 'create'])->name('register');
@@ -107,6 +112,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/mot-de-passe/nouveau', [PasswordController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 
     Route::get('/espace', DashboardController::class)->name('dashboard');
+
+    // Espace ambassadeur : lien, code et code QR personnels, mois gratuit, régularité.
+    Route::get('/ambassadeur', [AmbassadorSpaceController::class, 'show'])->name('ambassador.show');
+    Route::get('/ambassadeur/code-qr', [AmbassadorSpaceController::class, 'qr'])->middleware('throttle:20,1')->name('ambassador.qr');
 
     // Bienvenue de Teacher Joe : message vocal après l'inscription, puis à l'ouverture d'un accès.
     Route::get('/bienvenue', [WelcomeController::class, 'show'])->name('welcome.show');
@@ -204,6 +213,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/inscrits/{user}/mot-de-passe', [UserController::class, 'temporaryPassword'])->middleware('confirm:password.temporary')->name('users.password');
     Route::post('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'store'])->middleware('confirm:access.grant')->name('users.grant');
     Route::delete('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'destroy'])->middleware('confirm:access.revoke')->name('users.revoke');
+    // Programme d'ambassadeurs : nommer, renouveler le mois gratuit, retirer, accord d'un parent.
+    Route::get('/ambassadeurs', [AdminAmbassadorController::class, 'index'])->name('ambassadors.index');
+    Route::post('/inscrits/{user}/ambassadeur', [AdminAmbassadorController::class, 'appoint'])->middleware('confirm:ambassador.appoint')->name('users.ambassador');
+    Route::post('/ambassadeurs/{ambassador}/renouveler', [AdminAmbassadorController::class, 'renew'])->middleware('confirm:ambassador.renew')->name('ambassadors.renew');
+    Route::delete('/ambassadeurs/{ambassador}', [AdminAmbassadorController::class, 'remove'])->middleware('confirm:ambassador.remove')->name('ambassadors.remove');
+    Route::put('/ambassadeurs/{ambassador}/accord-parental', [AdminAmbassadorController::class, 'consent'])->name('ambassadors.consent');
     Route::delete('/inscrits/{user}/evaluation', [AdminAssessmentController::class, 'destroy'])->middleware('confirm:assessment.reset')->name('assessments.destroy');
     // Texte des conversations d'un apprenant : lecture d'une séance, suppression de toutes (demande de suppression).
     Route::get('/inscrits/{user}/conversations/{type}/{id}', [ConversationController::class, 'show'])->whereIn('type', array_keys(Transcripts::TYPES))->whereNumber('id')->name('conversations.show');

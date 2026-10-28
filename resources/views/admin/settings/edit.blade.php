@@ -116,6 +116,20 @@
             @enderror
         </section>
 
+        <section class="card" id="ambassadeurs">
+            <h2>Programme d'ambassadeurs</h2>
+            <p class="muted small">
+                Nombre de places : un ambassadeur actif prend une place, un ambassadeur retiré la libère.
+                Quand toutes les places sont prises, « Faire ambassadeur » est refusé.
+            </p>
+            <x-input name="ambassadors[places]" label="Nombre de places" type="number" inputmode="numeric"
+                     :value="old('ambassadors.places', $fields['ambassadors.places']['saved'])" :placeholder="$fields['ambassadors.places']['default']"
+                     :hint="$defaultHint('ambassadors.places', 'Aucune valeur par défaut.')" />
+            @error('ambassadors.places')
+                <div class="error field">{{ $message }}</div>
+            @enderror
+        </section>
+
         <button type="submit" class="btn btn-accent btn-block btn-lg">Enregistrer les réglages</button>
     </form>
 </x-layout>

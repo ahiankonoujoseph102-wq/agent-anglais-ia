@@ -47,6 +47,21 @@ final class Confirmation
             'message' => 'L\'accès de l\'apprenant s\'arrête tout de suite, séance en cours comprise. Il sera invité à choisir une formule.',
             'confirm' => 'Retirer l\'accès',
         ],
+        'ambassador.appoint' => [
+            'title' => 'Faire de ce compte un ambassadeur ?',
+            'message' => 'Son code personnel est créé et son premier mois gratuit s\'ouvre (formule {plan}, {days} jours). Il prend une place d\'ambassadeur.',
+            'confirm' => 'Faire ambassadeur',
+        ],
+        'ambassador.renew' => [
+            'title' => 'Renouveler le mois gratuit ?',
+            'message' => 'L\'ambassadeur garde son accès gratuit {days} jours de plus (formule {plan}). Ce n\'est pas un paiement : il n\'apparaît dans aucun revenu.',
+            'confirm' => 'Renouveler 1 mois',
+        ],
+        'ambassador.remove' => [
+            'title' => 'Retirer cet ambassadeur du programme ?',
+            'message' => 'Son accès gratuit s\'arrête tout de suite, séance en cours comprise, et sa place se libère. Son code et ses mois déjà offerts sont gardés si vous le réintégrez.',
+            'confirm' => 'Retirer du programme',
+        ],
         'course.delete' => [
             'title' => 'Supprimer cette leçon ?',
             'message' => 'La leçon et ses photos ou son PDF sont effacés pour toujours, fichiers compris. Le temps du jour déjà utilisé avec le professeur reste compté.',
@@ -75,7 +90,17 @@ final class Confirmation
      */
     public static function for(string $action): array
     {
-        return self::ACTIONS[$action];
+        $texts = self::ACTIONS[$action];
+
+        // Ambassadeurs : formule et durée du mois gratuit lues dans la configuration (jamais écrites à la main).
+        if (str_starts_with($action, 'ambassador.')) {
+            $texts['message'] = strtr($texts['message'], [
+                '{plan}' => Plan::find((string) config('platform.ambassadors.plan'))?->name ?? '',
+                '{days}' => (string) config('platform.ambassadors.month_days'),
+            ]);
+        }
+
+        return $texts;
     }
 
     /**

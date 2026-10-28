@@ -104,6 +104,18 @@ class User extends Authenticatable
         return $this->hasOne(Assessment::class);
     }
 
+    /** Fiche d'ambassadeur (null : pas ambassadeur), active ou retirée. */
+    public function ambassador(): HasOne
+    {
+        return $this->hasOne(Ambassador::class);
+    }
+
+    /** Ambassadeur ACTIF du programme (espace ambassadeur, lien du menu). */
+    public function isAmbassador(): bool
+    {
+        return $this->ambassador?->isActive() === true;
+    }
+
     /** Provenance de l'inscription (App\Support\Origins). */
     public function origin(): HasOne
     {

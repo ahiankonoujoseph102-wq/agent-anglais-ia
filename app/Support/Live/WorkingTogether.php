@@ -83,7 +83,7 @@ class WorkingTogether
             ."\n".trim((string) config('teacher.working_together.when_stuck'));
     }
 
-    private static function heldSeconds(): int
+    public static function heldSeconds(): int
     {
         return (int) config('teacher.working_together.held_seconds');
     }

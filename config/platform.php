@@ -265,6 +265,21 @@ return [
     | Jamais un paiement ni un revenu. Se règle ici.
     |
     */
+    /*
+    | Programme d'ambassadeurs : un accès gratuit renouvelé mois par mois (6 mois au plus), un lien, un code et un
+    | code QR personnels. Le nombre de places se change dans « Réglages » (clé ambassadors.places) ; cette valeur
+    | est celle par défaut. Une place = un ambassadeur actif ; un ambassadeur retiré libère sa place.
+    */
+    'ambassadors' => [
+        'places' => 10,
+        // Formule de l'accès gratuit (clé de « plans ») et durée d'un mois offert, en jours.
+        'plan' => 'essentiel',
+        'month_days' => 30,
+        'max_months' => 6,
+        // Régularité affichée dans l'administration : jours avec une séance du jour sur cette période.
+        'activity_days' => 30,
+    ],
+
     'granted_access' => [
         // Durées proposées en un geste (jours) ; une durée au choix est aussi possible.
         'presets' => [1, 3, 7],

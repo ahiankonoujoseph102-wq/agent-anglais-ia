@@ -51,6 +51,63 @@
         </form>
     </section>
 
+    {{-- Programme d'ambassadeurs : nommer (une place), renouveler le mois gratuit, retirer, accord d'un parent. --}}
+    @unless ($user->isAdmin())
+        <section class="card" id="ambassadeur" aria-labelledby="ambassador-title">
+            <h2 id="ambassador-title">Ambassadeur</h2>
+
+            @error('ambassador')
+                <p class="alert alert-error" role="alert"><x-icon name="alert" /><span>{{ $message }}</span></p>
+            @enderror
+
+            @if ($user->ambassador?->isActive())
+                @php($ambassador = $user->ambassador)
+                <dl class="summary">
+                    <dt>Code</dt><dd>{{ $ambassador->code }}</dd>
+                    <dt>Lien</dt><dd><a href="{{ $ambassador->link() }}">{{ $ambassador->shortLink() }}</a></dd>
+                    <dt>Mois gratuit</dt><dd>{{ \App\Support\Ambassadors\AmbassadorProgram::monthLabel($ambassador, $ambassadorGrant) }}</dd>
+                    <dt>Accord d'un parent</dt><dd>{{ $ambassador->parental_consent_at ? 'Reçu le '.$ambassador->parental_consent_at->format('d/m/Y') : 'Non noté' }}</dd>
+                </dl>
+                <div class="ambassador-actions">
+                    @if (\App\Support\Ambassadors\AmbassadorProgram::canRenew($ambassador))
+                        <form method="POST" action="{{ route('admin.ambassadors.renew', $ambassador) }}" {!! \App\Support\Confirmation::attributes('ambassador.renew') !!}>
+                            @csrf
+                            <button type="submit" class="btn btn-accent"><x-icon name="refresh" /> Renouveler 1 mois</button>
+                        </form>
+                    @else
+                        <p class="muted small">Les {{ config('platform.ambassadors.max_months') }} mois gratuits ont tous été offerts.</p>
+                    @endif
+                    <form method="POST" action="{{ route('admin.ambassadors.consent', $ambassador) }}">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="received" value="{{ $ambassador->parental_consent_at ? '0' : '1' }}">
+                        <button type="submit" class="btn btn-light">{{ $ambassador->parental_consent_at ? 'Retirer l\'accord d\'un parent' : 'Noter l\'accord écrit d\'un parent (moins de 18 ans)' }}</button>
+                    </form>
+                    <form method="POST" action="{{ route('admin.ambassadors.remove', $ambassador) }}" {!! \App\Support\Confirmation::attributes('ambassador.remove') !!}>
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-light"><x-icon name="user-off" /> Retirer du programme</button>
+                    </form>
+                </div>
+            @else
+                <p class="muted small">
+                    @if ($user->ambassador)
+                        Retiré du programme le {{ $user->ambassador->removed_at?->format('d/m/Y') }} (code {{ $user->ambassador->code }}, {{ $user->ambassador->months_granted }} mois déjà offerts).
+                    @endif
+                    Places libres : {{ $freePlaces }} sur {{ $places }}. Un ambassadeur reçoit un code personnel et un mois gratuit, renouvelable.
+                </p>
+                @if ($freePlaces > 0)
+                    <form method="POST" action="{{ route('admin.users.ambassador', $user) }}" {!! \App\Support\Confirmation::attributes('ambassador.appoint') !!}>
+                        @csrf
+                        <button type="submit" class="btn btn-outline"><x-icon name="award" /> {{ $user->ambassador ? 'Réintégrer dans le programme' : 'Faire ambassadeur' }}</button>
+                    </form>
+                @else
+                    <p class="alert alert-warning" role="status"><x-icon name="info" /><span>Toutes les places d'ambassadeurs sont prises. Retirez un ambassadeur ou augmentez le nombre de places dans <a href="{{ route('admin.settings.edit') }}#ambassadeurs">Réglages</a>.</span></p>
+                @endif
+            @endif
+        </section>
+    @endunless
+
     {{-- Accès offert (démonstrations) : offrir, retirer, historique. Jamais un paiement ni un revenu. --}}
     <section class="card" id="acces-offert" aria-labelledby="grant-title">
         <h2 id="grant-title">Accès offert</h2>

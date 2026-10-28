@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateSettingsRequest;
+use App\Support\Ambassadors\AmbassadorProgram;
 use App\Support\Live\CostWatch;
 use App\Support\PaymentCountry;
 use App\Support\SiteSettings;
@@ -11,7 +12,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 /**
- * « Réglages » : numéros de réception Mobile Money (et titulaires), coordonnées du centre, seuil de l'alerte de coût.
+ * « Réglages » : numéros de réception Mobile Money (et titulaires), coordonnées du centre, seuil de l'alerte de coût,
+ * nombre de places d'ambassadeurs.
  * Stockés en base (table settings) ; ils remplacent les valeurs par défaut de la
  * configuration. Un champ vide revient à la valeur par défaut, affichée sous le champ.
  */
@@ -19,7 +21,7 @@ class SettingsController extends Controller
 {
     public function edit(): View
     {
-        $keys = [...SiteSettings::CONTACT_KEYS, ...CostWatch::SETTINGS];
+        $keys = [...SiteSettings::CONTACT_KEYS, ...CostWatch::SETTINGS, AmbassadorProgram::PLACES_SETTING];
 
         foreach (PaymentCountry::all() as $country) {
             foreach ($country->operators as $operator) {
@@ -49,6 +51,7 @@ class SettingsController extends Controller
             'contact.whatsapp' => $request->input('contact.whatsapp'),
             'cost_alert.percent' => $request->input('cost_alert.percent'),
             'cost_alert.xof_per_usd' => $request->input('cost_alert.xof_per_usd'),
+            AmbassadorProgram::PLACES_SETTING => $request->input('ambassadors.places'),
         ];
 
         foreach (PaymentCountry::all() as $country) {
