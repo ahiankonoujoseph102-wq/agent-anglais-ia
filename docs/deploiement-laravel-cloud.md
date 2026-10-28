@@ -177,7 +177,7 @@ Dans **Settings, General** (section **Environment variables**), ajoutez les vari
 | `GOOGLE_SITE_VERIFICATION` | Code de Google Search Console (méthode « Balise HTML » : seulement ce qui est entre les guillemets de `content="…"`). Remplie, la balise est ajoutée en haut de chaque page. Ce n'est pas un secret. | absente |
 | `REDIRECT_FROM_HOSTS` | Anciennes adresses, sans `https://`, séparées par une virgule. Chaque page ouverte sur l'une d'elles est redirigée (301) vers la même page sur `APP_URL` (jamais l'API des workflows GitHub, les envois, ni l'application installée). Absente : `talkami.laravel.cloud`. Ne la créez pas. Voir l'étape 11 bis. | absente |
 | `WHATSAPP_GROUP_URL` | Lien d'invitation du **groupe** WhatsApp (`https://chat.whatsapp.com/…`). Rempli, le bouton WhatsApp de la page « introuvable » (404) ouvre le groupe ; absent, il ouvre une conversation avec le numéro WhatsApp de l'équipe. | absente |
-| `GEMINI_TOKEN_MINUTES` | Durée d'un jeton éphémère, en minutes. | `5` |
+| `GEMINI_TOKEN_MINUTES` | Décompte d'une séance dont le navigateur a disparu, en minutes (le jeton lui-même vaut pour toute la séance). | `5` |
 | `AVATAR_3D_ENABLED` | `false` désactive le professeur 3D partout. | `true` |
 | `APP_FORCE_HTTPS` | Redirection vers HTTPS. Active en production si la variable est **absente** : ne la laissez jamais **vide**. | absente |
 | `TRUSTED_PROXIES` | Proxys de confiance. **Laissez-la absente** : en production, tous les proxys sont crus (le serveur de Laravel Cloud n'est joignable que par son réseau). | absente (équivaut à `*`) |
