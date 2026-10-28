@@ -2,8 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\Level;
-use App\Support\Curriculum\Curriculum;
 use App\Support\Gemini\TeacherRehearsal;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -83,16 +81,16 @@ class TeacherRehearsalTest extends TestCase
         // Mêmes scénario et modèle ; seules les consignes changent.
         $bodies = Http::recorded()->map(fn (array $pair) => json_encode($pair[0]->data(), JSON_UNESCAPED_UNICODE))->values();
         $this->assertCount(2, $bodies);
-        // Avant : les consignes de main après la pull request #119 ; après : l'évaluation qui s'adapte tout de suite.
-        $this->assertStringContainsString('ADAPTIVE QUESTIONS', $bodies[0]);
-        $this->assertStringNotContainsString('ADAPT AT ONCE', $bodies[0]);
-        $this->assertStringNotContainsString('ADAPTIVE QUESTIONS', $bodies[1]);
-        $this->assertStringContainsString('ADAPT AT ONCE', $bodies[1]);
+        // Avant : les consignes de main après la pull request #112 ; après : l'évaluation personnalisée.
+        $this->assertStringContainsString('DISCOVERY MINI-LESSON', $bodies[0]);
+        $this->assertStringNotContainsString('ADAPTIVE QUESTIONS', $bodies[0]);
+        $this->assertStringNotContainsString('DISCOVERY MINI-LESSON', $bodies[1]);
+        $this->assertStringContainsString('ADAPTIVE QUESTIONS', $bodies[1]);
         $this->assertStringContainsString('WRITTEN REHEARSAL', $bodies[1]);
         Http::assertSent(fn (Request $request) => str_contains($request->url(), '/interactions'));
 
         // Les vraies consignes ne sont pas modifiées par la comparaison.
-        $this->assertStringContainsString('ADAPT AT ONCE', (string) config('teacher.assessment'));
+        $this->assertStringContainsString('ADAPTIVE QUESTIONS', (string) config('teacher.assessment'));
     }
 
     public function test_an_unknown_scenario_is_refused_and_no_provider_is_reported_clearly(): void
@@ -168,7 +166,8 @@ class TeacherRehearsalTest extends TestCase
             $this->assertSame('assessment', $scenarios[$key]['kind'], $key);
         }
 
-        // La mini-leçon porte sur l'erreur de CHAQUE profil ; après, elle finit par ce qu'il apprendra ensuite.
+        // La mini-leçon : après, la suite renvoyée par la fonction porte sur l'erreur de CHAQUE profil ; avant, la même
+        // phrase de la première leçon pour tous les apprenants d'un niveau.
         $after = array_map(fn ($key) => TeacherRehearsal::transcript($scenarios[$key]), $lessons);
         $this->assertStringContainsString('they said "I live Lomé", right form "I live in Lomé."', $after[0]);
         $this->assertStringContainsString('they said "I am working at the hospital since two years"', $after[1]);
@@ -177,9 +176,8 @@ class TeacherRehearsalTest extends TestCase
 
         foreach ($lessons as $key) {
             $before = TeacherRehearsal::transcript($scenarios[$key], before: true);
-            $this->assertStringContainsString('ONE sincere encouragement', $before, $key);
-            $this->assertStringNotContainsString('vous apprendrez', $before, $key);
-            $this->assertStringContainsString('vous apprendrez à', TeacherRehearsal::transcript($scenarios[$key]), $key);
+            $this->assertStringContainsString('on this phrase instead (nothing else was sent)', $before, $key);
+            $this->assertStringNotContainsString('they said', $before, $key);
         }
 
         // Les questions : la réponse attendue reprend ce que CHAQUE personne vient de dire ; jamais une question fixe.
@@ -188,26 +186,5 @@ class TeacherRehearsalTest extends TestCase
             $this->assertContains('what is your name', $scenarios[$key]['never'], $key);
             $this->assertSame(1, $scenarios[$key]['max_questions'], $key);
         }
-    }
-
-    public function test_a_true_beginner_a_middle_level_and_an_advanced_learner_have_assessment_scenarios(): void
-    {
-        $scenarios = TeacherRehearsal::scenarios();
-
-        foreach (['evaluation-vrai-debutant', 'evaluation-niveau-moyen', 'evaluation-niveau-avance', 'evaluation-bilan', 'evaluation-conclusion'] as $key) {
-            $this->assertArrayHasKey($key, $scenarios);
-            $this->assertSame('assessment', $scenarios[$key]['kind'], $key);
-        }
-
-        // Débutant : français rassurant au premier blocage ; avancé : jamais une question de débutant.
-        $this->assertContains('normal', $scenarios['evaluation-vrai-debutant']['must'][0]);
-        $this->assertContains('where do you live', $scenarios['evaluation-niveau-avance']['never']);
-        // Bilan : la suite renvoyée par la fonction porte sur SON erreur et sur le vrai programme de son niveau (A1).
-        $bilan = TeacherRehearsal::transcript($scenarios['evaluation-bilan']);
-        $this->assertStringContainsString('they said "My son have 8 years"', $bilan);
-        $this->assertStringContainsString('vous apprendrez à '.Curriculum::unit(Level::A1, 1)->objectives[0], $bilan);
-        // Conclusion : ni intelligence artificielle, ni urgence, ni promesse.
-        $this->assertContains('intelligence artificielle', $scenarios['evaluation-conclusion']['never']);
-        $this->assertContains('places limitees', $scenarios['evaluation-conclusion']['never']);
     }
 }
