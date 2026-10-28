@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\CourseReviews;
 use App\Support\Live\CostWatch;
 use App\Support\Live\LiveUsage;
+use App\Support\Live\Responsiveness;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\SpeechUsage;
 use App\Support\Text\TextProviders;
@@ -98,6 +99,9 @@ class UsageController extends Controller
             'text' => TextUsage::totals(),
             'live' => LiveUsage::totals(),
             'replyDelays' => LiveUsage::replyDelays(),
+            // Rapidité jour par jour (moyenne, pires cas, incidents) et par type de conversation.
+            'responsiveness' => Responsiveness::daily(14),
+            'responsivenessByType' => Responsiveness::byType(7),
             'textKinds' => TextUsage::byKind(),
             'textProviders' => TextProviders::all(),
             'reviews' => CourseReviews::stats(),
