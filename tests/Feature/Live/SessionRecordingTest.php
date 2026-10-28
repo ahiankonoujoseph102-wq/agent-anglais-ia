@@ -5,6 +5,7 @@ namespace Tests\Feature\Live;
 use App\Enums\Level;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Ambassadors\AmbassadorProgram;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\Concerns\BuildsPrograms;
@@ -107,6 +108,25 @@ class SessionRecordingTest extends TestCase
         $config = $this->recordingConfig($this->actingAs(User::factory()->create())->get('/evaluation')->getContent());
 
         $this->assertSame('talkami.laravel.cloud', $config['mention']);
+    }
+
+    public function test_an_active_ambassador_sees_his_personal_link_at_the_bottom_of_his_video(): void
+    {
+        config(['app.url' => 'https://talkami.net']);
+        $user = User::factory()->level(Level::A1)->create(['name' => 'Kofi Mensah', 'welcomed_at' => now()]);
+        $ambassador = AmbassadorProgram::appoint($user, User::factory()->admin()->create())['ambassador'];
+        $this->buildProgram($user, Level::A1);
+
+        // Séance du jour et évaluation : seule la mention du bas change.
+        foreach (['/seance', '/evaluation'] as $page) {
+            $config = $this->recordingConfig($this->actingAs($user->fresh())->get($page)->assertOk()->getContent());
+            $this->assertSame('talkami.net/a/'.$ambassador->code, $config['mention']);
+        }
+
+        // Retiré du programme : de nouveau l'adresse du site.
+        AmbassadorProgram::remove($ambassador);
+        $config = $this->recordingConfig($this->actingAs($user->fresh())->get('/evaluation')->assertOk()->getContent());
+        $this->assertSame('talkami.net', $config['mention']);
     }
 
     public function test_the_button_can_be_switched_off_or_limited_to_some_conversations(): void
