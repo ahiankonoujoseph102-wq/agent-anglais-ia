@@ -4,7 +4,11 @@
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
-## Chantier en cours : évaluation fiable (28 octobre 2026, branche `claude/dazzling-brahmagupta-hn9p2k`)
+## Dernier chantier : page « Abonnés payants » (28 octobre 2026, branche `claude/abonnes-payants`)
+
+Rien de tel n'existait (« Inscrits » : recherche et pays ; « Historique » : paiements ; « Inactifs » : abonnés sans séance). Ajouté : onglet « Abonnés payants » (`/admin/abonnes`), voir CLAUDE.md, feuille de route. « Membres fondateurs » : aucune notion à part dans le code ; un accès donné avec « Offrir un accès » (fiche d'un inscrit) apparaît dans la liste « Accès offerts », hors des chiffres des payants. À proposer au fondateur si besoin : une case « Membre fondateur » sur la fiche d'un inscrit pour une liste à part.
+
+## Chantier précédent : évaluation fiable (#123, fusionnée) (28 octobre 2026, branche `claude/dazzling-brahmagupta-hn9p2k`)
 
 Deux vidéos d'essai (« Enregistrer ma séance ») : une vraie cliente (analysée par la session précédente) et la secrétaire du fondateur (vidéo de 5 minutes, transcrite sur la machine de la session, transcription NON gardée). La vidéo commence environ 15 secondes après le début de la séance (le minuteur affiche 4:45).
 
