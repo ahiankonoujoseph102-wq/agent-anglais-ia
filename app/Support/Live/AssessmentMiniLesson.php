@@ -3,13 +3,15 @@
 namespace App\Support\Live;
 
 use App\Enums\Level;
+use App\Support\Curriculum\Curriculum;
 use App\Support\Curriculum\LessonBoards;
 
 /**
  * Mini-leçon de la fin de l'évaluation gratuite (AssessmentController::result, banc d'essai du professeur) :
  * PERSONNELLE, sur les une ou deux vraies erreurs de l'apprenant transmises avec le verdict (ou une tournure plus
  * naturelle du niveau supérieur) ; en secours seulement, quelques phrases de la première leçon du niveau trouvé.
- * Renvoie le tableau montré à l'écran (« discovery ») et la suite donnée au professeur (« next_step »).
+ * Renvoie le tableau montré à l'écran (« discovery ») et la suite donnée au professeur (« next_step »), qui finit par ce
+ * que l'apprenant apprendra ensuite : deux objectifs RÉELS du programme de son niveau (goals), jamais une promesse.
  */
 final class AssessmentMiniLesson
 {
@@ -39,6 +41,7 @@ final class AssessmentMiniLesson
                 'next_step' => strtr((string) config('teacher.assessment_next_step'), [
                     ':intro' => (string) config('platform.assessment.discovery_intro'),
                     ':items' => $items,
+                    ':goals' => self::goals($level),
                 ]),
             ];
         }
@@ -61,7 +64,22 @@ final class AssessmentMiniLesson
                 ':intro' => (string) config('platform.assessment.discovery_intro'),
                 ':phrase' => $first['en'],
                 ':meaning' => $first['fr'] ? ' (in French: "'.$first['fr'].'")' : '',
+                ':goals' => self::goals($level),
             ]),
         ];
+    }
+
+    /**
+     * Ce que l'apprenant apprendra dans les premières semaines : le premier objectif des unités 1 et 2 du programme
+     * officiel de son niveau (« saluer quelqu'un …, puis à présenter les membres de votre famille »).
+     */
+    public static function goals(Level $level): string
+    {
+        $goals = collect(array_slice(Curriculum::units($level), 0, 2))
+            ->map(fn ($unit) => $unit->objectives[0] ?? null)
+            ->filter()
+            ->values();
+
+        return $goals->count() > 1 ? $goals[0].', puis à '.$goals[1] : (string) $goals->first();
     }
 }

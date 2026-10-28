@@ -175,9 +175,14 @@ class AssessmentQuestionsTest extends TestCase
         $this->assertStringContainsString('(1) they said "I have 30 years", right form "I\'m 30 years old."', $next);
         $this->assertStringContainsString('(2) they said "Yesterday I go to the market"', $next);
         $this->assertStringContainsString('they use it ONCE in a sentence of their own', $next);
-        $this->assertStringContainsString('ONE sincere encouragement about something they really did well today', $next);
+        // Bilan : niveau, vrais points forts, puis ce qu'il apprendra ensuite, tiré du VRAI programme de son niveau.
+        $this->assertStringContainsString('in French what it means and their one or two real strengths', $next);
+        $goals = Curriculum::unit(Level::A2, 1)->objectives[0].', puis à '.Curriculum::unit(Level::A2, 2)->objectives[0];
+        $this->assertStringContainsString('« En travaillant régulièrement avec moi, dans les prochaines semaines, vous apprendrez à '.$goals.'. »', $next);
+        $this->assertStringContainsString('Never promise a result, a level or a delay.', $next);
         $this->assertStringNotContainsString('troisième', $next);
         $this->assertStringNotContainsString(':items', $next);
+        $this->assertStringNotContainsString(':goals', $next);
 
         // Presque aucune erreur : une tournure plus naturelle du niveau supérieur.
         $ama = $this->verdictAfter(User::factory()->create(), 150, [
@@ -197,7 +202,7 @@ class AssessmentQuestionsTest extends TestCase
 
         $this->assertSame('A2', $user->assessment()->first()->level->value);
         $this->assertSame('Votre première phrase', $response->json('discovery.heading'));
-        $this->assertStringContainsString('on this phrase instead (nothing else was sent)', $response->json('next_step'));
+        $this->assertStringContainsString('on this phrase (nothing else was sent)', $response->json('next_step'));
     }
 
     public function test_the_verdict_function_asks_for_the_learner_s_own_mistakes_at_both_providers(): void
@@ -233,8 +238,10 @@ class AssessmentQuestionsTest extends TestCase
         $this->assertStringContainsString('« Laissez-moi vous montrer comment nous allons travailler ensemble. »', $next);
         $this->assertStringContainsString('"'.$phrases[0]['en'].'"', $next);
         $this->assertStringContainsString('Repeat after me: '.$phrases[0]['en'], $next);
-        $this->assertStringContainsString('never teach another phrase, and never call this function again', $next);
+        $this->assertStringContainsString('never teach another phrase, never call this function again', $next);
+        $this->assertStringContainsString('vous apprendrez à '.Curriculum::unit(Level::A2, 1)->objectives[0], $next);
         $this->assertStringNotContainsString(':phrase', $next);
+        $this->assertStringNotContainsString(':goals', $next);
     }
 
     public function test_the_mini_lesson_uses_the_shared_board_of_the_first_lesson_when_it_is_ready(): void

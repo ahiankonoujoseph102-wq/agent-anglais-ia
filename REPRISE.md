@@ -1,8 +1,12 @@
-# REPRISE — dernier chantier : rapidité de Teacher Joe (fait)
+# REPRISE — chantier en cours : évaluation qui inspire confiance
 
 À lire avec `CLAUDE.md` (section « Programme d'ambassadeurs ») pour reprendre ce travail dans une autre session. Ce fichier ne contient jamais de clé ni de conversation réelle.
 
-Les chantiers précédents (jusqu'au programme d'ambassadeurs, pull request #118) sont fusionnés.
+Les chantiers précédents (jusqu'à la rapidité de Teacher Joe, pull request #119) sont fusionnés.
+
+## Chantier en cours : évaluation qui inspire confiance (28 octobre 2026)
+
+Demande : l'évaluation gratuite décide de l'abonnement ; Teacher Joe doit s'adapter tout de suite (débutant très lent et français au premier blocage, avancé plus rapide et questions riches), parler comme un vrai professeur, donner un bilan personnel (niveau, vrais points forts, vraies erreurs, ce qu'il apprendra) et présenter les formules comme la suite, sans urgence, sans promesse, sans parler d'intelligence artificielle. Interdit : toucher aux corrections de rapidité (#119), aux prix, à l'enregistrement des séances ; rallonger les consignes. Analyse, bonnes pratiques, réglages de vitesse des fournisseurs, changements et tailles : `docs/methode-teacher-joe.md`, section 11. Banc d'essai : consignes « avant » = main après #119 (`resources/teacher/rehearsal/previous.php`), scénarios `evaluation-vrai-debutant`, `evaluation-niveau-moyen`, `evaluation-niveau-avance`, `evaluation-bilan`, `evaluation-conclusion`. Aucune clé de fournisseur dans l'environnement de développement : le banc d'essai réel se lance sur Laravel Cloud.
 
 ## Dernier chantier : rapidité de Teacher Joe (fait, pull request #119 fusionnée le 28 octobre 2026)
 
@@ -24,4 +28,4 @@ Programme d'ambassadeurs (10 au plus), une étape à la fois, chacune avec sa pu
 
 ## Prochaine étape exacte
 
-Après la mise en ligne, comparer chaque jour la partie « Rapidité » de « Consommation » ; selon les dernières erreurs du diagnostic, proposer (sans le faire) OpenAI par défaut. Ambassadeurs : demander l'indexation de talkami.net/devenir-ambassadeur dans Google Search Console.
+Fusionner la pull request de l'évaluation quand la CI est verte, puis lancer sur Laravel Cloud `php artisan teacher:rehearse --compare --only=evaluation-vrai-debutant,evaluation-niveau-moyen,evaluation-niveau-avance,evaluation-bilan,evaluation-conclusion` et relire les réponses. Après la mise en ligne, comparer chaque jour la partie « Rapidité » de « Consommation » ; selon les dernières erreurs du diagnostic, proposer (sans le faire) OpenAI par défaut. Ambassadeurs : demander l'indexation de talkami.net/devenir-ambassadeur dans Google Search Console.
