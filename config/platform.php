@@ -346,8 +346,13 @@ return [
         'silent_mic_seconds' => 8,
         // Fin de tour (public/js/turn-watch.js) : la voix de l'apprenant, mesurée dans le navigateur, est finie
         // depuis ce temps et le fournisseur n'a ni clos le tour ni commencé à répondre (bruit de fond, longue
-        // réponse) : le navigateur signale lui-même la fin du tour (Gemini : audioStreamEnd ; OpenAI : silence).
+        // réponse) : le navigateur signale lui-même la fin du tour, en envoyant un VRAI silence que la détection du
+        // fournisseur voit comme la fin de la parole (OpenAI : piste muette ; Gemini : paquets de zéros pendant
+        // end_of_turn_silence_seconds, puis audioStreamEnd). Avant le 28 octobre 2026, Gemini ne recevait que
+        // audioStreamEnd, micro fermé : sa détection n'entendait plus rien et la réponse tardait (17,9 secondes) ou
+        // ne venait pas avant que l'élève reparle.
         'end_of_turn_seconds' => 2,
+        'end_of_turn_silence_seconds' => 3,
         // Attente de la réponse : ce temps après la fin de la parole, « Un instant… » et un léger geste de Teacher Joe
         // (hochement, sourire).
         'instant_seconds' => 2,

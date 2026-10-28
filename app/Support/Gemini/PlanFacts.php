@@ -90,7 +90,8 @@ class PlanFacts
     private static function where(string $kind): string
     {
         return $kind === 'assessment'
-            ? '« Les formules s\'afficheront juste sous votre résultat, à la fin de notre échange : vous choisirez avec le bouton orange. » (after the level announcement, they are already shown: « Les formules s\'affichent juste sous votre résultat. »)'
+            // Les formules ne s'affichent qu'à la FIN de la conversation (#122) : jamais « elles s'affichent » pendant.
+            ? '« Les formules s\'afficheront sous votre résultat, à la fin de notre échange : vous choisirez avec le bouton orange. » (they are never shown during the conversation)'
             : '« Dans « Mon espace », touchez « Choisir ma formule ». »';
     }
 }

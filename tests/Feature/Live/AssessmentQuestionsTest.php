@@ -127,8 +127,9 @@ class AssessmentQuestionsTest extends TestCase
             ->assertJsonPath('remaining_seconds', 160)
             ->assertJsonPath('cues.conclusion', '[System] About 30 seconds remain. Do not take any more questions. If you have not given your conclusion yet, give it now, in French, once, ending with « On se retrouve de l\'autre côté ! ». If you have already given it, say only this closing sentence again, in one short goodbye.');
 
-        // Le jeton ne dure jamais au-delà de la nouvelle limite ; les consignes gardent la durée de l'évaluation.
-        $this->assertLessThanOrEqual(160, $response->json('token_expires_in'));
+        // Après le verdict : le jeton couvre la nouvelle limite et la petite marge (token_margin_seconds), rien de
+        // plus ; les consignes gardent la durée de l'évaluation.
+        $this->assertSame(160 + 60, $response->json('token_expires_in'));
         Http::assertSent(fn (Request $request) => str_ends_with($request->url(), '/auth_tokens')
             && str_contains(json_encode($request->data(), JSON_UNESCAPED_UNICODE), 'FREE ORAL LEVEL ASSESSMENT: 5 minutes at most'));
     }
@@ -174,8 +175,12 @@ class AssessmentQuestionsTest extends TestCase
         $this->assertStringContainsString('PERSONAL MINI-LESSON', $next);
         $this->assertStringContainsString('(1) they said "I have 30 years", right form "I\'m 30 years old."', $next);
         $this->assertStringContainsString('(2) they said "Yesterday I go to the market"', $next);
-        $this->assertStringContainsString('they use it ONCE in a sentence of their own', $next);
+        // Une seule action par réplique : il attend la répétition avant « Your turn », puis la réponse avant les questions.
+        $this->assertStringContainsString('ONE ACTION PER TURN, and WAIT for the learner after each one', $next);
+        $this->assertStringContainsString('"Repeat after me: …" with the right form, and STOP talking. TURN 2 (after they repeated)', $next);
+        $this->assertStringContainsString('TURN 3 (after their answer)', $next);
         $this->assertStringContainsString('ONE sincere encouragement about something they really did well today', $next);
+        $this->assertLessThan(strpos($next, 'Avez-vous des questions'), strpos($next, 'TURN 3'));
         $this->assertStringNotContainsString('troisième', $next);
         $this->assertStringNotContainsString(':items', $next);
 

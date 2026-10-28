@@ -75,8 +75,10 @@ class TeacherAdvisorTest extends TestCase
         $this->assertStringNotContainsString('Never invent anything (prices', $text);
         $this->assertStringContainsString('If the learner asks about prices or plans, answer directly', $text);
         // Où sont les formules : sous le résultat, à la fin de l'évaluation (rien à chercher ailleurs).
-        $this->assertStringContainsString('« Les formules s\'afficheront juste sous votre résultat, à la fin de notre échange', $text);
-        $this->assertStringContainsString('ending with « Les formules s\'affichent juste sous votre résultat. »', $text);
+        // Elles ne s'affichent qu'à la fin de la conversation : jamais « elles s'affichent » pendant.
+        $this->assertStringContainsString('« Les formules s\'afficheront sous votre résultat, à la fin de notre échange', $text);
+        $this->assertStringContainsString('ending with « Les formules s\'afficheront sous votre résultat, à la fin de notre échange. »', $text);
+        $this->assertStringNotContainsString('s\'affichent juste', $text);
         // Pendant une séance, la barre du bas est cachée : jamais « touchez Aide » sans « après notre échange ».
         $this->assertStringContainsString('During a conversation with you the bottom bar is hidden', $text);
         $this->assertStringContainsString('« Après notre échange, touchez « Aide », puis le bouton vert WhatsApp. »', $text);

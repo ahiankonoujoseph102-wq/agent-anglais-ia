@@ -61,11 +61,23 @@ class NewAssessmentTest extends TestCase
         $this->assertStringNotContainsString('YOU NOTICE HESITATION', $old);
 
         // Nouvelle évaluation : accueil humain, hésitation remarquée, français, traduction apprise, vrai niveau.
-        $this->assertStringContainsString('ask the learner\'s name ("What\'s your name?") and WAIT', $new);
+        $this->assertStringContainsString('"Hello! Welcome to your free English assessment. I\'m Teacher Joe."', $new);
+        $this->assertStringContainsString('ask the learner\'s name ("What\'s your name?") and WAIT, before any other question', $new);
         $this->assertStringContainsString('Then ask "How are you today?" and WAIT', $new);
         $this->assertStringContainsString('YOU NOTICE HESITATION YOURSELF, without waiting to be asked', $new);
         $this->assertStringContainsString('"I see the question is not clear. Let me say it more simply: …"', $new);
-        $this->assertStringContainsString('translate the question into French in one sentence, then ask it again in simple English', $new);
+        $this->assertStringContainsString('translate the question into French in one sentence, ask it again in simple English', $new);
+        // Corrections du 28 octobre 2026 (deux vidéos d'essai).
+        $this->assertStringContainsString('A STARTED SENTENCE ("Je…", "I…") is not an answer: the first time, say only "Take your time." and WAIT', $new);
+        $this->assertStringContainsString('Two tries at most for the same question or sentence', $new);
+        $this->assertStringContainsString('never "Nice!" or "Perfect!" on a wrong answer', $new);
+        $this->assertStringContainsString('NO CORRECTION at this stage', $new);
+        $this->assertStringContainsString('END EVERY ANSWER with exactly « Avez-vous une autre question ? » and WAIT', $new);
+        $this->assertStringContainsString('Never say "une autre question" or "other questions" when the learner has not asked any', $new);
+        $this->assertStringContainsString('never say they are shown now (« les formules s\'affichent »)', $new);
+        $this->assertStringContainsString('CONCLUSION, in FRENCH, ONCE, about 30 seconds, WITHOUT repeating the level', $new);
+        $this->assertStringContainsString('« Votre niveau est … » with its name (A1 débutant', $new);
+        $this->assertStringContainsString('The FIRST time only, teach them the English sentence for next time', $new);
         $this->assertStringContainsString('NEVER go on in English as if nothing happened', $new);
         $this->assertStringContainsString('"Next time, you can say: Can you say it in French, please?"', $new);
         $this->assertStringContainsString('THE TRUE LEVEL, never raised to please', $new);

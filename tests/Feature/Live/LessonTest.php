@@ -61,15 +61,15 @@ class LessonTest extends TestCase
         $this->actingAs($user)->postJson('/seance/connexion')
             ->assertOk()
             ->assertJsonPath('remaining_seconds', 1800)
-            // Un jeton dure au plus 5 minutes : le navigateur doit en redemander un.
-            ->assertJsonPath('token_expires_in', 300)
+            // Le jeton vaut pour toute la séance (30 minutes) et une marge d'une minute : aucun renouvellement en route.
+            ->assertJsonPath('token_expires_in', 1800 + 60)
             ->assertJsonPath('warning_seconds', 120)
             ->assertJsonPath('cues.start', '[System] The learner is connected and ready. Start STEP 1 now: greet the learner, announce that the lesson lasts 30 minutes (exactly this number, never another one), follow HOW TO WORK WITH ME, do the WARM-UP (an open question, then the recall if there was a previous lesson), announce today\'s topic, then teach the first item of the board.');
 
         Http::assertSent(function (Request $request) {
             $instructions = $request['bidiGenerateContentSetup']['systemInstruction']['parts'][0]['text'];
 
-            return $request['expireTime'] === now()->addMinutes(5)->utc()->toIso8601ZuluString()
+            return $request['expireTime'] === now()->addSeconds(1800 + 60)->utc()->toIso8601ZuluString()
                 && str_contains($instructions, 'It lasts 30 minutes')
                 && str_contains($instructions, 'elementary (A2)')
                 && $request['bidiGenerateContentSetup']['tools'][0]['functionDeclarations'][0]['name'] === 'end_lesson';
@@ -77,6 +77,8 @@ class LessonTest extends TestCase
 
         $lesson = $this->lesson($user);
         $this->assertSame(1800, $lesson->allowed_seconds);
+        // Décompte d'un navigateur disparu : expiration courte, comme avant (token_minutes).
+        $this->assertTrue($lesson->token_expires_at->equalTo(now()->addMinutes(5)));
         $this->assertSame(LessonStatus::InProgress, $lesson->status);
         $this->assertTrue($lesson->date->isToday());
     }
@@ -94,10 +96,10 @@ class LessonTest extends TestCase
         $this->actingAs($user)->postJson('/seance/connexion')
             ->assertOk()
             ->assertJsonPath('remaining_seconds', 120)
-            ->assertJsonPath('token_expires_in', 120);
+            ->assertJsonPath('token_expires_in', 120 + 60);
 
-        // Le jeton expire exactement à la fin du temps restant.
-        Http::assertSent(fn (Request $request) => $request['expireTime'] === now()->addSeconds(120)->utc()->toIso8601ZuluString());
+        // Le jeton expire à la fin du temps restant, plus la marge.
+        Http::assertSent(fn (Request $request) => $request['expireTime'] === now()->addSeconds(120 + 60)->utc()->toIso8601ZuluString());
     }
 
     public function test_new_connection_is_refused_when_the_daily_time_is_used_up(): void

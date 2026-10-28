@@ -102,3 +102,16 @@ export class MicGate {
 export function voiceLooksOver({ now, speakingSince, lastAudibleAt, after = 4 }) {
     return now - Math.max(speakingSince || 0, lastAudibleAt || 0) >= after;
 }
+
+/**
+ * Fin de tour signalée par le navigateur, chez Gemini : pendant « seconds » après le signal, des paquets de
+ * VRAI silence (zéros) partent à la place du micro. La détection de Google voit ce silence et clôt le tour comme
+ * pour une fin de parole ordinaire ; un simple audioStreamEnd, micro fermé, la laissait sans rien à entendre
+ * (réponse en 17,9 secondes, ou pas avant que l'élève reparle). Ensuite seulement : audioStreamEnd.
+ *
+ * @param {number} now       heure actuelle (millisecondes)
+ * @param {?number} forcedAt heure du signal de fin de tour (null : aucun)
+ */
+export function sendsTurnSilence({ now, forcedAt, seconds = 3 }) {
+    return forcedAt !== null && forcedAt !== undefined && now - forcedAt < seconds * 1000;
+}
