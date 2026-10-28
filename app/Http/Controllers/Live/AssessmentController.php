@@ -153,7 +153,7 @@ class AssessmentController extends Controller
         $setup = TeacherSetup::assessment($user, (int) config('platform.assessment.max_minutes'), $request->handle());
 
         try {
-            $token = $live->request($setup, $deadline, $assessment, $request->failedProvider());
+            $token = $live->request($setup, $deadline, $assessment, $request->failedProvider(), $request->unresponsiveProvider());
         } catch (GeminiUnavailable $e) {
             report($e);
 

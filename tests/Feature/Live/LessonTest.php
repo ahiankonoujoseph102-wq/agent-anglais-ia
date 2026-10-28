@@ -170,7 +170,13 @@ class LessonTest extends TestCase
         $user = $this->subscriber();
 
         $this->actingAs($user)->postJson('/seance/connexion')->assertOk();
-        $this->actingAs($user)->postJson('/seance/connexion')->assertOk();
+        // Une marge pour les renouvellements prévus et les coupures (IsLiveConversation::maxConnections), puis refus.
+        $limit = Lesson::query()->sole()->maxConnections();
+
+        for ($i = 1; $i < $limit; $i++) {
+            $this->actingAs($user)->postJson('/seance/connexion')->assertOk();
+        }
+
         $this->actingAs($user)->postJson('/seance/connexion')->assertTooManyRequests();
     }
 

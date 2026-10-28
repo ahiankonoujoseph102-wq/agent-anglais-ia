@@ -248,6 +248,23 @@ export class TurnWatch {
         return record;
     }
 
+    /**
+     * Heure de la fin de parole quand on attend vraiment une réponse : l'apprenant a parlé au moins minMs (un
+     * « Yes » suffit, pas un claquement) et s'est tu ; null sinon.
+     */
+    waitingSince(minMs = 250) {
+        const turn = this.turn;
+        const end = this.learnerEnd();
+
+        if (!turn || turn.micActive || end === null) {
+            return null;
+        }
+
+        const start = turn.micStart ?? turn.providerStart;
+
+        return start === null || end - start >= minMs ? end : null;
+    }
+
     /** Pause, interruption, reconnexion : le tour en cours n'est plus mesuré. */
     reset() {
         this.turn = null;
@@ -268,6 +285,70 @@ export class TurnWatch {
 
         return null;
     }
+}
+
+/**
+ * Teacher Joe ne répond pas (blocage silencieux du fournisseur, réponse coupée en plein milieu) : étapes de
+ * reprise AUTOMATIQUES, invisibles pour l'apprenant, avant le bouton « Relancer » :
+ *   1. « nudge »     nudgeMs après la fin de parole : il reçoit l'indication de répondre ;
+ *   2. « reconnect » reconnectMs plus tard, toujours rien : nouvelle connexion chez le même fournisseur, la
+ *                    conversation continue (reprise) ;
+ *   3. « switch »    switchMs plus tard, toujours rien : la séance continue chez l'autre fournisseur.
+ * Une seule fois chaque étape par attente ; tout repart de zéro dès que sa voix arrive (waitedSince null).
+ */
+export class AnswerRecovery {
+    constructor({ nudgeMs = 6000, reconnectMs = 8000, switchMs = 10000 } = {}) {
+        this.delays = [nudgeMs, reconnectMs, switchMs];
+        this.reset();
+    }
+
+    reset() {
+        this.step = 0;
+        this.at = 0;
+    }
+
+    /** Réponse coupée en plein milieu : on passe directement à la reconnexion. */
+    stalled(now) {
+        if (this.step === 0) {
+            this.step = 1;
+            this.at = now - this.delays[1];
+        }
+    }
+
+    /**
+     * @param {number} now
+     * @param {?number} waitedSince  début de l'attente (fin de parole de l'apprenant, ou réponse coupée), null sinon
+     * @return {?string} « nudge », « reconnect », « switch » ou null
+     */
+    next(now, waitedSince) {
+        if (waitedSince === null || waitedSince === undefined) {
+            this.reset();
+
+            return null;
+        }
+
+        const delay = this.delays[this.step];
+        const since = this.step === 0 ? waitedSince : this.at;
+
+        if (delay === undefined || now - since < delay) {
+            return null;
+        }
+
+        this.step++;
+        this.at = now;
+
+        return ['nudge', 'reconnect', 'switch'][this.step - 1];
+    }
+}
+
+/**
+ * Moment calme pour changer de connexion (renouvellement prévu) : ni la voix du professeur, ni une réponse en
+ * cours, ni l'apprenant qui parle ou attend une réponse.
+ *
+ * @param {{teacherSpeaking: boolean, responding: boolean, learnerSpeaking: boolean, awaitingAnswer: boolean}} s
+ */
+export function quietMoment(s) {
+    return !s.teacherSpeaking && !s.responding && !s.learnerSpeaking && !s.awaitingAnswer;
 }
 
 /**
