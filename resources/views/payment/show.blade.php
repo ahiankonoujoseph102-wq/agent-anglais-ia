@@ -53,6 +53,8 @@
                 </div>
             </div>
             <a class="btn btn-accent btn-block btn-lg btn-next" href="{{ route('dashboard') }}">Aller à mon espace <x-icon name="arrow-right" /></a>
+            {{-- Confirmation du paiement validé : l'invitation au Club des abonnés (si la formule est en cours). --}}
+            <x-club-invite :user="$payment->user" class="next-step" />
         @else
             <div class="status-head">
                 <span class="icon-bubble icon-bubble-danger"><x-icon name="alert" /></span>

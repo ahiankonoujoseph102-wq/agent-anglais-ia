@@ -134,6 +134,20 @@
             @enderror
         </section>
 
+        <section class="card" id="club-des-abonnes">
+            <h2>Club des abonnés</h2>
+            <p class="muted small">
+                Montré seulement aux abonnés payants actifs (paiement validé, formule en cours) : dans « Mon espace », sous la prochaine étape,
+                et sur la page de leur paiement validé. Jamais aux accès offerts, aux ambassadeurs, aux accès provisoires ni aux abonnements terminés.
+                Champ vide : l'encadré n'est plus montré.
+            </p>
+            <x-input name="club[whatsapp_link]" label="Lien du groupe WhatsApp des abonnés" type="url" inputmode="url"
+                     :value="old('club.whatsapp_link', $fields['club.whatsapp_link']['saved'])" placeholder="https://chat.whatsapp.com/…" />
+            @error('club.whatsapp_link')
+                <div class="error field">{{ $message }}</div>
+            @enderror
+        </section>
+
         <section class="card" id="ambassadeurs">
             <h2>Programme d'ambassadeurs</h2>
             <p class="muted small">
