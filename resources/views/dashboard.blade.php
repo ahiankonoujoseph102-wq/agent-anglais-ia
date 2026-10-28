@@ -125,6 +125,10 @@
     {{-- Où en est l'apprenant dans le parcours : sous la prochaine étape, pour que son bouton reste dans le premier écran. --}}
     <x-stepper :labels="['Évaluation', 'Formule', 'Programme', 'Séances']" :current="$journeyStep" label="Votre parcours" />
 
+    {{-- Club des abonnés : abonné payant actif seulement, juste sous la prochaine étape (le plus visible sans lui
+         prendre sa place). --}}
+    <x-club-invite class="rise" />
+
     {{-- Niveau validé il y a moins de 14 jours : on le fête juste après la prochaine étape, attestation à portée de main. --}}
     @php
         $freshAttestation = $attestations->sortByDesc('issued_at')->first(fn ($a) => $a->issued_at->gt(now()->subDays(14)));

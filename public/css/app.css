@@ -1836,3 +1836,7 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .places-counter { display: inline-flex; align-items: center; gap: var(--space-2); margin: var(--space-3) 0 0; padding: var(--space-2) var(--space-4); border-radius: var(--radius-pill); background: var(--c-accent-soft); color: var(--c-primary); border: 1px solid var(--c-accent); }
 .check-list-plain li { font-weight: var(--fw-normal); }
 #candidature .card > * + * { margin-top: var(--space-3); }
+
+/* Club des abonnés (<x-club-invite>) : liste à coches déjà écrites dans le texte. */
+.club-list { list-style: none; padding: 0; margin: 0 0 var(--space-4); display: grid; gap: var(--space-2); }
+.club-signature { margin: var(--space-3) 0 0; }

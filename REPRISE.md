@@ -4,7 +4,11 @@
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
-## Dernier chantier : page « Abonnés payants » (28 octobre 2026, branche `claude/abonnes-payants`)
+## Dernier chantier : Club des abonnés (28 octobre 2026, branche `claude/club-abonnes`)
+
+Lien du groupe WhatsApp des abonnés dans « Réglages » (valeur de départ du fondateur), montré seulement aux abonnés payants actifs dans « Mon espace » et sur la page du paiement validé. Voir CLAUDE.md, feuille de route. Ensuite : partie 2, rôle « Assistant » (branche à part).
+
+## Chantier précédent : page « Abonnés payants » (#124, fusionnée) (28 octobre 2026, branche `claude/abonnes-payants`)
 
 Rien de tel n'existait (« Inscrits » : recherche et pays ; « Historique » : paiements ; « Inactifs » : abonnés sans séance). Ajouté : onglet « Abonnés payants » (`/admin/abonnes`), voir CLAUDE.md, feuille de route. « Membres fondateurs » : aucune notion à part dans le code ; un accès donné avec « Offrir un accès » (fiche d'un inscrit) apparaît dans la liste « Accès offerts », hors des chiffres des payants. À proposer au fondateur si besoin : une case « Membre fondateur » sur la fiche d'un inscrit pour une liste à part.
 

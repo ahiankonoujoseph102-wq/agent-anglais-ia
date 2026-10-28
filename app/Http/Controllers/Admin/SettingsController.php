@@ -9,6 +9,7 @@ use App\Support\Live\AssessmentVersion;
 use App\Support\Live\CostWatch;
 use App\Support\PaymentCountry;
 use App\Support\SiteSettings;
+use App\Support\SubscribersClub;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -22,7 +23,7 @@ class SettingsController extends Controller
 {
     public function edit(): View
     {
-        $keys = [...SiteSettings::CONTACT_KEYS, ...CostWatch::SETTINGS, AmbassadorProgram::PLACES_SETTING];
+        $keys = [...SiteSettings::CONTACT_KEYS, ...CostWatch::SETTINGS, AmbassadorProgram::PLACES_SETTING, SubscribersClub::SETTING];
 
         foreach (PaymentCountry::all() as $country) {
             foreach ($country->operators as $operator) {
@@ -54,6 +55,11 @@ class SettingsController extends Controller
             'cost_alert.xof_per_usd' => $request->input('cost_alert.xof_per_usd'),
             AmbassadorProgram::PLACES_SETTING => $request->input('ambassadors.places'),
         ];
+
+        // Lien du Club des abonnés : gardé seulement s'il est envoyé (vide : l'encadré n'est plus montré).
+        if ($request->has('club')) {
+            $values[SubscribersClub::SETTING] = $request->input('club.whatsapp_link');
+        }
 
         // Interrupteur de la nouvelle évaluation : gardé seulement s'il est envoyé (ancien formulaire : inchangé).
         if ($request->filled('assessment.new_version')) {
