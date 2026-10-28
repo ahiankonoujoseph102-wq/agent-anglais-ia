@@ -116,6 +116,18 @@ class User extends Authenticatable
         return $this->hasOne(AmbassadorCommission::class);
     }
 
+    /** Candidature au programme d'ambassadeurs (page « Devenir ambassadeur »). */
+    public function ambassadorApplication(): HasOne
+    {
+        return $this->hasOne(AmbassadorApplication::class);
+    }
+
+    /** Inscription sur la liste d'attente des ambassadeurs. */
+    public function ambassadorWaitlist(): HasOne
+    {
+        return $this->hasOne(AmbassadorWaitlistEntry::class);
+    }
+
     /** Ambassadeur grâce à qui le compte s'est inscrit (null : aucun). */
     public function referral(): HasOne
     {

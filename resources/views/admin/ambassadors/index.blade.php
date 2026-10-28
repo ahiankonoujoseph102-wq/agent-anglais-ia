@@ -18,6 +18,74 @@
         <p class="alert alert-error" role="alert"><x-icon name="alert" /><span>{{ $message }}</span></p>
     @enderror
 
+    {{-- Candidatures de la page « Devenir ambassadeur » : accepter = « Faire ambassadeur » (refusé si tout est pris). --}}
+    <section class="card" id="candidatures" aria-labelledby="candidatures-title">
+        <h2 id="candidatures-title">Candidatures à examiner : {{ $applications->count() }}</h2>
+        <p class="muted small">
+            Envoyées depuis la page <a href="{{ route('ambassador.join') }}">« Devenir ambassadeur »</a>.
+            Places libres : {{ $freePlaces }} sur {{ $places }}.
+        </p>
+        @forelse ($applications as $application)
+            <div class="commission-row">
+                <p>
+                    <a href="{{ route('admin.users.show', $application->user) }}"><strong>{{ $application->user->name }}</strong></a>
+                    · {{ $application->user->countryName() }} · envoyée le {{ $application->created_at->format('d/m/Y') }}
+                    @if ($application->minor)
+                        <br><span class="badge badge-alert">Moins de 18 ans : accord écrit d'un parent à demander</span>
+                    @endif
+                </p>
+                <p class="small"><strong>Pourquoi :</strong> {{ $application->motivation }}</p>
+                <p class="small"><strong>Va en parler à :</strong> {{ $application->channels }}</p>
+                <div class="ambassador-actions">
+                    @if ($freePlaces > 0)
+                        <form method="POST" action="{{ route('admin.applications.accept', $application) }}" {!! Confirmation::attributes('ambassador.appoint') !!}>
+                            @csrf
+                            <button type="submit" class="btn btn-accent"><x-icon name="award" /> Accepter</button>
+                        </form>
+                    @endif
+                    <form method="POST" action="{{ route('admin.applications.reject', $application) }}" {!! Confirmation::attributes('application.reject') !!}>
+                        @csrf
+                        <button type="submit" class="btn btn-light"><x-icon name="close-circle" /> Refuser</button>
+                    </form>
+                </div>
+                @if ($freePlaces === 0)
+                    <p class="muted small">Toutes les places sont prises : retirez un ambassadeur ou augmentez le nombre de places pour accepter.</p>
+                @endif
+            </div>
+        @empty
+            <p class="muted">Aucune candidature à examiner.</p>
+        @endforelse
+    </section>
+
+    {{-- Liste d'attente : « Me prévenir quand une place se libère ». L'administrateur prévient par WhatsApp. --}}
+    <section class="card" id="liste-d-attente" aria-labelledby="attente-title">
+        <h2 id="attente-title">Liste d'attente : {{ $waitlist->count() }}</h2>
+        @if ($freePlaces > 0 && $waitlist->isNotEmpty())
+            <p class="alert alert-info"><x-icon name="info" /><span>{{ $freePlaces > 1 ? $freePlaces.' places sont libres' : 'Une place est libre' }} : prévenez les personnes de la liste, dans l'ordre d'arrivée.</span></p>
+        @endif
+        @forelse ($waitlist as $entry)
+            <div class="commission-row">
+                <p>
+                    {{ $loop->iteration }}. <a href="{{ route('admin.users.show', $entry->user) }}">{{ $entry->user->name }}</a>
+                    · inscrit le {{ $entry->created_at->format('d/m/Y') }}
+                    @if ($entry->notified_at)
+                        <br><span class="muted small">Prévenu le {{ $entry->notified_at->format('d/m/Y') }}</span>
+                    @endif
+                </p>
+                <div class="ambassador-actions">
+                    <a class="btn btn-whatsapp" href="{{ route('admin.waitlist.notify', $entry) }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Prévenir sur WhatsApp</a>
+                    <form method="POST" action="{{ route('admin.waitlist.remove', $entry) }}">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-light"><x-icon name="user-off" /> Retirer de la liste</button>
+                    </form>
+                </div>
+            </div>
+        @empty
+            <p class="muted">Personne sur la liste d'attente.</p>
+        @endforelse
+    </section>
+
     <section id="liste" aria-label="Liste des ambassadeurs">
         @if ($ambassadors->isEmpty())
             <div class="card empty-state">

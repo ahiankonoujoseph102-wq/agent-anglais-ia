@@ -1830,3 +1830,8 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .commission-row p { margin: 0 0 var(--space-2); }
 .commission-cancel { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
 .commission-cancel input { flex: 1 1 12rem; min-width: 0; }
+
+/* Page « Devenir ambassadeur » : compteur réel des places, listes en texte normal. */
+.places-counter { display: inline-flex; align-items: center; gap: var(--space-2); margin: var(--space-3) 0 0; padding: var(--space-2) var(--space-4); border-radius: var(--radius-pill); background: var(--c-accent-soft); color: var(--c-primary); border: 1px solid var(--c-accent); }
+.check-list-plain li { font-weight: var(--fw-normal); }
+#candidature .card > * + * { margin-top: var(--space-3); }

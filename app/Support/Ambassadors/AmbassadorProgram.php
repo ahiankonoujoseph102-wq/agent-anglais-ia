@@ -87,6 +87,9 @@ final class AmbassadorProgram
             ]);
         });
 
+        // Candidature acceptée et place sur la liste d'attente rendue, d'où que vienne la nomination.
+        AmbassadorApplications::noteAppointed($user, $admin);
+
         try {
             return ['ambassador' => $ambassador, 'grant' => self::renew($ambassador, $admin), 'notice' => null];
         } catch (AmbassadorRefused $refused) {

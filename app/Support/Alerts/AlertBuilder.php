@@ -2,9 +2,11 @@
 
 namespace App\Support\Alerts;
 
+use App\Models\AmbassadorApplication;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Ambassadors\AmbassadorProgram;
 use App\Support\Live\CostWatch;
 use App\Support\Money;
 use Illuminate\Support\Carbon;
@@ -123,6 +125,30 @@ final class AlertBuilder
                 ['Heure', self::now()],
             ],
             tag: 'cout-'.$subscription->id,
+        );
+    }
+
+    /**
+     * Nouvelle candidature au programme d'ambassadeurs (page « Devenir ambassadeur »).
+     */
+    public static function ambassadorApplication(AmbassadorApplication $application): AlertMessage
+    {
+        $user = $application->user;
+
+        return new AlertMessage(
+            kind: 'ambassador_application',
+            title: 'Candidature d\'ambassadeur',
+            body: self::fullName($user).' · '.$user->countryName().($application->minor ? ' · moins de 18 ans' : '').' : candidature à examiner.',
+            url: route('admin.ambassadors.index').'#candidatures',
+            buttonLabel: 'Voir les candidatures',
+            details: [
+                ['Candidat', self::fullName($user)],
+                ['Pays', $user->countryName()],
+                ['Âge', $application->minor ? 'Moins de 18 ans : accord écrit d\'un parent à demander' : '18 ans ou plus'],
+                ['Places libres', AmbassadorProgram::freePlaces().' sur '.AmbassadorProgram::places()],
+                ['Heure', self::now()],
+            ],
+            tag: 'candidature-'.$application->id,
         );
     }
 
