@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\User;
 use Illuminate\Support\Str;
 
 /**
@@ -17,9 +18,16 @@ final class SessionRecording
             && in_array($mode, (array) config('platform.recording.modes', []), true);
     }
 
-    /** Mention en bas de la vidéo : le nom de domaine de APP_URL (« talkami.net »). */
-    public static function mention(): string
+    /**
+     * Mention en bas de la vidéo : le nom de domaine de APP_URL (« talkami.net ») ; pour un ambassadeur ACTIF, son lien
+     * personnel sans « https:// » (« talkami.net/a/KOFI27 »). Rien d'autre ne change dans la vidéo.
+     */
+    public static function mention(?User $user = null): string
     {
+        if ($user?->isAmbassador()) {
+            return $user->ambassador->shortLink();
+        }
+
         return (string) (parse_url(Seo::base(), PHP_URL_HOST) ?: '');
     }
 
@@ -28,7 +36,7 @@ final class SessionRecording
      *
      * @return array<string, mixed>
      */
-    public static function clientConfig(string $mode): array
+    public static function clientConfig(string $mode, ?User $user = null): array
     {
         $platform = (string) config('platform.name');
 
@@ -45,7 +53,7 @@ final class SessionRecording
             'camera_split' => config('platform.recording.camera_split'),
             'frame_budget_ms' => (int) config('platform.recording.frame_budget_ms'),
             'teacher_wait_ms' => (int) config('platform.recording.teacher_wait_ms'),
-            'mention' => self::mention(),
+            'mention' => self::mention($user),
             'platform' => $platform,
             // Début du nom du fichier : « talkami-evaluation », « talkami-seance ».
             'file_prefix' => Str::slug($platform).'-'.($mode === 'assessment' ? 'evaluation' : 'seance'),

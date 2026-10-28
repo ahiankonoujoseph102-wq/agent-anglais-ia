@@ -54,6 +54,7 @@ class SeoTest extends TestCase
         '/apprendre-anglais/benin' => 'https://talkami.net/apprendre-anglais/benin',
         '/apprendre-anglais/burkina-faso' => 'https://talkami.net/apprendre-anglais/burkina-faso',
         '/apprendre-anglais/cote-d-ivoire' => 'https://talkami.net/apprendre-anglais/cote-d-ivoire',
+        '/devenir-ambassadeur' => 'https://talkami.net/devenir-ambassadeur',
         '/contact' => 'https://talkami.net/contact',
         '/inscription' => 'https://talkami.net/inscription',
         '/confidentialite' => 'https://talkami.net/confidentialite',

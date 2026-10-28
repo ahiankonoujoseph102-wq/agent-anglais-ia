@@ -7,6 +7,7 @@ use App\Support\DailyTime;
 use App\Support\Duration;
 use App\Support\PaymentCountry;
 use App\Support\Plan;
+use App\Support\Seo;
 
 /**
  * Fiche de connaissance du site donnée au professeur (resources/teacher/site-guide.md).
@@ -53,6 +54,14 @@ class SiteGuide
             ':course_pdf' => (int) (config('platform.courses.pdf_max_kilobytes') / 1024).' mégaoctets et '.(int) config('platform.courses.pdf_max_pages').' pages au plus',
             ':plans' => self::plans(),
             ':operators' => self::operators(),
+            // Programme d'ambassadeurs : formule, durées et pourcentage lus dans la configuration.
+            ':ambassador_page' => preg_replace('#^https?://#', '', Seo::url(route('ambassador.join', [], false))),
+            ':ambassador_plan' => (string) Plan::find((string) config('platform.ambassadors.plan'))?->name,
+            ':ambassador_days' => (string) (int) config('platform.ambassadors.month_days'),
+            ':ambassador_months' => (string) (int) config('platform.ambassadors.max_months'),
+            ':ambassador_percent' => (string) (int) config('platform.ambassadors.commission_percent'),
+            ':ambassador_window' => (string) (int) config('platform.ambassadors.commission_days'),
+            ':ambassador_link_days' => (string) (int) config('platform.ambassadors.link_days'),
         ]);
     }
 

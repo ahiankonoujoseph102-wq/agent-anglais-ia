@@ -66,7 +66,7 @@ class AmbassadorJoinTest extends TestCase
             ->assertOk()
             ->assertSee('Devenir ambassadeur de '.config('platform.name'))
             ->assertSee('Il reste 3 places sur 3.')
-            ->assertSee('noindex', false);
+            ->assertSee('<meta name="robots" content="index, follow">', false);
 
         $this->ambassador('Kofi');
         $removed = $this->ambassador('Afi');

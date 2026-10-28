@@ -62,7 +62,7 @@
          @endif
          @if (\App\Support\SessionRecording::enabled($mode))
              data-recorder="{{ \App\Support\Asset::url('js/session-recorder.js') }}"
-             data-recording='@json(\App\Support\SessionRecording::clientConfig($mode))'
+             data-recording='{{ json_encode(\App\Support\SessionRecording::clientConfig($mode, auth()->user())) }}'
              data-video-guard="{{ \App\Support\Asset::url('js/video-guard.js') }}"
              data-video-leave='@json(\App\Support\Confirmation::for('video.leave'))'
          @endif
