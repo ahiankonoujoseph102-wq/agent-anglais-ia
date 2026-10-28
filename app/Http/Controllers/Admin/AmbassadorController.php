@@ -7,10 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Ambassador;
 use App\Models\User;
 use App\Support\Ambassadors\AmbassadorProgram;
+use App\Support\Ambassadors\AmbassadorReferrals;
 use App\Support\Ambassadors\AmbassadorRefused;
 use App\Support\Gemini\WelcomeMessage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
@@ -23,6 +25,7 @@ class AmbassadorController extends Controller
     {
         $ambassadors = Ambassador::query()
             ->with(['user', 'grants'])
+            ->withCount(['referrals', 'referrals as flagged_count' => fn ($query) => $query->whereNotNull('flags')])
             ->orderByRaw('case when status = ? then 0 else 1 end', [AmbassadorStatus::Active->value])
             ->orderBy('created_at')
             ->get();
@@ -82,6 +85,28 @@ class AmbassadorController extends Controller
         AmbassadorProgram::setParentalConsent($ambassador, $received);
 
         return $this->back($request, $ambassador->user)->with('status', $received ? 'Accord écrit d\'un parent noté.' : 'Accord d\'un parent retiré.');
+    }
+
+    /**
+     * Correction par l'administrateur : rattache le compte à un ambassadeur actif, ou retire le rattachement.
+     */
+    public function referral(Request $request, User $user): RedirectResponse
+    {
+        $data = $request->validate([
+            'ambassador_id' => ['nullable', 'integer', Rule::exists('ambassadors', 'id')->where('status', AmbassadorStatus::Active->value)],
+        ], ['ambassador_id.exists' => 'Choisissez un ambassadeur actif.']);
+
+        $ambassador = isset($data['ambassador_id']) ? Ambassador::query()->find($data['ambassador_id']) : null;
+
+        if ($ambassador?->user_id === $user->id) {
+            return $this->back($request, $user)->withErrors(['ambassador' => 'Un ambassadeur ne peut pas être rattaché à lui-même.']);
+        }
+
+        AmbassadorReferrals::correct($user, $ambassador);
+
+        return $this->back($request, $user)->with('status', $ambassador
+            ? 'Inscrit rattaché à '.$ambassador->user->name.' ('.$ambassador->code.').'
+            : 'Rattachement à un ambassadeur retiré.');
     }
 
     /** Retour sur la page d'où vient l'action : la liste des ambassadeurs, sinon la fiche de l'inscrit. */

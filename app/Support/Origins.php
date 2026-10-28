@@ -36,6 +36,7 @@ final class Origins
         'linkedin' => 'LinkedIn',
         'x' => 'X (Twitter)',
         'prospectus' => 'Prospectus (papier)',
+        'ambassador' => 'Ambassadeur',
         'other' => 'Autre site',
         'direct' => 'Accès direct ou inconnu',
     ];
@@ -53,6 +54,8 @@ final class Origins
         'x' => ['twitter', 't.co', 'x.com'],
         // Code QR des prospectus distribués dans la rue (utm_source=prospectus, utm_campaign = prénom du distributeur).
         'prospectus' => ['prospectus', 'flyer'],
+        // Lien personnel d'un ambassadeur (/a/CODE).
+        'ambassador' => ['ambassadeur'],
     ];
 
     /** Routes qui ne sont pas des pages vues (fichiers, robots, vidéos). */
@@ -68,12 +71,15 @@ final class Origins
             return;
         }
 
+        // Lien personnel d'un ambassadeur (/a/CODE) : compté dans le canal « Ambassadeur », code en campagne.
+        $ambassadorLink = $request->routeIs('ambassador.link');
+
         $request->session()->put(self::SESSION, [
             'path' => mb_substr('/'.ltrim($request->path(), '/'), 0, 200),
             'referrer' => self::referrerHost($request),
-            'utm_source' => self::param($request, 'utm_source'),
+            'utm_source' => $ambassadorLink ? 'ambassadeur' : self::param($request, 'utm_source'),
             'utm_medium' => self::param($request, 'utm_medium'),
-            'utm_campaign' => self::param($request, 'utm_campaign'),
+            'utm_campaign' => $ambassadorLink ? mb_substr(strtoupper((string) $request->route('code')), 0, 60) : self::param($request, 'utm_campaign'),
             'at' => now()->toIso8601String(),
         ]);
     }

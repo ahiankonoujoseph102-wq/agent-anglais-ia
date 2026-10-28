@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Support\Ambassadors\AmbassadorCode;
+use App\Support\Ambassadors\AmbassadorReferrals;
 use App\Support\Countries;
 use App\Support\EmailAddress;
 use App\Support\PhoneNumber;
@@ -21,6 +23,8 @@ class RegisterRequest extends FormRequest
             // Numéro local : indicatif du pays choisi. Si le numéro est invalide, on garde la saisie pour la réafficher.
             'phone' => PhoneNumber::normalize($this->input('phone'), $country) ?? $this->input('phone'),
             'email' => EmailAddress::normalize($this->input('email')),
+            // Code ambassadeur facultatif, lu sans tenir compte des majuscules, espaces ou tirets.
+            'ambassador_code' => filled($this->input('ambassador_code')) ? AmbassadorCode::normalize($this->input('ambassador_code')) : null,
         ]);
     }
 
@@ -37,6 +41,11 @@ class RegisterRequest extends FormRequest
             'email' => EmailAddress::rules(),
             // Aucune confirmation : un seul champ, avec le bouton « œil » pour vérifier ce qui a été tapé.
             'password' => ['required', Password::min(8)],
+            'ambassador_code' => ['nullable', 'string', 'max:20', function (string $attribute, mixed $value, \Closure $fail) {
+                if (AmbassadorReferrals::findActive((string) $value) === null) {
+                    $fail('Ce code ambassadeur n\'existe pas. Vérifiez-le, ou laissez le champ vide.');
+                }
+            }],
         ];
     }
 
@@ -49,6 +58,7 @@ class RegisterRequest extends FormRequest
             'phone.regex' => 'Ce numéro de téléphone n\'est pas valide. Écrivez-le avec l\'indicatif de votre pays, par exemple +228 90 12 34 56 ou +237 6 77 12 34 56.',
             'country.in' => 'Choisissez votre pays dans la liste.',
             'phone.unique' => 'Un compte existe déjà avec ce numéro. Connectez-vous.',
+            'ambassador_code.max' => 'Ce code ambassadeur n\'existe pas. Vérifiez-le, ou laissez le champ vide.',
         ] + EmailAddress::messages();
     }
 }

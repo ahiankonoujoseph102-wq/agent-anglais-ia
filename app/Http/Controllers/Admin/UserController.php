@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\SubscriptionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OfferAccessRequest;
+use App\Models\Ambassador;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\Ambassadors\AmbassadorProgram;
@@ -64,7 +65,7 @@ class UserController extends Controller
      */
     public function show(Request $request, User $user): View
     {
-        $user->load(['assessment', 'activeSubscription', 'origin', 'ambassador']);
+        $user->load(['assessment', 'activeSubscription', 'origin', 'ambassador', 'referral.ambassador.user']);
 
         $temporaryPassword = $request->session()->get('temporary_password');
         $whatsappUrl = null;
@@ -93,6 +94,9 @@ class UserController extends Controller
             'temporaryPassword' => $temporaryPassword,
             'whatsappUrl' => $whatsappUrl,
             'ambassadorGrant' => $user->ambassador?->currentGrant(),
+            // Inscrits de cet ambassadeur, et ambassadeurs actifs pour corriger un rattachement.
+            'ambassadorReferrals' => $user->ambassador?->referrals()->with('user:id,name')->latest()->get() ?? collect(),
+            'activeAmbassadors' => Ambassador::query()->active()->with('user:id,name')->where('user_id', '!=', $user->id)->get(),
             'freePlaces' => AmbassadorProgram::freePlaces(),
             'places' => AmbassadorProgram::places(),
         ]);

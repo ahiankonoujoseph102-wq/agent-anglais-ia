@@ -278,6 +278,10 @@ return [
         'max_months' => 6,
         // Régularité affichée dans l'administration : jours avec une séance du jour sur cette période.
         'activity_days' => 30,
+        // Mémoire du lien personnel (cookie du site, sans outil extérieur), en jours : le PREMIER lien utilisé l'emporte.
+        'link_days' => 30,
+        // Signal « même réseau qu'un autre inscrit » : inscriptions comparées sur ce nombre de jours.
+        'shared_network_days' => 30,
     ],
 
     'granted_access' => [

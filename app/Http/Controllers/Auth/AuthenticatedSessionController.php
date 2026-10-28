@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
+use App\Support\Ambassadors\AmbassadorReferrals;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,8 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
         $request->session()->regenerate();
+        // Ambassadeur : repère de son appareil et de son réseau (signaux d'une inscription faite chez lui).
+        AmbassadorReferrals::noteAmbassador($request->user(), $request);
 
         return redirect()->intended(self::homeFor($request->user()));
     }
