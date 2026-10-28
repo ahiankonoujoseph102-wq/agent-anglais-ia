@@ -74,7 +74,7 @@
     <script type="module" src="{{ Asset::url('js/app.js') }}" data-sw="{{ asset('sw.js') }}" data-install-reminder="{{ Asset::url('js/install-reminder.js') }}" data-installed-message="{{ config('platform.name') }} est installée : retrouvez {{ config('avatar.model.name') }} sur votre écran d'accueil."></script>
     @stack('head')
 </head>
-<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage, 'is-admin-user' => $user?->isAdmin(), 'is-ambassador-user' => $user?->isAmbassador()]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
+<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage, 'is-admin-user' => $user?->isStaff(), 'is-ambassador-user' => $user?->isAmbassador()]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
     <a class="skip-link" href="#contenu">Aller au contenu</a>
 
     <header class="site-header">
@@ -85,7 +85,7 @@
                     // Liens du compte connecté : la même liste dans le menu (téléphone, tablette)
                     // et dans la navigation complète (ordinateur, 1200 pixels et plus).
                     $links = array_values(array_filter([
-                        $user->isAdmin() ? ['route' => 'admin.payments.pending', 'active' => 'admin.*', 'icon' => 'shield', 'label' => 'Administration', 'badge' => $pendingPaymentsCount] : null,
+                        $user->isStaff() ? ['route' => 'admin.payments.pending', 'active' => 'admin.*', 'icon' => 'shield', 'label' => 'Administration', 'badge' => $pendingPaymentsCount] : null,
                         ['route' => 'dashboard', 'active' => 'dashboard', 'icon' => 'home', 'label' => 'Mon espace'],
                         ['route' => 'program.show', 'active' => 'program.*', 'icon' => 'calendar', 'label' => 'Mon programme'],
                         ['route' => 'lessons.history', 'active' => 'lessons.history', 'icon' => 'list', 'label' => 'Mes séances'],
@@ -114,7 +114,7 @@
                 <details class="menu" data-menu>
                     <summary class="menu-button" aria-label="Ouvrir le menu">
                         <x-icon name="menu" /> <span>Menu</span>
-                        @if ($user->isAdmin() && $pendingPaymentsCount > 0)
+                        @if ($user->isStaff() && $pendingPaymentsCount > 0)
                             <span class="badge badge-alert" title="Paiements en attente">{{ $pendingPaymentsCount }}</span>
                         @endif
                     </summary>

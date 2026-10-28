@@ -88,7 +88,7 @@ class UserController extends Controller
             'currentGrant' => $grants->first(fn (Subscription $grant) => $grant->status === SubscriptionStatus::Active && $grant->ends_at->isFuture()),
             'grantBlocked' => OfferAccessRequest::blockingMessage($user),
             'subscriptions' => $user->subscriptions()->latest('ends_at')->get(),
-            'payments' => $user->payments()->with(['user', 'subscription'])->latest('id')->get(),
+            'payments' => $user->payments()->with(['user', 'subscription', 'reviewer'])->latest('id')->get(),
             'courseLessons' => $user->courseLessons()->with('pages')->latest('id')->get(),
             'conversations' => Transcripts::sessionsOf($user),
             'temporaryPassword' => $temporaryPassword,

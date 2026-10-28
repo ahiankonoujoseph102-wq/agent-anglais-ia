@@ -4,7 +4,11 @@
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
-## Dernier chantier : Club des abonnés (28 octobre 2026, branche `claude/club-abonnes`)
+## Dernier chantier : assistants de l'administration (28 octobre 2026, branche `claude/assistants`)
+
+Analyse : l'administration était protégée par UN middleware (`admin`) qui laissait entrer le seul rôle `admin` de la colonne `users.role` ; aucune autre distinction. Ajouté : rôle `assistant` dans ce même système, liste unique des pages permises (`App\Support\Admin\AdminAccess::ASSISTANT_ROUTES`), refus par défaut de tout le reste, menu et boutons filtrés, « Nommer assistant » / « Retirer le rôle d'assistant » sur la fiche d'un inscrit (administrateur principal seul), « Traité par » dans l'historique des paiements. Voir CLAUDE.md, feuille de route.
+
+## Chantier précédent : Club des abonnés (#125, fusionnée) (28 octobre 2026, branche `claude/club-abonnes`)
 
 Lien du groupe WhatsApp des abonnés dans « Réglages » (valeur de départ du fondateur), montré seulement aux abonnés payants actifs dans « Mon espace » et sur la page du paiement validé. Voir CLAUDE.md, feuille de route. Ensuite : partie 2, rôle « Assistant » (branche à part).
 

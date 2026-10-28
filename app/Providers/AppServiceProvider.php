@@ -4,11 +4,13 @@ namespace App\Providers;
 
 use App\Enums\PaymentStatus;
 use App\Models\Payment;
+use App\Support\Admin\AdminAccess;
 use App\Support\Alerts\PushTransport;
 use App\Support\Alerts\WebPushTransport;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -52,9 +54,12 @@ class AppServiceProvider extends ServiceProvider
         // Pagination en HTML simple (classes Bootstrap 4, sans Bootstrap), stylée par public/css/app.css.
         Paginator::useBootstrapFour();
 
+        // Pages et boutons de l'administration permis à ce compte (administrateur : tout ; assistant : sa liste).
+        Gate::define('admin-route', fn ($user, string $route) => AdminAccess::allows($user, $route));
+
         // Compteur de paiements en attente : en-tête et onglets de l'administration.
         View::composer(['components.layout', 'admin.nav'], function ($view) {
-            $view->with('pendingPaymentsCount', auth()->user()?->isAdmin()
+            $view->with('pendingPaymentsCount', auth()->user()?->isStaff()
                 ? once(fn () => Payment::query()->where('status', PaymentStatus::Pending)->count())
                 : 0);
         });

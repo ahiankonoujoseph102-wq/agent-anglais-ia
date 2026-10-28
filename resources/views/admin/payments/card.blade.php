@@ -37,6 +37,7 @@
                     <span class="badge badge-muted">{{ $payment->subscription ? 'Accès provisoire terminé, en attente' : 'En attente de vérification' }}</span>
                 @else
                     <span @class(['badge', 'badge-muted' => $payment->status !== \App\Enums\PaymentStatus::Validated])>{{ $payment->status->label() }}</span>
+                    <span class="small muted">@include('admin.payments.reviewer', ['payment' => $payment])</span>
                 @endif
             </p>
             <dl class="summary">

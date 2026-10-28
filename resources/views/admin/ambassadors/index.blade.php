@@ -8,11 +8,13 @@
 
     <h1>Ambassadeurs</h1>
     <p class="lead"><strong>Ambassadeurs actifs : {{ $activeCount }} sur {{ $places }}</strong></p>
+    @can('admin-route', 'admin.settings.edit')
     <p class="muted small">
         Le nombre de places se change dans <a href="{{ route('admin.settings.edit') }}#ambassadeurs">Réglages</a>.
         Pour nommer un ambassadeur : ouvrez sa fiche dans « Inscrits », puis « Faire ambassadeur ».
         Mois gratuit : formule {{ \App\Support\Plan::find((string) config('platform.ambassadors.plan'))?->name }}, {{ config('platform.ambassadors.month_days') }} jours, {{ config('platform.ambassadors.max_months') }} mois au plus.
     </p>
+    @endcan
 
     @error('ambassador')
         <p class="alert alert-error" role="alert"><x-icon name="alert" /><span>{{ $message }}</span></p>
@@ -37,16 +39,18 @@
                 <p class="small"><strong>Pourquoi :</strong> {{ $application->motivation }}</p>
                 <p class="small"><strong>Va en parler à :</strong> {{ $application->channels }}</p>
                 <div class="ambassador-actions">
-                    @if ($freePlaces > 0)
+                    @if ($freePlaces > 0 && auth()->user()->can('admin-route', 'admin.applications.accept'))
                         <form method="POST" action="{{ route('admin.applications.accept', $application) }}" {!! Confirmation::attributes('ambassador.appoint') !!}>
                             @csrf
                             <button type="submit" class="btn btn-accent"><x-icon name="award" /> Accepter</button>
                         </form>
                     @endif
-                    <form method="POST" action="{{ route('admin.applications.reject', $application) }}" {!! Confirmation::attributes('application.reject') !!}>
-                        @csrf
-                        <button type="submit" class="btn btn-light"><x-icon name="close-circle" /> Refuser</button>
-                    </form>
+                    @can('admin-route', 'admin.applications.reject')
+                        <form method="POST" action="{{ route('admin.applications.reject', $application) }}" {!! Confirmation::attributes('application.reject') !!}>
+                            @csrf
+                            <button type="submit" class="btn btn-light"><x-icon name="close-circle" /> Refuser</button>
+                        </form>
+                    @endcan
                 </div>
                 @if ($freePlaces === 0)
                     <p class="muted small">Toutes les places sont prises : retirez un ambassadeur ou augmentez le nombre de places pour accepter.</p>
@@ -74,11 +78,13 @@
                 </p>
                 <div class="ambassador-actions">
                     <a class="btn btn-whatsapp" href="{{ route('admin.waitlist.notify', $entry) }}" target="_blank" rel="noopener"><x-icon name="whatsapp" /> Prévenir sur WhatsApp</a>
-                    <form method="POST" action="{{ route('admin.waitlist.remove', $entry) }}">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-light"><x-icon name="user-off" /> Retirer de la liste</button>
-                    </form>
+                    @can('admin-route', 'admin.waitlist.remove')
+                        <form method="POST" action="{{ route('admin.waitlist.remove', $entry) }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-light"><x-icon name="user-off" /> Retirer de la liste</button>
+                        </form>
+                    @endcan
                 </div>
             </div>
         @empty
@@ -86,6 +92,9 @@
         @endforelse
     </section>
 
+    {{-- Liste des ambassadeurs et commissions : administrateur principal seulement (un assistant voit les
+         candidatures et la liste d'attente). --}}
+    @can('admin-route', 'admin.ambassadors.renew')
     <section id="liste" aria-label="Liste des ambassadeurs">
         @if ($ambassadors->isEmpty())
             <div class="card empty-state">
@@ -217,4 +226,5 @@
             <p class="muted">Aucune commission à payer.</p>
         @endforelse
     </section>
+    @endcan
 </x-layout>
