@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AlertController;
 use App\Http\Controllers\Admin\AmbassadorController as AdminAmbassadorController;
 use App\Http\Controllers\Admin\AssessmentController as AdminAssessmentController;
+use App\Http\Controllers\Admin\AssistantController;
 use App\Http\Controllers\Admin\ConversationController;
 use App\Http\Controllers\Admin\GrantedAccessController;
 use App\Http\Controllers\Admin\IconPreviewController;
@@ -220,6 +221,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/inscrits', [UserController::class, 'index'])->name('users.index');
     Route::get('/inscrits/{user}', [UserController::class, 'show'])->name('users.show');
     Route::put('/inscrits/{user}/compte-de-test', [UserController::class, 'testAccount'])->name('users.test-account');
+    // Rôle d'assistant : administrateur principal seulement (hors de AdminAccess::ASSISTANT_ROUTES).
+    Route::post('/inscrits/{user}/assistant', [AssistantController::class, 'appoint'])->middleware('confirm:assistant.appoint')->name('users.assistant');
+    Route::delete('/inscrits/{user}/assistant', [AssistantController::class, 'remove'])->middleware('confirm:assistant.remove')->name('users.assistant.remove');
     Route::post('/inscrits/{user}/mot-de-passe', [UserController::class, 'temporaryPassword'])->middleware('confirm:password.temporary')->name('users.password');
     Route::post('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'store'])->middleware('confirm:access.grant')->name('users.grant');
     Route::delete('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'destroy'])->middleware('confirm:access.revoke')->name('users.revoke');

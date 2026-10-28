@@ -54,6 +54,7 @@
                     <th>Pays / opérateur</th>
                     <th>Capture</th>
                     <th>Statut</th>
+                    <th>Traité par</th>
                 </tr>
             </thead>
             <tbody>
@@ -71,6 +72,8 @@
                                 <div class="small muted">{{ $payment->rejection_reason }}</div>
                             @endif
                         </td>
+                        {{-- Trace : qui a validé ou refusé ce paiement (administrateur ou assistant), et quand. --}}
+                        <td data-label="Traité par">@include('admin.payments.reviewer', ['payment' => $payment])</td>
                     </tr>
                 @endforeach
             </tbody>

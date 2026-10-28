@@ -83,6 +83,18 @@ class User extends Authenticatable
         return $this->role === Role::Admin;
     }
 
+    /** Assistant de l'administrateur (pages permises : App\Support\Admin\AdminAccess). */
+    public function isAssistant(): bool
+    {
+        return $this->role === Role::Assistant;
+    }
+
+    /** Membre de l'équipe : administrateur principal ou assistant. */
+    public function isStaff(): bool
+    {
+        return $this->isAdmin() || $this->isAssistant();
+    }
+
     /** Pays de l'apprenant (choisi à l'inscription, sinon celui de l'indicatif du numéro). */
     public function countryCode(): ?string
     {

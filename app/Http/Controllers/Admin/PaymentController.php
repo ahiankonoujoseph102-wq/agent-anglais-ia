@@ -48,7 +48,7 @@ class PaymentController extends Controller
         ]);
 
         $payments = Payment::query()
-            ->with('user')
+            ->with(['user', 'reviewer'])
             ->when($filters['statut'] ?? null, fn (Builder $query, string $status) => $query->where('status', $status))
             ->when($filters['pays'] ?? null, fn (Builder $query, string $country) => $query->where('country', $country))
             ->when($filters['du'] ?? null, fn (Builder $query, string $from) => $query->where('created_at', '>=', Carbon::parse($from)->startOfDay()))

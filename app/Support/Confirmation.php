@@ -42,6 +42,16 @@ final class Confirmation
             'message' => 'L\'apprenant aura la formule {plan} gratuitement, jusqu\'au {end}. Ce n\'est pas un paiement : il n\'apparaît dans aucun revenu. Vous pourrez le retirer à tout moment.',
             'confirm' => 'Offrir l\'accès',
         ],
+        'assistant.appoint' => [
+            'title' => 'Nommer cet inscrit assistant ?',
+            'message' => 'Avec son propre compte, il pourra valider ou refuser les captures de paiement et voir les inscrits, les abonnés payants, les inactifs, la provenance, les candidatures et la liste d\'attente des ambassadeurs. Jamais les réglages, les coûts ni les diagnostics.',
+            'confirm' => 'Nommer assistant',
+        ],
+        'assistant.remove' => [
+            'title' => 'Retirer le rôle d\'assistant ?',
+            'message' => 'Il n\'aura plus accès à l\'administration. Son compte d\'apprenant reste tel quel.',
+            'confirm' => 'Retirer le rôle',
+        ],
         'access.revoke' => [
             'title' => 'Retirer l\'accès offert ?',
             'message' => 'L\'accès de l\'apprenant s\'arrête tout de suite, séance en cours comprise. Il sera invité à choisir une formule.',

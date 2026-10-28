@@ -45,14 +45,39 @@
             @endif
         </dl>
 
-        <form method="POST" action="{{ route('admin.users.password', $user) }}" {!! \App\Support\Confirmation::attributes('password.temporary') !!}>
-            @csrf
-            <button type="submit" class="btn btn-light">Générer un mot de passe provisoire</button>
-        </form>
+        @can('admin-route', 'admin.users.password')
+            <form method="POST" action="{{ route('admin.users.password', $user) }}" {!! \App\Support\Confirmation::attributes('password.temporary') !!}>
+                @csrf
+                <button type="submit" class="btn btn-light">Générer un mot de passe provisoire</button>
+            </form>
+        @endcan
     </section>
 
+    {{-- Rôle dans l'équipe : l'administrateur principal seul nomme ou retire un assistant (jamais un administrateur). --}}
+    @can('admin-route', 'admin.users.assistant')
+        @unless ($user->isAdmin())
+            <section class="card" id="role" aria-labelledby="role-title">
+                <h2 id="role-title">Rôle dans l'équipe</h2>
+                @if ($user->isAssistant())
+                    <p>{{ $user->name }} est <strong>assistant</strong> : il peut valider ou refuser les captures de paiement et voir « Inscrits », « Abonnés payants », « Inactifs », « Provenance », les candidatures et la liste d'attente des ambassadeurs. Jamais les réglages, les coûts ni les diagnostics.</p>
+                    <form method="POST" action="{{ route('admin.users.assistant.remove', $user) }}" {!! \App\Support\Confirmation::attributes('assistant.remove') !!}>
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-light">Retirer le rôle d'assistant</button>
+                    </form>
+                @else
+                    <p class="muted small">Un assistant vous aide dans l'administration avec son propre compte et son propre mot de passe : il peut valider ou refuser les captures de paiement et voir « Inscrits », « Abonnés payants », « Inactifs », « Provenance », les candidatures et la liste d'attente des ambassadeurs. Jamais les réglages, les coûts ni les diagnostics.</p>
+                    <form method="POST" action="{{ route('admin.users.assistant', $user) }}" {!! \App\Support\Confirmation::attributes('assistant.appoint') !!}>
+                        @csrf
+                        <button type="submit" class="btn btn-light">Nommer assistant</button>
+                    </form>
+                @endif
+            </section>
+        @endunless
+    @endcan
+
     {{-- Programme d'ambassadeurs : nommer (une place), renouveler le mois gratuit, retirer, accord d'un parent. --}}
-    @unless ($user->isAdmin())
+    @if (! $user->isAdmin() && auth()->user()->can('admin-route', 'admin.users.ambassador'))
         <section class="card" id="ambassadeur" aria-labelledby="ambassador-title">
             <h2 id="ambassador-title">Ambassadeur</h2>
 
@@ -204,9 +229,10 @@
                 @endif
             @endif
         </section>
-    @endunless
+    @endif
 
     {{-- Accès offert (démonstrations) : offrir, retirer, historique. Jamais un paiement ni un revenu. --}}
+    @can('admin-route', 'admin.users.grant')
     <section class="card" id="acces-offert" aria-labelledby="grant-title">
         <h2 id="grant-title">Accès offert</h2>
         <p class="muted small">Pour les démonstrations dans les écoles et auprès des parents. Mêmes droits que la formule choisie. Ce n'est pas un paiement : il n'apparaît dans aucun revenu.</p>
@@ -286,10 +312,12 @@
             <p class="muted">Aucun accès offert.</p>
         @endforelse
     </section>
+    @endcan
 
     <section class="card" id="evaluation" aria-labelledby="evaluation-title">
         <h2 id="evaluation-title">Évaluation</h2>
         {{-- Compte de test : passe la nouvelle évaluation quand « Réglages » vaut « Comptes de test seulement ». --}}
+        @can('admin-route', 'admin.users.test-account')
         <form method="POST" action="{{ route('admin.users.test-account', $user) }}" id="compte-de-test">
             @csrf
             @method('PUT')
@@ -298,6 +326,7 @@
             <p class="muted small">Nouvelle évaluation : {{ \App\Support\Live\AssessmentVersion::MODES[\App\Support\Live\AssessmentVersion::mode()] }}. Ce compte passe {{ \App\Support\Live\AssessmentVersion::isNewFor($user) ? 'la nouvelle évaluation' : 'l\'évaluation actuelle' }}.</p>
             <button type="submit" class="btn btn-light">Enregistrer</button>
         </form>
+        @endcan
         @if ($user->assessment)
             <p>
                 {{ $user->assessment->status->label() }}
@@ -310,17 +339,21 @@
             @if ($user->assessment->feedback)
                 <p class="muted">{{ $user->assessment->feedback }}</p>
             @endif
-            <form method="POST" action="{{ route('admin.assessments.destroy', $user) }}" {!! \App\Support\Confirmation::attributes('assessment.reset') !!}>
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-light">Réinitialiser l'évaluation</button>
-            </form>
+            @can('admin-route', 'admin.assessments.destroy')
+                <form method="POST" action="{{ route('admin.assessments.destroy', $user) }}" {!! \App\Support\Confirmation::attributes('assessment.reset') !!}>
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-light">Réinitialiser l'évaluation</button>
+                </form>
+            @endcan
         @else
             <p class="muted">Pas encore passée.</p>
         @endif
     </section>
 
-    {{-- Toutes les séances orales, avec le texte de leur conversation (jamais l'audio), gardé platform.transcripts.keep_days jours. --}}
+    {{-- Toutes les séances orales, avec le texte de leur conversation (jamais l'audio), gardé platform.transcripts.keep_days jours.
+         Conversations et « Mes cours » : administrateur principal seulement (données personnelles). --}}
+    @if (auth()->user()->isAdmin())
     <section class="card" id="conversations" aria-labelledby="conversations-title">
         <h2 id="conversations-title">Conversations</h2>
         @if ($conversations->isEmpty())
@@ -360,6 +393,7 @@
             @endif
         @endif
     </section>
+    @endif
 
     <section class="card">
         <h2>Abonnements</h2>
@@ -373,6 +407,7 @@
         @endforelse
     </section>
 
+    @if (auth()->user()->isAdmin())
     <section class="card">
         <h2>« Mes cours » : {{ $courseLessons->count() }} {{ $courseLessons->count() > 1 ? 'leçons envoyées' : 'leçon envoyée' }}</h2>
         <p class="muted small">Lecture seule : les fichiers sont privés, servis seulement à l'apprenant et aux administrateurs.</p>
@@ -398,6 +433,7 @@
             <p class="muted">Aucune leçon.</p>
         @endforelse
     </section>
+    @endif
 
     <section class="card">
         <h2>Paiements</h2>
