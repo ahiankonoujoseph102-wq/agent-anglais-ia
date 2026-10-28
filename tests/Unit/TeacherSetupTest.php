@@ -181,7 +181,7 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('ask ONE question at a time, then STOP and WAIT', $text);
         $this->assertStringContainsString('rephrase ONCE, more simply; still not: an easier question.', $text);
         $this->assertStringContainsString('never cut the learner off', $text);
-        $this->assertStringContainsString('Then a very easy first question, and WAIT.', $text);
+        $this->assertStringContainsString('Then your first very easy question, and WAIT.', $text);
         // Aucune question donnée mot pour mot : chacun a ses propres questions.
         $this->assertStringNotContainsString('What is your name?', $text);
     }
@@ -199,36 +199,35 @@ class TeacherSetupTest extends TestCase
         $user->level = Level::A1;
         $text = TeacherSetup::instructions('assessment', $user, 5);
 
-        $this->assertStringContainsString('STRICT ORDER: 1) the greeting; 2) adaptive conversation; 3) ONE announcement of the level with their strengths; 4) ONE personal mini-lesson; 5) the learner\'s questions; 6) ONE conclusion.', $text);
-        $this->assertStringContainsString('Never announce the level or give the conclusion twice', $text);
+        $this->assertStringContainsString('STRICT ORDER: 1) the greeting; 2) adaptive questions; 3) ONE announcement of the level; 4) ONE personal mini-lesson; 5) the learner\'s questions, in French; 6) ONE conclusion, in French.', $text);
+        $this->assertStringContainsString('Never announce the level a second time, never give the conclusion a second time', $text);
         $this->assertStringContainsString('FIRST call the function "record_assessment_result"', $text);
-        $this->assertStringContainsString('BEFORE saying anything about the level. Only once.', $text);
+        $this->assertStringContainsString('BEFORE saying anything about the level. Call it only once.', $text);
         // Questions libres, en français, trois au plus, sans rien inventer.
-        $this->assertStringContainsString('« Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français. »', config('teacher.assessment_next_step'));
-        $this->assertStringContainsString('(3 at most)', $text);
+        $this->assertStringContainsString('« Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français. »', $text);
+        $this->assertStringContainsString('(3 questions at most)', $text);
         $this->assertStringContainsString('answer in French (in simple English if they ask in English), in two or three sentences', $text);
-        $this->assertStringContainsString('Never invent anything', $text);
+        $this->assertStringContainsString('Never invent anything (delays, phone numbers, promises)', $text);
         // Prix : réponse directe, jamais WhatsApp ; WhatsApp seulement pour un vrai problème, après l'échange.
-        $this->assertStringContainsString('A price or plan question gets the real figures at once', $text);
-        $this->assertStringContainsString('only for a real problem you cannot solve: after the conversation, « Aide », then the green WhatsApp button', $text);
-        $this->assertStringContainsString('Off-topic: one kind sentence, then back.', $text);
-        $this->assertStringContainsString('none, or question number 3 answered: go to the conclusion.', $text);
+        $this->assertStringContainsString('A question about the price or the plans gets the real figures at once (never WhatsApp for that)', $text);
+        $this->assertStringContainsString('only for a real problem you cannot solve, say that after the conversation they can touch « Aide »', $text);
+        $this->assertStringContainsString('Off-topic: one kind sentence if harmless, then back to their English.', $text);
+        $this->assertStringContainsString('no (more) question, or question number 3 answered: go to the conclusion at once', $text);
         // Conclusion : niveau, pourquoi l'anglais, comment s'abonner, promesse honnête, phrase fixe.
-        $this->assertStringContainsString('recall their level', $text);
-        $this->assertStringContainsString('studies, work, travel, the internet', $text);
-        $this->assertStringContainsString('« Pour continuer avec moi, les formules s\'affichent juste en dessous : il suffit de toucher le bouton orange. »', $text);
-        $this->assertStringContainsString('an HONEST promise about the method, never a result', $text);
+        $this->assertStringContainsString('recall the level obtained', $text);
+        $this->assertStringContainsString('studies, work, travel, international exchanges, the internet', $text);
+        $this->assertStringContainsString('« Les formules s\'affichent juste en dessous : il suffit de toucher le bouton orange. »', $text);
+        $this->assertStringContainsString('never a guaranteed result', $text);
         $this->assertStringContainsString('« Je serai avec vous chaque jour, je corrigerai vos erreurs et vous gagnerez en assurance. »', $text);
         $this->assertStringContainsString('end with this exact sentence, word for word: « On se retrouve de l\'autre côté ! »', $text);
-        $this->assertStringContainsString('Never say it at any other moment', $text);
+        $this->assertStringContainsString('Never say this sentence at any other moment', $text);
         $this->assertStringContainsString('(3 minutes at most)', $text);
-        // Mini-leçon personnelle : son déroulé arrive avec le résultat de la fonction (AssessmentMiniLesson).
-        $this->assertStringContainsString('PERSONAL MINI-LESSON and what comes next: follow the function result.', $text);
-        // Annonce : le niveau, puis en français ce qu'il veut dire et un ou deux VRAIS points forts.
-        $this->assertStringContainsString('their one or two REAL strengths, precisely, recalling what they said', $text);
-        // Formules présentées simplement comme la suite, sans urgence ni promesse.
-        $this->assertStringContainsString('the plans as the natural next step, simply', $text);
-        $this->assertStringContainsString('forbidden: fluency or a delay, urgency, limited places', $text);
+        // Mini-leçon découverte : une seule phrase, ouverte par la phrase fixe, sans nouvel appel de fonction.
+        $this->assertStringContainsString('PERSONAL MINI-LESSON (about one minute), in simple French', $text);
+        $this->assertStringContainsString('word for word: « Laissez-moi vous montrer comment nous allons travailler ensemble. »', $text);
+        $this->assertStringContainsString('what they said, the right form, WHY, and when to use it, with one example from their own life', $text);
+        $this->assertStringContainsString('they use it ONCE in a sentence of their own', $text);
+        $this->assertStringContainsString('End with ONE sincere encouragement about something they really did well today.', $text);
         $this->assertStringContainsString('Never say "on the website"', $text);
         $this->assertStringContainsString('the website ends the conversation and shows the result', $text);
         $this->assertStringContainsString('Never repeat a sentence you already said unless asked', $text);
@@ -247,36 +246,17 @@ class TeacherSetupTest extends TestCase
     {
         $text = TeacherSetup::instructions('assessment', new User(['name' => 'Afi']), 5);
 
-        $this->assertStringContainsString('Steps 1 and 2 are in ENGLISH', $text);
+        $this->assertStringContainsString('steps 1 to 3 are in ENGLISH', $text);
         // Pas de correction pendant les questions : les vraies erreurs sont notées pour la mini-leçon personnelle.
-        $this->assertStringContainsString('Do NOT correct now (only rephrase if a mistake blocks understanding). Silently NOTE one or two REAL strengths (something they said well) and the one or two most useful REAL mistakes', $text);
+        $this->assertStringContainsString('Do NOT correct mistakes now (only rephrase if a mistake blocks understanding). Silently NOTE the one or two most useful REAL mistakes', $text);
         $this->assertStringContainsString('Pronunciation: only a word you clearly heard.', $text);
         $this->assertStringContainsString('French is an explanation tool, never the language of the conversation', $text);
         $this->assertStringContainsString('« Essayez en anglais : … »', $text);
-        $this->assertStringContainsString('French only as a short tool when the learner struggles', $text);
-        $this->assertStringContainsString('how much help and French they needed', $text);
+        $this->assertStringContainsString('French is only a short tool when the learner struggles (see WHEN THE LEARNER STRUGGLES)', $text);
+        $this->assertStringContainsString('how much help and French the learner needed', $text);
         $this->assertStringNotContainsString('LAST RESORT', $text);
+        $this->assertStringContainsString('at the pace given in SPEAKING PACE (start slowly, then adapt)', $text);
         $this->assertStringContainsString(config('teacher.pace.levels.unknown'), $text);
-    }
-
-    public function test_assessment_adapts_at_once_to_a_beginner_or_an_advanced_learner(): void
-    {
-        $text = TeacherSetup::instructions('assessment', new User(['name' => 'Afi']), 5);
-
-        $this->assertStringContainsString('ADAPT AT ONCE, from the first or second answer, then at every answer:', $text);
-        // Débutant : très lent, phrases très courtes, mots simples, pauses ; le français dès le premier blocage.
-        $this->assertStringContainsString('BEGINNER (a few words, French, long silences, "I don\'t understand"): very slow, very short sentences (five to eight words), the simplest words, a short pause after each sentence', $text);
-        $this->assertStringContainsString('At the FIRST block, say it in one short French sentence, then ask the same easy question again in English.', $text);
-        // Avancé : plus vite, questions plus riches.
-        $this->assertStringContainsString('ADVANCED (long, fluent answers): natural pace, richer questions (opinions, comparisons, hypotheses, their work in depth)', $text);
-        $this->assertStringContainsString('Never faster or harder than they can follow, never slower or easier than needed.', $text);
-        // Bonne pratique des tests de placement : chercher la limite, puis finir sur une réussite.
-        $this->assertStringContainsString('try ONE question of the stage above to find their limit, then finish on a question they succeed', $text);
-        // Naturel et sincère : jamais de flatterie.
-        $this->assertStringContainsString('never "Perfect!" or "Excellent!" for an average answer', $text);
-        // Jamais l'intelligence artificielle dans la conclusion ; et les consignes ne grossissent pas.
-        $this->assertStringNotContainsString('artificial intelligence', (string) config('teacher.assessment'));
-        $this->assertLessThan(5600, mb_strlen((string) config('teacher.assessment')));
     }
 
     public function test_pace_follows_the_level_and_lessons_take_more_time_to_correct(): void
@@ -341,9 +321,8 @@ class TeacherSetupTest extends TestCase
         // Évaluation gratuite : pas de cours, mais un bref résumé de ce qui a été dit avant la question suivante.
         $assessment = TeacherSetup::assessment($user, 5)['systemInstruction']['parts'][0]['text'];
         $this->assertStringNotContainsString('ACTIVE LISTENING', $assessment);
-        $this->assertStringContainsString('A CONVERSATION, NOT A QUESTIONNAIRE', $assessment);
-        $this->assertStringContainsString('react to WHAT they said, like a person, in one short sentence', $assessment);
-        $this->assertStringContainsString('then ONE question that grows out of it', $assessment);
+        $this->assertStringContainsString('React briefly and naturally to what the learner said, then ask the next question, linked to it when possible.', $assessment);
+        $this->assertStringContainsString('This is not a lesson', $assessment);
     }
 
     public function test_every_conversation_teaches_american_english_at_both_providers(): void

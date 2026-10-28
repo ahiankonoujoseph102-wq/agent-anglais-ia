@@ -21,8 +21,8 @@ class TeacherSetup
      * adressé directement à l'apprenant avec « vous », jamais à la troisième personne.
      */
     public const FEEDBACK_RULE = 'Two or three sentences in French, written directly TO the learner with "vous" '
-        .'(for example: "Vous racontez votre journée avec des phrases claires. Travaillez le passé : « I went », pas « I go »."): '
-        .'one or two real strengths, then what to work on. Never write about the learner in the third person '
+        .'(for example: "Vous comprenez bien les questions simples. Travaillez maintenant les verbes au passé."): '
+        .'strengths, then what to work on. Never write about the learner in the third person '
         .'(never "l\'apprenant", "il", "elle" or the learner\'s name as a subject).';
 
     public const RECORD_ASSESSMENT_RESULT = 'record_assessment_result';

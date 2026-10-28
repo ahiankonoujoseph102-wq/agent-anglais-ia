@@ -74,7 +74,7 @@ class TeacherPaceTest extends TestCase
         }
 
         $this->assertStringContainsString('start SLOWLY', config('teacher.pace.levels.unknown'));
-        $this->assertStringContainsString('then adapt at once to their first answers', config('teacher.pace.levels.unknown'));
+        $this->assertStringContainsString('Then adapt to their answers', config('teacher.pace.levels.unknown'));
     }
 
     public function test_key_words_sentences_to_repeat_and_slowing_down_until_the_end(): void
