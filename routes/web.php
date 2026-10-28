@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\OriginController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\PresentationVideoController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\SubscriberController;
 use App\Http\Controllers\Admin\TextDiagnosticController;
 use App\Http\Controllers\Admin\UploadCheckController;
 use App\Http\Controllers\Admin\UsageController;
@@ -281,6 +282,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/videos/presentations', [PresentationVideoController::class, 'request'])->middleware('throttle:6,1')->name('videos.presentations.request');
     Route::get('/videos/presentations/{presentation}/fichier', [PresentationVideoController::class, 'file'])->name('videos.presentations.file');
     Route::get('/videos/catalogue/{file}', [AdminVideoController::class, 'catalogue'])->whereIn('file', ['video', 'voix'])->name('videos.catalogue');
+    Route::get('/abonnes', [SubscriberController::class, 'index'])->name('subscribers.index');
     Route::get('/inactifs', [InactiveLearnerController::class, 'index'])->name('inactive.index');
     Route::get('/inactifs/{user}/whatsapp', [InactiveLearnerController::class, 'whatsapp'])->name('inactive.whatsapp');
 });

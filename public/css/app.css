@@ -34,6 +34,7 @@ img, svg { max-width: 100%; }
 a { color: var(--c-primary); text-underline-offset: 3px; }
 /* Numéros de téléphone : jamais coupés en fin de ligne. */
 a[href^="tel:"] { white-space: nowrap; }
+.nowrap { white-space: nowrap; }
 a:hover { color: var(--c-primary-strong); }
 
 h1, h2, h3 { line-height: 1.2; margin: 0 0 .5em; font-weight: var(--fw-heavy); letter-spacing: -.02em; color: var(--c-heading); }

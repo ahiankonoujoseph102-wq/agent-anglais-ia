@@ -5,6 +5,7 @@
     </a>
     <a href="{{ route('admin.alerts.index') }}" @class(['active' => request()->routeIs('admin.alerts.*')]) @if (request()->routeIs('admin.alerts.*')) aria-current="page" @endif><x-icon name="alert" /> Alertes</a>
     <a href="{{ route('admin.payments.index') }}" @class(['active' => request()->routeIs('admin.payments.index')]) @if (request()->routeIs('admin.payments.index')) aria-current="page" @endif><x-icon name="history" /> Historique</a>
+    <a href="{{ route('admin.subscribers.index') }}" @class(['active' => request()->routeIs('admin.subscribers.*')]) @if (request()->routeIs('admin.subscribers.*')) aria-current="page" @endif><x-icon name="users" /> Abonnés payants</a>
     <a href="{{ route('admin.inactive.index') }}" @class(['active' => request()->routeIs('admin.inactive.*')]) @if (request()->routeIs('admin.inactive.*')) aria-current="page" @endif><x-icon name="user-off" /> Inactifs</a>
     <a href="{{ route('admin.users.index') }}" @class(['active' => request()->routeIs('admin.users.*')]) @if (request()->routeIs('admin.users.*')) aria-current="page" @endif><x-icon name="users" /> Inscrits</a>
     <a href="{{ route('admin.ambassadors.index') }}" @class(['active' => request()->routeIs('admin.ambassadors.*')]) @if (request()->routeIs('admin.ambassadors.*')) aria-current="page" @endif><x-icon name="award" /> Ambassadeurs</a>
