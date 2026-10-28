@@ -50,6 +50,16 @@ class Ambassador extends Model
     }
 
     /**
+     * Commissions (une au plus par compte rattaché).
+     *
+     * @return HasMany<AmbassadorCommission, $this>
+     */
+    public function commissions(): HasMany
+    {
+        return $this->hasMany(AmbassadorCommission::class);
+    }
+
+    /**
      * Comptes inscrits grâce à l'ambassadeur.
      *
      * @return HasMany<AmbassadorReferral, $this>

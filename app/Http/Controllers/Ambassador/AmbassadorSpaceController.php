@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Ambassador;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ambassador;
+use App\Support\Ambassadors\AmbassadorCommissions;
 use App\Support\Ambassadors\AmbassadorProgram;
 use App\Support\Ambassadors\AmbassadorReferrals;
 use App\Support\Ambassadors\QrCode;
@@ -33,6 +34,8 @@ class AmbassadorSpaceController extends Controller
             'shareUrl' => WhatsApp::url('', self::shareMessage($ambassador)),
             // Prénom et date d'inscription seulement : jamais le numéro ni le nom complet.
             'referrals' => $ambassador->referrals()->with('user:id,name')->latest()->get(),
+            'commissions' => $ambassador->commissions()->with('user:id,name')->latest()->get(),
+            'totals' => AmbassadorCommissions::totals($ambassador),
         ]);
     }
 

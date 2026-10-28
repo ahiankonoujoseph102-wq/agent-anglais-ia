@@ -110,6 +110,12 @@ class User extends Authenticatable
         return $this->hasOne(Ambassador::class);
     }
 
+    /** Commission versée à l'ambassadeur pour ce compte (null : aucune). */
+    public function referralCommission(): HasOne
+    {
+        return $this->hasOne(AmbassadorCommission::class);
+    }
+
     /** Ambassadeur grâce à qui le compte s'est inscrit (null : aucun). */
     public function referral(): HasOne
     {

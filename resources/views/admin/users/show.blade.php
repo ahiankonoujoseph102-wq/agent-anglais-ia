@@ -74,6 +74,29 @@
                     </ul>
                 @endif
             @endif
+            @if ($user->referral)
+                @if ($user->referralCommission)
+                    <p class="small">Commission : <strong>{{ \App\Support\Money::format($user->referralCommission->amount) }}</strong> (formule {{ $user->referralCommission->plan_name }}), {{ mb_strtolower($user->referralCommission->status->label()) }}.</p>
+                @else
+                    <form method="POST" action="{{ route('admin.users.commission', $user) }}" class="grant-form next-step" {!! \App\Support\Confirmation::attributes('commission.add') !!}>
+                        @csrf
+                        <p class="muted small">Paiement fait hors des quatre pays (WhatsApp, puis « Offrir un accès ») : ajoutez la commission de l'ambassadeur à la main.</p>
+                        <div class="field">
+                            <label for="commission-plan">Formule payée</label>
+                            <select id="commission-plan" name="plan" required>
+                                @foreach ($plans as $plan)
+                                    <option value="{{ $plan->key }}">{{ $plan->name }} ({{ $plan->formattedPrice() }}, commission {{ \App\Support\Money::format(\App\Support\Ambassadors\AmbassadorCommissions::amountFor($plan->price)) }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="commission-note">Note facultative</label>
+                            <input id="commission-note" name="note" type="text" maxlength="200" placeholder="Paiement reçu sur WhatsApp le …">
+                        </div>
+                        <button type="submit" class="btn btn-light"><x-icon name="plus" /> Ajouter une commission</button>
+                    </form>
+                @endif
+            @endif
             @if ($activeAmbassadors->isNotEmpty() || $user->referral)
                 <form method="POST" action="{{ route('admin.users.referral', $user) }}" class="referral-form next-step">
                     @csrf
@@ -120,6 +143,34 @@
                         <button type="submit" class="btn btn-light"><x-icon name="user-off" /> Retirer du programme</button>
                     </form>
                 </div>
+
+                <h3 class="next-step">Ses commissions</h3>
+                @forelse ($ambassadorCommissions as $commission)
+                    <div class="grant-history">
+                        <strong>{{ \App\Support\Money::format($commission->amount) }}</strong> grâce à <a href="{{ route('admin.users.show', $commission->user) }}">{{ $commission->user->name }}</a>
+                        (formule {{ $commission->plan_name }}, {{ $commission->created_at->format('d/m/Y') }}) :
+                        {{ mb_strtolower($commission->status->label()) }}@if ($commission->paid_at) le {{ $commission->paid_at->format('d/m/Y') }}@endif
+                        @if ($commission->cancel_reason)
+                            <br><span class="muted small">Motif : {{ $commission->cancel_reason }}</span>
+                        @endif
+                        @if ($commission->isDue())
+                            <div class="ambassador-actions">
+                                <form method="POST" action="{{ route('admin.commissions.pay', $commission) }}" {!! \App\Support\Confirmation::attributes('commission.pay') !!}>
+                                    @csrf
+                                    <button type="submit" class="btn btn-accent"><x-icon name="check-circle" /> Commission payée</button>
+                                </form>
+                                <form method="POST" action="{{ route('admin.commissions.cancel', $commission) }}" class="commission-cancel" {!! \App\Support\Confirmation::attributes('commission.cancel') !!}>
+                                    @csrf
+                                    <label for="reason-{{ $commission->id }}" class="sr-only">Motif de l'annulation</label>
+                                    <input id="reason-{{ $commission->id }}" name="reason" type="text" maxlength="200" required placeholder="Motif (triche)">
+                                    <button type="submit" class="btn btn-light"><x-icon name="close-circle" /> Annuler</button>
+                                </form>
+                            </div>
+                        @endif
+                    </div>
+                @empty
+                    <p class="muted">Aucune commission pour le moment.</p>
+                @endforelse
 
                 <h3 class="next-step">Ses inscrits : {{ $ambassadorReferrals->count() }}</h3>
                 @forelse ($ambassadorReferrals as $referral)

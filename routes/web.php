@@ -220,6 +220,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/ambassadeurs/{ambassador}', [AdminAmbassadorController::class, 'remove'])->middleware('confirm:ambassador.remove')->name('ambassadors.remove');
     Route::put('/ambassadeurs/{ambassador}/accord-parental', [AdminAmbassadorController::class, 'consent'])->name('ambassadors.consent');
     Route::put('/inscrits/{user}/ambassadeur-rattachement', [AdminAmbassadorController::class, 'referral'])->name('users.referral');
+    Route::post('/inscrits/{user}/commission', [AdminAmbassadorController::class, 'addCommission'])->middleware('confirm:commission.add')->name('users.commission');
+    Route::post('/commissions/{commission}/payee', [AdminAmbassadorController::class, 'payCommission'])->middleware('confirm:commission.pay')->name('commissions.pay');
+    Route::post('/commissions/{commission}/annuler', [AdminAmbassadorController::class, 'cancelCommission'])->middleware('confirm:commission.cancel')->name('commissions.cancel');
     Route::delete('/inscrits/{user}/evaluation', [AdminAssessmentController::class, 'destroy'])->middleware('confirm:assessment.reset')->name('assessments.destroy');
     // Texte des conversations d'un apprenant : lecture d'une séance, suppression de toutes (demande de suppression).
     Route::get('/inscrits/{user}/conversations/{type}/{id}', [ConversationController::class, 'show'])->whereIn('type', array_keys(Transcripts::TYPES))->whereNumber('id')->name('conversations.show');
