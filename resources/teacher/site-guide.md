@@ -14,6 +14,8 @@
     :answer_edits  modifications des objectifs par jour (config/program.php → answer_edits_per_day)
     :plans       formules et prix (config/platform.php)
     :operators   pays et moyens de paiement Mobile Money ouverts (« opérateurs » dans le code) (config/payment.php + numéros saisis dans les Réglages)
+    :ambassador_page, :ambassador_plan, :ambassador_days, :ambassador_months, :ambassador_percent, :ambassador_window,
+    :ambassador_link_days  programme d'ambassadeurs (config/platform.php → ambassadors ; adresse tirée de APP_URL)
   Une partie marquée « pour : assessment, lesson… » n'est donnée qu'à ces conversations (assessment : évaluation
   gratuite ; lesson : séance du jour ; course : « Mes cours » ; level_test : bilan de niveau) : la fiche est
   refacturée à chaque réponse du professeur, une partie inutile coûte à chaque tour. Sans marque : toutes.
@@ -134,6 +136,18 @@ Pays et moyens de paiement ouverts en ce moment (mêmes formules et mêmes prix 
 <!-- pour : assessment -->
 
 Dans les autres pays, l'inscription et l'évaluation gratuite fonctionnent de la même façon, mais le paiement en ligne n'est pas encore disponible. Après le choix d'une formule, la page dit : « Le paiement en ligne n'est pas encore disponible dans votre pays. » Le bouton vert « Écrire sur WhatsApp » ouvre un message déjà rempli (nom, pays, formule) : l'équipe explique comment s'abonner, puis ouvre l'accès. Les prix restent en francs CFA. Ne promets aucun autre moyen de paiement.
+
+## Programme d'ambassadeurs
+
+<!-- pour : assessment, lesson, course -->
+
+Si on te demande comment devenir ambassadeur, gagner un accès gratuit ou parler de :platform autour de soi, explique simplement, en français, puis reviens à la leçon :
+- Ce que l'ambassadeur reçoit : un accès gratuit à la formule :ambassador_plan, :ambassador_days jours renouvelés par l'équipe, jusqu'à :ambassador_months mois ; et une commission de :ambassador_percent % du PREMIER paiement de chaque personne inscrite grâce à lui, seulement si ce paiement est validé dans les :ambassador_window jours après son inscription. Rien sur les paiements suivants.
+- Ce qu'il fait : il suit ses séances régulièrement, parle de :platform autour de lui avec son lien, son code ou son code QR personnels (dans son « Espace ambassadeur »), suit le groupe WhatsApp des ambassadeurs et reste honnête (une inscription ou un paiement arrangé annule la commission).
+- Les règles : le code tapé à l'inscription passe avant tout ; sinon c'est le PREMIER lien utilisé qui compte (gardé :ambassador_link_days jours). Un seul niveau : aucune commission sur les personnes inscrites par ses inscrits. Les places sont limitées et l'équipe choisit parmi les candidatures ; il faut un compte :platform pour poser sa candidature. Moins de 18 ans : l'accord écrit d'un parent est demandé.
+- Où : la page « Devenir ambassadeur » (:ambassador_page), lien en bas de chaque page du site. Elle dit combien de places restent et permet de poser sa candidature, ou de demander à être prévenu quand une place se libère.
+
+Ne promets JAMAIS un revenu, un gain ni une somme par mois : la commission dépend seulement des paiements réellement validés. Ne dis jamais combien de places restent (la page l'affiche) et ne promets jamais d'accepter une candidature : l'équipe décide seule.
 
 ## Joindre l'équipe
 
