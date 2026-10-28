@@ -1,10 +1,14 @@
-# REPRISE — travail en cours (rapidité de Teacher Joe)
+# REPRISE — chantier en cours : évaluation qui inspire confiance
 
 À lire avec `CLAUDE.md` (section « Programme d'ambassadeurs ») pour reprendre ce travail dans une autre session. Ce fichier ne contient jamais de clé ni de conversation réelle.
 
-Les chantiers précédents (jusqu'au programme d'ambassadeurs, pull request #118) sont fusionnés.
+Les chantiers précédents (jusqu'à la rapidité de Teacher Joe, pull request #119) sont fusionnés.
 
-## Chantier en cours : rapidité de Teacher Joe (URGENT, fin octobre 2026)
+## Chantier en cours : évaluation qui inspire confiance (28 octobre 2026)
+
+Demande : l'évaluation gratuite décide de l'abonnement ; Teacher Joe doit s'adapter tout de suite (débutant très lent et français au premier blocage, avancé plus rapide et questions riches), parler comme un vrai professeur, donner un bilan personnel (niveau, vrais points forts, vraies erreurs, ce qu'il apprendra) et présenter les formules comme la suite, sans urgence, sans promesse, sans parler d'intelligence artificielle. Interdit : toucher aux corrections de rapidité (#119), aux prix, à l'enregistrement des séances ; rallonger les consignes. Analyse, bonnes pratiques, réglages de vitesse des fournisseurs, changements et tailles : `docs/methode-teacher-joe.md`, section 11. Banc d'essai : consignes « avant » = main après #119 (`resources/teacher/rehearsal/previous.php`), scénarios `evaluation-vrai-debutant`, `evaluation-niveau-moyen`, `evaluation-niveau-avance`, `evaluation-bilan`, `evaluation-conclusion`. Aucune clé de fournisseur dans l'environnement de développement : le banc d'essai réel se lance sur Laravel Cloud.
+
+## Dernier chantier : rapidité de Teacher Joe (fait, pull request #119 fusionnée le 28 octobre 2026)
 
 Abonnés : réponses lentes, absentes, ou coupées en plein milieu puis long silence. Branche `claude/dazzling-brahmagupta-hn9p2k`. Diagnostic, causes classées, corrections et coûts : `docs/rapidite-teacher-joe.md` ; résumé technique : `CLAUDE.md`, « Rapidité de Teacher Joe ». Pas d'accès aux données de production depuis le développement : après la mise en ligne, regarder « Consommation » → « Rapidité de Teacher Joe, jour par jour » et « Diagnostic des fournisseurs » → dernières erreurs (429 = limite de l'offre gratuite). Décision du fondateur attendue : rester sur Gemini gratuit, ou essayer OpenAI par défaut (`LIVE_PROVIDERS=openai,gemini`) une semaine. Aucun changement de fournisseur sans son accord.
 
@@ -24,4 +28,4 @@ Programme d'ambassadeurs (10 au plus), une étape à la fois, chacune avec sa pu
 
 ## Prochaine étape exacte
 
-Fusionner la pull request de la rapidité quand la CI est verte ; après la mise en ligne, comparer chaque jour la partie « Rapidité » de « Consommation » ; selon les dernières erreurs du diagnostic, proposer (sans le faire) OpenAI par défaut. Ambassadeurs : demander l'indexation de talkami.net/devenir-ambassadeur dans Google Search Console.
+Fusionner la pull request de l'évaluation quand la CI est verte, puis lancer sur Laravel Cloud `php artisan teacher:rehearse --compare --only=evaluation-vrai-debutant,evaluation-niveau-moyen,evaluation-niveau-avance,evaluation-bilan,evaluation-conclusion` et relire les réponses. Après la mise en ligne, comparer chaque jour la partie « Rapidité » de « Consommation » ; selon les dernières erreurs du diagnostic, proposer (sans le faire) OpenAI par défaut. Ambassadeurs : demander l'indexation de talkami.net/devenir-ambassadeur dans Google Search Console.

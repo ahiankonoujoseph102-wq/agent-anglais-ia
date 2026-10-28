@@ -78,23 +78,11 @@ final class TeacherRehearsal
         $user = new User(['name' => 'Afi']);
         $user->level = isset($scenario['level']) ? Level::from($scenario['level']) : null;
 
-        $saved = [];
-
-        if ($before) {
-            foreach (self::previous() as $key => $value) {
-                $saved[$key] = config("teacher.{$key}");
-                config(["teacher.{$key}" => $value]);
-            }
-        }
-
-        try {
+        $text = self::withPrevious($before, function () use ($kind, $user) {
             $extra = $kind === 'lesson' ? ['context' => self::LESSON_CONTEXT] : [];
-            $text = TeacherSetup::instructions($kind, $user, $kind === 'assessment' ? (int) config('platform.assessment.max_minutes') : 15, $extra);
-        } finally {
-            foreach ($saved as $key => $value) {
-                config(["teacher.{$key}" => $value]);
-            }
-        }
+
+            return TeacherSetup::instructions($kind, $user, $kind === 'assessment' ? (int) config('platform.assessment.max_minutes') : 15, $extra);
+        });
 
         return $text."\n\nWRITTEN REHEARSAL (not a real session): you are in the middle of the conversation below"
             .(isset($scenario['moment']) ? ' ('.$scenario['moment'].')' : '').'. '
@@ -110,10 +98,10 @@ final class TeacherRehearsal
         $lines = collect($scenario['history'])
             ->map(fn (array $turn) => ($turn[0] === 'teacher' ? $teacher : 'Learner').': '.$turn[1]);
 
-        // Évaluation : verdict déjà enregistré ; la suite renvoyée par la fonction (mini-leçon), comme en vraie séance.
-        // Avant : la phrase fixe de la première leçon du niveau ; après : les vraies erreurs de l'apprenant.
+        // Évaluation : verdict déjà enregistré ; la suite renvoyée par la fonction (mini-leçon sur les vraies erreurs),
+        // comme en vraie séance, rédigée avec les consignes d'avant ou d'après.
         if (isset($scenario['verdict'])) {
-            $next = AssessmentMiniLesson::for(Level::from($scenario['verdict']['level']), $before ? [] : $scenario['verdict']['lesson'])['next_step'] ?? '';
+            $next = self::withPrevious($before, fn () => AssessmentMiniLesson::for(Level::from($scenario['verdict']['level']), $scenario['verdict']['lesson'])['next_step'] ?? '');
             $lines->push('(Result of record_assessment_result: '.$next.')');
         }
 
@@ -197,6 +185,34 @@ final class TeacherRehearsal
     public static function previous(): array
     {
         return require resource_path('teacher/rehearsal/previous.php');
+    }
+
+    /**
+     * Exécute $callback avec les consignes d'avant (si $before), puis remet les vraies consignes.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $callback
+     * @return T
+     */
+    private static function withPrevious(bool $before, callable $callback): mixed
+    {
+        $saved = [];
+
+        if ($before) {
+            foreach (self::previous() as $key => $value) {
+                $saved[$key] = config("teacher.{$key}");
+                config(["teacher.{$key}" => $value]);
+            }
+        }
+
+        try {
+            return $callback();
+        } finally {
+            foreach ($saved as $key => $value) {
+                config(["teacher.{$key}" => $value]);
+            }
+        }
     }
 
     private static function words(int $number): ?string
