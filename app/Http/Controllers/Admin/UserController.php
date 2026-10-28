@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OfferAccessRequest;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Ambassadors\AmbassadorProgram;
 use App\Support\Countries;
 use App\Support\Live\Transcripts;
 use App\Support\PhoneNumber;
@@ -63,7 +64,7 @@ class UserController extends Controller
      */
     public function show(Request $request, User $user): View
     {
-        $user->load(['assessment', 'activeSubscription', 'origin']);
+        $user->load(['assessment', 'activeSubscription', 'origin', 'ambassador']);
 
         $temporaryPassword = $request->session()->get('temporary_password');
         $whatsappUrl = null;
@@ -91,6 +92,9 @@ class UserController extends Controller
             'conversations' => Transcripts::sessionsOf($user),
             'temporaryPassword' => $temporaryPassword,
             'whatsappUrl' => $whatsappUrl,
+            'ambassadorGrant' => $user->ambassador?->currentGrant(),
+            'freePlaces' => AmbassadorProgram::freePlaces(),
+            'places' => AmbassadorProgram::places(),
         ]);
     }
 

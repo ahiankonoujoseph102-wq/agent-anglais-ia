@@ -101,7 +101,11 @@
         @if ($granted)
             <p class="next-card-note">
                 <x-icon name="gift" />
-                <span><strong>Accès offert jusqu'au {{ $granted->ends_at->translatedFormat('j F Y') }}</strong> avec la formule {{ $granted->plan_name }}.</span>
+                @if ($granted->isAmbassadorMonth())
+                    <span><strong>Mois gratuit d'ambassadeur jusqu'au {{ $granted->ends_at->translatedFormat('j F Y') }}</strong> avec la formule {{ $granted->plan_name }}. <a href="{{ route('ambassador.show') }}">Espace ambassadeur</a></span>
+                @else
+                    <span><strong>Accès offert jusqu'au {{ $granted->ends_at->translatedFormat('j F Y') }}</strong> avec la formule {{ $granted->plan_name }}.</span>
+                @endif
             </p>
         @endif
 
@@ -171,9 +175,14 @@
         <div class="alert alert-warning rise" role="status">
             <x-icon name="calendar" />
             <div>
-                <strong>Votre accès offert se termine {{ $granted->ends_at->isToday() ? 'aujourd\'hui' : 'demain' }}, le {{ $granted->ends_at->translatedFormat('j F à H:i') }}.</strong>
-                Choisissez une formule pour continuer vos séances sans interruption.
-                <a class="btn btn-accent btn-block next-step" href="{{ route('payment.plans') }}">Choisir ma formule</a>
+                @if ($granted->isAmbassadorMonth())
+                    <strong>Votre mois gratuit d'ambassadeur se termine {{ $granted->ends_at->isToday() ? 'aujourd\'hui' : 'demain' }}, le {{ $granted->ends_at->translatedFormat('j F à H:i') }}.</strong>
+                    Il est renouvelé chaque mois si vous respectez les conditions du programme.
+                @else
+                    <strong>Votre accès offert se termine {{ $granted->ends_at->isToday() ? 'aujourd\'hui' : 'demain' }}, le {{ $granted->ends_at->translatedFormat('j F à H:i') }}.</strong>
+                    Choisissez une formule pour continuer vos séances sans interruption.
+                    <a class="btn btn-accent btn-block next-step" href="{{ route('payment.plans') }}">Choisir ma formule</a>
+                @endif
             </div>
         </div>
     @endif

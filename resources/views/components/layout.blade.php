@@ -74,7 +74,7 @@
     <script type="module" src="{{ Asset::url('js/app.js') }}" data-sw="{{ asset('sw.js') }}" data-install-reminder="{{ Asset::url('js/install-reminder.js') }}" data-installed-message="{{ config('platform.name') }} est installée : retrouvez {{ config('avatar.model.name') }} sur votre écran d'accueil."></script>
     @stack('head')
 </head>
-<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage, 'is-admin-user' => $user?->isAdmin()]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
+<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage, 'is-admin-user' => $user?->isAdmin(), 'is-ambassador-user' => $user?->isAmbassador()]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
     <a class="skip-link" href="#contenu">Aller au contenu</a>
 
     <header class="site-header">
@@ -90,6 +90,7 @@
                         ['route' => 'program.show', 'active' => 'program.*', 'icon' => 'calendar', 'label' => 'Mon programme'],
                         ['route' => 'lessons.history', 'active' => 'lessons.history', 'icon' => 'list', 'label' => 'Mes séances'],
                         ['route' => 'courses.index', 'active' => 'courses.*', 'icon' => 'book', 'label' => 'Mes cours'],
+                        $user->isAmbassador() ? ['route' => 'ambassador.show', 'active' => 'ambassador.*', 'icon' => 'award', 'label' => 'Espace ambassadeur'] : null,
                         ['route' => 'account.edit', 'active' => 'account.*', 'icon' => 'user', 'label' => 'Mon compte'],
                         ['route' => 'contact', 'active' => 'contact', 'icon' => 'bubble', 'label' => 'Aide'],
                     ]));

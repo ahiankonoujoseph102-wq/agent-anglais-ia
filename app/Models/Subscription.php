@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['plan', 'plan_name', 'daily_minutes', 'price', 'currency', 'starts_at', 'ends_at', 'provisional_until', 'status', 'granted_by', 'grant_note', 'granted_days', 'revoked_at'])]
+#[Fillable(['plan', 'plan_name', 'daily_minutes', 'price', 'currency', 'starts_at', 'ends_at', 'provisional_until', 'status', 'granted_by', 'grant_note', 'granted_days', 'ambassador_id', 'revoked_at'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */
@@ -67,6 +67,22 @@ class Subscription extends Model
     public function grantedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'granted_by');
+    }
+
+    /**
+     * Ambassadeur dont c'est un mois gratuit (null : autre abonnement).
+     *
+     * @return BelongsTo<Ambassador, $this>
+     */
+    public function ambassador(): BelongsTo
+    {
+        return $this->belongsTo(Ambassador::class);
+    }
+
+    /** Mois gratuit d'un ambassadeur (un accès offert particulier). */
+    public function isAmbassadorMonth(): bool
+    {
+        return $this->ambassador_id !== null;
     }
 
     /** Accès offert par l'administrateur (démonstration) : jamais un paiement ni un revenu. */

@@ -24,6 +24,7 @@ class UpdateSettingsRequest extends FormRequest
             // Alerte de coût par abonné : pourcentage du prix de la formule, francs CFA pour un dollar US.
             'cost_alert.percent' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'cost_alert.xof_per_usd' => ['nullable', 'integer', 'min:100', 'max:5000'],
+            'ambassadors.places' => ['nullable', 'integer', 'min:0', 'max:500'],
         ];
 
         foreach (config('payment.countries') as $code => $country) {
@@ -59,6 +60,7 @@ class UpdateSettingsRequest extends FormRequest
             'contact.email.email' => 'L\'adresse e-mail n\'est pas valide.',
             'cost_alert.percent.*' => 'Indiquez un pourcentage entier entre 1 et 1 000.',
             'cost_alert.xof_per_usd.*' => 'Indiquez un nombre entier de francs CFA entre 100 et 5 000.',
+            'ambassadors.places.*' => 'Indiquez un nombre entier de places entre 0 et 500.',
         ];
     }
 }
