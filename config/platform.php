@@ -340,7 +340,7 @@ return [
         // Fin de tour (public/js/turn-watch.js) : la voix de l'apprenant, mesurée dans le navigateur, est finie
         // depuis ce temps et le fournisseur n'a ni clos le tour ni commencé à répondre (bruit de fond, longue
         // réponse) : le navigateur signale lui-même la fin du tour (Gemini : audioStreamEnd ; OpenAI : silence).
-        'end_of_turn_seconds' => 1.5,
+        'end_of_turn_seconds' => 2,
         // Attente de la réponse : ce temps après la fin de la parole, « Un instant… » et un léger geste de Teacher Joe
         // (hochement, sourire).
         'instant_seconds' => 2,
@@ -372,19 +372,6 @@ return [
         'voice_gap_hold_seconds' => 3,
         // Accueil ou reprise demandés : micro fermé jusqu'à la première parole du professeur, au plus ce temps.
         'greeting_wait_seconds' => 5,
-        // Teacher Joe ne répond pas (blocage silencieux du fournisseur, constaté aussi par d'autres développeurs) :
-        // reprise AUTOMATIQUE et invisible (public/js/turn-watch.js, AnswerRecovery), avant le bouton « Relancer » :
-        // relance ce temps après la fin de parole de l'apprenant, puis nouvelle connexion chez le même fournisseur,
-        // puis la séance continue chez l'autre fournisseur (une fois par séance). En secondes.
-        'auto_nudge_seconds' => 6,
-        'auto_reconnect_seconds' => 8,
-        'auto_switch_seconds' => 10,
-        // Réponse de Teacher Joe coupée en plein milieu (plus aucun son reçu depuis ce temps) : nouvelle connexion
-        // tout de suite, et il finit sa phrase.
-        'answer_stall_seconds' => 6,
-        // Renouvellement prévu de la connexion (jeton de quelques minutes) : préparé ce temps avant la fin, puis
-        // fait à un moment calme (jamais au milieu d'une phrase ni pendant que l'apprenant parle ou attend).
-        'renew_lead_seconds' => 60,
     ],
 
     /*

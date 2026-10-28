@@ -201,7 +201,7 @@ class LiveProvidersTest extends TestCase
                 // Vitesse de la voix selon le niveau (A2 : 0,85), en plus des consignes de débit.
                 && $session['audio']['output']['speed'] === 0.85
                 && str_contains($session['instructions'], (string) config('teacher.pace.levels.A2'))
-                && $session['audio']['input']['turn_detection'] === ['type' => 'server_vad', 'threshold' => 0.6, 'prefix_padding_ms' => 300, 'silence_duration_ms' => 900, 'create_response' => true, 'interrupt_response' => true]
+                && $session['audio']['input']['turn_detection'] === ['type' => 'server_vad', 'threshold' => 0.6, 'prefix_padding_ms' => 300, 'silence_duration_ms' => 1000, 'create_response' => true, 'interrupt_response' => true]
                 && $session['audio']['input']['transcription']['model'] === 'gpt-4o-mini-transcribe'
                 // Réponse la plus rapide : réflexion du modèle réduite au minimum.
                 && $session['reasoning'] === ['effort' => 'minimal']
@@ -334,35 +334,6 @@ class LiveProvidersTest extends TestCase
         $this->gemini = 200;
         $this->travel(1)->minutes();
         $this->actingAs($other)->postJson('/seance/connexion')->assertJsonPath('provider', 'openai')->assertJsonPath('resumed', true);
-    }
-
-    public function test_a_teacher_who_no_longer_answers_continues_the_same_lesson_at_the_other_provider(): void
-    {
-        $user = $this->subscriber();
-        $this->actingAs($user)->postJson('/seance/connexion')->assertJsonPath('provider', 'gemini');
-        $this->travel(6)->minutes();
-
-        // Blocage silencieux de Gemini (relance et nouvelle connexion sans effet) : la MÊME séance continue chez OpenAI.
-        $this->actingAs($user)->postJson('/seance/connexion', ['unresponsive' => 'gemini'])
-            ->assertOk()
-            ->assertJsonPath('provider', 'openai')
-            ->assertJsonPath('resumed', true);
-
-        $this->assertSame('openai', $this->lesson($user)->live_provider);
-        $this->assertSame(1, Lesson::query()->count());
-        $this->assertSame('Aucune réponse', LiveLog::recent()[0]['step']);
-        $this->assertFalse(LiveProviders::isPaused('gemini'), 'un blocage d\'une séance ne met pas Gemini de côté pour tout le monde');
-
-        // Un fournisseur qui n'est pas celui de la séance ne change rien.
-        $this->actingAs($user)->postJson('/seance/connexion', ['unresponsive' => 'gemini'])->assertJsonPath('provider', 'openai');
-    }
-
-    public function test_the_cue_to_finish_a_cut_answer_is_given_to_the_browser(): void
-    {
-        $cues = $this->actingAs($this->subscriber())->postJson('/seance/connexion')->json('cues');
-
-        $this->assertStringContainsString('cut off', $cues['stalled']);
-        $this->assertArrayHasKey('nudge', $cues);
     }
 
     public function test_gemini_refusing_a_reconnection_continues_the_same_lesson_at_openai(): void

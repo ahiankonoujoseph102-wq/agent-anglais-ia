@@ -43,13 +43,11 @@ class LiveConnection
      *
      * @param  array<string, mixed>  $setup
      * @param  string|null  $failed  fournisseur auquel le navigateur n'a pas pu se connecter (aucune parole échangée)
-     * @param  string|null  $unresponsive  fournisseur de la séance qui ne répond plus (relance et nouvelle connexion
-     *                                     sans effet) : la séance continue chez l'autre fournisseur s'il y en a un
      * @return array{provider: string, expires_at: Carbon, token?: string, websocket_url?: string}
      *
      * @throws LiveUnavailable
      */
-    public function request(array $setup, Carbon $deadline, Assessment|CourseSession|Lesson|LevelTest|null $conversation = null, ?string $failed = null, ?string $unresponsive = null): array
+    public function request(array $setup, Carbon $deadline, Assessment|CourseSession|Lesson|LevelTest|null $conversation = null, ?string $failed = null): array
     {
         $current = $conversation?->liveProvider();
 
@@ -66,11 +64,6 @@ class LiveConnection
 
         if ($current === null) {
             $providers = LiveProviders::ordered($failed !== null ? [$failed] : []) ?: LiveProviders::ordered();
-        } elseif ($unresponsive !== null && $unresponsive === $current && $conversation->isInProgress()) {
-            // Teacher Joe ne répondait plus, même après une relance et une nouvelle connexion (blocage silencieux du
-            // fournisseur) : la séance continue chez le suivant ; le navigateur lui redonne les derniers échanges.
-            LiveLog::failure($current, 'Aucune réponse', 'Aucune réponse malgré une relance et une nouvelle connexion : séance continuée chez l\'autre fournisseur.');
-            $providers = [...LiveProviders::ordered([$current]), $current];
         } elseif ($failed === $current && $conversation->canSwitchProvider()) {
             // Rien n'a été dit : la séance peut encore commencer chez le fournisseur suivant (s'il y en a un).
             $providers = LiveProviders::ordered([$current]) ?: [$current];
@@ -180,7 +173,7 @@ class LiveConnection
             'remaining_seconds' => $conversation->remainingSeconds(),
             'warning_seconds' => $warningSeconds,
             'heartbeat_seconds' => (int) config('platform.live.heartbeat_seconds'),
-            'cues' => $cues + ['pause_resume' => TeacherSetup::cue('pause_resume'), 'nudge' => TeacherSetup::cue('nudge'), 'stalled' => TeacherSetup::cue('stalled')],
+            'cues' => $cues + ['pause_resume' => TeacherSetup::cue('pause_resume'), 'nudge' => TeacherSetup::cue('nudge')],
             // Micro coupé pendant la voix du professeur, et encore ce délai après (anti-écho).
             'echo_guard_ms' => (int) config('platform.live.echo_guard_ms'),
             // Au-delà de cette durée de pause, la conversation se termine (le temps continue en pause).

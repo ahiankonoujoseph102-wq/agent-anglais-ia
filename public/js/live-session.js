@@ -44,7 +44,7 @@ const { OpenAiTransport } = await import(root.dataset.liveOpenai);
 // Texte de la conversation (jamais l'audio), envoyé au serveur par petits lots.
 const { TranscriptRecorder, cleanSpeech } = await import(root.dataset.transcript);
 // Mesure des tours de parole (délai de réponse), fin de tour de secours, attente d'une réponse.
-const { VoiceActivity, TurnWatch, AnswerRecovery, quietMoment, learnerMetrics, teacherMetrics } = await import(root.dataset.turnWatch);
+const { VoiceActivity, TurnWatch, learnerMetrics, teacherMetrics } = await import(root.dataset.turnWatch);
 // Tableau de la séance du jour : élément expliqué et étape en cours, d'après la voix du professeur.
 const { BoardTracker, BoardView, phaseNote } = root.dataset.lessonBoard ? await import(root.dataset.lessonBoard) : {};
 // Secondes, pour la fin automatique.
@@ -424,11 +424,7 @@ async function stopRecording() {
 const INPUT_RATE = 16000;
 // Fondu à l'arrêt de la voix (interruption, pause), en secondes : pas de clic.
 const STOP_FADE = 0.015;
-// Coupures inattendues : reconnexions automatiques et invisibles, de plus en plus espacées (millisecondes). Le compte
-// repart de zéro après RECONNECT_RESET_MS de connexion sans coupure.
-const RECONNECT_DELAYS = [300, 1500, 3000, 5000];
-const MAX_AUTO_RECONNECTS = RECONNECT_DELAYS.length;
-const RECONNECT_RESET_MS = 60000;
+const MAX_AUTO_RECONNECTS = 2;
 // Retard ajouté à la voix du professeur (lecture labiale du professeur 3D).
 const OUTPUT_DELAY = 0.08;
 // Textes de l'attente et des coupures (config/platform.php → live.messages).
@@ -498,23 +494,6 @@ const state = {
     ending: false,
     reconnecting: false,
     autoReconnects: 0,
-    readySince: 0,
-    // Renouvellement prévu : fin du jeton de la connexion encore en cours (la nouvelle attend un moment calme).
-    previousExpiresAt: 0,
-    // Reprise automatique quand Teacher Joe ne répond pas (blocage silencieux du fournisseur).
-    recovery: new AnswerRecovery({
-        nudgeMs: (audioConfig.auto_nudge_seconds ?? 6) * 1000,
-        reconnectMs: (audioConfig.auto_reconnect_seconds ?? 8) * 1000,
-        switchMs: (audioConfig.auto_switch_seconds ?? 10) * 1000,
-    }),
-    // Réponse coupée en plein milieu (plus aucun son reçu) : heure de la détection.
-    stalledSince: 0,
-    // Séance déjà passée chez l'autre fournisseur faute de réponse (une seule fois).
-    unresponsiveSwitched: false,
-    // Indication à envoyer dès que la nouvelle connexion est prête (reprise automatique).
-    recoveryCue: null,
-    // Renouvellement prévu : nouvelle connexion prête, en attente d'un moment calme.
-    pendingTransport: null,
     resumeHandle: null,
     deadline: 0,
     warningSent: false,
@@ -1554,26 +1533,6 @@ function watchTurn() {
         endMicStream();
     }
 
-    // Réponse coupée en plein milieu (Gemini) : plus aucun son reçu depuis un moment et la voix déjà reçue est finie.
-    const context = state.audio?.context;
-    const stallSeconds = audioConfig.answer_stall_seconds ?? 6;
-
-    if (state.voicePending && !state.stalledSince && context && state.transport && !state.transport.streamsAudio
-        && context.currentTime - state.lastChunkAt > stallSeconds && context.currentTime > (state.audio.scheduler?.endTime ?? 0)) {
-        state.stalledSince = now;
-        state.voicePending = false;
-        state.recovery.stalled(now);
-        logEvent('no_answer', 'réponse coupée en plein milieu');
-    }
-
-    if (!state.voicePending && !state.paused && !state.muted) {
-        const step = state.recovery.next(now, state.turns.waitingSince() ?? (state.stalledSince || null));
-
-        if (step) {
-            recoverAnswer(step);
-        }
-    }
-
     const waiting = state.turns.waiting(now);
 
     if (waiting === 'thinking' && state.turns.warnOnce('thinking')) {
@@ -1617,13 +1576,10 @@ function nudgeTeacher() {
  * @param {?string} failed   fournisseur auquel on n'a pas pu se connecter avant la première parole : le serveur
  *                           commence alors la séance chez le suivant (une seule fois)
  */
-async function connect({ planned = false, failed = null, recovering = false, unresponsive = null } = {}) {
-    if (!recovering) {
-        setStatus(planned ? 'En conversation' : `${teacherName} arrive…`);
-    }
+async function connect({ planned = false, failed = null } = {}) {
+    setStatus(planned ? 'En conversation' : `${teacherName} arrive…`);
 
-    // Changement de fournisseur faute de réponse : la reprise Gemini ne vaut pas chez l'autre.
-    const result = await post(urls.connect, { handle: unresponsive ? null : state.resumeHandle, failed, unresponsive });
+    const result = await post(urls.connect, { handle: state.resumeHandle, failed });
 
     if (!result.ok) {
         if (planned && state.connected) {
@@ -1662,7 +1618,6 @@ async function connect({ planned = false, failed = null, recovering = false, unr
         board.tracker ??= new BoardTracker(board.view.items());
         board.tracker.configure(state.config.phases);
     }
-    state.previousExpiresAt = state.tokenExpiresAt;
     state.tokenExpiresAt = Date.now() + state.config.token_expires_in * 1000;
 
     if (!isResume && state.config.closing_phrase) {
@@ -1681,7 +1636,7 @@ async function connect({ planned = false, failed = null, recovering = false, unr
     setRemaining(state.config.remaining_seconds);
 
     const transport = createTransport(state.config);
-    transport.handlers = handlersFor(transport, { planned, isResume, switched, recovering });
+    transport.handlers = handlersFor(transport, { planned, isResume, switched });
 
     if (transport.streamsAudio) {
         try {
@@ -1726,48 +1681,12 @@ function createTransport(config) {
  * Ce que l'écran fait de chaque événement d'un fournisseur. Les événements d'une ancienne connexion
  * (renouvellement, reconnexion) sont ignorés.
  */
-function handlersFor(transport, { planned, isResume, switched = false, recovering = false }) {
+function handlersFor(transport, { planned, isResume, switched = false }) {
     const current = () => transport === state.transport;
 
-    const handlers = {
+    return {
         onReady() {
-            // Renouvellement prévu : la nouvelle connexion est prête, mais on ne change qu'à un moment calme (jamais
-            // au milieu d'une phrase de Teacher Joe, ni pendant que l'apprenant parle ou attend sa réponse), au plus
-            // tard quelques secondes avant la fin de l'ancienne connexion.
-            if (planned && !recovering && state.connected && state.transport && state.transport !== transport) {
-                const deadline = (state.previousExpiresAt || Date.now()) - 4000;
-
-                const adoptWhenQuiet = () => {
-                    if (state.ending || transport !== state.pendingTransport) {
-                        // Remplacée ou séance finie : cette connexion ne servira jamais.
-                        if (transport !== state.transport) {
-                            transport.close();
-                        }
-
-                        return;
-                    }
-
-                    if (!isQuiet() && Date.now() < deadline && state.transport?.isOpen) {
-                        setTimeout(adoptWhenQuiet, 250);
-
-                        return;
-                    }
-
-                    state.pendingTransport = null;
-                    handlers.adopt();
-                };
-
-                state.pendingTransport = transport;
-                adoptWhenQuiet();
-
-                return;
-            }
-
-            handlers.adopt();
-        },
-
-        adopt() {
-            logEvent('connected', `${transport.provider}${recovering ? ', reprise automatique' : (isResume ? (planned ? ', renouvellement' : ', reprise') : '')}`);
+            logEvent('connected', `${transport.provider}${isResume ? (planned ? ', renouvellement' : ', reprise') : ''}`);
             const previous = state.transport;
             state.transport = transport;
             state.connected = true;
@@ -1795,25 +1714,14 @@ function handlersFor(transport, { planned, isResume, switched = false, recoverin
 
             // Nouvel appel OpenAI après une coupure (OpenAI ne garde rien), ou séance reprise chez un autre
             // fournisseur : on lui redonne les derniers échanges.
-            // Reprise automatique comprise (nouvel appel OpenAI sans mémoire).
-            if (isResume && (!planned || recovering) && (transport.streamsAudio || switched) && state.history.trim() !== '') {
+            if (isResume && !planned && (transport.streamsAudio || switched) && state.history.trim() !== '') {
                 transport.sendContext('CONVERSATION SO FAR (context only, the connection was cut; do not greet again and do not repeat it):'
                     + `${state.history}\n${state.end.hasVerdict ? 'The result has ALREADY been saved: never call the function again.' : ''}`);
             }
 
-            state.readySince = Date.now();
-            // Reprise automatique (Teacher Joe ne répondait pas) : il reçoit l'indication de répondre ou de finir sa
-            // phrase, même après le verdict.
-            const recoveryCue = state.recoveryCue;
-            state.recoveryCue = null;
-
-            if (recoveryCue && !state.paused) {
-                sendText(recoveryCue);
-                state.awaitingSince = Date.now();
-                renderTurn();
-            } else if (!planned && !(isResume && state.paused)) {
-                // Un seul accueil : à la première connexion. En pause, la reprise
-                // de la pause suffira (inutile de faire parler le professeur).
+            // Un seul accueil : à la première connexion. En pause, la reprise
+            // de la pause suffira (inutile de faire parler le professeur).
+            if (!planned && !(isResume && state.paused)) {
                 cue(isResume ? resumeCue('resume') : state.config.cues.start);
                 // Accueil ou reprise demandés : micro fermé jusqu'à sa première parole (un bruit l'interrompait).
                 if (state.audio) {
@@ -1831,7 +1739,6 @@ function handlersFor(transport, { planned, isResume, switched = false, recoverin
         onAudio(base64) {
             if (current()) {
                 state.spoke = true;
-                state.stalledSince = 0;
                 playAudio(base64);
             }
         },
@@ -2015,22 +1922,11 @@ function handlersFor(transport, { planned, isResume, switched = false, recoverin
 
         onGoAway() {
             if (current()) {
-                // Fin de connexion annoncée par Google : la nouvelle attend un moment calme quelques secondes au plus.
-                state.tokenExpiresAt = Math.min(state.tokenExpiresAt, Date.now() + 12000);
                 renew();
             }
         },
 
         onClose(info) {
-            // L'ancienne connexion se ferme alors qu'une nouvelle attendait un moment calme : celle-ci prend le relais.
-            if (current() && state.pendingTransport && state.pendingTransport !== transport) {
-                const next = state.pendingTransport;
-                state.pendingTransport = null;
-                next.handlers.adopt();
-
-                return;
-            }
-
             if (current()) {
                 onClose(info);
 
@@ -2061,8 +1957,6 @@ function handlersFor(transport, { planned, isResume, switched = false, recoverin
             onClose(info);
         },
     };
-
-    return handlers;
 }
 
 function sendText(text) {
@@ -2093,66 +1987,14 @@ function scheduleRenewal() {
     clearTimeout(state.renewal);
     // Recalculé aussi après le verdict : la fin autorisée a bougé (moment des questions).
     const left = (state.tokenExpiresAt - Date.now()) / 1000;
-    // Assez tôt pour que la nouvelle connexion soit prête et attende un moment calme (voir onReady).
-    const lead = audioConfig.renew_lead_seconds ?? 60;
 
     if (remainingSeconds() > left + 5) {
-        state.renewal = setTimeout(() => renew(), Math.max(5, left - lead) * 1000);
-    }
-}
-
-/**
- * Moment calme pour changer de connexion : Teacher Joe ne parle pas et ne prépare pas de réponse, l'apprenant ne
- * parle pas et n'attend pas de réponse.
- */
-function isQuiet() {
-    const context = state.audio?.context;
-    const scheduler = state.audio?.scheduler;
-
-    return quietMoment({
-        teacherSpeaking: Boolean(state.teacherSounding || (context && scheduler && context.currentTime < scheduler.endTime + 0.3)),
-        responding: Boolean(state.voicePending || state.generating || state.awaitingSince),
-        learnerSpeaking: Boolean(state.turns.turn?.micActive),
-        awaitingAnswer: state.turns.waitingSince() !== null,
-    });
-}
-
-/**
- * Teacher Joe ne répond pas : relance, puis nouvelle connexion, puis l'autre fournisseur ; tout est invisible pour
- * l'apprenant (il voit seulement « Un instant… »). Le bouton « Relancer » reste le dernier recours.
- */
-function recoverAnswer(step) {
-    const cues = state.config?.cues ?? {};
-    const cueText = state.stalledSince ? (cues.stalled ?? cues.resume) : cues.nudge;
-
-    if (step === 'nudge') {
-        logEvent('auto_nudge', 'aucune réponse');
-        sendText(cues.nudge);
-
-        return;
-    }
-
-    if (step === 'reconnect' && !state.reconnecting) {
-        logEvent('auto_reconnect', state.stalledSince ? 'réponse coupée' : 'aucune réponse');
-        state.recoveryCue = cueText;
-        state.reconnecting = true;
-        connect({ planned: true, recovering: true }).finally(() => { state.reconnecting = false; });
-
-        return;
-    }
-
-    if (step === 'switch' && !state.unresponsiveSwitched && !state.reconnecting && state.transport) {
-        state.unresponsiveSwitched = true;
-        logEvent('switch', `${state.transport.provider} ne répond pas`);
-        state.recoveryCue = cueText;
-        state.reconnecting = true;
-        connect({ unresponsive: state.transport.provider }).finally(() => { state.reconnecting = false; });
+        state.renewal = setTimeout(() => renew(), Math.max(5, left - 15) * 1000);
     }
 }
 
 function renew() {
-    // Une nouvelle connexion attend déjà un moment calme : elle prendra le relais.
-    if (state.ending || state.reconnecting || state.pendingTransport) {
+    if (state.ending || state.reconnecting) {
         return;
     }
 
@@ -2393,18 +2235,12 @@ function onClose(event) {
 
     stopPlayback();
 
-    // Connexion restée longtemps sans coupure : les reconnexions automatiques repartent de zéro.
-    if (state.readySince && Date.now() - state.readySince > RECONNECT_RESET_MS) {
-        state.autoReconnects = 0;
-    }
-
     if (state.autoReconnects < MAX_AUTO_RECONNECTS) {
-        const delay = RECONNECT_DELAYS[state.autoReconnects];
         state.autoReconnects++;
         state.turns.reset();
         logEvent('reconnect', 'automatique');
         setStatus(MESSAGES.reconnecting ?? 'Reconnexion…');
-        setTimeout(() => connect(), delay);
+        setTimeout(() => connect(), 1500);
 
         return;
     }
@@ -2691,8 +2527,6 @@ async function finish(reason, message = '') {
     clearTimeout(state.renewal);
 
     state.transport?.close();
-    state.pendingTransport?.close();
-    state.pendingTransport = null;
 
     stopPlayback();
     teacher?.expression('goodbye');

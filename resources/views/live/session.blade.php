@@ -13,11 +13,6 @@
         'voice_stuck_seconds' => (float) config('platform.live.voice_stuck_seconds'),
         'voice_gap_hold_seconds' => (float) config('platform.live.voice_gap_hold_seconds'),
         'greeting_wait_seconds' => (float) config('platform.live.greeting_wait_seconds'),
-        'auto_nudge_seconds' => (float) config('platform.live.auto_nudge_seconds'),
-        'auto_reconnect_seconds' => (float) config('platform.live.auto_reconnect_seconds'),
-        'auto_switch_seconds' => (float) config('platform.live.auto_switch_seconds'),
-        'answer_stall_seconds' => (float) config('platform.live.answer_stall_seconds'),
-        'renew_lead_seconds' => (float) config('platform.live.renew_lead_seconds'),
         'messages' => array_map(fn ($text) => strtr($text, [':teacher' => config('avatar.model.name'), ':rule' => config('platform.live.disconnect_rule')]), config('platform.live.messages')),
     ];
 

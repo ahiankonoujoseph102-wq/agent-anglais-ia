@@ -37,7 +37,7 @@ class VoiceConversationTest extends TestCase
                     'startOfSpeechSensitivity' => 'START_SENSITIVITY_LOW',
                     'endOfSpeechSensitivity' => 'END_SENSITIVITY_HIGH',
                     'prefixPaddingMs' => 300,
-                    'silenceDurationMs' => 700,
+                    'silenceDurationMs' => 800,
                 ],
                 'activityHandling' => 'START_OF_ACTIVITY_INTERRUPTS',
             ];
@@ -52,7 +52,7 @@ class VoiceConversationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('echo_guard_ms', 450)
             ->assertJsonPath('pause_max_seconds', 90)
-            ->assertJsonPath('setup.realtimeInputConfig.automaticActivityDetection.silenceDurationMs', 700);
+            ->assertJsonPath('setup.realtimeInputConfig.automaticActivityDetection.silenceDurationMs', 800);
 
         $this->assertStringContainsString('Do not greet them again', $response->json('cues.pause_resume'));
         $this->assertStringContainsString('Do not greet the learner again', $response->json('cues.resume'));
@@ -88,7 +88,7 @@ class VoiceConversationTest extends TestCase
         $this->assertStringContainsString('id="mic-select"', $html);
         $this->assertStringContainsString('Nous ne vous entendons pas. Vérifiez votre micro. Si des écouteurs ou une enceinte Bluetooth sont connectés, portez-les ou déconnectez-les.', $html);
         $this->assertStringContainsString('js/mic-input.js', $html);
-        $this->assertStringContainsString("data-audio='{\"echo_cancellation\":false,\"echo_cancellation_android\":false,\"voice_gain\":2.5,\"silent_mic_seconds\":8,\"end_of_turn_seconds\":1.5,\"instant_seconds\":2,\"no_answer_seconds\":8,\"stuck_seconds\":20,\"voice_stuck_seconds\":4,\"voice_gap_hold_seconds\":3,\"greeting_wait_seconds\":5,\"auto_nudge_seconds\":6,\"auto_reconnect_seconds\":8,\"auto_switch_seconds\":10,\"answer_stall_seconds\":6,\"renew_lead_seconds\":60,\"messages\":{", $html);
+        $this->assertStringContainsString("data-audio='{\"echo_cancellation\":false,\"echo_cancellation_android\":false,\"voice_gain\":2.5,\"silent_mic_seconds\":8,\"end_of_turn_seconds\":2,\"instant_seconds\":2,\"no_answer_seconds\":8,\"stuck_seconds\":20,\"voice_stuck_seconds\":4,\"voice_gap_hold_seconds\":3,\"greeting_wait_seconds\":5,\"messages\":{", $html);
     }
 
     public function test_voice_gain_and_echo_cancellation_defaults(): void
