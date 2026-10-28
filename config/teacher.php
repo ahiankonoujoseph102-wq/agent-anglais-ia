@@ -479,6 +479,8 @@ TXT,
         'level_test_start' => '[System] The learner is connected and ready. Start the end-of-level test now.',
         // Bouton « Relancer Teacher Joe » : l'apprenant a fini de parler et n'a reçu aucune réponse.
         'nudge' => '[System] The learner has finished speaking and has been waiting for your answer. Answer now what they just said, briefly, following your instructions, then wait for the learner.',
+        // Réponse coupée en plein milieu par la connexion (reprise automatique) : il finit sa phrase.
+        'stalled' => '[System] Your last answer was cut off by a connection problem. Do not greet again and do not start over: finish what you were saying in one short sentence, then wait for the learner.',
         'level_test_warning' => '[System] About :remaining minute(s) remain. Stop the test, call record_level_test_result now, then announce the result and say goodbye.',
     ],
 

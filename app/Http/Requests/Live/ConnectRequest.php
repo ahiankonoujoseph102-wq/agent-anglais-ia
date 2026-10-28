@@ -16,12 +16,19 @@ class ConnectRequest extends FormRequest
             'handle' => ['nullable', 'string', 'max:2048'],
             // Fournisseur auquel le navigateur n'a pas pu se connecter avant la première parole.
             'failed' => ['nullable', 'string', 'in:gemini,openai'],
+            // Fournisseur qui ne répond plus en cours de séance, malgré une relance et une nouvelle connexion.
+            'unresponsive' => ['nullable', 'string', 'in:gemini,openai'],
         ];
     }
 
     public function failedProvider(): ?string
     {
         return $this->validated('failed');
+    }
+
+    public function unresponsiveProvider(): ?string
+    {
+        return $this->validated('unresponsive');
     }
 
     public function handle(): ?string

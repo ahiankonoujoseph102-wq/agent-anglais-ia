@@ -161,7 +161,7 @@ class CourseSessionController extends Controller
             WorkingTogether::courseNumber($user, $session));
 
         try {
-            $token = $live->request($setup, $deadline, $session, $request->failedProvider());
+            $token = $live->request($setup, $deadline, $session, $request->failedProvider(), $request->unresponsiveProvider());
         } catch (GeminiUnavailable $e) {
             report($e);
 

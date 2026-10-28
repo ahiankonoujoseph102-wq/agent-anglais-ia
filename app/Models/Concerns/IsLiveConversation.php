@@ -268,6 +268,20 @@ trait IsLiveConversation
      */
     public function canConnectAgain(): bool
     {
-        return $this->connections < (int) config('services.gemini.max_connections');
+        return $this->connections < $this->maxConnections();
+    }
+
+    /**
+     * Connexions permises : au moins services.gemini.max_connections ; une longue séance reçoit en plus un
+     * renouvellement prévu par jeton (jetons de token_minutes, renouvelés une minute avant) et une marge de quatre
+     * coupures. Avant le 28 octobre 2026 : 8 pour toutes, et une séance Intensif de 30 minutes en consommait déjà 7 sans
+     * aucune coupure (« Trop de reconnexions »).
+     */
+    public function maxConnections(): int
+    {
+        $tokenSeconds = max(120, (int) config('services.gemini.token_minutes') * 60 - (int) config('platform.live.renew_lead_seconds', 60));
+        $planned = (int) ceil(max(0, (int) $this->allowed_seconds) / $tokenSeconds);
+
+        return max((int) config('services.gemini.max_connections'), $planned + 6);
     }
 }

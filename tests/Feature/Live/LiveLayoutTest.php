@@ -46,7 +46,7 @@ class LiveLayoutTest extends TestCase
         // Délais du navigateur (config/platform.php → live) : fin de tour, « Un instant… », connexion lente, relance.
         preg_match("/data-audio='([^']*)'/", $html, $match);
         $audio = json_decode(html_entity_decode($match[1]), true);
-        $this->assertSame([2, 2, 8, 20, 4], [$audio['end_of_turn_seconds'], $audio['instant_seconds'], $audio['no_answer_seconds'], $audio['stuck_seconds'], $audio['voice_stuck_seconds']]);
+        $this->assertSame([1.5, 2, 8, 20, 4], [$audio['end_of_turn_seconds'], $audio['instant_seconds'], $audio['no_answer_seconds'], $audio['stuck_seconds'], $audio['voice_stuck_seconds']]);
         $this->assertSame('Un instant…', $audio['messages']['instant']);
         $this->assertSame('La connexion est un peu lente, Teacher Joe arrive…', $audio['messages']['slow']);
         $this->assertSame('Teacher Joe ne répond pas. Touchez « Relancer Teacher Joe » pour reprendre.', $audio['messages']['stuck']);

@@ -80,7 +80,7 @@ class LevelTestController extends Controller
         $setup = TeacherSetup::levelTest($user, $program->level, (int) ceil($allowedSeconds / 60), $request->handle());
 
         try {
-            $token = $live->request($setup, $deadline, $test, $request->failedProvider());
+            $token = $live->request($setup, $deadline, $test, $request->failedProvider(), $request->unresponsiveProvider());
         } catch (GeminiUnavailable $e) {
             report($e);
 

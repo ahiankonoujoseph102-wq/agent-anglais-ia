@@ -145,6 +145,68 @@
     </div>
     <p class="muted small">Mesuré dans le navigateur de l'élève, de la fin de sa parole au premier son de la réponse, sur les 7 derniers jours. Objectif : moins de 2 secondes.</p>
 
+    {{-- Rapidité jour par jour (App\Support\Live\Responsiveness) : voir si un réglage améliore vraiment les choses. --}}
+    @php
+        $seconds = fn (?int $ms) => $ms === null ? '—' : \App\Support\Live\Transcripts::seconds($ms);
+        $slowLimit = \App\Support\Live\Transcripts::seconds(\App\Support\Live\Responsiveness::slowMs());
+    @endphp
+    <h2 class="next-step" id="rapidite">Rapidité de {{ config('avatar.model.name') }}, jour par jour</h2>
+    @if ($responsiveness === [])
+        <div class="card empty-state"><p>Aucune réponse mesurée ces 14 derniers jours.</p></div>
+    @else
+        <table class="table" data-responsiveness>
+            <thead>
+                <tr>
+                    <th scope="col">Jour</th>
+                    <th scope="col">Réponses</th>
+                    <th scope="col">Moyenne</th>
+                    <th scope="col">Médiane</th>
+                    <th scope="col">9 sur 10 en</th>
+                    <th scope="col">La plus lente</th>
+                    <th scope="col">Plus de {{ $slowLimit }}</th>
+                    <th scope="col">Incidents</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($responsiveness as $row)
+                    <tr>
+                        <th scope="row">{{ \Illuminate\Support\Carbon::parse($row['day'])->translatedFormat('D j M') }}</th>
+                        <td>{{ $row['count'] }}</td>
+                        <td>{{ $seconds($row['average']) }}</td>
+                        <td>{{ $seconds($row['median']) }}</td>
+                        <td>{{ $seconds($row['p90']) }}</td>
+                        <td @class(['chat-delay-slow' => $row['worst'] !== null && $row['worst'] > \App\Support\Live\Responsiveness::slowMs()])>{{ $seconds($row['worst']) }}</td>
+                        <td>{{ $row['slow'] }}@if ($row['count'] > 0) ({{ round(100 * $row['slow'] / $row['count']) }} %)@endif</td>
+                        <td class="small">
+                            @php $incidents = array_filter($row['events']); @endphp
+                            @forelse ($incidents as $kind => $count)
+                                {{ \App\Models\ConversationEvent::KINDS[$kind] ?? $kind }} : {{ $count }}@if (! $loop->last)<br>@endif
+                            @empty
+                                aucun
+                            @endforelse
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+    <div class="stats">
+        @foreach ($responsivenessByType as $type => $stat)
+            <div class="stat" data-responsiveness-type="{{ $type }}">
+                <div class="label">{{ \App\Support\Live\Transcripts::label($type) }}</div>
+                <div class="value">{{ $seconds($stat['average']) }}</div>
+                <div class="detail">
+                    @if ($stat['count'] > 0)
+                        en moyenne · 9 sur 10 en {{ $seconds($stat['p90']) }} au plus · la plus lente {{ $seconds($stat['worst']) }} · {{ $stat['count'] }} {{ $stat['count'] > 1 ? 'réponses' : 'réponse' }}
+                    @else
+                        aucune réponse mesurée ces 7 derniers jours
+                    @endif
+                </div>
+            </div>
+        @endforeach
+    </div>
+    <p class="muted small">Heure de Lomé. « Incidents » : coupures et reconnexions, erreurs du fournisseur, attentes sans réponse, relances et nouvelles connexions automatiques, passages chez l'autre fournisseur. Les séances d'avant la mise à jour n'ont pas toutes ces mesures.</p>
+
     {{-- Export anonymisé des conversations (App\Support\Live\TranscriptExport) : pour analyser et améliorer Teacher Joe. --}}
     <h2 class="next-step" id="export-conversations">Améliorer {{ config('avatar.model.name') }} : export anonymisé</h2>
     <div class="card">
