@@ -2,7 +2,7 @@
 // enregistreur du texte (transcript.js : heure réelle, mesures, événements). Lancé par tests/Feature/JavaScriptTest.php.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { VoiceActivity, TurnWatch, AnswerRecovery, quietMoment, learnerMetrics, teacherMetrics } from '../../public/js/turn-watch.js';
+import { VoiceActivity, TurnWatch, learnerMetrics, teacherMetrics } from '../../public/js/turn-watch.js';
 import { voiceLooksOver } from '../../public/js/mic-gate.js';
 import { TranscriptRecorder } from '../../public/js/transcript.js';
 
@@ -202,60 +202,4 @@ test('les événements partent par lots, reviennent après un échec, et passent
         ['lines[0][metrics][delay_ms]', '1400'],
         ['events[0][kind]', 'pause'], ['events[0][detail]', ''], ['events[0][at]', '3000'],
     ]);
-});
-
-test('reprise automatique : relance, puis nouvelle connexion, puis l\'autre fournisseur, une fois chacune', () => {
-    const recovery = new AnswerRecovery({ nudgeMs: 6000, reconnectMs: 8000, switchMs: 10000 });
-    const end = 1000;
-
-    assert.equal(recovery.next(end + 5000, end), null);
-    assert.equal(recovery.next(end + 6000, end), 'nudge');
-    assert.equal(recovery.next(end + 6100, end), null);
-    assert.equal(recovery.next(end + 14000, end), 'reconnect');
-    assert.equal(recovery.next(end + 23000, end), null);
-    assert.equal(recovery.next(end + 24000, end), 'switch');
-    // Plus rien ensuite : le bouton « Relancer » reste le dernier recours.
-    assert.equal(recovery.next(end + 60000, end), null);
-
-    // Sa voix arrive : tout repart de zéro.
-    assert.equal(recovery.next(end + 61000, null), null);
-    assert.equal(recovery.next(100000 + 6000, 100000), 'nudge');
-});
-
-test('réponse coupée en plein milieu : nouvelle connexion tout de suite', () => {
-    const recovery = new AnswerRecovery({ nudgeMs: 6000, reconnectMs: 8000, switchMs: 10000 });
-
-    recovery.stalled(5000);
-    assert.equal(recovery.next(5000, 5000), 'reconnect');
-    assert.equal(recovery.next(15000, 5000), 'switch');
-});
-
-test('attente d\'une réponse : après une vraie parole, même un « Yes » court, jamais un claquement', () => {
-    const watch = new TurnWatch({ minSpeechMs: 600 });
-
-    watch.micVoice(true, 1000);
-    watch.micVoice(false, 1100);
-    assert.equal(watch.waitingSince(), null, 'un claquement de 0,1 seconde');
-
-    const yes = new TurnWatch({ minSpeechMs: 600 });
-    yes.micVoice(true, 1500);
-    yes.micVoice(false, 1900);
-    assert.equal(yes.waitingSince(), 1900, 'un « Yes » de 0,4 seconde');
-
-    watch.micVoice(true, 2000);
-    assert.equal(watch.waitingSince(), null, 'il parle encore');
-    watch.micVoice(false, 3500);
-    assert.equal(watch.waitingSince(), 3500);
-
-    watch.teacherSound(5000);
-    assert.equal(watch.waitingSince(), null);
-});
-
-test('moment calme pour changer de connexion', () => {
-    const calm = { teacherSpeaking: false, responding: false, learnerSpeaking: false, awaitingAnswer: false };
-
-    assert.equal(quietMoment(calm), true);
-    for (const key of Object.keys(calm)) {
-        assert.equal(quietMoment({ ...calm, [key]: true }), false, key);
-    }
 });

@@ -90,8 +90,8 @@ class AmbassadorFinishTest extends TestCase
             $this->assertStringContainsString('25 % du PREMIER paiement', $guide);
             $this->assertStringContainsString('dans les 60 jours', $guide);
             $this->assertStringContainsString('gardé 45 jours', $guide);
-            $this->assertStringContainsString('4 mois au plus', $guide);
-            $this->assertStringContainsString('un seul niveau', $guide);
+            $this->assertStringContainsString('jusqu\'à 4 mois', $guide);
+            $this->assertStringContainsString('Un seul niveau', $guide);
             $this->assertStringContainsString('le code tapé à l\'inscription passe avant tout', $guide);
             $this->assertStringContainsString('Ne promets JAMAIS un revenu', $guide);
             $this->assertDoesNotMatchRegularExpression('/:ambassador_[a-z_]+/', $guide);
