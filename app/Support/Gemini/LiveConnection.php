@@ -31,9 +31,22 @@ class LiveConnection
     public function __construct(private LiveClient $client) {}
 
     /**
-     * Durée de validité du prochain jeton : jamais au-delà de la fin autorisée.
+     * Validité RÉELLE du jeton Gemini : toute la séance (la fin autorisée, plus ce que la séance peut encore gagner,
+     * l'évaluation avant son verdict : la mini-leçon et les questions), plus une petite marge. Aucun renouvellement
+     * prévu en pleine conversation (incident du 28 octobre 2026 : jeton de 5 minutes expiré pendant une réponse,
+     * « auth token has expired ») ; seule la fermeture annoncée par Google (goAway, environ 10 minutes) en demande un.
      */
-    public static function tokenExpiry(Carbon $deadline): Carbon
+    public static function tokenExpiry(Carbon $deadline, int $mayExtendBy = 0): Carbon
+    {
+        return $deadline->copy()->addSeconds(max(0, $mayExtendBy) + (int) config('services.gemini.token_margin_seconds'));
+    }
+
+    /**
+     * Expiration notée sur la séance pour le décompte d'un navigateur disparu (closeIfOver) : courte, comme avant
+     * (token_minutes, jamais au-delà de la fin autorisée), pour qu'un élève dont le téléphone s'éteint ne perde pas
+     * toute sa séance.
+     */
+    public static function accountingExpiry(Carbon $deadline): Carbon
     {
         return now()->addMinutes((int) config('services.gemini.token_minutes'))->min($deadline);
     }
@@ -43,11 +56,12 @@ class LiveConnection
      *
      * @param  array<string, mixed>  $setup
      * @param  string|null  $failed  fournisseur auquel le navigateur n'a pas pu se connecter (aucune parole échangée)
-     * @return array{provider: string, expires_at: Carbon, token?: string, websocket_url?: string}
+     * @param  int  $mayExtendBy  secondes que la séance peut encore gagner (évaluation avant son verdict)
+     * @return array{provider: string, expires_at: Carbon, valid_until?: Carbon, token?: string, websocket_url?: string}
      *
      * @throws LiveUnavailable
      */
-    public function request(array $setup, Carbon $deadline, Assessment|CourseSession|Lesson|LevelTest|null $conversation = null, ?string $failed = null): array
+    public function request(array $setup, Carbon $deadline, Assessment|CourseSession|Lesson|LevelTest|null $conversation = null, ?string $failed = null, int $mayExtendBy = 0): array
     {
         $current = $conversation?->liveProvider();
 
@@ -82,7 +96,7 @@ class LiveConnection
                     $setup['sessionResumption'] = (object) [];
                 }
 
-                return $this->open($provider, $setup, $deadline);
+                return $this->open($provider, $setup, $deadline, $mayExtendBy);
             } catch (GeminiUnavailable $e) {
                 LiveLog::failure($provider, 'Création du jeton', $e->getMessage(), $e->httpStatus, $e->quotaExceeded);
 
@@ -103,11 +117,11 @@ class LiveConnection
 
     /**
      * @param  array<string, mixed>  $setup
-     * @return array{provider: string, expires_at: Carbon, token?: string, websocket_url?: string}
+     * @return array{provider: string, expires_at: Carbon, valid_until?: Carbon, token?: string, websocket_url?: string}
      *
      * @throws GeminiUnavailable
      */
-    private function open(string $provider, array $setup, Carbon $deadline): array
+    private function open(string $provider, array $setup, Carbon $deadline, int $mayExtendBy = 0): array
     {
         if (! LiveProviders::hasKey($provider)) {
             throw new LiveUnavailable('Clé absente.', provider: $provider);
@@ -122,9 +136,10 @@ class LiveConnection
             ];
         }
 
-        $expiresAt = self::tokenExpiry($deadline);
+        $validUntil = self::tokenExpiry($deadline, $mayExtendBy);
 
-        return ['provider' => LiveProviders::GEMINI] + $this->client->createToken($setup, $expiresAt) + ['expires_at' => $expiresAt];
+        return ['provider' => LiveProviders::GEMINI] + $this->client->createToken($setup, $validUntil)
+            + ['expires_at' => self::accountingExpiry($deadline), 'valid_until' => $validUntil];
     }
 
     /**
@@ -139,7 +154,7 @@ class LiveConnection
     /**
      * Note le fournisseur et le jeton délivré sur la conversation et construit la réponse JSON.
      *
-     * @param  array{provider: string, expires_at: Carbon, token?: string, websocket_url?: string}  $token
+     * @param  array{provider: string, expires_at: Carbon, valid_until?: Carbon, token?: string, websocket_url?: string}  $token
      * @param  array<string, mixed>  $setup
      * @param  array<string, string>  $cues
      * @return array<string, mixed>
@@ -164,7 +179,7 @@ class LiveConnection
             : [
                 'websocket_url' => $token['websocket_url'],
                 'setup' => $setup,
-                'token_expires_in' => max(0, (int) now()->diffInSeconds($token['expires_at'], false)),
+                'token_expires_in' => max(0, (int) now()->diffInSeconds($token['valid_until'] ?? $token['expires_at'], false)),
             ];
 
         return ['provider' => $provider] + $connection + [

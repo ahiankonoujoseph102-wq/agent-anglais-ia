@@ -56,8 +56,8 @@ class CourseSessionTest extends TestCase
         $this->actingAs($user)->postJson(route('courses.connect', $lesson))
             ->assertOk()
             ->assertJsonPath('remaining_seconds', 600)
-            // Un jeton dure au plus 5 minutes : le navigateur en redemande un.
-            ->assertJsonPath('token_expires_in', 300)
+            // Le jeton vaut pour toute la séance (10 minutes) et une marge d'une minute.
+            ->assertJsonPath('token_expires_in', 600 + 60)
             ->assertJsonPath('warning_seconds', 90)
             ->assertJsonPath('resumed', false)
             ->assertJsonPath('cues.start', fn (string $cue) => str_contains($cue, 'at most 10 minutes') && str_contains($cue, 'understand the whole lesson, ask a precise question, or work on an exercise'))
@@ -71,7 +71,7 @@ class CourseSessionTest extends TestCase
             $setup = $request['bidiGenerateContentSetup'];
             $text = $setup['systemInstruction']['parts'][0]['text'];
 
-            return $request['expireTime'] === now()->addMinutes(5)->utc()->toIso8601ZuluString()
+            return $request['expireTime'] === now()->addSeconds(600 + 60)->utc()->toIso8601ZuluString()
                 // Aucune fonction : pas de bilan, pas d'appel synchrone.
                 && ! array_key_exists('tools', $setup)
                 && str_contains($text, 'MY COURSES')
@@ -172,7 +172,7 @@ class CourseSessionTest extends TestCase
             ->assertOk()
             ->assertJsonPath('resumed', true)
             ->assertJsonPath('remaining_seconds', 120)
-            ->assertJsonPath('token_expires_in', 120);
+            ->assertJsonPath('token_expires_in', 120 + 60);
 
         $this->travel(3)->minutes();
         $this->actingAs($user)->postJson(route('courses.signal'))

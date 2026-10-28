@@ -4,6 +4,7 @@ namespace Tests\Feature\Live;
 
 use App\Enums\AssessmentStatus;
 use App\Enums\Level;
+use App\Models\Assessment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -34,7 +35,8 @@ class AssessmentTest extends TestCase
         $response = $this->actingAs($user)->postJson('/evaluation/connexion')
             ->assertOk()
             ->assertJsonPath('remaining_seconds', 300)
-            ->assertJsonPath('token_expires_in', 300)
+            // Jeton valable pour TOUTE l'évaluation : les 5 minutes, la mini-leçon et les questions (180), la marge (60).
+            ->assertJsonPath('token_expires_in', 300 + 180 + 60)
             ->assertJsonPath('resumed', false)
             ->assertJsonPath('setup.model', 'models/gemini-3.8-live');
 
@@ -50,8 +52,8 @@ class AssessmentTest extends TestCase
             return $request->url() === 'https://generativelanguage.googleapis.com/v1alpha/auth_tokens'
                 && $request->hasHeader('x-goog-api-key', 'cle-secrete-du-serveur')
                 && $request['uses'] === 1
-                // Le jeton expire à la limite de l'évaluation (5 min) : la coupure est imposée par Google.
-                && $request['expireTime'] === now()->addMinutes(5)->utc()->toIso8601ZuluString()
+                // Le jeton couvre toute l'évaluation (5 minutes, mini-leçon et questions, marge) : aucun renouvellement.
+                && $request['expireTime'] === now()->addSeconds(300 + 180 + 60)->utc()->toIso8601ZuluString()
                 && $request['newSessionExpireTime'] === now()->addMinute()->utc()->toIso8601ZuluString()
                 && $setup['model'] === 'models/gemini-3.8-live'
                 && $setup['generationConfig']['responseModalities'] === ['AUDIO']
@@ -74,7 +76,9 @@ class AssessmentTest extends TestCase
             ->assertOk()
             ->assertJsonPath('remaining_seconds', 180);
 
-        Http::assertSent(fn (Request $request) => $request['expireTime'] === now()->addMinutes(3)->utc()->toIso8601ZuluString());
+        Http::assertSent(fn (Request $request) => $request['expireTime'] === now()->addSeconds(180 + 180 + 60)->utc()->toIso8601ZuluString());
+        // Le décompte d'un navigateur disparu garde l'expiration d'avant (token_minutes, jamais après la limite).
+        $this->assertTrue(Assessment::first()->token_expires_at->equalTo(now()->addMinutes(3)));
     }
 
     public function test_reconnection_continues_the_same_assessment_without_extra_time(): void

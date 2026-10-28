@@ -214,9 +214,11 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('Off-topic: one kind sentence if harmless, then back to their English.', $text);
         $this->assertStringContainsString('no (more) question, or question number 3 answered: go to the conclusion at once', $text);
         // Conclusion : niveau, pourquoi l'anglais, comment s'abonner, promesse honnête, phrase fixe.
-        $this->assertStringContainsString('recall the level obtained', $text);
+        // Le niveau n'est jamais redit dans la conclusion (annoncé une seule fois).
+        $this->assertStringContainsString('WITHOUT repeating the level', $text);
+        $this->assertStringNotContainsString('recall the level', $text);
         $this->assertStringContainsString('studies, work, travel, international exchanges, the internet', $text);
-        $this->assertStringContainsString('« Les formules s\'affichent juste en dessous : il suffit de toucher le bouton orange. »', $text);
+        $this->assertStringContainsString('« À la fin de notre échange, les formules s\'afficheront sous votre résultat : il suffira de toucher le bouton orange. »', $text);
         $this->assertStringContainsString('never a guaranteed result', $text);
         $this->assertStringContainsString('« Je serai avec vous chaque jour, je corrigerai vos erreurs et vous gagnerez en assurance. »', $text);
         $this->assertStringContainsString('end with this exact sentence, word for word: « On se retrouve de l\'autre côté ! »', $text);

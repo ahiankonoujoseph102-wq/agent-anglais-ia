@@ -193,7 +193,8 @@ class TeacherRehearsalTest extends TestCase
         $scenarios = TeacherRehearsal::scenarios();
         $keys = ['nouvelle-evaluation-accueil', 'nouvelle-evaluation-comment-ca-va', 'nouvelle-evaluation-hesitation',
             'nouvelle-evaluation-bloque-encore', 'nouvelle-evaluation-reponse-en-francais', 'nouvelle-evaluation-traduction',
-            'nouvelle-evaluation-vrai-niveau'];
+            'nouvelle-evaluation-vrai-niveau', 'nouvelle-evaluation-debut-de-phrase', 'nouvelle-evaluation-reponse-fausse',
+            'nouvelle-evaluation-question-formules', 'nouvelle-evaluation-conclusion'];
 
         foreach ($keys as $key) {
             $this->assertTrue($scenarios[$key]['new_assessment'] ?? false, $key);

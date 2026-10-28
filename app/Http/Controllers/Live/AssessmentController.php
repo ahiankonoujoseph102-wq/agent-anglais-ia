@@ -154,7 +154,9 @@ class AssessmentController extends Controller
         $setup = TeacherSetup::assessment($user, (int) config('platform.assessment.max_minutes'), $request->handle());
 
         try {
-            $token = $live->request($setup, $deadline, $assessment, $request->failedProvider());
+            // Avant le verdict, le jeton couvre aussi la mini-leçon et les questions : aucun renouvellement en route.
+            $token = $live->request($setup, $deadline, $assessment, $request->failedProvider(),
+                $assessment?->level === null ? Assessment::afterVerdictSeconds() : 0);
         } catch (GeminiUnavailable $e) {
             report($e);
 

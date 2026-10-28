@@ -1,7 +1,7 @@
 // Porte du micro (public/js/mic-gate.js). Lancé par tests/Feature/JavaScriptTest.php (node --test).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MicGate, voiceEndsAt } from '../../public/js/mic-gate.js';
+import { MicGate, voiceEndsAt, sendsTurnSilence } from '../../public/js/mic-gate.js';
 
 const DELAY = 0.08;
 const GUARD = 0.4;
@@ -100,4 +100,27 @@ test('Gemini : la porte reste fermée pendant un trou du son tant que la répons
     // Accueil demandé, pas encore de voix : fermée jusqu'au premier son ou jusqu'à la limite.
     assert.ok(heldVoiceEnd({ scheduledEnd: 0, now: 1, expectingUntil: 5 }) > 1);
     assert.equal(heldVoiceEnd({ scheduledEnd: 0, now: 6, expectingUntil: 5 }), 0);
+});
+
+test('fin de tour signalée par le navigateur : vrai silence envoyé à Gemini pendant 3 secondes, puis plus rien', () => {
+    // Aucun signal : rien à envoyer à la place du micro.
+    assert.equal(sendsTurnSilence({ now: 10_000, forcedAt: null, seconds: 3 }), false);
+    // Juste après le signal, et jusqu'à 3 secondes : des zéros, que la détection de Google voit comme la fin de la parole.
+    assert.equal(sendsTurnSilence({ now: 10_000, forcedAt: 10_000, seconds: 3 }), true);
+    assert.equal(sendsTurnSilence({ now: 12_900, forcedAt: 10_000, seconds: 3 }), true);
+    // Ensuite : audioStreamEnd (la porte du micro reprend la main).
+    assert.equal(sendsTurnSilence({ now: 13_000, forcedAt: 10_000, seconds: 3 }), false);
+});
+
+test('la fin de tour de Gemini envoie des zéros au lieu de fermer le flux (live-session.js)', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const session = await readFile(new URL('../../public/js/live-session.js', import.meta.url), 'utf8');
+    const send = session.slice(session.indexOf('function sendAudio('), session.indexOf('function noteGate('));
+
+    assert.match(send, /sendsTurnSilence\(/);
+    assert.match(send, /transport\.sendAudio\(new ArrayBuffer\(buffer\.byteLength\)\)/);
+    // Aucune indication ni relance n'est envoyée au professeur pendant ce temps.
+    assert.doesNotMatch(send, /cue\(|sendText\(/);
+    // La voix de l'apprenant n'est mesurée ni pendant la voix du professeur, ni juste après (écho).
+    assert.match(session, /state\.end\.micOpen && !teacherAudible\(\)/);
 });

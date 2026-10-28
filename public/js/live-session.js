@@ -26,7 +26,7 @@
 
 const root = document.getElementById('live');
 // Porte du micro (URL versionnée par la page, comme les autres fichiers).
-const { MicGate, voiceEndsAt, voiceLooksOver, heldVoiceEnd } = await import(root.dataset.micGate);
+const { MicGate, voiceEndsAt, voiceLooksOver, heldVoiceEnd, sendsTurnSilence } = await import(root.dataset.micGate);
 // Jetons consommés, répartis par nature (texte, audio, cache), pour une estimation juste du coût.
 const { TokenTally, geminiUsage, openAiUsage } = await import(root.dataset.tokenUsage);
 // Lecture propre de la voix (décodage, programmation bout à bout, rééchantillonnage continu).
@@ -1241,6 +1241,20 @@ function teacherSpeaking() {
 }
 
 /**
+ * Vrai pendant la voix du professeur et le court moment qui la suit (echo_guard_ms) : sa voix peut encore revenir
+ * par le haut-parleur.
+ */
+function teacherAudible() {
+    if (state.audio === null) {
+        return false;
+    }
+
+    const now = state.audio.context.currentTime;
+
+    return state.gate ? !state.gate.isOpen(now, voiceEnd(), false) : now < voiceEnd();
+}
+
+/**
  * Chaque paquet du micro passe par la porte : envoyé seulement micro ouvert
  * (ni voix du professeur, ni echo_guard_ms après, ni pause, ni micro coupé).
  * Micro fermé plus d'une seconde (tout de suite en pause ou micro coupé) :
@@ -1256,6 +1270,20 @@ function sendAudio(buffer) {
     // Après le verdict, micro fermé, sauf pendant les questions libres de l'évaluation (jusqu'à la conclusion).
     // Fin de tour signalée par le navigateur : micro fermé tant que l'apprenant ne reparle pas.
     const endingTurn = state.turns.endingTurn;
+
+    // Gemini : la fin de tour signalée par le navigateur part en vrai silence (mic-gate.js, sendsTurnSilence), puis
+    // audioStreamEnd. Rien d'autre n'est envoyé au professeur : aucune indication, aucune relance.
+    if (endingTurn && !transport.streamsAudio && !state.paused && !state.muted && state.end.micOpen
+        && sendsTurnSilence({ now: Date.now(), forcedAt: state.turns.turn?.forcedAt ?? null, seconds: audioConfig.end_of_turn_silence_seconds ?? 3 })) {
+        noteGate(false, true);
+
+        if (buffer) {
+            transport.sendAudio(new ArrayBuffer(buffer.byteLength));
+        }
+
+        return;
+    }
+
     const action = state.gate.decide(state.audio.context.currentTime, voiceEnd(), state.paused || state.muted || !state.end.micOpen || endingTurn);
     noteGate(action === 'send', endingTurn);
 
@@ -1499,7 +1527,9 @@ function updateMicMeter() {
  */
 function trackLearnerVoice(level) {
     const now = Date.now();
-    const canSpeak = state.connected && !state.ending && !state.paused && !state.muted && state.end.micOpen && !teacherSpeaking();
+    // Ni pendant sa voix, ni juste après (echo_guard_ms, comme la porte du micro) : la fin de sa voix qui revient
+    // par le haut-parleur n'est jamais prise pour une parole de l'apprenant (fin de tour signalée à tort).
+    const canSpeak = state.connected && !state.ending && !state.paused && !state.muted && state.end.micOpen && !teacherAudible();
     const change = canSpeak ? state.vad.update(now, level) : state.vad.reset(now);
 
     if (!change) {
@@ -2006,7 +2036,7 @@ function renew() {
 // Ce que le professeur doit faire après l'enregistrement du résultat : une seule annonce, puis fin.
 const AFTER_VERDICT = {
     // Sans mini-leçon (le serveur envoie la sienne, avec la phrase à enseigner, quand il en accorde le temps).
-    record_assessment_result: 'Saved. Now, if you have not announced it yet, make the ONE announcement of the level in simple English, then skip the mini-lesson and invite questions in French: « Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français. » and wait. Then follow steps 6 and 7 of your instructions (questions in French, then ONE conclusion ending with the exact closing sentence). Never announce the level again and never call this function again.',
+    record_assessment_result: 'Saved. Now, if you have not announced it yet, make the ONE announcement of the level, then skip the mini-lesson and invite questions in French: « Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français. » and wait. Then follow steps 6 and 7 (end every answer with « Avez-vous une autre question ? »; the conclusion does not repeat the level) of your instructions (questions in French, then ONE conclusion ending with the exact closing sentence). Never announce the level again and never call this function again.',
     end_lesson: 'Saved. Now say goodbye warmly in one or two short sentences. Do not start anything new: the lesson ends after this turn.',
     record_level_test_result: 'Saved. Now, if you have not announced it yet, announce the result once, kindly, then say goodbye. Do not ask another question: the test ends after this turn.',
 };

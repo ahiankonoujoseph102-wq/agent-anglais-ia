@@ -99,6 +99,9 @@ return [
         // La connexion Live dure de toute façon environ 10 min : le navigateur
         // en redemande une, en reprenant la conversation, tant qu'il reste du temps.
         'token_minutes' => (int) env('GEMINI_TOKEN_MINUTES', 5),
+        // Le jeton lui-même vaut pour TOUTE la séance (LiveConnection::tokenExpiry), plus cette marge en secondes :
+        // aucun renouvellement en pleine conversation. token_minutes ne sert plus qu'au décompte d'un navigateur disparu.
+        'token_margin_seconds' => (int) env('GEMINI_TOKEN_MARGIN_SECONDS', 60),
         // Délai laissé au navigateur pour ouvrir la connexion avec le jeton, en secondes.
         'connect_window_seconds' => 60,
         // Nombre maximal de connexions (jetons) par séance ou par évaluation.
@@ -194,6 +197,9 @@ return [
         'silence_ms' => [
             'A1' => (int) env('LIVE_BEGINNER_SILENCE_MS', 1000),
             'A2' => (int) env('LIVE_BEGINNER_SILENCE_MS', 1000),
+            // Évaluation gratuite (niveau inconnu) : comme un débutant. Avec 800 millisecondes, une élève qui disait
+            // « Je… » en cherchant ses mots était coupée (« Sorry, I didn't hear you well »).
+            'unknown' => (int) env('LIVE_ASSESSMENT_SILENCE_MS', 1000),
             'default' => (int) env('LIVE_SILENCE_MS', 800),
         ],
     ],
