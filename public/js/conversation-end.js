@@ -69,12 +69,20 @@ export class ConversationEnd {
      * @param {number} closingWait    après la phrase fixe, coupe au plus tard (même s'il parle encore)
      * @param {number} cueSeconds     indication de conclusion ce nombre de secondes avant la fin
      * @param {number} grace          à la limite de temps, la phrase en cours peut finir ce temps au plus
+     * @param {number} silentEnd      après l'indication de conclusion, fin si le professeur ne dit plus rien ce temps
+     *                                (0 : jamais) ; jamais de séance en direct et muette jusqu'au bout du minuteur
      */
-    constructor({ settle = 1, maxWait = 25, hardStop = 45, closingPhrase = null, closingWait = 20, cueSeconds = 30, grace = 6 } = {}) {
+    constructor({ settle = 1, maxWait = 25, hardStop = 45, closingPhrase = null, closingWait = 20, cueSeconds = 30, grace = 6, silentEnd = 0 } = {}) {
         this.settle = settle;
         this.maxWait = maxWait;
         this.hardStop = hardStop;
         this.closingKey = closingPhrase ? normalizeSpeech(closingPhrase) : null;
+        // Fin de la phrase fixe (quatre derniers mots) : reconnue même si le début est dit autrement.
+        const words = this.closingKey ? this.closingKey.split(' ') : [];
+        this.closingTail = words.length > 4 ? words.slice(-4).join(' ') : this.closingKey;
+        this.silentEnd = silentEnd;
+        this.conclusionCueAt = null;
+        this.teacherAt = null;
         this.closingWait = closingWait;
         this.cueSeconds = cueSeconds;
         this.grace = grace;
@@ -111,15 +119,15 @@ export class ConversationEnd {
     }
 
     /**
-     * Micro ouvert avant le verdict et pendant les questions ; fermé définitivement
-     * pendant la conclusion et après (et, sans questions, dès le verdict).
+     * Micro ouvert avant le verdict, pendant les questions et la conclusion (l'apprenant peut encore parler et être
+     * entendu) ; fermé définitivement dès la phrase fixe (et, sans questions, dès le verdict).
      */
     get micOpen() {
         if (!this.hasVerdict) {
             return true;
         }
 
-        return this.questions && !this.concluding;
+        return this.questions && this.closingHeardAt === null;
     }
 
     /**
@@ -141,13 +149,16 @@ export class ConversationEnd {
      * Les morceaux de transcription sont recollés tels quels (un mot peut être coupé en deux).
      */
     teacherSaid(text, now) {
+        this.teacherAt = now;
+
         if (!this.questions || this.closingHeardAt !== null) {
             return false;
         }
 
         this.heard = (this.heard + text).slice(-400);
+        const heard = normalizeSpeech(this.heard);
 
-        if (normalizeSpeech(this.heard).includes(this.closingKey)) {
+        if (heard.includes(this.closingKey) || heard.includes(this.closingTail)) {
             this.closingHeardAt = now;
 
             return true;
@@ -175,8 +186,9 @@ export class ConversationEnd {
      *
      * @param {number} remaining  secondes restantes (minuteur du serveur)
      * @param {boolean} busy      le professeur parle ou prépare sa réponse
+     * @param {?number} now       heure de l'envoi (pour la fin sur silence)
      */
-    shouldConclude(remaining, busy) {
+    shouldConclude(remaining, busy, now = null) {
         if (!this.questions || this.concluding || remaining > this.cueSeconds) {
             return false;
         }
@@ -186,6 +198,7 @@ export class ConversationEnd {
         }
 
         this.conclusionCueSent = true;
+        this.conclusionCueAt = now;
 
         return true;
     }
@@ -220,6 +233,11 @@ export class ConversationEnd {
     /** Phrase fixe entendue : on coupe une fois la voix réellement terminée. */
     finishAfterClosing(now, speaking) {
         if (this.closingHeardAt === null) {
+            // Indication de conclusion envoyée, puis plus un mot : on termine au lieu de rester muet jusqu'à la limite.
+            if (this.silentEnd > 0 && this.conclusionCueAt !== null && !speaking) {
+                return now - Math.max(this.conclusionCueAt, this.teacherAt ?? 0) >= this.silentEnd;
+            }
+
             return false; // La limite de temps reste le filet de sécurité (timeUp).
         }
 

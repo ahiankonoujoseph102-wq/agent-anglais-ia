@@ -289,6 +289,15 @@
 
     <section class="card" id="evaluation" aria-labelledby="evaluation-title">
         <h2 id="evaluation-title">Évaluation</h2>
+        {{-- Compte de test : passe la nouvelle évaluation quand « Réglages » vaut « Comptes de test seulement ». --}}
+        <form method="POST" action="{{ route('admin.users.test-account', $user) }}" id="compte-de-test">
+            @csrf
+            @method('PUT')
+            <input type="hidden" name="is_test_account" value="0">
+            <label><input type="checkbox" name="is_test_account" value="1" @checked($user->is_test_account)> Compte de test</label>
+            <p class="muted small">Nouvelle évaluation : {{ \App\Support\Live\AssessmentVersion::MODES[\App\Support\Live\AssessmentVersion::mode()] }}. Ce compte passe {{ \App\Support\Live\AssessmentVersion::isNewFor($user) ? 'la nouvelle évaluation' : 'l\'évaluation actuelle' }}.</p>
+            <button type="submit" class="btn btn-light">Enregistrer</button>
+        </form>
         @if ($user->assessment)
             <p>
                 {{ $user->assessment->status->label() }}

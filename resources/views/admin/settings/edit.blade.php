@@ -96,6 +96,24 @@
                      :placeholder="$fields['contact.address']['default']" :hint="$defaultHint('contact.address', 'Aucune valeur par défaut.')" />
         </section>
 
+        <section class="card" id="nouvelle-evaluation">
+            <h2>Nouvelle évaluation</h2>
+            <p class="muted small">
+                Nouvelle façon de mener l'évaluation gratuite (accueil, hésitation remarquée, français quand la personne bloque,
+                vrai niveau). Les prospects gardent l'évaluation actuelle tant que « Tout le monde » n'est pas choisi.
+                Un compte de test se marque dans la fiche d'un inscrit (case « Compte de test »).
+            </p>
+            <fieldset>
+                <legend>Qui passe la nouvelle évaluation ?</legend>
+                @foreach (\App\Support\Live\AssessmentVersion::MODES as $value => $label)
+                    <label><input type="radio" name="assessment[new_version]" value="{{ $value }}" @checked(old('assessment.new_version', \App\Support\Live\AssessmentVersion::mode()) === $value)> {{ $label }}</label>
+                @endforeach
+            </fieldset>
+            @error('assessment.new_version')
+                <div class="error field">{{ $message }}</div>
+            @enderror
+        </section>
+
         <section class="card" id="alerte-cout">
             <h2>Alerte de coût par abonné</h2>
             <p class="muted small">

@@ -125,7 +125,7 @@ class AssessmentQuestionsTest extends TestCase
             ->assertOk()
             ->assertJsonPath('questions', true)
             ->assertJsonPath('remaining_seconds', 160)
-            ->assertJsonPath('cues.conclusion', '[System] About 30 seconds remain. Do not take any more questions. If you have not given your conclusion yet, give it now, in French, once, ending with « On se retrouve de l\'autre côté ! ». If you have already said this sentence, say nothing.');
+            ->assertJsonPath('cues.conclusion', '[System] About 30 seconds remain. Do not take any more questions. If you have not given your conclusion yet, give it now, in French, once, ending with « On se retrouve de l\'autre côté ! ». If you have already given it, say only this closing sentence again, in one short goodbye.');
 
         // Le jeton ne dure jamais au-delà de la nouvelle limite ; les consignes gardent la durée de l'évaluation.
         $this->assertLessThanOrEqual(160, $response->json('token_expires_in'));

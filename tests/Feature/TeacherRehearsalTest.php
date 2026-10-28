@@ -187,4 +187,22 @@ class TeacherRehearsalTest extends TestCase
             $this->assertSame(1, $scenarios[$key]['max_questions'], $key);
         }
     }
+
+    public function test_the_new_assessment_has_its_own_scenarios_compared_with_the_current_one(): void
+    {
+        $scenarios = TeacherRehearsal::scenarios();
+        $keys = ['nouvelle-evaluation-accueil', 'nouvelle-evaluation-comment-ca-va', 'nouvelle-evaluation-hesitation',
+            'nouvelle-evaluation-bloque-encore', 'nouvelle-evaluation-reponse-en-francais', 'nouvelle-evaluation-traduction',
+            'nouvelle-evaluation-vrai-niveau'];
+
+        foreach ($keys as $key) {
+            $this->assertTrue($scenarios[$key]['new_assessment'] ?? false, $key);
+            // Après : la nouvelle évaluation ; avant : l'évaluation actuelle (jamais les deux à la fois).
+            $this->assertStringContainsString('YOU NOTICE HESITATION', TeacherRehearsal::instructions($scenarios[$key]), $key);
+            $this->assertStringNotContainsString('YOU NOTICE HESITATION', TeacherRehearsal::instructions($scenarios[$key], before: true), $key);
+        }
+
+        // Les autres scénarios de l'évaluation gardent l'évaluation actuelle.
+        $this->assertStringNotContainsString('YOU NOTICE HESITATION', TeacherRehearsal::instructions($scenarios['evaluation-debutant-question']));
+    }
 }

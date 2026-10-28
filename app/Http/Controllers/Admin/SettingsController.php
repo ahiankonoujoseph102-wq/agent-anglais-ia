@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Support\Ambassadors\AmbassadorProgram;
+use App\Support\Live\AssessmentVersion;
 use App\Support\Live\CostWatch;
 use App\Support\PaymentCountry;
 use App\Support\SiteSettings;
@@ -53,6 +54,11 @@ class SettingsController extends Controller
             'cost_alert.xof_per_usd' => $request->input('cost_alert.xof_per_usd'),
             AmbassadorProgram::PLACES_SETTING => $request->input('ambassadors.places'),
         ];
+
+        // Interrupteur de la nouvelle évaluation : gardé seulement s'il est envoyé (ancien formulaire : inchangé).
+        if ($request->filled('assessment.new_version')) {
+            $values[AssessmentVersion::SETTING] = $request->input('assessment.new_version');
+        }
 
         foreach (PaymentCountry::all() as $country) {
             foreach ($country->operators as $operator) {
