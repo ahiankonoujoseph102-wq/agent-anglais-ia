@@ -62,6 +62,11 @@ final class Confirmation
             'message' => 'Son accès gratuit s\'arrête tout de suite, séance en cours comprise, et sa place se libère. Son code et ses mois déjà offerts sont gardés si vous le réintégrez.',
             'confirm' => 'Retirer du programme',
         ],
+        'application.reject' => [
+            'title' => 'Refuser cette candidature ?',
+            'message' => 'La personne garde son compte. Pensez à la prévenir sur WhatsApp ; elle pourra poser une nouvelle candidature plus tard.',
+            'confirm' => 'Refuser la candidature',
+        ],
         'commission.pay' => [
             'title' => 'Commission payée ?',
             'message' => 'Confirmez seulement après avoir envoyé l\'argent à l\'ambassadeur par Mobile Money. Cette action ne peut pas être annulée.',

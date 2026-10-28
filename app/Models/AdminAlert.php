@@ -24,6 +24,7 @@ class AdminAlert extends Model
         'payment_expiring' => 'Accès provisoire bientôt terminé',
         'whatsapp_click' => 'Paiement demandé sur WhatsApp',
         'cost_high' => 'Coût élevé d\'un abonné',
+        'ambassador_application' => 'Candidature d\'ambassadeur',
         'test' => 'Alerte d\'essai',
     ];
 

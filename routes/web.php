@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VideoController as AdminVideoController;
 use App\Http\Controllers\Admin\VoiceController;
 use App\Http\Controllers\Admin\VoiceDiagnosticController;
+use App\Http\Controllers\Ambassador\AmbassadorJoinController;
 use App\Http\Controllers\Ambassador\AmbassadorLinkController;
 use App\Http\Controllers\Ambassador\AmbassadorSpaceController;
 use App\Http\Controllers\Auth\AdminRecoveryController;
@@ -93,6 +94,8 @@ Route::post('/recuperation-administrateur', [AdminRecoveryController::class, 'st
 Route::get('/attestation/verifier/{code}', [AttestationController::class, 'verify'])->name('attestation.verify');
 // Lien personnel d'un ambassadeur (aussi derrière son code QR) : mène toujours à l'accueil.
 Route::get('/a/{code}', AmbassadorLinkController::class)->where('code', '[A-Za-z0-9]{1,20}')->middleware('throttle:60,1')->name('ambassador.link');
+// Page « Devenir ambassadeur » : compteur réel des places, candidature ou liste d'attente.
+Route::get('/devenir-ambassadeur', [AmbassadorJoinController::class, 'show'])->name('ambassador.join');
 
 Route::middleware('guest')->group(function () {
     Route::get('/inscription', [RegisteredUserController::class, 'create'])->name('register');
@@ -116,6 +119,11 @@ Route::middleware('auth')->group(function () {
     // Espace ambassadeur : lien, code et code QR personnels, mois gratuit, régularité.
     Route::get('/ambassadeur', [AmbassadorSpaceController::class, 'show'])->name('ambassador.show');
     Route::get('/ambassadeur/code-qr', [AmbassadorSpaceController::class, 'qr'])->middleware('throttle:20,1')->name('ambassador.qr');
+    // Candidature et liste d'attente (compte obligatoire).
+    Route::get('/devenir-ambassadeur/candidature', [AmbassadorJoinController::class, 'form'])->name('ambassador.join.form');
+    Route::post('/devenir-ambassadeur/candidature', [AmbassadorJoinController::class, 'apply'])->middleware('throttle:5,1')->name('ambassador.apply');
+    Route::post('/devenir-ambassadeur/liste-d-attente', [AmbassadorJoinController::class, 'joinWaitlist'])->middleware('throttle:10,1')->name('ambassador.waitlist');
+    Route::delete('/devenir-ambassadeur/liste-d-attente', [AmbassadorJoinController::class, 'leaveWaitlist'])->middleware('throttle:10,1')->name('ambassador.waitlist.leave');
 
     // Bienvenue de Teacher Joe : message vocal après l'inscription, puis à l'ouverture d'un accès.
     Route::get('/bienvenue', [WelcomeController::class, 'show'])->name('welcome.show');
@@ -223,6 +231,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/inscrits/{user}/commission', [AdminAmbassadorController::class, 'addCommission'])->middleware('confirm:commission.add')->name('users.commission');
     Route::post('/commissions/{commission}/payee', [AdminAmbassadorController::class, 'payCommission'])->middleware('confirm:commission.pay')->name('commissions.pay');
     Route::post('/commissions/{commission}/annuler', [AdminAmbassadorController::class, 'cancelCommission'])->middleware('confirm:commission.cancel')->name('commissions.cancel');
+    Route::post('/candidatures/{application}/accepter', [AdminAmbassadorController::class, 'acceptApplication'])->middleware('confirm:ambassador.appoint')->name('applications.accept');
+    Route::post('/candidatures/{application}/refuser', [AdminAmbassadorController::class, 'rejectApplication'])->middleware('confirm:application.reject')->name('applications.reject');
+    Route::get('/liste-d-attente/{entry}/whatsapp', [AdminAmbassadorController::class, 'notifyWaitlist'])->name('waitlist.notify');
+    Route::delete('/liste-d-attente/{entry}', [AdminAmbassadorController::class, 'removeWaitlist'])->name('waitlist.remove');
     Route::delete('/inscrits/{user}/evaluation', [AdminAssessmentController::class, 'destroy'])->middleware('confirm:assessment.reset')->name('assessments.destroy');
     // Texte des conversations d'un apprenant : lecture d'une séance, suppression de toutes (demande de suppression).
     Route::get('/inscrits/{user}/conversations/{type}/{id}', [ConversationController::class, 'show'])->whereIn('type', array_keys(Transcripts::TYPES))->whereNumber('id')->name('conversations.show');

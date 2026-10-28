@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\AmbassadorStatus;
+use App\Enums\ApplicationStatus;
 use App\Enums\CommissionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Ambassador;
+use App\Models\AmbassadorApplication;
 use App\Models\AmbassadorCommission;
+use App\Models\AmbassadorWaitlistEntry;
 use App\Models\User;
+use App\Support\Ambassadors\AmbassadorApplications;
 use App\Support\Ambassadors\AmbassadorCommissions;
 use App\Support\Ambassadors\AmbassadorProgram;
 use App\Support\Ambassadors\AmbassadorReferrals;
@@ -43,6 +47,10 @@ class AmbassadorController extends Controller
             // Commissions à payer, les plus anciennes d'abord (avec les signaux du rattachement et du paiement).
             'dueCommissions' => AmbassadorCommission::query()->where('status', CommissionStatus::Due)
                 ->with(['ambassador.user', 'user.referral'])->oldest()->get(),
+            // Candidatures à examiner (les plus anciennes d'abord) et liste d'attente (ordre d'arrivée).
+            'applications' => AmbassadorApplication::query()->where('status', ApplicationStatus::Pending)->with('user')->oldest()->get(),
+            'waitlist' => AmbassadorWaitlistEntry::query()->with('user')->oldest()->get(),
+            'freePlaces' => AmbassadorProgram::freePlaces(),
             'totals' => $ambassadors->mapWithKeys(fn (Ambassador $ambassador) => [$ambassador->id => AmbassadorCommissions::totals($ambassador)]),
         ]);
     }
@@ -162,6 +170,50 @@ class AmbassadorController extends Controller
         }
 
         return $this->back($request, $user)->with('status', 'Commission de '.Money::format($commission->amount).' ajoutée pour '.$commission->ambassador()->first()->user->name.'.');
+    }
+
+    /** Candidature acceptée : le compte devient ambassadeur (refusé quand toutes les places sont prises). */
+    public function acceptApplication(Request $request, AmbassadorApplication $application): RedirectResponse
+    {
+        try {
+            $result = AmbassadorApplications::accept($application, $request->user());
+        } catch (AmbassadorRefused $refused) {
+            return redirect()->to(route('admin.ambassadors.index').'#candidatures')->withErrors(['ambassador' => $refused->getMessage()]);
+        }
+
+        if ($result['grant'] !== null) {
+            WelcomeMessage::queueOpening($application->user);
+        }
+
+        return redirect()->to(route('admin.ambassadors.index').'#candidatures')->with('status', 'Candidature acceptée : '.$application->user->name.' est ambassadeur, code '.$result['ambassador']->code.'. '
+            .($result['grant'] !== null ? 'Mois gratuit ouvert jusqu\'au '.$result['grant']->ends_at->translatedFormat('j F Y').'.' : $result['notice']));
+    }
+
+    public function rejectApplication(Request $request, AmbassadorApplication $application): RedirectResponse
+    {
+        try {
+            AmbassadorApplications::reject($application, $request->user());
+        } catch (AmbassadorRefused $refused) {
+            return redirect()->to(route('admin.ambassadors.index').'#candidatures')->withErrors(['ambassador' => $refused->getMessage()]);
+        }
+
+        return redirect()->to(route('admin.ambassadors.index').'#candidatures')->with('status', 'Candidature de '.$application->user->name.' refusée.');
+    }
+
+    /** « Prévenir sur WhatsApp » : noté, puis WhatsApp s'ouvre avec le message déjà rédigé. */
+    public function notifyWaitlist(AmbassadorWaitlistEntry $entry): RedirectResponse
+    {
+        $entry->forceFill(['notified_at' => now()])->save();
+
+        return redirect()->away(AmbassadorApplications::waitlistWhatsAppUrl($entry->user));
+    }
+
+    public function removeWaitlist(AmbassadorWaitlistEntry $entry): RedirectResponse
+    {
+        $name = $entry->user->name;
+        $entry->delete();
+
+        return redirect()->to(route('admin.ambassadors.index').'#liste-d-attente')->with('status', $name.' est retiré de la liste d\'attente.');
     }
 
     /** Retour sur la page d'où vient l'action : la liste des ambassadeurs, sinon la fiche de l'inscrit. */
