@@ -25,6 +25,24 @@
         <a class="btn btn-outline btn-block" href="{{ route('ambassador.qr') }}" download><x-icon name="download" /> Télécharger mon code QR</a>
     </section>
 
+    {{-- Commissions : abonnés payants, sommes à recevoir et déjà reçues (prénom seulement). --}}
+    <section class="card rise" style="--i: 3" id="commissions" aria-labelledby="commissions-title">
+        <h2 id="commissions-title">Vos commissions</h2>
+        <dl class="summary">
+            <dt>Abonnés payants</dt><dd>{{ $totals['subscribers'] }}</dd>
+            <dt>À recevoir</dt><dd>{{ \App\Support\Money::format($totals['due']) }}</dd>
+            <dt>Déjà reçu</dt><dd>{{ \App\Support\Money::format($totals['paid']) }}</dd>
+        </dl>
+        @if ($commissions->isNotEmpty())
+            <ul>
+                @foreach ($commissions as $commission)
+                    <li><strong>{{ \App\Support\Greeting::firstName($commission->user->name) }}</strong>, formule {{ $commission->plan_name }} : {{ \App\Support\Money::format($commission->amount) }}, {{ mb_strtolower($commission->status->label()) }}</li>
+                @endforeach
+            </ul>
+        @endif
+        <p class="muted small">Vous recevez {{ config('platform.ambassadors.commission_percent') }} % du premier paiement de chaque personne inscrite grâce à vous, s'il est validé dans les {{ config('platform.ambassadors.commission_days') }} jours après son inscription. Les commissions vous sont versées par Mobile Money.</p>
+    </section>
+
     {{-- Inscrits rattachés : prénom et date seulement (jamais le numéro ni le nom complet). --}}
     <section class="card rise" style="--i: 3" id="inscrits" aria-labelledby="referrals-title">
         <h2 id="referrals-title">Vos inscrits : {{ $referrals->count() }}</h2>

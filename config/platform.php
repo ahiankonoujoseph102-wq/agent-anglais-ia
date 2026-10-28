@@ -282,6 +282,10 @@ return [
         'link_days' => 30,
         // Signal « même réseau qu'un autre inscrit » : inscriptions comparées sur ce nombre de jours.
         'shared_network_days' => 30,
+        // Commission : ce pourcentage du prix de la formule, sur le PREMIER paiement validé d'un compte rattaché,
+        // seulement s'il est validé dans ce nombre de jours après l'inscription du compte.
+        'commission_percent' => 20,
+        'commission_days' => 90,
     ],
 
     'granted_access' => [

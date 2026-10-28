@@ -1825,3 +1825,8 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .ambassador-field > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--c-primary-strong); font-weight: var(--fw-bold); text-decoration: underline; text-underline-offset: 3px; }
 .ambassador-field[open] > summary { margin-bottom: var(--space-2); }
 .referral-flags { margin: var(--space-1) 0 0; padding-left: var(--space-4); color: var(--c-accent-strong); font-size: var(--fs-sm); }
+/* Commissions des ambassadeurs (administration). */
+.commission-row { padding: var(--space-3) 0; border-top: 1px solid var(--c-border); }
+.commission-row p { margin: 0 0 var(--space-2); }
+.commission-cancel { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.commission-cancel input { flex: 1 1 12rem; min-width: 0; }

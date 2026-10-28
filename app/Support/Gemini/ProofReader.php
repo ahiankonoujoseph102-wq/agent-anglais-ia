@@ -78,8 +78,9 @@ class ProofReader
                 'transaction_id' => $text('Transaction number or reference (ID, Ref, Trans ID).'),
                 'recipient_number' => $text('Phone number of the recipient, digits as shown (may be partly hidden).'),
                 'recipient_name' => $text('Name of the recipient as shown.'),
+                'sender_number' => $text('Phone number of the sender (the person who paid), digits as shown (may be partly hidden); null if not shown.'),
             ],
-            'required' => ['readable', 'operator', 'amount', 'currency', 'date_time', 'transaction_id', 'recipient_number', 'recipient_name'],
+            'required' => ['readable', 'operator', 'amount', 'currency', 'date_time', 'transaction_id', 'recipient_number', 'recipient_name', 'sender_number'],
         ];
     }
 
@@ -87,7 +88,7 @@ class ProofReader
      * Valeurs nettoyées, de types sûrs (la réponse du modèle n'est jamais crue telle quelle).
      *
      * @param  array<string, mixed>  $data
-     * @return array{readable: bool, operator: ?string, amount: ?int, currency: ?string, date_time: ?string, transaction_id: ?string, recipient_number: ?string, recipient_name: ?string}
+     * @return array{readable: bool, operator: ?string, amount: ?int, currency: ?string, date_time: ?string, transaction_id: ?string, recipient_number: ?string, recipient_name: ?string, sender_number: ?string}
      */
     public static function normalize(array $data): array
     {
@@ -118,6 +119,8 @@ class ProofReader
             'transaction_id' => $text('transaction_id'),
             'recipient_number' => $text('recipient_number'),
             'recipient_name' => $text('recipient_name'),
+            // Lu seulement pour un signal du programme d'ambassadeurs (payé depuis le numéro de l'ambassadeur).
+            'sender_number' => $text('sender_number'),
         ];
     }
 }

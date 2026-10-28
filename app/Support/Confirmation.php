@@ -62,6 +62,21 @@ final class Confirmation
             'message' => 'Son accès gratuit s\'arrête tout de suite, séance en cours comprise, et sa place se libère. Son code et ses mois déjà offerts sont gardés si vous le réintégrez.',
             'confirm' => 'Retirer du programme',
         ],
+        'commission.pay' => [
+            'title' => 'Commission payée ?',
+            'message' => 'Confirmez seulement après avoir envoyé l\'argent à l\'ambassadeur par Mobile Money. Cette action ne peut pas être annulée.',
+            'confirm' => 'Commission payée',
+        ],
+        'commission.cancel' => [
+            'title' => 'Annuler cette commission ?',
+            'message' => 'L\'ambassadeur ne la touchera pas. Réservé aux cas de triche : le motif est gardé. Cette action ne peut pas être annulée.',
+            'confirm' => 'Annuler la commission',
+        ],
+        'commission.add' => [
+            'title' => 'Ajouter cette commission ?',
+            'message' => 'Une commission due est créée pour l\'ambassadeur de ce compte, d\'après le prix de la formule choisie. Une seule commission par compte.',
+            'confirm' => 'Ajouter la commission',
+        ],
         'course.delete' => [
             'title' => 'Supprimer cette leçon ?',
             'message' => 'La leçon et ses photos ou son PDF sont effacés pour toujours, fichiers compris. Le temps du jour déjà utilisé avec le professeur reste compté.',

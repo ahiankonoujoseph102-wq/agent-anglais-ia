@@ -65,7 +65,7 @@ class UserController extends Controller
      */
     public function show(Request $request, User $user): View
     {
-        $user->load(['assessment', 'activeSubscription', 'origin', 'ambassador', 'referral.ambassador.user']);
+        $user->load(['assessment', 'activeSubscription', 'origin', 'ambassador', 'referral.ambassador.user', 'referralCommission']);
 
         $temporaryPassword = $request->session()->get('temporary_password');
         $whatsappUrl = null;
@@ -96,6 +96,7 @@ class UserController extends Controller
             'ambassadorGrant' => $user->ambassador?->currentGrant(),
             // Inscrits de cet ambassadeur, et ambassadeurs actifs pour corriger un rattachement.
             'ambassadorReferrals' => $user->ambassador?->referrals()->with('user:id,name')->latest()->get() ?? collect(),
+            'ambassadorCommissions' => $user->ambassador?->commissions()->with('user:id,name')->latest()->get() ?? collect(),
             'activeAmbassadors' => Ambassador::query()->active()->with('user:id,name')->where('user_id', '!=', $user->id)->get(),
             'freePlaces' => AmbassadorProgram::freePlaces(),
             'places' => AmbassadorProgram::places(),

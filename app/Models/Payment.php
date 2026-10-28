@@ -6,6 +6,7 @@ use App\Enums\LessonStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\SubscriptionStatus;
 use App\Support\AccessGrant;
+use App\Support\Ambassadors\AmbassadorCommissions;
 use App\Support\Money;
 use App\Support\PrivateStorage;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -217,6 +218,9 @@ class Payment extends Model
             $payment->reviewed_at = now();
             $payment->save();
 
+            // Premier paiement validé d'un compte rattaché à un ambassadeur : sa commission est créée maintenant.
+            AmbassadorCommissions::forValidatedPayment($payment);
+
             $this->setRawAttributes($payment->getAttributes(), true);
 
             return $subscription;
@@ -259,6 +263,9 @@ class Payment extends Model
             $payment->reviewed_by = $admin->id;
             $payment->reviewed_at = now();
             $payment->save();
+
+            // Premier paiement validé d'un compte rattaché à un ambassadeur : sa commission est créée maintenant.
+            AmbassadorCommissions::forValidatedPayment($payment);
 
             $this->setRawAttributes($payment->getAttributes(), true);
         });
