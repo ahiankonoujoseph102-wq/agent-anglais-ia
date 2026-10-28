@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Rapidité de Teacher Joe (novembre 2026, réponses lentes signalées par des abonnés) : délai de réponse et incidents
+ * Rapidité de Teacher Joe (fin octobre 2026, réponses lentes signalées par des abonnés) : délai de réponse et incidents
  * jour par jour dans « Consommation », réglages de reprise automatique donnés au navigateur, assez de connexions pour
  * une longue séance.
  */

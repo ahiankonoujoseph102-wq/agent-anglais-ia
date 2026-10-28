@@ -274,7 +274,7 @@ trait IsLiveConversation
     /**
      * Connexions permises : au moins services.gemini.max_connections ; une longue séance reçoit en plus un
      * renouvellement prévu par jeton (jetons de token_minutes, renouvelés une minute avant) et une marge de quatre
-     * coupures. Avant novembre 2026 : 8 pour toutes, et une séance Intensif de 30 minutes en consommait déjà 7 sans
+     * coupures. Avant le 28 octobre 2026 : 8 pour toutes, et une séance Intensif de 30 minutes en consommait déjà 7 sans
      * aucune coupure (« Trop de reconnexions »).
      */
     public function maxConnections(): int

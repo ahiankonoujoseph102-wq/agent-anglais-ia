@@ -192,7 +192,7 @@ return [
         // Silence attendu avant de considérer que l'élève a fini de parler, en millisecondes, selon le niveau (fixé au
         // début de la séance, chez Gemini et chez OpenAI). Google recommande 500 à 800 (valeur interne d'environ 800 ;
         // au-delà, la réponse arrive plus tard : ai.google.dev/gemini-api/docs/live-guide, lu le 21 octobre 2026).
-        // A1 et A2 : un peu plus, les débutants hésitent. « unknown » : évaluation gratuite. Novembre 2026 (réponses
+        // A1 et A2 : un peu plus, les débutants hésitent. « unknown » : évaluation gratuite. Fin octobre 2026 (réponses
         // jugées lentes par les abonnés) : 1 000 → 900 et 800 → 700, chaque réponse arrive 100 millisecondes plus tôt.
         'silence_ms' => [
             'A1' => (int) env('LIVE_BEGINNER_SILENCE_MS', 900),
