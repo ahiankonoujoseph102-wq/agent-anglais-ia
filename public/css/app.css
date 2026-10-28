@@ -1820,3 +1820,8 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .qr-frame svg { display: block; width: 100%; height: auto; }
 .ambassador-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .ambassador-actions form { margin: 0; }
+/* Inscription : « Vous avez un code ambassadeur ? », replié (zone de toucher de 44 pixels). */
+.ambassador-field { margin: 0 0 var(--space-4); }
+.ambassador-field > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--c-primary-strong); font-weight: var(--fw-bold); text-decoration: underline; text-underline-offset: 3px; }
+.ambassador-field[open] > summary { margin-bottom: var(--space-2); }
+.referral-flags { margin: var(--space-1) 0 0; padding-left: var(--space-4); color: var(--c-accent-strong); font-size: var(--fs-sm); }

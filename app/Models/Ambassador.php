@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Ambassadeur de la plateforme : un compte, un code personnel (lien, code QR), un accès gratuit renouvelé mois
  * par mois par l'administrateur (App\Support\Ambassadors\AmbassadorProgram).
  */
-#[Fillable(['user_id', 'code', 'status', 'months_granted', 'parental_consent_at', 'appointed_by', 'removed_at'])]
+#[Fillable(['user_id', 'code', 'status', 'months_granted', 'parental_consent_at', 'appointed_by', 'removed_at', 'last_ip_hash'])]
 class Ambassador extends Model
 {
     /**
@@ -47,6 +47,16 @@ class Ambassador extends Model
     public function grants(): HasMany
     {
         return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Comptes inscrits grâce à l'ambassadeur.
+     *
+     * @return HasMany<AmbassadorReferral, $this>
+     */
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(AmbassadorReferral::class);
     }
 
     /**

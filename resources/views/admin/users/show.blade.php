@@ -60,6 +60,37 @@
                 <p class="alert alert-error" role="alert"><x-icon name="alert" /><span>{{ $message }}</span></p>
             @enderror
 
+            {{-- Rattachement de CE compte à un ambassadeur : fixé à l'inscription, corrigé seulement ici. --}}
+            @if ($user->referral)
+                <p class="grant-current">
+                    <x-icon name="award" />
+                    <span><strong>Inscrit grâce à {{ $user->referral->ambassador->user->name }} ({{ $user->referral->ambassador->code }})</strong>, {{ $user->referral->sourceLabel() }}, le {{ $user->referral->created_at->format('d/m/Y') }}.</span>
+                </p>
+                @if ($user->referral->flags)
+                    <ul class="referral-flags">
+                        @foreach ($user->referral->flagLabels() as $label)
+                            <li>À vérifier : {{ $label }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+            @endif
+            @if ($activeAmbassadors->isNotEmpty() || $user->referral)
+                <form method="POST" action="{{ route('admin.users.referral', $user) }}" class="referral-form next-step">
+                    @csrf
+                    @method('PUT')
+                    <div class="field">
+                        <label for="referral-ambassador">{{ $user->referral ? 'Corriger le rattachement' : 'Rattacher à un ambassadeur' }}</label>
+                        <select id="referral-ambassador" name="ambassador_id">
+                            <option value="">Aucun ambassadeur</option>
+                            @foreach ($activeAmbassadors as $option)
+                                <option value="{{ $option->id }}" @selected($user->referral?->ambassador_id === $option->id)>{{ $option->user->name }} ({{ $option->code }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-light">Enregistrer le rattachement</button>
+                </form>
+            @endif
+
             @if ($user->ambassador?->isActive())
                 @php($ambassador = $user->ambassador)
                 <dl class="summary">
@@ -89,6 +120,22 @@
                         <button type="submit" class="btn btn-light"><x-icon name="user-off" /> Retirer du programme</button>
                     </form>
                 </div>
+
+                <h3 class="next-step">Ses inscrits : {{ $ambassadorReferrals->count() }}</h3>
+                @forelse ($ambassadorReferrals as $referral)
+                    <div class="grant-history">
+                        <a href="{{ route('admin.users.show', $referral->user) }}">{{ $referral->user->name }}</a>, inscrit le {{ $referral->created_at->format('d/m/Y') }} ({{ $referral->sourceLabel() }})
+                        @if ($referral->flags)
+                            <ul class="referral-flags">
+                                @foreach ($referral->flagLabels() as $label)
+                                    <li>À vérifier : {{ $label }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                @empty
+                    <p class="muted">Aucun inscrit pour le moment.</p>
+                @endforelse
             @else
                 <p class="muted small">
                     @if ($user->ambassador)

@@ -25,7 +25,22 @@
         <a class="btn btn-outline btn-block" href="{{ route('ambassador.qr') }}" download><x-icon name="download" /> Télécharger mon code QR</a>
     </section>
 
-    <section class="card rise" style="--i: 3" aria-labelledby="access-title">
+    {{-- Inscrits rattachés : prénom et date seulement (jamais le numéro ni le nom complet). --}}
+    <section class="card rise" style="--i: 3" id="inscrits" aria-labelledby="referrals-title">
+        <h2 id="referrals-title">Vos inscrits : {{ $referrals->count() }}</h2>
+        @if ($referrals->isEmpty())
+            <p class="muted">Personne ne s'est encore inscrit avec votre lien ou votre code. Partagez votre lien pour commencer.</p>
+        @else
+            <ul>
+                @foreach ($referrals as $referral)
+                    <li><strong>{{ \App\Support\Greeting::firstName($referral->user->name) }}</strong>, inscrit le {{ $referral->created_at->translatedFormat('j F Y') }}</li>
+                @endforeach
+            </ul>
+        @endif
+        <p class="muted small">Une personne vous est attribuée si elle tape votre code en créant son compte, ou si elle s'inscrit dans les {{ config('platform.ambassadors.link_days') }} jours après avoir ouvert votre lien (le premier lien ouvert compte).</p>
+    </section>
+
+    <section class="card rise" style="--i: 4" aria-labelledby="access-title">
         <h2 id="access-title">Votre accès gratuit</h2>
         <dl class="summary">
             <dt>Accès</dt>

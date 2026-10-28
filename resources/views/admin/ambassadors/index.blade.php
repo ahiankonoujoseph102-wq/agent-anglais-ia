@@ -31,6 +31,7 @@
                     <tr>
                         <th>Ambassadeur</th>
                         <th>Code</th>
+                        <th>Inscrits</th>
                         <th>Mois gratuit</th>
                         <th>Séances du jour</th>
                         <th>Accord d'un parent</th>
@@ -51,6 +52,12 @@
                                 @endunless
                             </td>
                             <td data-label="Code"><strong>{{ $ambassador->code }}</strong></td>
+                            <td data-label="Inscrits">
+                                {{ $ambassador->referrals_count }}
+                                @if ($ambassador->flagged_count > 0)
+                                    <br><span class="badge badge-alert">{{ $ambassador->flagged_count }} à vérifier</span>
+                                @endif
+                            </td>
                             <td data-label="Mois gratuit">{{ AmbassadorProgram::monthLabel($ambassador, $grant) }}</td>
                             <td data-label="Séances du jour">
                                 {{ $seen['days'] }} {{ $seen['days'] > 1 ? 'jours' : 'jour' }} sur les {{ config('platform.ambassadors.activity_days') }} derniers

@@ -110,6 +110,12 @@ class User extends Authenticatable
         return $this->hasOne(Ambassador::class);
     }
 
+    /** Ambassadeur grâce à qui le compte s'est inscrit (null : aucun). */
+    public function referral(): HasOne
+    {
+        return $this->hasOne(AmbassadorReferral::class);
+    }
+
     /** Ambassadeur ACTIF du programme (espace ambassadeur, lien du menu). */
     public function isAmbassador(): bool
     {

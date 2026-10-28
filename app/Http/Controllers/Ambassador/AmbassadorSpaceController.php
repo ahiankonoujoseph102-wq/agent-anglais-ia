@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Ambassador;
 use App\Http\Controllers\Controller;
 use App\Models\Ambassador;
 use App\Support\Ambassadors\AmbassadorProgram;
+use App\Support\Ambassadors\AmbassadorReferrals;
 use App\Support\Ambassadors\QrCode;
 use App\Support\WhatsApp;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class AmbassadorSpaceController extends Controller
     {
         $ambassador = $this->ambassador($request);
         $grant = $ambassador->currentGrant();
+        AmbassadorReferrals::noteAmbassador($request->user(), $request);
 
         return view('ambassador.show', [
             'ambassador' => $ambassador,
@@ -29,6 +31,8 @@ class AmbassadorSpaceController extends Controller
             'activity' => AmbassadorProgram::activity([$ambassador->user_id])[$ambassador->user_id],
             'qr' => QrCode::svg($ambassador->link(), 'Code QR de votre lien personnel'),
             'shareUrl' => WhatsApp::url('', self::shareMessage($ambassador)),
+            // Prénom et date d'inscription seulement : jamais le numéro ni le nom complet.
+            'referrals' => $ambassador->referrals()->with('user:id,name')->latest()->get(),
         ]);
     }
 
