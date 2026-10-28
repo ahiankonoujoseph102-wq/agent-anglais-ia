@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 final class Seo
 {
     /** Pages publiques indexées, dans l'ordre du sitemap (« country » : une page par pays, CountryPage). */
-    public const INDEXABLE_ROUTES = ['home', 'plans', 'about', 'how', 'courses-help', 'interview', 'guides.index', 'guides.show', 'country', 'contact', 'register', 'privacy'];
+    public const INDEXABLE_ROUTES = ['home', 'plans', 'about', 'how', 'courses-help', 'interview', 'guides.index', 'guides.show', 'country', 'ambassador.join', 'contact', 'register', 'privacy'];
 
     /** Types de données structurées autorisés : aucune note, aucun avis, aucun nombre d'apprenants. */
     public const SCHEMA_TYPES = ['Organization', 'WebSite', 'Person', 'Service', 'Offer', 'FAQPage', 'Question', 'Answer', 'ContactPoint', 'PostalAddress', 'Country', 'Article', 'BreadcrumbList', 'ListItem'];

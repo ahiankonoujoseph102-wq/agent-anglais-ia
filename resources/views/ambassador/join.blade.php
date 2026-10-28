@@ -13,14 +13,15 @@
     $days = config('platform.ambassadors.commission_days');
     $monthDays = config('platform.ambassadors.month_days');
     $maxMonths = config('platform.ambassadors.max_months');
+    $linkDays = config('platform.ambassadors.link_days');
 @endphp
 
-<x-layout title="Devenir ambassadeur"
-          :description="'Parlez de '.$platform.' autour de vous : accès gratuit à la formule '.$plan?->name.' et commission sur le premier paiement des personnes inscrites grâce à vous.'">
+<x-layout title="Devenir ambassadeur, programme de parrainage"
+          :description="'Programme d\'ambassadeurs de '.$platform.' : accès gratuit à la formule '.$plan?->name.' et '.$percent.' % du premier paiement des personnes inscrites grâce à vous.'">
     <section class="section page-hero" aria-labelledby="ambassadeur-titre">
         <span class="eyebrow"><x-icon name="award" /> Programme d'ambassadeurs</span>
         <h1 id="ambassadeur-titre">Devenir ambassadeur de {{ $platform }}</h1>
-        <p class="lead">Vous apprenez l'anglais avec {{ $teacher }} et vous voulez en parler autour de vous ? Devenez ambassadeur : vous apprenez gratuitement et vous recevez une commission.</p>
+        <p class="lead">Vous apprenez l'anglais avec {{ $teacher }} et vous voulez en parler autour de vous ? Devenez ambassadeur : vous apprenez gratuitement et vous pouvez recevoir une commission.</p>
         <p class="places-counter" id="places">
             @if ($free > 0)
                 <x-icon name="users" /> <strong>Il reste {{ $free }} {{ $free > 1 ? 'places' : 'place' }} sur {{ $places }}.</strong>
@@ -50,6 +51,16 @@
             <li><x-icon name="shield" /> Vous restez honnête : une inscription ou un paiement arrangé annule la commission et peut mettre fin à votre place.</li>
         </ul>
         <p class="muted small">Moins de 18 ans : l'accord écrit d'un parent vous sera demandé. Notre équipe choisit les ambassadeurs parmi les candidatures.</p>
+    </section>
+
+    <section class="section" id="regles" aria-labelledby="ambassadeur-regles">
+        <h2 id="ambassadeur-regles">Les règles</h2>
+        <ul class="check-list check-list-plain">
+            <li><x-icon name="wallet" /> <strong>Seulement le premier paiement.</strong> La commission porte sur le premier paiement validé de chaque personne inscrite grâce à vous, jamais sur ses paiements suivants.</li>
+            <li><x-icon name="share" /> <strong>Le code tapé, puis le premier lien.</strong> Le code ambassadeur tapé à l'inscription passe avant tout. Sans code, c'est le premier lien d'ambassadeur utilisé qui compte (gardé {{ $linkDays }} jours), même si la personne en ouvre un autre ensuite.</li>
+            <li><x-icon name="users" /> <strong>Un seul niveau.</strong> Aucune commission sur les personnes inscrites par vos inscrits : seules comptent celles qui s'inscrivent grâce à vous.</li>
+        </ul>
+        <p class="muted small">Aucun revenu n'est promis : vous recevez une commission seulement quand une personne inscrite grâce à vous paie et que son paiement est validé.</p>
     </section>
 
     <section class="section" id="candidature" aria-labelledby="candidature-titre">
