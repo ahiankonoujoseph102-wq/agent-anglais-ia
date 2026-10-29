@@ -10,10 +10,13 @@ use App\Support\Curriculum\Curriculum;
 use App\Support\Curriculum\Unit;
 use App\Support\Live\AssessmentVersion;
 use App\Support\Live\WorkingTogether;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 
 /**
  * Construit la configuration de conversation du professeur à partir de
  * config/teacher.php (consignes) et config/services.php (modèle, voix).
+ * Professeur (nom, voix) : celui donné, sinon celui de l'apprenant (App\Support\Teachers\Teachers::forUser).
  */
 class TeacherSetup
 {
@@ -35,10 +38,12 @@ class TeacherSetup
     /**
      * @return array<string, mixed>
      */
-    public static function assessment(User $user, int $minutes, ?string $resumeHandle = null): array
+    public static function assessment(User $user, int $minutes, ?string $resumeHandle = null, ?Teacher $teacher = null): array
     {
+        $teacher ??= Teachers::forUser($user);
+
         return self::setup(
-            self::instructions('assessment', $user, $minutes),
+            self::instructions('assessment', $user, $minutes, [], $teacher),
             [[
                 'name' => self::RECORD_ASSESSMENT_RESULT,
                 'description' => 'Records the learner\'s CEFR level and a short appreciation in French at the end of the assessment.',
@@ -73,6 +78,7 @@ class TeacherSetup
                 ],
             ]],
             $resumeHandle,
+            $teacher,
         );
     }
 
@@ -81,8 +87,9 @@ class TeacherSetup
      * @param  int  $session  numéro de la séance parmi celles déjà faites (WorkingTogether::lessonNumber)
      * @return array<string, mixed>
      */
-    public static function lesson(User $user, int $minutes, ?string $resumeHandle = null, ?string $context = null, int $session = 1): array
+    public static function lesson(User $user, int $minutes, ?string $resumeHandle = null, ?string $context = null, int $session = 1, ?Teacher $teacher = null): array
     {
+        $teacher ??= Teachers::forUser($user);
         $scores = [];
 
         foreach (Skill::cases() as $skill) {
@@ -93,7 +100,7 @@ class TeacherSetup
             self::instructions('lesson', $user, $minutes, [
                 'working_together' => WorkingTogether::lesson($session),
                 'context' => $context ?? 'No programme context and no board today (the learner has finished the programme): skip STEP 1 and STEP 2, practise free conversation adapted to the learner\'s level (STEP 3), then STEP 4.',
-            ]),
+            ], $teacher),
             [[
                 'name' => self::END_LESSON,
                 'description' => 'Records the structured report of the lesson before saying goodbye.',
@@ -149,6 +156,7 @@ class TeacherSetup
                 ],
             ]],
             $resumeHandle,
+            $teacher,
             self::paceLevel('lesson', $user),
             'lesson',
         );
@@ -162,15 +170,18 @@ class TeacherSetup
      * @param  int  $session  numéro de la séance « Mes cours » parmi celles déjà faites (WorkingTogether::courseNumber)
      * @return array<string, mixed>
      */
-    public static function course(User $user, int $minutes, string $lesson, ?string $resumeHandle = null, int $session = 1): array
+    public static function course(User $user, int $minutes, string $lesson, ?string $resumeHandle = null, int $session = 1, ?Teacher $teacher = null): array
     {
+        $teacher ??= Teachers::forUser($user);
+
         return self::setup(
             self::instructions('course', $user, $minutes, [
                 'working_together' => WorkingTogether::course($session),
                 'lesson' => $lesson,
-            ]),
+            ], $teacher),
             [],
             $resumeHandle,
+            $teacher,
             self::paceLevel('course', $user),
             'course',
         );
@@ -181,9 +192,11 @@ class TeacherSetup
      *
      * @return array<string, mixed>
      */
-    public static function trial(User $user): array
+    public static function trial(User $user, ?Teacher $teacher = null): array
     {
-        return self::setup(self::instructions('trial', $user, 1), [], null);
+        $teacher ??= Teachers::forUser($user);
+
+        return self::setup(self::instructions('trial', $user, 1, [], $teacher), [], null, $teacher);
     }
 
     /**
@@ -191,15 +204,16 @@ class TeacherSetup
      *
      * @return array<string, mixed>
      */
-    public static function levelTest(User $user, Level $level, int $minutes, ?string $resumeHandle = null): array
+    public static function levelTest(User $user, Level $level, int $minutes, ?string $resumeHandle = null, ?Teacher $teacher = null): array
     {
+        $teacher ??= Teachers::forUser($user);
         $units = array_map(
             fn (Unit $unit) => sprintf('%d. %s — grammar: %s', $unit->number, $unit->title, implode(' / ', $unit->grammar)),
             Curriculum::units($level),
         );
 
         return self::setup(
-            self::instructions('level_test', $user, $minutes, ['level' => $level->value, 'units' => implode("\n", $units)]),
+            self::instructions('level_test', $user, $minutes, ['level' => $level->value, 'units' => implode("\n", $units)], $teacher),
             [[
                 'name' => self::RECORD_LEVEL_TEST_RESULT,
                 'description' => 'Records the result of the end-of-level oral test.',
@@ -218,6 +232,7 @@ class TeacherSetup
                 ],
             ]],
             $resumeHandle,
+            $teacher,
             self::paceLevel('level_test', $user),
         );
     }
@@ -287,8 +302,9 @@ class TeacherSetup
     /**
      * @param  array<string, int|string>  $extra  marqueurs supplémentaires (:context, :units…)
      */
-    public static function instructions(string $kind, User $user, int $minutes, array $extra = []): string
+    public static function instructions(string $kind, User $user, int $minutes, array $extra = [], ?Teacher $teacher = null): string
     {
+        $teacher ??= Teachers::forUser($user);
         $level = $user->level?->value ?? 'unknown';
 
         $text = implode("\n\n", array_filter([
@@ -318,7 +334,7 @@ class TeacherSetup
 
         $text = self::fill($text, $extra + [
             'platform' => config('platform.name'),
-            'teacher' => config('avatar.model.name'),
+            'teacher' => $teacher->name(),
             'founder' => (string) config('platform.founder.name'),
             'name' => $user->name,
             'level' => $level,
@@ -338,7 +354,7 @@ class TeacherSetup
         // Ajoutés APRÈS le remplacement des marqueurs : le nom de l'apprenant n'est jamais relu comme un marqueur.
         return implode("\n\n", [
             $text,
-            "SITE GUIDE (in French)\n".SiteGuide::text($kind),
+            "SITE GUIDE (in French)\n".SiteGuide::text($kind, $teacher),
             "LEARNER STATUS (in French)\n".LearnerSituation::describe($user, $kind),
         ]);
     }
@@ -347,7 +363,7 @@ class TeacherSetup
      * @param  array<int, array<string, mixed>>  $functions
      * @return array<string, mixed>
      */
-    private static function setup(string $instructions, array $functions, ?string $resumeHandle, string $paceLevel = 'unknown', ?string $kind = null): array
+    private static function setup(string $instructions, array $functions, ?string $resumeHandle, Teacher $teacher, string $paceLevel = 'unknown', ?string $kind = null): array
     {
         // Pas de fonction d'expression (set_expression) : les appels de fonction de l'API Live sont
         // synchrones, le modèle s'arrête puis reprend la parole et répète sa dernière phrase. Les
@@ -355,8 +371,8 @@ class TeacherSetup
 
         $generationConfig = ['responseModalities' => ['AUDIO']];
 
-        // Voix choisie par l'administrateur (page « Essai des voix »), sinon GEMINI_VOICE_NAME.
-        if (filled($voice = TeacherVoice::current())) {
+        // Voix du professeur (Teacher Joe : choisie dans « Essai des voix », sinon GEMINI_VOICE_NAME).
+        if (filled($voice = $teacher->geminiVoice())) {
             $generationConfig['speechConfig'] = [
                 'voiceConfig' => ['prebuiltVoiceConfig' => ['voiceName' => $voice]],
             ];

@@ -4,6 +4,8 @@ namespace App\Models\Concerns;
 
 use App\Support\Live\LiveProviders;
 use App\Support\Live\OpenAiRealtime;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use Illuminate\Support\Carbon;
 
 /**
@@ -21,7 +23,7 @@ use Illuminate\Support\Carbon;
  * Colonnes attendues : started_at, ended_at, allowed_seconds, used_seconds,
  * last_seen_at, token_expires_at, connections, input_tokens, output_tokens,
  * live_provider (gemini ou openai), live_call_id (appel OpenAI en cours),
- * paused_seconds (coupures déjà comptées), disconnected_at (coupure en cours).
+ * paused_seconds (coupures déjà comptées), disconnected_at (coupure en cours), teacher (professeur de la séance).
  */
 trait IsLiveConversation
 {
@@ -34,6 +36,14 @@ trait IsLiveConversation
      */
     public static function bootIsLiveConversation(): void
     {
+        // Professeur de la séance, fixé à sa création (sa voix est figée dans le jeton) : celui de l'apprenant.
+        static::creating(function (self $conversation) {
+            if (blank($conversation->getAttributes()['teacher'] ?? null)) {
+                $userId = $conversation->getAttributes()['user_id'] ?? null;
+                $conversation->setAttribute('teacher', Teachers::forUserId($userId === null ? null : (int) $userId)->key);
+            }
+        });
+
         static::updated(function (self $conversation) {
             $callId = $conversation->getAttributes()['live_call_id'] ?? null;
 
@@ -41,6 +51,14 @@ trait IsLiveConversation
                 app(OpenAiRealtime::class)->hangup((string) $callId);
             }
         });
+    }
+
+    /**
+     * Professeur de la conversation (Teacher Joe pour les conversations d'avant les professeurs).
+     */
+    public function teacher(): Teacher
+    {
+        return Teachers::find($this->getAttributes()['teacher'] ?? null) ?? Teachers::default();
     }
 
     /**
