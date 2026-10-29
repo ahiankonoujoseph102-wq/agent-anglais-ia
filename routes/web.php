@@ -279,6 +279,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/videos/{video}/reessayer', [AdminVideoController::class, 'retry'])->name('videos.retry');
     Route::get('/videos/{video}/fichier', [AdminVideoController::class, 'file'])->name('videos.file');
     Route::put('/videos/reglages', [AdminVideoController::class, 'updateSite'])->name('videos.site');
+    Route::put('/videos/par-jour', [AdminVideoController::class, 'updatePerDay'])->name('videos.per-day');
     Route::get('/videos/voix/{provider}/{voice}', [AdminVideoController::class, 'voiceSample'])->where(['provider' => '[a-z]+', 'voice' => '[A-Za-z]+'])->middleware('throttle:20,1')->name('videos.voice-sample');
     Route::post('/videos/voix', [AdminVideoController::class, 'chooseVoice'])->name('videos.voice-choose');
     Route::post('/videos/{video}/refaire', [AdminVideoController::class, 'redo'])->name('videos.redo');

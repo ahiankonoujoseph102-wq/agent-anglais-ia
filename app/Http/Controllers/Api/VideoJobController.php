@@ -26,7 +26,7 @@ class VideoJobController extends Controller
             return response()->json(['waiting' => $videos->waiting(), 'blocked' => $blocked]);
         }
 
-        return response()->json(['jobs' => $videos->claim((int) $request->integer('limit', (int) config('videos.per_day'))), 'blocked' => $blocked]);
+        return response()->json(['jobs' => $videos->claim((int) $request->integer('limit', 1)), 'blocked' => $blocked]);
     }
 
     public function audio(LessonVideo $video): StreamedResponse|JsonResponse
