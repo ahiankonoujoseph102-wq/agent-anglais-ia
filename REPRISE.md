@@ -6,6 +6,13 @@
 
 
 
+## Grand chantier de qualité (30 octobre 2026) : étapes 1 à 3 tout de suite, étape 4 (refonte du site) APRÈS l'accord du fondateur sur l'audit
+
+- **Étape 1, Teacher Rose enseigne comme Teacher Joe (#158, fusionnée)** : voir CLAUDE.md, feuille de route. Ses consignes étaient déjà celles de Teacher Joe ; cause probable : la VOIX (Sulafat plus vive) et la phrase « gentle sense of humour ». Au fondateur : « Essai des voix » → Teacher Rose → « Écouter en séance » sur Sulafat, Zephyr, Achernar, Gacrux et Vindemiatrix (et sur la voix de Teacher Joe, onglet Teacher Joe), comparer les mots par seconde, choisir la plus lente qui lui plaît.
+- **Étape 2, passage de relais entre professeurs (#159, fusionnée)** : fait, voir CLAUDE.md (séance du jour seulement ; « Mes cours » porte sur la leçon de l'école).
+- **Étape 3, faire connaître Teacher Rose aux abonnés (branche `claude/annonce-teacher-rose`)** : fait, voir CLAUDE.md.
+- **Étape 4, refonte du site** : audit remis au fondateur le 29 octobre 2026, en attente de son accord. Points, par importance : (1) bouton principal sous le premier écran à 360 × 640 sur Inscription (1 028), « À propos » (3 922), « Comment ça marche » (2 396), « Devenir ambassadeur » (2 335), guides (3 200 à 6 300), Bénin (575 tout juste) ; (2) « Joseph Ahiankonou » introuvable dans les moteurs de recherche (domaine récent, Search Console, liens des profils) ; (3) données structurées absentes sur « Comment ça marche », « Devenir ambassadeur », Contact, Inscription ; (4) navigation des pages longues (repères, sommaire des guides) ; (5) fonds et apparitions légers sur les pages publiques autres que l'accueil ; (6) photos : 5, licences vérifiées (Pexels, Unsplash). Mesures : 25 pages, aucune erreur JavaScript, aucun lien cassé, aucun débordement, environ 230 Ko et moins de 1,3 seconde par page.
+
 ## Chantier en cours : présentations de Teacher Rose redites avec Zephyr (29 octobre 2026, branche `claude/rose-presentations-zephyr`)
 
 - **Décision du fondateur** : Zephyr (Gemini) pour les vidéos et les messages de Teacher Rose. Correction de l'adresse (#154) vérifiée : fusionnée, en ligne (talkami.laravel.cloud répond 301 vers talkami.net).

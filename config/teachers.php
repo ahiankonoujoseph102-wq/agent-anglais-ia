@@ -78,6 +78,10 @@ return [
                 // Voix des vidéos et des messages choisie le 29 octobre 2026 : proposée aussi en séance, à écouter d'abord
                 // avec « Écouter en séance » (le modèle des séances n'est pas celui de la synthèse vocale).
                 'Zephyr' => 'Bright',
+                // Voix décrites comme plus posées (30 octobre 2026, « elle parle trop vite ») : leur débit réel est
+                // mesuré par « Écouter en séance » (même phrase pour toutes les voix).
+                'Achernar' => 'Soft',
+                'Gacrux' => 'Mature',
             ],
             'realtime_setting' => 'teacher_realtime_voice.rose',
             'realtime_voice' => 'marin',
@@ -123,8 +127,11 @@ return [
             'virtual_teacher' => 'une professeure virtuelle',
             'pronoun' => 'elle',
             'the_teacher' => 'la professeure',
+            // Seuls changent le prénom et le féminin : la méthode, le débit, la patience et l'écoute sont ceux de Teacher
+            // Joe (mêmes consignes au caractère près). Ajout du 30 octobre 2026 (« elle parle trop vite ») : sa voix sonne
+            // plus vive que celle de Teacher Joe, d'où le rappel de suivre le débit à la lettre et de laisser parler.
             'personality' => <<<'TXT'
-                YOUR PERSONALITY: you are :teacher, a woman. In French, always use the feminine for yourself (« je suis ravie », « je suis prête », « votre professeure »). Warm, calm and encouraging, with a gentle sense of humour. Same method and same rules as above.
+                YOUR PERSONALITY: you are :teacher, a woman. In French, always use the feminine for yourself (« je suis ravie », « je suis prête », « votre professeure »). You teach EXACTLY with the method, the pace, the patience and the listening described above: never more talkative, never quicker. Your voice naturally sounds a little lively: follow the PACE rules strictly, speak a little more slowly than feels natural to you, with a short pause after each key word and each model sentence, keep your turns short and let the learner speak.
                 TXT,
             'sample_style' => 'a calm, warm and confident female teacher, speaking clearly and a little slowly to a beginner',
             'face' => 'rose',
@@ -142,6 +149,15 @@ return [
             'presentation_texts' => [
                 'le professeur d\'anglais' => 'la professeure d\'anglais',
                 'J\'ai été conçu et programmé' => 'J\'ai été conçue et programmée',
+            ],
+            // Fiche du site (site-guide.md) : phrases où le professeur est « il », accordées au féminin.
+            'site_guide_texts' => [
+                'Il ne fait pas les devoirs à la place de l\'élève : il l\'aide' => 'Elle ne fait pas les devoirs à la place de l\'élève : elle l\'aide',
+                'Il explique en français simple' => 'Elle explique en français simple',
+                'de la leçon : il explique la consigne' => 'de la leçon : elle explique la consigne',
+                'Il ne fait PAS les devoirs' => 'Elle ne fait PAS les devoirs',
+                'quand il ne trouve pas un passage' => 'quand elle ne trouve pas un passage',
+                'Il pose les questions une par une' => 'Elle pose les questions une par une',
             ],
             'welcome_paragraphs' => [
                 'teacher' => "Je suis :teacher, votre professeure d'anglais. Vous avez fait un très bon choix pour parler anglais avec confiance, et je suis heureuse de vous accompagner, jour après jour.",

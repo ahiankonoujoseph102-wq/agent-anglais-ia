@@ -519,6 +519,9 @@ TXT,
         // Envoyée quand l'apprenant reprend après une pause (il n'a rien entendu pendant la pause).
         'pause_resume' => '[System] The learner paused the conversation and is back. They did not hear what you said during the pause. Do not greet them again and do not repeat your introduction (nor how to work together): in one short sentence, ask your last question again, then wait for the answer.',
         'lesson_warning' => '[System] :remaining minutes remain in the lesson. Start STEP 4 now with « :summary_phrase »: what the learner can now do (« Today, you can … »), one sentence to remember (said by the learner), the homework. Do not say goodbye yet.',
+        // Passage de relais (LessonController::handoffNote), ajouté à lesson_start : la dernière séance tenue l'a été avec
+        // l'AUTRE professeur. Le rapport vient seulement de PREVIOUS LESSON et ERRORS TO REVIEW du contexte.
+        'handoff' => ' then the HANDOVER (the learner\'s last lesson was with :previous; this is your first lesson together since then): in French, say « :previous m\'a fait un rapport sur ce que vous avez appris la dernière fois : », followed by ONE or TWO short sentences taken ONLY from PREVIOUS LESSON and ERRORS TO REVIEW in your instructions (never invent anything), then ask ONE or TWO short questions, one at a time, to check what the learner remembers (correct gently); this replaces the recall of the WARM-UP,',
         // Première séance d'une formule payée (LessonController::isFirstPaidLesson), ajoutée à lesson_start.
         'first_paid_lesson' => ' then, in French, ONE sentence to congratulate and thank them by first name for choosing :platform (« Félicitations … et merci de votre confiance ! »), then TWO short sentences on how the lesson goes (I teach you first, we practise, then you talk, and we finish with a summary),',
         // Fin de séance (séance du jour et « Mes cours ») : envoyées d'après le temps restant, quand il ne parle pas.
