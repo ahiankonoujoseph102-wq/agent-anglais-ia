@@ -78,7 +78,59 @@ final class Teacher
      */
     public function speechStyle(string $style): string
     {
-        return strtr($style, (array) ($this->config['speech_style'] ?? []));
+        $style = strtr($style, (array) ($this->config['speech_style'] ?? []));
+        $extra = trim((string) ($this->config['speech_extra'] ?? ''));
+
+        // Consigne de prononciation ajoutée seulement avec la voix des vidéos et des messages choisie (test en
+        // français et en anglais) : avant ce choix, aucun fichier n'est refait.
+        return $extra !== '' && $this->speechVoice() !== null ? trim($style.' '.$extra) : $style;
+    }
+
+    /**
+     * Voix proposées pour les vidéos et les messages (test en français et en anglais) : fournisseur => voix =>
+     * description. Vide (Teacher Joe) : aucun choix à part, réglages d'avant.
+     *
+     * @return array<string, array<string, string>>
+     */
+    public function speechTrials(): array
+    {
+        return array_filter((array) ($this->config['speech_trials'] ?? []), fn ($voices) => is_array($voices) && $voices !== []);
+    }
+
+    /**
+     * Voix des vidéos et des messages choisie dans « Essai des voix » (fournisseur et voix), ou null : sa voix de
+     * séance, comme avant. Une voix qui n'est plus proposée est ignorée.
+     *
+     * @return array{provider: string, voice: string}|null
+     */
+    public function speechVoice(): ?array
+    {
+        $chosen = $this->chosen($this->config['speech_setting'] ?? null);
+
+        if (! filled($chosen) || ! str_contains($chosen, ':')) {
+            return null;
+        }
+
+        [$provider, $voice] = explode(':', $chosen, 2);
+
+        return isset($this->speechTrials()[$provider][$voice]) ? ['provider' => $provider, 'voice' => $voice] : null;
+    }
+
+    /** Voix de synthèse choisie pour ce fournisseur, ou null (autre fournisseur, ou rien de choisi). */
+    public function speechVoiceFor(string $provider): ?string
+    {
+        $chosen = $this->speechVoice();
+
+        return $chosen !== null && $chosen['provider'] === $provider ? $chosen['voice'] : null;
+    }
+
+    public function chooseSpeechVoice(string $provider, string $voice): void
+    {
+        $setting = $this->config['speech_setting'] ?? null;
+
+        if (filled($setting) && isset($this->speechTrials()[$provider][$voice])) {
+            Setting::put((string) $setting, $provider.':'.$voice);
+        }
     }
 
     /**

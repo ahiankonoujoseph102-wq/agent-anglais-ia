@@ -10,6 +10,9 @@ use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\SpeechUsage;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
+use App\Support\Videos\OldAddress;
+use App\Support\Videos\PresentationScripts;
+use App\Support\Videos\VideoSettings;
 use App\Support\Videos\VideoVoice;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
@@ -110,6 +113,69 @@ class VoiceSampler
     }
 
     /**
+     * Test en FRANÇAIS ET en anglais de la voix des vidéos et des messages (config teacher.voice_trial.bilingual_text :
+     * chiffres et prix dits en toutes lettres, comme dans les vidéos de présentation).
+     *
+     * @return array{text: string, style: string}
+     */
+    public static function bilingualScript(?Teacher $teacher = null): array
+    {
+        $teacher ??= Teachers::default();
+        $site = VideoSettings::site() ?? OldAddress::primary() ?? (string) config('platform.name');
+
+        return [
+            'text' => PresentationScripts::render((string) config('teacher.voice_trial.bilingual_text'), true, $site, teacher: $teacher),
+            'style' => (string) config('teacher.voice_trial.bilingual_style'),
+        ];
+    }
+
+    /** Extrait du test bilingue : change avec le fournisseur, le modèle, la voix, la phrase et le ton. */
+    public static function bilingualPath(string $provider, string $voice, ?Teacher $teacher = null): string
+    {
+        $script = self::bilingualScript($teacher);
+        $speech = $provider === 'openai' ? SpeechProviders::find('openai') : null;
+        $model = $provider === 'openai' ? $speech?->model().'|'.$speech?->settings() : config('services.gemini.tts_model');
+        $hash = substr(sha1(implode('|', [$provider, $model, $voice, $script['text'], $script['style']])), 0, 16);
+
+        return self::DIRECTORY.'/fr-en-'.$provider.'-'.$voice.'-'.$hash.'.wav';
+    }
+
+    public function cachedBilingual(string $provider, string $voice, ?Teacher $teacher = null): ?string
+    {
+        $disk = PrivateStorage::disk();
+        $path = self::bilingualPath($provider, $voice, $teacher);
+
+        return $disk->exists($path) ? $disk->get($path) : null;
+    }
+
+    /**
+     * Prépare l'extrait du test bilingue d'une voix et le garde. Gemini : la deuxième clé d'abord.
+     *
+     * @throws SpeechFailed
+     */
+    public function generateBilingual(string $provider, string $voice, ?Teacher $teacher = null): string
+    {
+        $script = self::bilingualScript($teacher);
+        $label = 'Test en français et en anglais : '.$voice;
+
+        if ($provider === 'openai') {
+            $speech = SpeechProviders::find('openai');
+
+            if ($speech === null || ! $speech->hasKey()) {
+                throw new SpeechFailed(SpeechFailed::MISSING_KEY, 'Clé absente.');
+            }
+
+            $wav = app(VideoVoice::class)->synthesize($speech, $voice, $script['text'], $label, $script['style']);
+
+            return self::store(self::bilingualPath($provider, $voice, $teacher), $wav, $label, $speech);
+        }
+
+        $wav = $this->synthesize($voice, $script['text'], $script['style'], $label, spareMainKey: true);
+
+        return self::store(self::bilingualPath($provider, $voice, $teacher), $wav, $label);
+    }
+
+    /**
      * Fait dire un texte par une voix avec le modèle de synthèse vocale. Renvoie le fichier WAV
      * (aussi utilisé pour le message vocal du résultat et le message de bienvenue). Chaque échec est
      * journalisé avec sa cause (SpeechLog) : code HTTP, type d'erreur, durée, morceau concerné ($label) ;
@@ -119,11 +185,17 @@ class VoiceSampler
      *
      * @throws SpeechFailed
      */
-    public function synthesize(string $voice, string $text, string $style, string $label = 'Synthèse vocale', ?int $timeout = null): string
+    public function synthesize(string $voice, string $text, string $style, string $label = 'Synthèse vocale', ?int $timeout = null, bool $spareMainKey = false): string
     {
         $timeout = max(1, $timeout ?? (int) config('services.gemini.tts_timeout'));
         $keys = self::keys();
         $failure = null;
+
+        // Essais d'administration (test en français et en anglais) : la deuxième clé d'abord, pour garder la limite du
+        // jour de la clé principale aux vidéos et aux messages. Les numéros des clés ne changent pas.
+        if ($spareMainKey) {
+            $keys = array_reverse($keys, true);
+        }
 
         // Clé principale, puis la deuxième clé Gemini (GEMINI_API_KEY_2, autre projet Google, autre limite) en
         // secours : limite du jour ou par minute, service surchargé (503), délai, connexion, clé refusée. Une clé

@@ -47,7 +47,7 @@ class OpenAiSpeech extends SpeechProvider
 
     public function voice(): string
     {
-        return $this->teacher?->openaiSpeechVoice() ?? (string) config('services.openai.tts_voice');
+        return $this->teacher?->speechVoiceFor('openai') ?? $this->teacher?->openaiSpeechVoice() ?? (string) config('services.openai.tts_voice');
     }
 
     public function spacing(): int

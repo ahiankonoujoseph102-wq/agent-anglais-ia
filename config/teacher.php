@@ -94,6 +94,11 @@ return [
     'voice_trial' => [
         'text' => 'Hello! I\'m :teacher, your English teacher at :platform. Let\'s speak English together, step by step. Are you ready?',
         'style' => 'a calm, warm and confident male teacher, speaking clearly and a little slowly to a beginner',
+        // Test en FRANÇAIS ET en anglais de la voix des vidéos et des messages (« Essai des voix », professeurs qui
+        // ont « speech_trials ») : chiffres, noms des formules, mots difficiles (« il y a », « expiré »), adresse du
+        // site. Repères de PresentationScripts (dits en toutes lettres) : rien n'est écrit à la main.
+        'bilingual_text' => "Bonjour, je suis :teacher, votre professeure d'anglais sur :platform. Il y a trois formules : :name_semaine, :name_essentiel et :name_intensif. La formule :name_essentiel coûte :price_essentiel pour :days_essentiel jours. Votre accès a expiré : vous pouvez le renouveler dès aujourd'hui, sur :site. Maintenant, en anglais : How much is it? It's two thousand francs. I'd like a cup of coffee, please.",
+        'bilingual_style' => 'Lis comme une professeure d\'anglais chaleureuse et posée qui parle à des débutants francophones. Le français : prononciation française standard, naturelle et soignée, à un rythme calme. Les phrases en anglais : prononciation américaine, claire et un peu lente.',
     ],
 
     // Savoir-faire d'un vrai professeur, ajouté aux consignes de la séance orale quotidienne ET de « Mes cours »
