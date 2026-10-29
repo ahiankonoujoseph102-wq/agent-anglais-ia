@@ -25,6 +25,11 @@
     <x-top-cta />
 
     @if ($videos->isNotEmpty())
+        @push('head')
+            @foreach ($videos as $video)
+                {!! \App\Support\Seo::jsonLd(\App\Support\Seo::video($video, str_replace([':teacher', ':platform'], [$teacher, $platform], (string) ($intros[$video->key] ?? '')))) !!}
+            @endforeach
+        @endpush
         @foreach ($videos as $video)
             <section class="section how-video reveal" aria-labelledby="video-{{ $video->key }}" id="{{ $video->key }}">
                 <h2 id="video-{{ $video->key }}">{{ $video->title }}</h2>

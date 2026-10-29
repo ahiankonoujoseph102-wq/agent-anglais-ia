@@ -211,7 +211,7 @@ class SeoTest extends TestCase
         $html = $this->get('/')->getContent();
         $data = $this->jsonLdOf($html);
 
-        $this->assertSame(['Organization', 'WebSite', 'Service', 'FAQPage'], array_column($data, '@type'));
+        $this->assertSame(['Organization', 'WebSite', 'Service', 'FAQPage', 'WebPage'], array_column($data, '@type'));
 
         [$organization, $website, $service, $faq] = $data;
         $this->assertSame(config('platform.name'), $organization['name']);

@@ -71,6 +71,11 @@
     <script>document.documentElement.classList.add('js');if(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)document.documentElement.classList.add('is-standalone');addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.installPrompt=e;document.documentElement.classList.add('can-install');});</script>
     <script type="module" src="{{ Asset::url('js/app.js') }}" data-sw="{{ asset('sw.js') }}" data-install-reminder="{{ Asset::url('js/install-reminder.js') }}" data-installed-message="{{ config('platform.name') }} est installée : retrouvez {{ config('avatar.model.name') }} sur votre écran d'accueil."></script>
     @stack('head')
+    {{-- Données structurées de la page, après celles propres à la page (WebPage, ContactPage, AboutPage) et fil d'Ariane, sur les pages indexées. --}}
+    @if ($indexable)
+        {!! Seo::jsonLd(Seo::webPage($pageTitle, $pageDescription)) !!}
+        {!! Seo::jsonLd(Seo::currentBreadcrumbs()) !!}
+    @endif
 </head>
 <body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage, 'is-admin-user' => $user?->isStaff(), 'is-ambassador-user' => $user?->isAmbassador()]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
     <a class="skip-link" href="#contenu">Aller au contenu</a>

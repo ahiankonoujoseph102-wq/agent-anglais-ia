@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\PresentationVideo;
 use App\Support\Teachers\Teachers;
 use DOMDocument;
 use DOMXPath;
@@ -20,7 +21,23 @@ final class Seo
     public const INDEXABLE_ROUTES = ['home', 'plans', 'about', 'how', 'courses-help', 'interview', 'guides.index', 'guides.show', 'country', 'ambassador.join', 'contact', 'register', 'privacy'];
 
     /** Types de données structurées autorisés : aucune note, aucun avis, aucun nombre d'apprenants. */
-    public const SCHEMA_TYPES = ['Organization', 'WebSite', 'Person', 'Service', 'Offer', 'FAQPage', 'Question', 'Answer', 'ContactPoint', 'PostalAddress', 'Country', 'Article', 'BreadcrumbList', 'ListItem'];
+    public const SCHEMA_TYPES = ['Organization', 'WebSite', 'Person', 'Service', 'Offer', 'FAQPage', 'Question', 'Answer', 'ContactPoint', 'PostalAddress', 'Country', 'Article', 'BreadcrumbList', 'ListItem', 'WebPage', 'ContactPage', 'AboutPage', 'VideoObject'];
+
+    /**
+     * Nom de chaque page publique dans le fil d'Ariane (« Accueil › … ») ; les guides donnent le leur
+     * (guides/index, guides/show), les pages pays leur titre.
+     */
+    public const CRUMBS = [
+        'plans' => 'Formules',
+        'about' => 'À propos',
+        'how' => 'Comment ça marche',
+        'courses-help' => 'Aide aux cours d\'anglais',
+        'interview' => 'Préparer un entretien en anglais',
+        'ambassador.join' => 'Devenir ambassadeur',
+        'contact' => 'Contact',
+        'register' => 'Inscription',
+        'privacy' => 'Confidentialité',
+    ];
 
     /** Image de partage (WhatsApp, Facebook…), 1200 × 630 pixels, produite par tools/brand/share-image.mjs. */
     public const SHARE_IMAGE = 'images/partage-talkami.jpg';
@@ -241,6 +258,77 @@ final class Seo
             'author' => ['@type' => 'Organization', '@id' => self::url().'#organisation', 'name' => config('platform.name'), 'url' => self::url()],
             'publisher' => ['@type' => 'Organization', '@id' => self::url().'#organisation', 'name' => config('platform.name'), 'url' => self::url()],
         ];
+    }
+
+    /**
+     * Données structurées de la page affichée : « WebPage » (Contact : « ContactPage », « À propos » : « AboutPage »),
+     * nom, description, adresse, partie du site, à propos de la plateforme.
+     *
+     * @return array<string, mixed>
+     */
+    public static function webPage(string $name, string $description, ?Request $request = null): array
+    {
+        $route = ($request ?? request())->route()?->getName();
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => match ($route) {
+                'contact' => 'ContactPage',
+                'about' => 'AboutPage',
+                default => 'WebPage',
+            },
+            '@id' => self::canonical($request).'#page',
+            'url' => self::canonical($request),
+            'name' => $name,
+            'description' => $description,
+            'inLanguage' => 'fr',
+            'isPartOf' => ['@id' => self::url().'#site'],
+            'about' => ['@id' => self::url().'#organisation'],
+        ];
+    }
+
+    /**
+     * Données structurées d'une vidéo de « Comment ça marche » (version « site ») : titre, présentation, image
+     * d'aperçu, adresse de la vidéo, date de mise en ligne, durée. Aucune note ni nombre de vues.
+     *
+     * @return array<string, mixed>
+     */
+    public static function video(PresentationVideo $video, string $description): array
+    {
+        $seconds = (int) $video->duration_seconds;
+
+        return array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => 'VideoObject',
+            'name' => $video->title,
+            'description' => $description !== '' ? $description : $video->title,
+            'thumbnailUrl' => self::url(route('how.poster', $video->key, false)),
+            'contentUrl' => self::url(route('how.video', $video->key, false)),
+            'uploadDate' => ($video->ready_at ?? $video->updated_at)?->toIso8601String(),
+            'duration' => $seconds > 0 ? 'PT'.intdiv($seconds, 60).'M'.($seconds % 60).'S' : null,
+            'inLanguage' => 'fr',
+            'publisher' => ['@id' => self::url().'#organisation'],
+        ]);
+    }
+
+    /**
+     * Fil d'Ariane de la page affichée (Accueil › Formules…), ou null : accueil, guides (qui donnent le leur), page
+     * non publique.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function currentBreadcrumbs(?Request $request = null): ?array
+    {
+        $request ??= request();
+        $route = $request->route()?->getName();
+
+        if ($route === 'country') {
+            $page = CountryPage::find((string) $request->route('country'));
+
+            return $page !== null ? self::breadcrumbs([$page->heading => '/'.ltrim($request->path(), '/')]) : null;
+        }
+
+        return isset(self::CRUMBS[$route]) ? self::breadcrumbs([self::CRUMBS[$route] => '/'.ltrim($request->path(), '/')]) : null;
     }
 
     /**
