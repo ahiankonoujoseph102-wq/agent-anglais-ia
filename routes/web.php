@@ -263,6 +263,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/voix/test-francais/{provider}/{voice}/extrait', [VoiceSpeechTrialController::class, 'sample'])->whereIn('provider', ['gemini', 'openai'])->where('voice', '[A-Za-z]+')->middleware('throttle:30,1')->name('voices.speech.sample');
     Route::post('/voix/test-francais/preparer', [VoiceSpeechTrialController::class, 'prepare'])->middleware('throttle:6,1')->name('voices.speech.prepare');
     Route::post('/voix/test-francais', [VoiceSpeechTrialController::class, 'choose'])->name('voices.speech.choose');
+    Route::post('/voix/test-francais/clarte', [VoiceSpeechTrialController::class, 'measure'])->middleware('throttle:6,1')->name('voices.speech.measure');
     // « Écouter en séance » : vraie connexion de séance avec cette voix, sans micro (VoiceLiveController).
     Route::post('/voix/seance/fin', [VoiceLiveController::class, 'finish'])->name('voices.live.finish');
     Route::post('/voix/seance/{voice}', [VoiceLiveController::class, 'start'])->where('voice', '[A-Za-z]+')->middleware('throttle:30,1')->name('voices.live');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\SpeechFailed;
 use App\Support\Gemini\VoiceSampler;
+use App\Support\Speech\VoiceClarity;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
 use Illuminate\Http\JsonResponse;
@@ -92,6 +93,41 @@ class VoiceSpeechTrialController extends Controller
 
         return redirect()->to(route('admin.voices.index', ['professeur' => $teacher->key]).'#voix-francais')
             ->with('status', trim($status.' '.implode(' ', array_unique($problems))));
+    }
+
+    /**
+     * Mesure la clarté des extraits prêts qui n'ont pas encore de résultat (retranscription comparée au texte), tant
+     * qu'il reste du temps (retoucher le bouton s'il en reste).
+     */
+    public function measure(Request $request, VoiceSampler $sampler, VoiceClarity $clarity): RedirectResponse
+    {
+        $teacher = $this->teacher($request->input('teacher'));
+        $deadline = microtime(true) + max(5, (int) config('services.gemini.tts_web_budget'));
+        $measured = 0;
+        $left = 0;
+        $failed = 0;
+
+        foreach ($teacher->speechTrials() as $provider => $voices) {
+            foreach (array_keys($voices) as $voice) {
+                if ($sampler->cachedBilingual($provider, $voice, $teacher) === null || VoiceClarity::result($provider, $voice, $teacher) !== null) {
+                    continue;
+                }
+
+                if (microtime(true) > $deadline - 10) {
+                    $left++;
+
+                    continue;
+                }
+
+                $clarity->measure($provider, $voice, $teacher) !== null ? $measured++ : $failed++;
+            }
+        }
+
+        $status = "Clarté mesurée : {$measured} extrait".($measured > 1 ? 's' : '').'.'
+            .($left > 0 ? " Encore {$left} : touchez de nouveau « Mesurer la clarté »." : '')
+            .($failed > 0 ? " {$failed} n'ont pas pu être retranscrits (fournisseur indisponible) : réessayez plus tard." : '');
+
+        return redirect()->to(route('admin.voices.index', ['professeur' => $teacher->key]).'#voix-francais')->with('status', $status);
     }
 
     public function choose(Request $request): RedirectResponse

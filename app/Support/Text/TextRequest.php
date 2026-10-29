@@ -22,6 +22,7 @@ final class TextRequest
         'club' => 'Scripts des vidéos du Club des abonnés',
         'diagnostic' => 'Essai du diagnostic',
         'rehearsal' => 'Banc d\'essai du professeur',
+        'clarity' => 'Clarté des voix (Essai des voix)',
     ];
 
     /**
@@ -51,6 +52,16 @@ final class TextRequest
     /**
      * @return array{type: string, data: string, mime: string}
      */
+    /**
+     * Un enregistrement (WAV) à écouter : Gemini seulement (clarté des voix, « Essai des voix »).
+     *
+     * @return array{type: string, data: string, mime: string}
+     */
+    public static function audio(string $bytes, string $mime = 'audio/wav'): array
+    {
+        return ['type' => 'audio', 'data' => $bytes, 'mime' => $mime];
+    }
+
     public static function image(string $bytes, string $mime): array
     {
         return ['type' => 'image', 'data' => $bytes, 'mime' => $mime];

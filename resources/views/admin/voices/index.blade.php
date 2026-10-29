@@ -32,6 +32,15 @@
         @php
             $speechChosen = $teacher->speechVoice();
             $speechLabels = ['gemini' => 'Gemini', 'openai' => 'OpenAI'];
+            // Clarté mesurée de chaque extrait (retranscription comparée au texte) et la meilleure en français.
+            $clarity = [];
+            foreach ($teacher->speechTrials() as $provider => $voices) {
+                foreach (array_keys($voices) as $voice) {
+                    $clarity[$provider][$voice] = \App\Support\Speech\VoiceClarity::result($provider, $voice, $teacher);
+                }
+            }
+            $ranked = collect($clarity)->flatMap(fn ($voices, $provider) => collect($voices)->filter()->map(fn ($r, $voice) => $r + ['provider' => $provider, 'voice' => $voice])->values())
+                ->sortByDesc(fn ($r) => [$r['french'], $r['english']])->values();
         @endphp
         <section class="card" id="voix-francais" aria-labelledby="voix-francais-titre">
             <h2 id="voix-francais-titre">Voix des vidéos et des messages : test en français et en anglais</h2>
@@ -54,6 +63,18 @@
                 <button type="submit" class="btn btn-light" data-busy-label="Préparation en cours…"><x-icon name="download" /> Préparer les extraits manquants</button>
                 <span class="muted small">Gemini : la deuxième clé d'abord, pour garder la clé principale aux vidéos du jour.</span>
             </form>
+            <form method="POST" action="{{ route('admin.voices.speech.measure') }}">
+                @csrf
+                <input type="hidden" name="teacher" value="{{ $teacher->key }}">
+                <button type="submit" class="btn btn-light" data-busy-label="Mesure en cours…"><x-icon name="check-circle" /> Mesurer la clarté des extraits prêts</button>
+                <span class="muted small">Chaque extrait est retranscrit, puis comparé mot à mot à la phrase : un mot déformé est mal reconnu. Utile pour écarter une voix ; l'écoute décide.</span>
+            </form>
+            @if ($ranked->isNotEmpty())
+                <p class="alert alert-info">
+                    <x-icon name="info" />
+                    <span>Voix la plus claire mesurée en français : <strong>{{ $ranked[0]['voice'] }}</strong> ({{ $speechLabels[$ranked[0]['provider']] ?? $ranked[0]['provider'] }}) : {{ $ranked[0]['french'] }} % des mots français et {{ $ranked[0]['english'] }} % des mots anglais bien reconnus.</span>
+                </p>
+            @endif
 
             @foreach ($teacher->speechTrials() as $provider => $voices)
                 <h3>{{ $speechLabels[$provider] ?? $provider }}</h3>
@@ -69,6 +90,10 @@
                                 @endif
                                 @if ($isCurrent)
                                     <span class="badge">voix actuelle</span>
+                                @endif
+                                @if ($result = $clarity[$provider][$voice] ?? null)
+                                    <br><span class="small">Clarté : français {{ $result['french'] }} %, anglais {{ $result['english'] }} %</span>
+                                    <details class="small"><summary>Ce qui a été entendu</summary><p>{{ $result['transcript'] }}</p></details>
                                 @endif
                             </div>
                             <div class="voice-actions">
