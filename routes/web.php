@@ -48,6 +48,7 @@ use App\Http\Controllers\Program\LessonHistoryController;
 use App\Http\Controllers\Program\ProgramAnswersController;
 use App\Http\Controllers\Program\ProgramController;
 use App\Http\Controllers\SeoController;
+use App\Http\Controllers\TeacherChoiceController;
 use App\Http\Controllers\WebAppController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Middleware\EnsurePasswordIsChanged;
@@ -117,6 +118,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/mot-de-passe/nouveau', [PasswordController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 
     Route::get('/espace', DashboardController::class)->name('dashboard');
+    // Choix du professeur (« Mon espace ») : seulement les professeurs prêts (config/teachers.php).
+    Route::post('/espace/professeur', [TeacherChoiceController::class, 'update'])->middleware('throttle:10,1')->name('teacher.choose');
 
     // Espace ambassadeur : lien, code et code QR personnels, mois gratuit, régularité.
     Route::get('/ambassadeur', [AmbassadorSpaceController::class, 'show'])->name('ambassador.show');

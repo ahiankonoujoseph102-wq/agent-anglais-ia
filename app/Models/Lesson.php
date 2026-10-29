@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 /**
  * Une séance orale quotidienne avec le professeur.
  */
-#[Fillable(['subscription_id', 'program_id', 'program_lesson_id', 'date', 'allowed_seconds', 'used_seconds', 'started_at', 'ended_at', 'status', 'topic', 'summary', 'homework', 'outcome'])]
+#[Fillable(['subscription_id', 'program_id', 'program_lesson_id', 'date', 'allowed_seconds', 'used_seconds', 'started_at', 'ended_at', 'status', 'topic', 'summary', 'homework', 'outcome', 'teacher'])]
 class Lesson extends Model
 {
     use IsLiveConversation;

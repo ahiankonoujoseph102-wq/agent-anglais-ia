@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Support\Teachers\Teacher;
+
 /**
  * Professeur animé en 3D : réglages transmis au navigateur (config/avatar.php).
  *
@@ -10,9 +12,12 @@ namespace App\Support;
  */
 class Avatar
 {
-    public static function enabled(): bool
+    /** Professeur animé en 3D : interrupteur général et fichier du modèle du professeur (Teacher Joe par défaut). */
+    public static function enabled(?Teacher $teacher = null): bool
     {
-        return (bool) config('avatar.enabled') && is_file(public_path((string) config('avatar.model.file')));
+        $file = $teacher !== null ? ($teacher->avatar()['file'] ?? null) : config('avatar.model.file');
+
+        return (bool) config('avatar.enabled') && filled($file) && is_file(public_path((string) $file));
     }
 
     /**
@@ -20,9 +25,9 @@ class Avatar
      *
      * @return array<string, mixed>
      */
-    public static function clientConfig(): array
+    public static function clientConfig(?Teacher $teacher = null): array
     {
-        $model = config('avatar.model');
+        $model = $teacher?->avatar() ?? config('avatar.model');
 
         return [
             'module' => self::asset('js/teacher-3d.js'),

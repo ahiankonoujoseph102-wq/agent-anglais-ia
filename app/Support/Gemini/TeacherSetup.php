@@ -309,6 +309,8 @@ class TeacherSetup
 
         $text = implode("\n\n", array_filter([
             trim((string) config('teacher.persona')),
+            // Personnalité propre au professeur (Teacher Rose : féminin en français) ; Teacher Joe : rien.
+            $teacher->personality(),
             // Débit selon le niveau (seule règle de débit), toutes les conversations, chez les deux fournisseurs.
             self::pace($kind, $user),
             // L'évaluation gratuite et « Mes cours » ont leurs propres règles de langue ; la séance du jour a les siennes
@@ -335,6 +337,7 @@ class TeacherSetup
         $text = self::fill($text, $extra + [
             'platform' => config('platform.name'),
             'teacher' => $teacher->name(),
+            'virtual_teacher' => $teacher->virtualTeacher(),
             'founder' => (string) config('platform.founder.name'),
             'name' => $user->name,
             'level' => $level,

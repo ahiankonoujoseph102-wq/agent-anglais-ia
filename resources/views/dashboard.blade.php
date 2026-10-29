@@ -209,6 +209,9 @@
         </p>
     @endif
 
+    {{-- Choix du professeur : seulement quand au moins deux professeurs sont prêts (voix et visage). --}}
+    <x-teacher-choice class="rise" />
+
     {{-- « Mes cours » : complément facultatif, après la prochaine étape et la séance orale du jour. --}}
     @if ($showCourses)
         <section class="card rise" aria-labelledby="courses-card-title" style="--i: 2">

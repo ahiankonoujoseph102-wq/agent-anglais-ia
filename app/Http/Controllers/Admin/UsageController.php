@@ -97,6 +97,7 @@ class UsageController extends Controller
             'speechProviders' => SpeechProviders::all(),
             'text' => TextUsage::totals(),
             'live' => LiveUsage::totals(),
+            'liveTeachers' => LiveUsage::byTeacher(),
             'replyDelays' => LiveUsage::replyDelays(),
             'textKinds' => TextUsage::byKind(),
             'textProviders' => TextProviders::all(),

@@ -104,6 +104,23 @@
     </div>
     <p class="muted small">Ces conversations sont aussi comptées dans les totaux ci-dessus ; elles sont reconnaissables à « Accès offert » dans les listes.</p>
 
+    {{-- Séances en direct par professeur (config/teachers.php) : chacune avec le professeur qui l'a faite. --}}
+    <h2 class="next-step" id="par-professeur">Séances en direct par professeur</h2>
+    <div class="stats">
+        @foreach ($liveTeachers as $key => $total)
+            <div class="stat" data-teacher-usage="{{ $key }}">
+                <div class="label">{{ $total['name'] }}</div>
+                <div class="value">{{ $total['count'] }}</div>
+                <div class="detail">
+                    {{ $total['count'] > 1 ? 'séances' : 'séance' }} ·
+                    {{ Duration::formatPrecise($total['seconds']) }} ·
+                    {{ UsageCost::format($total['cost']) }}
+                </div>
+            </div>
+        @endforeach
+    </div>
+    <p class="muted small">Évaluations, séances du jour, « Mes cours » et bilans de niveau ; coût d'après les jetons, chaque séance au tarif de son fournisseur. Les séances d'avant les professeurs comptent pour {{ \App\Support\Teachers\Teachers::default()->name() }}.</p>
+
     {{-- Séances en direct par fournisseur : Gemini Live d'abord, OpenAI Realtime en secours. --}}
     <h2 class="next-step">Séances en direct par fournisseur</h2>
     <div class="stats">

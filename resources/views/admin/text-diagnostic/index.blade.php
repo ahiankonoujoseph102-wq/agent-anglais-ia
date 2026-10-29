@@ -75,6 +75,11 @@
                         <button type="submit" class="btn btn-accent"><x-icon name="mic" /> Tester {{ \App\Support\Live\LiveProviders::label($name) }}</button>
                     </form>
                     <a class="btn btn-light" href="{{ route('admin.live-trial.show', $name) }}"><x-icon name="headphones" /> Essayer une conversation de 30 secondes</a>
+                    {{-- Autres professeurs (Teacher Rose) : même essai, avec leur voix, même s'ils ne sont pas encore proposés. --}}
+                    @foreach (\App\Support\Teachers\Teachers::all() as $other)
+                        @continue($other->key === \App\Support\Teachers\Teachers::default()->key)
+                        <a class="btn btn-light" href="{{ route('admin.live-trial.show', ['provider' => $name, 'professeur' => $other->key]) }}"><x-icon name="headphones" /> Essayer 30 secondes avec {{ $other->name() }}</a>
+                    @endforeach
                 </div>
             </div>
         @endforeach

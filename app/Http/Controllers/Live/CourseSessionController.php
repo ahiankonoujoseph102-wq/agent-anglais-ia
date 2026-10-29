@@ -17,6 +17,7 @@ use App\Support\Gemini\TeacherSetup;
 use App\Support\Live\LivePage;
 use App\Support\Live\SessionEnd;
 use App\Support\Live\WorkingTogether;
+use App\Support\Teachers\Teachers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -57,15 +58,17 @@ class CourseSessionController extends Controller
         }
 
         $remaining = $open?->remainingSeconds() ?? self::allowedSeconds($user);
+        $teacher = $open?->teacher() ?? Teachers::forUser($user);
 
         return view('live.session', [
             'mode' => 'course',
+            'teacher' => $teacher,
             'usefulPhrasesOpen' => WorkingTogether::isFirst(WorkingTogether::courseNumber($user, $open)),
             'title' => 'Mon cours',
             // UNE ligne courte sous « Commencer » ; le détail est replié sous « Avant de commencer ».
-            'intro' => config('avatar.model.name').' a lu votre leçon « '.$course->title.' »'.($course->currentPart ? ' ('.$course->currentPart->label().')' : '').'.',
-            'introMore' => 'Il vous demandera ce que vous voulez faire : comprendre toute la leçon, poser une question précise ou travailler un exercice. '
-                .'Cette séance dure '.Duration::format($remaining).' au plus ; il vous préviendra avant la fin. '
+            'intro' => $teacher->name().' a lu votre leçon « '.$course->title.' »'.($course->currentPart ? ' ('.$course->currentPart->label().')' : '').'.',
+            'introMore' => ucfirst($teacher->pronoun()).' vous demandera ce que vous voulez faire : comprendre toute la leçon, poser une question précise ou travailler un exercice. '
+                .'Cette séance dure '.Duration::format($remaining).' au plus ; '.$teacher->pronoun().' vous préviendra avant la fin. '
                 .'Elle prend sur votre temps du jour, partagé avec la séance orale. '.DailyTime::remainingSentence((int) $user->remainingSecondsToday(false)),
             'remainingSeconds' => $remaining,
             'urls' => [
@@ -158,8 +161,9 @@ class CourseSessionController extends Controller
 
         $allowedSeconds = $session?->allowed_seconds ?? self::allowedSeconds($user);
         $deadline = $session?->deadline() ?? now()->addSeconds($allowedSeconds);
+        $teacher = $session?->teacher() ?? Teachers::forUser($user);
         $setup = TeacherSetup::course($user, (int) ceil($allowedSeconds / 60), $course->promptContext(), $request->handle(),
-            WorkingTogether::courseNumber($user, $session));
+            WorkingTogether::courseNumber($user, $session), $teacher);
 
         try {
             $token = $live->request($setup, $deadline, $session, $request->failedProvider());
@@ -177,6 +181,7 @@ class CourseSessionController extends Controller
             // Partie du PDF travaillée : le document de révision portera sur elle.
             'course_part_id' => $course->current_part_id,
             'date' => today(),
+            'teacher' => $teacher->key,
             'allowed_seconds' => $allowedSeconds,
             'started_at' => now(),
             'status' => LessonStatus::InProgress,

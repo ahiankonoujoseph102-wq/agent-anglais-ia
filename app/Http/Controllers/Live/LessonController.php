@@ -25,6 +25,7 @@ use App\Support\Live\LiveEarlyEnd;
 use App\Support\Live\LivePage;
 use App\Support\Live\SessionEnd;
 use App\Support\Live\WorkingTogether;
+use App\Support\Teachers\Teachers;
 use App\Support\Text\TextProviders;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -61,15 +62,18 @@ class LessonController extends Controller
         }
 
         $board = $this->board($user, $lesson);
+        // Professeur de la séance reprise, sinon celui de l'apprenant (« Mon espace »).
+        $teacher = $lesson?->teacher() ?? Teachers::forUser($user);
 
         return view('live.session', [
             'mode' => 'lesson',
+            'teacher' => $teacher,
             // Phrases utiles dépliées aux premières séances, repliées ensuite.
             'usefulPhrasesOpen' => WorkingTogether::isFirst(WorkingTogether::lessonNumber($user, $lesson)),
             'title' => 'Ma séance du jour',
             // UNE ligne courte sous « Commencer » ; le détail est replié sous « Avant de commencer ».
             'intro' => DailyTime::remainingSentence($remaining),
-            'introMore' => 'Ce temps du jour est partagé avec « Mes cours ». Le professeur vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
+            'introMore' => 'Ce temps du jour est partagé avec « Mes cours ». '.ucfirst($teacher->theTeacher()).' vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
             'remainingSeconds' => $remaining,
             'board' => $board,
             // Traductions du tableau : visibles en A1 et A2, discrètes en B1, masquées ensuite.
@@ -147,8 +151,10 @@ class LessonController extends Controller
 
         $minutes = (int) ceil($allowedSeconds / 60);
         $plan = LessonPlan::for($program?->level ?? $user->level, $minutes);
+        // Professeur de la séance reprise (sa voix ne change jamais en cours de séance), sinon celui de l'apprenant.
+        $teacher = $lesson?->teacher() ?? Teachers::forUser($user);
         $setup = TeacherSetup::lesson($user, $minutes, $request->handle(), $this->context($user, $programLesson, $plan),
-            WorkingTogether::lessonNumber($user, $lesson));
+            WorkingTogether::lessonNumber($user, $lesson), $teacher);
 
         try {
             $token = $live->request($setup, $deadline, $lesson, $request->failedProvider());
@@ -168,6 +174,7 @@ class LessonController extends Controller
             'allowed_seconds' => $allowedSeconds,
             'started_at' => now(),
             'status' => LessonStatus::InProgress,
+            'teacher' => $teacher->key,
         ]);
 
         $warningMinutes = (int) config('platform.lessons.warning_minutes_before_end');

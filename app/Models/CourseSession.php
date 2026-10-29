@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
  * Une séance « Mes cours » : Teacher Joe réexplique une leçon de l'apprenant puis la fait pratiquer.
  * Elle prend sur le temps du jour de la formule, partagé avec la séance orale (User::remainingSecondsToday).
  */
-#[Fillable(['course_lesson_id', 'course_part_id', 'date', 'allowed_seconds', 'used_seconds', 'started_at', 'ended_at', 'status'])]
+#[Fillable(['course_lesson_id', 'course_part_id', 'date', 'allowed_seconds', 'used_seconds', 'started_at', 'ended_at', 'status', 'teacher'])]
 class CourseSession extends Model
 {
     use IsLiveConversation;

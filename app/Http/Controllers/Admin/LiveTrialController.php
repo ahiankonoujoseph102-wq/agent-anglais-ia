@@ -10,6 +10,8 @@ use App\Support\Gemini\TeacherSetup;
 use App\Support\Live\LiveLog;
 use App\Support\Live\LiveProviders;
 use App\Support\Live\OpenAiRealtime;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,17 +63,21 @@ class LiveTrialController extends Controller
         ]);
     }
 
-    public function show(string $provider): View
+    public function show(Request $request, string $provider): View
     {
         $label = LiveProviders::label($provider);
+        // Professeur de l'essai (?professeur=rose) : sa voix, son nom et son visage, même s'il n'est pas encore proposé.
+        $teacher = self::teacher($request);
+        $query = $teacher->key === Teachers::default()->key ? [] : ['professeur' => $teacher->key];
 
         return view('live.session', [
             'mode' => 'trial',
+            'teacher' => $teacher,
             'title' => 'Essai de conversation ('.$label.')',
-            'intro' => 'Une conversation de 30 secondes avec '.config('avatar.model.name').' chez '.$label.', sans secours : vous entendez sa voix et son ton. Rien n\'est compté comme une séance.',
+            'intro' => 'Une conversation de 30 secondes avec '.$teacher->name().' chez '.$label.', sans secours : vous entendez sa voix et son ton. Rien n\'est compté comme une séance.',
             'remainingSeconds' => self::SECONDS,
             'urls' => [
-                'connect' => route('admin.live-trial.connect', $provider),
+                'connect' => route('admin.live-trial.connect', ['provider' => $provider] + $query),
                 'signal' => route('admin.live-trial.signal', $provider),
                 'finish' => route('admin.live-trial.finish', $provider),
                 'result' => route('admin.live-trial.finish', $provider),
@@ -92,7 +98,8 @@ class LiveTrialController extends Controller
         }
 
         $remaining = self::remaining($trial);
-        $setup = TeacherSetup::trial($user);
+        $teacher = self::teacher($request);
+        $setup = TeacherSetup::trial($user, $teacher);
 
         try {
             if (! LiveProviders::hasKey($provider)) {
@@ -101,7 +108,7 @@ class LiveTrialController extends Controller
 
             $connection = $provider === LiveProviders::OPENAI
                 ? [
-                    'call_url' => LiveConnection::callUrl(null, OpenAiRealtime::session($setup), $user->id, $remaining + 5),
+                    'call_url' => LiveConnection::callUrl(null, OpenAiRealtime::session($setup, 'unknown', $teacher), $user->id, $remaining + 5),
                     'token_expires_in' => $remaining + 3600,
                 ]
                 : [
@@ -162,6 +169,11 @@ class LiveTrialController extends Controller
         if (is_array($call) && filled($call['call_id'] ?? null)) {
             $openai->hangup((string) $call['call_id']);
         }
+    }
+
+    private static function teacher(Request $request): Teacher
+    {
+        return Teachers::find(is_string($request->query('professeur')) ? $request->query('professeur') : null) ?? Teachers::default();
     }
 
     /**

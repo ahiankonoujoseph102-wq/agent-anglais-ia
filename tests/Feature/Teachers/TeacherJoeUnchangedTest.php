@@ -52,7 +52,8 @@ class TeacherJoeUnchangedTest extends TestCase
     {
         config([
             'avatar.second' => ['name' => 'Teacher Test'] + (array) config('avatar.model'),
-            'teachers.list.second' => ['avatar' => 'second', 'gemini_voice' => 'Kore', 'realtime_voice' => 'marin'],
+            'teachers.list.second' => ['avatar' => 'second', 'ready' => true, 'gemini_voice' => 'Kore', 'realtime_voice' => 'marin'],
+            'teachers.list.rose.ready' => true,
         ]);
 
         $expected = json_decode((string) file_get_contents(base_path('tests/'.self::FIXTURE)), true);

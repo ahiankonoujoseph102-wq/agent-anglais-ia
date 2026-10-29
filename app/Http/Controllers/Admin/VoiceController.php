@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Support\Gemini\GeminiUnavailable;
-use App\Support\Gemini\TeacherVoice;
+use App\Support\Gemini\SpeechFailed;
 use App\Support\Gemini\VoiceSampler;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,18 +16,30 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 
 /**
- * « Essai des voix » : écouter les voix masculines proposées et choisir celle du professeur.
+ * « Essai des voix » : pour chaque professeur (config/teachers.php, ?professeur=rose), écouter les voix proposées
+ * chez Gemini (séances en direct) et chez OpenAI (secours), puis choisir la sienne. Teacher Joe : voix Gemini
+ * seulement, comme avant (adresses sans paramètre).
  */
 class VoiceController extends Controller
 {
-    public function index(): View
+    private const PROVIDERS = ['gemini', 'openai'];
+
+    public function index(Request $request): View
     {
+        $teacher = $this->teacher($request->query('professeur'));
+
         return view('admin.voices.index', [
-            'trials' => TeacherVoice::trials(),
-            'current' => TeacherVoice::current(),
-            'chosen' => TeacherVoice::isChosen(),
-            'default' => config('services.gemini.voice'),
-            'script' => VoiceSampler::script()['text'],
+            'teachers' => Teachers::all(),
+            'teacher' => $teacher,
+            'trials' => $teacher->geminiTrials(),
+            'current' => $teacher->geminiVoice(),
+            'chosen' => $teacher->isGeminiVoiceChosen(),
+            'default' => $teacher->defaultGeminiVoice(),
+            'openaiTrials' => $teacher->openaiTrials(),
+            'openaiCurrent' => $teacher->realtimeVoice(),
+            'openaiChosen' => $teacher->isRealtimeVoiceChosen(),
+            'openaiDefault' => $teacher->defaultRealtimeVoice(),
+            'script' => VoiceSampler::script($teacher)['text'],
         ]);
     }
 
@@ -34,9 +48,12 @@ class VoiceController extends Controller
      */
     public function sample(Request $request, string $voice, VoiceSampler $sampler): Response|JsonResponse
     {
-        abort_unless(array_key_exists($voice, TeacherVoice::trials()), 404);
+        $teacher = $this->teacher($request->query('professeur'));
+        $provider = $this->provider($request->query('fournisseur'));
 
-        $wav = $sampler->cached($voice);
+        abort_unless($this->isProposed($teacher, $provider, $voice), 404);
+
+        $wav = $sampler->cached($voice, $teacher, $provider);
 
         if ($wav === null) {
             $key = 'voice-trial:'.$request->user()->id;
@@ -48,12 +65,14 @@ class VoiceController extends Controller
             RateLimiter::hit($key, 3600);
 
             try {
-                $wav = $sampler->generate($voice);
+                $wav = $provider === 'openai' ? $sampler->generateOpenAi($voice, $teacher) : $sampler->generate($voice, $teacher);
             } catch (GeminiUnavailable $e) {
                 // Cause déjà journalisée par la synthèse vocale (SpeechLog).
-                return response()->json(['message' => $e->quotaExceeded
-                    ? 'La limite de Gemini est atteinte pour le moment. Réessayez plus tard.'
-                    : 'L\'extrait n\'a pas pu être créé. Réessayez dans quelques instants.'], 503);
+                return response()->json(['message' => match (true) {
+                    $e instanceof SpeechFailed && $e->kind === SpeechFailed::MISSING_KEY => 'Clé OPENAI_API_KEY absente dans les variables de Laravel Cloud : les voix OpenAI ne peuvent pas être essayées.',
+                    $e->quotaExceeded => 'La limite du fournisseur est atteinte pour le moment. Réessayez plus tard.',
+                    default => 'L\'extrait n\'a pas pu être créé. Réessayez dans quelques instants.',
+                }], 503);
             }
         }
 
@@ -66,11 +85,38 @@ class VoiceController extends Controller
     public function choose(Request $request): RedirectResponse
     {
         $voice = (string) $request->input('voice');
+        $teacher = $this->teacher($request->input('teacher'));
+        $provider = $this->provider($request->input('provider'));
 
-        abort_unless(array_key_exists($voice, TeacherVoice::trials()), 422);
+        abort_unless($this->isProposed($teacher, $provider, $voice), 422);
 
-        TeacherVoice::choose($voice);
+        $teacher->chooseVoice($provider, $voice);
 
-        return to_route('admin.voices.index')->with('status', "La voix « {$voice} » est enregistrée : elle sera utilisée pour toutes les prochaines conversations.");
+        $isDefault = $teacher->key === Teachers::default()->key && $provider === 'gemini';
+
+        return redirect()->to(route('admin.voices.index', $isDefault ? [] : ['professeur' => $teacher->key]))
+            ->with('status', $isDefault
+                ? "La voix « {$voice} » est enregistrée : elle sera utilisée pour toutes les prochaines conversations."
+                : "La voix « {$voice} » ({$this->label($provider)}) est enregistrée pour {$teacher->name()} : elle sera utilisée pour ses prochaines conversations.");
+    }
+
+    private function teacher(mixed $key): Teacher
+    {
+        return Teachers::find(is_string($key) ? $key : null) ?? Teachers::default();
+    }
+
+    private function provider(mixed $provider): string
+    {
+        return in_array($provider, self::PROVIDERS, true) ? $provider : 'gemini';
+    }
+
+    private function isProposed(Teacher $teacher, string $provider, string $voice): bool
+    {
+        return array_key_exists($voice, $provider === 'openai' ? $teacher->openaiTrials() : $teacher->geminiTrials());
+    }
+
+    private function label(string $provider): string
+    {
+        return $provider === 'openai' ? 'OpenAI' : 'Gemini';
     }
 }

@@ -35,19 +35,30 @@ class Teachers
         return self::find((string) config('teachers.default')) ?? array_values(self::all())[0];
     }
 
-    /** Professeur choisi par l'apprenant, sinon le professeur par défaut. */
-    public static function forUser(?User $user): Teacher
+    /**
+     * Professeurs que l'apprenant peut choisir : ceux dont la voix ET le visage sont prêts (« ready »).
+     *
+     * @return array<string, Teacher>
+     */
+    public static function choosable(): array
     {
-        return self::find($user?->getAttributes()['teacher'] ?? null) ?? self::default();
+        return array_filter(self::all(), fn (Teacher $teacher) => $teacher->isReady());
     }
 
-    /** Professeur d'un apprenant connu par son identifiant (création d'une séance) ; aucune requête avec un seul professeur. */
-    public static function forUserId(?int $userId): Teacher
+    /** Le choix du professeur est-il proposé aux apprenants (au moins deux professeurs prêts) ? */
+    public static function hasChoice(): bool
     {
-        if ($userId === null || count(self::all()) < 2) {
-            return self::default();
-        }
+        return count(self::choosable()) > 1;
+    }
 
-        return self::forUser(User::query()->select(['id', 'teacher'])->find($userId));
+    /**
+     * Professeur choisi par l'apprenant s'il peut encore être choisi, sinon le professeur par défaut : retirer un
+     * professeur de la liste (ou le marquer pas prêt) ramène ses apprenants vers Teacher Joe.
+     */
+    public static function forUser(?User $user): Teacher
+    {
+        $teacher = self::find($user?->getAttributes()['teacher'] ?? null);
+
+        return $teacher !== null && $teacher->isReady() ? $teacher : self::default();
     }
 }
