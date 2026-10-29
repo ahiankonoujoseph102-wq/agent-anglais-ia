@@ -80,15 +80,21 @@ return [
     | « Vidéos » (aperçu, « Télécharger pour WhatsApp », texte signé à copier), visible aussi par un assistant.
     */
     'club' => [
-        // Durée visée (environ 3 minutes 30) et durée MINIMALE de la voix : un script trop court est refusé, une voix
-        // plus courte que « min_seconds » fait réécrire le script (ClubScriptWriter, VideoVoice).
-        'duration_seconds' => 210,
+        // Durée visée : 3 minutes, jamais moins (« min_seconds »). La parole seule vise « speech_seconds » (le reste :
+        // silences pour répéter et entre les parties) ; le script est refusé hors de 90 % à 125 % de ces mots. Une
+        // voix un peu courte reçoit des silences de répétition plus longs (« max_pad_seconds » en tout au plus,
+        // VideoVoice) ; plus courte encore : nouveau script.
+        'duration_seconds' => 180,
+        'speech_seconds' => 150,
         'min_seconds' => 180,
+        'max_pad_seconds' => 30,
         // Silence laissé après « Répétez après moi : … » pour que l'abonné répète à voix haute (millisecondes).
         'repeat_pause_ms' => 2500,
-        // Fabrication plus légère que les vidéos de promotion (mesuré : environ 70 % du temps) : Teacher Joe rendu en
-        // 432 × 768 puis agrandi, 20 images par seconde. Remplace ces réglages de « render » pour le Club seulement.
-        'render' => ['avatar_width' => 432, 'avatar_height' => 768, 'fps' => 20],
+        // Fabrication plus légère que les vidéos de promotion (mesuré le 29 octobre 2026 : environ 60 % du temps) :
+        // Teacher Joe rendu en 396 × 704 puis agrandi, 20 images par seconde. Remplace ces réglages de « render »
+        // pour le Club seulement. 3 minutes sur une machine lente de GitHub (environ 0,9 seconde par image) :
+        // environ 55 minutes, sous le temps accordé (72).
+        'render' => ['avatar_width' => 396, 'avatar_height' => 704, 'fps' => 20],
         'level' => 'A2',
         // Un élément (expression, son, situation, erreur, piège) n'est pas repris avant tant de semaines.
         'repeat_weeks' => 8,

@@ -72,7 +72,7 @@ class ClubVideoTest extends TestCase
         ]);
     }
 
-    /** Un script d'environ 500 mots (un peu plus de 3 minutes) : chaque phrase anglaise traduite et expliquée. */
+    /** Un script d'environ 340 mots (environ 3 minutes avec les silences) : chaque phrase anglaise traduite et expliquée. */
     private function script(string $extra = '', array $override = []): array
     {
         $segment = fn (string $i) => $override + [
@@ -82,9 +82,9 @@ class ClubVideoTest extends TestCase
             'explain' => 'On l\'utilise avec des amis ou des collègues, le matin ou l\'après-midi, jamais dans une lettre officielle.',
             'repeat' => true,
         ];
-        $numbers = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze'];
+        $numbers = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six'];
 
-        return ['title' => 'Une expression pour le Club', 'segments' => [['say' => 'Bonjour à tous, bienvenue dans la vidéo du Club ! Aujourd\'hui, une petite leçon pour parler tout de suite.', 'english' => '', 'translation' => '', 'explain' => '', 'repeat' => false], ...array_map($segment, $numbers)], 'caption' => 'Voici votre vidéo du jour. Répondez-moi en message vocal dans le groupe !'];
+        return ['title' => 'Une expression pour le Club', 'segments' => [['say' => 'Bonjour à tous, bienvenue dans la vidéo du Club ! Aujourd\'hui, une petite leçon pour parler tout de suite.', 'english' => '', 'translation' => '', 'explain' => '', 'repeat' => false], ['say' => 'Écoutez bien, puis répétez à voix haute avec moi, sans peur.', 'english' => '', 'translation' => '', 'explain' => '', 'repeat' => false], ...array_map($segment, $numbers)], 'caption' => 'Voici votre vidéo du jour. Répondez-moi en message vocal dans le groupe !'];
     }
 
     private function words(): int
@@ -319,7 +319,7 @@ class ClubVideoTest extends TestCase
         $script = ClubScriptWriter::normalize($this->script(), $this->words(), $brief);
 
         $this->assertNotNull($script);
-        $lesson = $script['segments'][1];
+        $lesson = $script['segments'][2];
         $this->assertStringContainsString("How's it going? En français : Comment ça va ? On l'utilise avec des amis", $lesson['spoken']);
         $this->assertStringEndsWith("Répétez après moi : How's it going?", $lesson['spoken']);
         $this->assertStringContainsString("[en]How's it going?[/en] En français : Comment ça va ?", $lesson['subtitle']);
@@ -339,13 +339,13 @@ class ClubVideoTest extends TestCase
     public function test_a_club_script_shorter_than_three_minutes_is_refused(): void
     {
         $brief = ['theme' => 'expression', 'data' => 'x', 'figures' => null];
-        $short = $this->script();
-        $short['segments'] = array_slice($short['segments'], 0, 8);
-
         $this->assertSame(180, config('videos.club.min_seconds'));
-        $this->assertGreaterThanOrEqual(180, config('videos.club.duration_seconds'));
-        $this->assertNull(ClubScriptWriter::normalize($short, $this->words(), $brief));
-        $this->assertStringContainsString('NEVER fewer than :min_words', ClubScriptWriter::INSTRUCTIONS);
+        $this->assertSame(180, config('videos.club.duration_seconds'));
+        $this->assertNotNull(ClubScriptWriter::normalize($this->script(), $this->words(), $brief));
+        // Trop peu de mots (moins de 3 minutes, même avec des silences plus longs) ou beaucoup trop : refusé.
+        $this->assertNull(ClubScriptWriter::normalize($this->script(override: ['explain' => 'Pour saluer.']), $this->words(), $brief));
+        $this->assertNull(ClubScriptWriter::normalize($this->script('On prend le temps, doucement, pour bien entendre chaque mot de cette phrase.'), $this->words(), $brief));
+        $this->assertStringContainsString('NEVER fewer than :min_words nor more than :max_words', ClubScriptWriter::INSTRUCTIONS);
         $this->assertStringContainsString('EVERY English sentence', ClubScriptWriter::INSTRUCTIONS);
     }
 
@@ -385,7 +385,7 @@ class ClubVideoTest extends TestCase
         $job = $this->withToken(self::TOKEN)->getJson('/api/videos/travaux?limit=1&type=club')->assertOk()->json('jobs.0');
         $club = LessonVideo::query()->club()->firstOrFail();
         $this->assertSame($club->id, $job['id']);
-        $this->assertSame(432, $job['render']['avatar_width']);
+        $this->assertSame(396, $job['render']['avatar_width']);
         $this->assertSame(20, $job['render']['fps']);
         $this->assertSame(-14, $job['render']['audio']['target_lufs']);
         $this->assertSame(-1, $job['render']['audio']['max_peak_db']);
@@ -415,5 +415,22 @@ class ClubVideoTest extends TestCase
         $this->assertNull($video->script);
         $this->assertNull($video->audio_path);
         $this->assertSame('videos/x/club.mp4', $video->video_path);
+    }
+
+    public function test_a_slightly_short_club_voice_gets_longer_repeat_silences_and_lasts_three_minutes(): void
+    {
+        Carbon::setTestNow('2026-10-27 08:00');
+        $this->member();
+        // 9 parties de 16 secondes, avec les silences : un peu moins de 3 minutes.
+        app(ClubVideos::class)->ensureToday();
+        $this->prepareAll();
+
+        $video = LessonVideo::query()->club()->firstOrFail();
+        $this->assertSame(LessonVideo::VOICED, $video->status);
+        $this->assertGreaterThanOrEqual(180, $video->timings['duration']);
+        $this->assertLessThan(182, $video->timings['duration']);
+        // Le silence ajouté va aux moments de répétition : une partie à répéter dure plus que sa voix.
+        $repeat = $video->timings['segments'][2];
+        $this->assertGreaterThan(16 + 2.5, $repeat['end'] - $repeat['start']);
     }
 }
