@@ -85,7 +85,7 @@ async function makeOne(context, job, audioFile, workdir, outDir) {
     const total = Math.max(job.duration, audioSeconds) + 1.2;
     // Comptes de démonstration avec le professeur de la vidéo (Teacher Rose : séance du jour et « Mes cours » avec elle).
     resetDemo({ ...context.env, PRESENTATION_TEACHER: job.teacher ?? '' });
-    const demo = await openDemo(context.browser, { site: SITE, fakePort: FAKE_PORT, viewport: job.render.viewport, scale: 2, effects: context.effects, proofImage: context.proof });
+    const demo = await openDemo(context.browser, { site: SITE, fakePort: FAKE_PORT, viewport: job.render.viewport, scale: 2, effects: context.effects, proofImage: context.proof, teacher: job.teacher && job.teacher !== 'joe' ? job.teacher : null });
 
     // 1. L'écran, prise par prise.
     const recorded = [];

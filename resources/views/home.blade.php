@@ -333,7 +333,7 @@
                     @if (Teachers::hasChoice())
                         <details>
                             <summary><x-icon name="users" /><span>Puis-je choisir mon professeur ?</span></summary>
-                            <p>Oui : {{ Teachers::names(' et ') }}. Même méthode, même programme, mêmes formules : seuls la voix et le visage changent. Vous choisissez votre professeur à l'ouverture de votre accès, puis dans « Mon espace », et vous pouvez en changer chaque jour : le changement compte dès la séance suivante. Votre niveau, votre programme et vos erreurs à revoir restent les mêmes. L'évaluation gratuite se passe avec {{ Teachers::default()->name() }}.</p>
+                            <p>Oui : {{ Teachers::names(' et ') }}. Même méthode, même programme, mêmes formules : seuls la voix et le visage changent. Vous choisissez votre professeur à l'ouverture de votre accès, puis dans « Mon espace », et vous pouvez en changer chaque jour : le changement compte dès la séance suivante. Votre niveau, votre programme et vos erreurs à revoir restent les mêmes. Même l'évaluation gratuite : {{ Teachers::default()->name() }} est proposé d'avance, et vous pouvez choisir l'autre professeur avant de commencer.</p>
                         </details>
                     @endif
                     <details>

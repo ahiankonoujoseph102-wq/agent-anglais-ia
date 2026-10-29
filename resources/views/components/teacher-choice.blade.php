@@ -1,7 +1,7 @@
 {{--
     Choix du professeur (« Mon espace », #professeur) : montré seulement quand au moins deux professeurs sont prêts
     (config/teachers.php → ready : voix ET visage prêts). Vaut pour la séance du jour, « Mes cours » et le bilan de
-    niveau ; l'évaluation gratuite se fait avec le professeur par défaut. Tout le reste est commun.
+    niveau ; l'évaluation gratuite se choisit sur sa propre page (Teacher Joe proposé d'avance). Tout le reste est commun.
 --}}
 @if (\App\Support\Teachers\Teachers::hasChoice() && auth()->user()?->activeSubscription)
     @php($current = \App\Support\Teachers\Teachers::forUser(auth()->user()))

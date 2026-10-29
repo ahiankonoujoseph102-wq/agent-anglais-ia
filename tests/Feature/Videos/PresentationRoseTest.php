@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Videos;
 
+use App\Models\Assessment;
 use App\Models\PresentationVideo;
 use App\Models\User;
 use App\Support\Videos\PresentationScripts;
@@ -85,5 +86,6 @@ class PresentationRoseTest extends TestCase
 
         $this->assertSame(0, User::query()->where('role', 'learner')->where(fn ($q) => $q->whereNull('teacher')->orWhere('teacher', '!=', 'rose'))->count());
         $this->assertSame(0, User::query()->where('role', 'admin')->where('teacher', 'rose')->count());
+        $this->assertSame(0, Assessment::query()->where(fn ($q) => $q->whereNull('teacher')->orWhere('teacher', '!=', 'rose'))->count());
     }
 }

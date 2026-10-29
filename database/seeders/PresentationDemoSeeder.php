@@ -23,6 +23,7 @@ use App\Support\PrivateStorage;
 use App\Support\Teachers\Teachers;
 use App\Support\Videos\VideoSettings;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -101,6 +102,11 @@ class PresentationDemoSeeder extends Seeder
 
         if ($teacher !== null && ! $teacher->isDefault()) {
             User::query()->where('role', Role::Learner)->update(['teacher' => $teacher->key]);
+
+            // Évaluations, séances et « Mes cours » déjà faits par les comptes fictifs : avec lui aussi.
+            foreach (['assessments', 'lessons', 'course_sessions', 'level_tests'] as $table) {
+                DB::table($table)->update(['teacher' => $teacher->key]);
+            }
         }
     }
 

@@ -20,7 +20,7 @@ const ACCOUNTS = {
 const sleep = (ms) => new Promise((ok) => setTimeout(ok, Math.max(0, ms)));
 
 /** Navigateur prêt : un onglet de téléphone, les effets, les cookies de chaque compte de démonstration. */
-export async function openDemo(browser, { site, fakePort, viewport, scale, effects, proofImage, coursePhoto = null, accounts = {} }) {
+export async function openDemo(browser, { site, fakePort, viewport, scale, effects, proofImage, coursePhoto = null, accounts = {}, teacher = null }) {
     const options = { viewport, deviceScaleFactor: scale, isMobile: true, hasTouch: true, locale: 'fr-FR', timezoneId: 'Africa/Lome', permissions: ['microphone'], reducedMotion: 'no-preference' };
     const cookies = { visitor: [] };
 
@@ -50,7 +50,7 @@ export async function openDemo(browser, { site, fakePort, viewport, scale, effec
     page.on('pageerror', (error) => console.log(`[page] ${error.message}`));
     const cdp = await context.newCDPSession(page);
 
-    return { context, page, cdp, cookies, site, fakePort, proofImage, coursePhoto, viewport, scale, account: null };
+    return { context, page, cdp, cookies, site, fakePort, proofImage, coursePhoto, viewport, scale, teacher, account: null };
 }
 
 /** L'aide « s » des scènes. */
@@ -264,6 +264,11 @@ async function arrive(demo, sceneDef) {
     if (sceneDef.path) {
         const current = new URL(page.url() === 'about:blank' ? `${demo.site}/__vide` : page.url());
         const wanted = new URL(demo.site + sceneDef.path);
+
+        // Vidéo d'un autre professeur (Teacher Rose) : l'évaluation se passe avec lui (« Préférer … »).
+        if (demo.teacher && wanted.pathname === '/evaluation') {
+            wanted.searchParams.set('professeur', demo.teacher);
+        }
 
         if (moved || current.pathname + current.search !== wanted.pathname + wanted.search) {
             // Aucun « retour depuis l'application Mobile Money » simulé par un changement de page.

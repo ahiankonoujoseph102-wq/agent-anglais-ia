@@ -37,7 +37,7 @@ class TeacherRosePublicTest extends TestCase
             ->assertSee('images/teacher-rose.webp', false)
             ->assertSee('Teacher Rose, la professeure d\'anglais de Talkami', false)
             ->assertSee('vous pouvez en changer chaque jour')
-            ->assertSee('L\'évaluation gratuite se passe avec Teacher Joe.')
+            ->assertSee('Pour l\'évaluation gratuite, vous choisissez aussi avant de commencer.')
             ->assertSee('Puis-je choisir mon professeur ?')
             ->assertSee('href="#professeurs"', false)
             // Teacher Joe reste le nom de la marque : titre et accroche inchangés.

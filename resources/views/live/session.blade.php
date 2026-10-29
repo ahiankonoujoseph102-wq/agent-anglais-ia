@@ -69,7 +69,7 @@
          @endif
          @if (\App\Support\SessionRecording::enabled($mode))
              data-recorder="{{ \App\Support\Asset::url('js/session-recorder.js') }}"
-             data-recording='{{ json_encode(\App\Support\SessionRecording::clientConfig($mode, auth()->user())) }}'
+             data-recording='{{ json_encode(\App\Support\SessionRecording::clientConfig($mode, auth()->user(), $teacher)) }}'
              data-video-guard="{{ \App\Support\Asset::url('js/video-guard.js') }}"
              data-video-leave='@json(\App\Support\Confirmation::for('video.leave'))'
          @endif
@@ -163,6 +163,10 @@
                     {{-- Séance du jour et « Mes cours » : le professeur choisi, et « Changer » (jamais pendant une séance commencée). --}}
                     @if (in_array($mode, ['lesson', 'course'], true) && ($switchBack ?? null))
                         <x-teacher-switch :teacher="$teacher" :back="$switchBack" />
+                    @endif
+                    {{-- Évaluation pas encore commencée : avec quel professeur (Teacher Joe choisi d'avance). --}}
+                    @if ($mode === 'assessment' && ($assessmentChoice ?? false))
+                        <x-assessment-teacher :teacher="$teacher" />
                     @endif
                 </div>
                 {{-- Pendant la connexion : « Teacher Joe arrive… », indicateur discret. --}}
