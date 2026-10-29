@@ -27,17 +27,22 @@
     @if ($videos->isNotEmpty())
         @push('head')
             @foreach ($videos as $video)
-                {!! \App\Support\Seo::jsonLd(\App\Support\Seo::video($video, str_replace([':teacher', ':platform'], [$teacher, $platform], (string) ($intros[$video->key] ?? '')))) !!}
+                {!! \App\Support\Seo::jsonLd(\App\Support\Seo::video($video, str_replace([':teacher', ':platform'], [$video->teacher()->name(), $platform], (string) ($intros[$video->key] ?? '')))) !!}
             @endforeach
         @endpush
         @foreach ($videos as $video)
+            @php
+                // Professeur qui dit la vidéo (Teacher Joe, ou Teacher Rose pour sa version) : nom dans le titre et la phrase.
+                $who = $video->teacher();
+                $title = $who->isDefault() ? $video->title : $video->title.' avec '.$who->name();
+            @endphp
             <section class="section how-video reveal" aria-labelledby="video-{{ $video->key }}" id="{{ $video->key }}">
-                <h2 id="video-{{ $video->key }}">{{ $video->title }}</h2>
+                <h2 id="video-{{ $video->key }}">{{ $title }}</h2>
                 @if (! empty($intros[$video->key]))
-                    <p>{{ str_replace([':teacher', ':platform'], [$teacher, $platform], $intros[$video->key]) }}</p>
+                    <p>{{ str_replace([':teacher', ':platform'], [$who->name(), $platform], $intros[$video->key]) }}</p>
                 @endif
-                <a class="watch" href="{{ route('how.video', $video->key) }}" data-watch data-title="{{ $video->title }}">
-                    <img src="{{ route('how.poster', $video->key) }}" width="{{ config('videos.presentations.site.width') }}" height="{{ config('videos.presentations.site.height') }}" alt="Aperçu de la vidéo « {{ $video->title }} »" loading="lazy" decoding="async">
+                <a class="watch" href="{{ route('how.video', $video->key) }}" data-watch data-title="{{ $title }}">
+                    <img src="{{ route('how.poster', $video->key) }}" width="{{ config('videos.presentations.site.width') }}" height="{{ config('videos.presentations.site.height') }}" alt="Aperçu de la vidéo « {{ $title }} »" loading="lazy" decoding="async">
                     <span class="watch-button"><x-icon name="play" /> Regarder</span>
                 </a>
                 <p class="muted small">

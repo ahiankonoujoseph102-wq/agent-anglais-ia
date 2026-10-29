@@ -1962,3 +1962,20 @@ body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260p
 .guide-toc li { padding: 5px 0; line-height: 1.45; }
 .guide-body h2 { scroll-margin-top: 80px; }
 /* ===================================================================
+/* ==========================================================================
+   Haut de l'accueil : petite pastille ronde de l'autre professeur proposé (Teacher Rose) dans le coin de l'image de
+   Teacher Joe, « ou Teacher Rose, au choix », vers #professeurs. Position absolue : aucune hauteur ajoutée, le bouton
+   orange ne bouge pas. Téléphone : en haut à droite du bandeau (à la place de la bulle « Hello! »).
+   ========================================================================== */
+.hero-alt { position: absolute; right: -4px; bottom: 2%; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: var(--c-primary); }
+.hero-alt-face { display: block; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; border: 3px solid var(--c-accent); background: var(--c-primary-soft); box-shadow: var(--shadow); }
+.hero-alt-face img { display: block; width: 100%; height: 100%; transform: scale(2.3) translate(0, 17%); }
+.hero-alt-text { padding: 3px 10px; border-radius: var(--radius); background: var(--c-surface); box-shadow: var(--shadow); font-size: var(--fs-xs); font-weight: var(--fw-heavy); line-height: 1.25; text-align: center; }
+.hero-alt:hover .hero-alt-text, .hero-alt:focus-visible .hero-alt-text { text-decoration: underline; }
+.hero-media:has(.hero-alt) .hero-bubble.third { display: none; }
+@media (max-width: 899.98px) {
+    .hero-alt { top: 8px; right: 8px; bottom: auto; gap: 2px; }
+    .hero-alt-face { width: 44px; height: 44px; border-width: 2px; }
+    .hero-alt-text { padding: 2px 7px; font-size: 0.72rem; line-height: 1.2; }
+    .hero-media:has(.hero-alt) .hero-bubble.right { display: none; }
+}

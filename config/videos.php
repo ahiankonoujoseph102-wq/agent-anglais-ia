@@ -189,7 +189,7 @@ return [
         // « site » (480 × 854, sous-titres déjà dans l'image), fabriquée par GitHub Actions à partir de la version
         // WhatsApp (tools/presentation/site-version.mjs). Rien n'est chargé avant le toucher sur « Regarder ».
         'site' => [
-            'keys' => ['evaluation', 'talkami', 'questions'],
+            'keys' => ['evaluation', 'rose-evaluation', 'talkami', 'questions'],
             'width' => 480,
             'height' => 854,
             'video_kbps' => 380,
@@ -202,6 +202,8 @@ return [
             // Phrase sous le titre de chaque vidéo.
             'intros' => [
                 'evaluation' => 'Comment se passe votre évaluation orale gratuite avec :teacher, du début à la fin.',
+                // Version d'un autre professeur (« rose-… ») : :teacher est SON nom ; montrée seulement s'il est proposé.
+                'rose-evaluation' => 'La même évaluation orale gratuite, avec :teacher : vous choisissez votre professeur avant de commencer.',
                 'talkami' => 'Tout :platform en quelques minutes : le compte, l\'évaluation, les formules, le paiement et une séance.',
                 'questions' => ':teacher répond aux questions qu\'on se pose avant de commencer : oser parler, le temps, le prix, le paiement, l\'application, « Mes cours »…',
             ],

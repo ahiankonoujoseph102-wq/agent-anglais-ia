@@ -5,6 +5,7 @@ namespace App\Support\Videos;
 use App\Models\LessonVideo;
 use App\Models\PresentationVideo;
 use App\Support\PrivateStorage;
+use App\Support\Teachers\Teachers;
 use Illuminate\Support\Collection;
 use Throwable;
 
@@ -16,10 +17,22 @@ use Throwable;
  */
 class SiteVideos
 {
-    /** @return list<string> */
+    /**
+     * Vidéos de la page, dans l'ordre de la configuration. La version d'un autre professeur (« rose-… ») n'y est que
+     * tant qu'il est proposé aux apprenants (retour à Teacher Joe seul : la page redevient celle d'avant).
+     *
+     * @return list<string>
+     */
     public static function keys(): array
     {
-        return array_values((array) config('videos.presentations.site.keys', []));
+        $versions = array_keys((array) config('videos.presentations.teacher_versions', []));
+        $choosable = Teachers::choosable();
+
+        return array_values(array_filter((array) config('videos.presentations.site.keys', []), function (string $key) use ($versions, $choosable) {
+            $prefix = strstr($key, '-', true);
+
+            return $prefix === false || ! in_array($prefix, $versions, true) || isset($choosable[$prefix]);
+        }));
     }
 
     /**
