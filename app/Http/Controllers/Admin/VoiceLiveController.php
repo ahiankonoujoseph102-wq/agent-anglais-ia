@@ -74,8 +74,10 @@ class VoiceLiveController extends Controller
         PrivateStorage::disk()->put(LiveVoiceSample::basePath($provider, $voice, $teacher).'.'.$extension, (string) file_get_contents($file->getRealPath()));
         LiveVoiceSample::forget($request->user()->id);
         $this->hangUp($request, $openai);
+        // Débit de cette voix en séance (Gemini : WAV), affiché dans « Essai des voix ».
+        $pace = LiveVoiceSample::measure($provider, $voice, $teacher);
 
-        return response()->json(['stored' => $this->fileUrl($voice, $teacher, $provider)]);
+        return response()->json(['stored' => $this->fileUrl($voice, $teacher, $provider), 'pace' => $pace]);
     }
 
     public function show(Request $request, string $voice): Response
@@ -84,6 +86,11 @@ class VoiceLiveController extends Controller
         $stored = LiveVoiceSample::stored($provider, $voice, $teacher);
 
         abort_if($stored === null, 404);
+
+        // Extraits gardés avant la mesure du débit : mesurés à la première écoute.
+        if (LiveVoiceSample::pace($provider, $voice, $teacher) === null) {
+            LiveVoiceSample::measure($provider, $voice, $teacher);
+        }
 
         return response((string) PrivateStorage::disk()->get($stored['path']), 200, [
             'Content-Type' => $stored['type'],
