@@ -132,7 +132,8 @@ const BONES = [
 ];
 
 const HEAD = [0, 0.668, 0]; // centre de la tête
-const HEAD_SCALE = 1.14; // tête un peu plus grande, comme dans un dessin animé
+// Tête un peu plus grande, comme dans un dessin animé ; Teacher Rose : proportions plus naturelles.
+const HEAD_SCALE = ROSE ? 1.05 : 1.14;
 
 // Agrandit autour du centre de la tête une pièce construite à l'échelle 1.
 function scaleHead(b) {
@@ -142,7 +143,7 @@ function scaleHead(b) {
 }
 const EYE_X = 0.043;
 const EYE_Y = 0.012; // par rapport au centre de la tête
-const EYE_R = ROSE ? 0.0276 : 0.0255;
+const EYE_R = ROSE ? 0.0252 : 0.0255;
 const MOUTH_Y = -0.069;
 
 // Bras gauche (+X) ; le bras droit est son symétrique.
@@ -213,24 +214,24 @@ class Builder {
 
 /* ---------- Tête : surface analytique ---------- */
 
-const AX = 0.112;
-const AY = 0.130;
+const AX = ROSE ? 0.105 : 0.112;
+const AY = ROSE ? 0.125 : 0.130;
 const AZ = 0.122;
 
 const widthProfile = ROSE
-    ? (dy) => table([[-1, 0.42], [-0.85, 0.60], [-0.55, 0.84], [-0.2, 0.97], [0.1, 1.0], [0.5, 0.97], [1, 0.90]], dy)
+    ? (dy) => table([[-1, 0.40], [-0.85, 0.60], [-0.55, 0.83], [-0.2, 0.96], [0.1, 1.0], [0.5, 1.0], [1, 0.96]], dy)
     : (dy) => table([[-1, 0.56], [-0.85, 0.72], [-0.55, 0.90], [-0.2, 0.99], [0.1, 1.0], [0.5, 0.98], [1, 0.92]], dy);
 // Teacher Rose (visage de dessin animé) : petit nez court et doux, lèvres pleines, sourcils fins et arqués,
 // sourire au repos, pommettes hautes, reliefs autour de la bouche très légers (aucune ombre de moustache).
-const NOSE = ROSE ? 0.55 : 1;
-const NOSE_TIP = ROSE ? 0.034 : 0.041;
-const NOSE_RIDGE = ROSE ? 0.22 : 1;
-const LIPS = ROSE ? 1.22 : 1;
+const NOSE = ROSE ? 0.6 : 1;
+const NOSE_TIP = ROSE ? 0.029 : 0.041;
+const NOSE_RIDGE = ROSE ? 0.25 : 1;
+const LIPS = ROSE ? 1.28 : 1;
 const BROW = ROSE ? 0.42 : 1;
-const REST_SMILE = ROSE ? 0.7 : 0;
-const SMILE_LIFT = ROSE ? 1.8 : 1;
-const MOUTH_W = ROSE ? 0.026 : 0.030;
-const CHEEKS = ROSE ? 0.011 : 0.007;
+const REST_SMILE = ROSE ? 0.45 : 0;
+const SMILE_LIFT = ROSE ? 1.7 : 1;
+const MOUTH_W = ROSE ? 0.0255 : 0.030;
+const CHEEKS = ROSE ? 0.009 : 0.007;
 const PHILTRUM = ROSE ? 0.0015 : 0.004;
 const frontDepth = (dy) => table([[-1, 0.8], [-0.6, 0.94], [0, 1.0], [0.6, 0.95], [1, 0.9]], dy);
 const backDepth = (dy) => table([[-1, 0.7], [-0.5, 0.85], [0, 1.05], [0.6, 1.06], [1, 0.95]], dy);
@@ -439,7 +440,7 @@ function buildFace(p) {
             for (let j = 0; j <= N; j++) {
                 const a = (-105 + (210 * j) / N) * deg;
                 const ca = Math.cos(a);
-                const openEdge = ((ROSE ? 39 : 33) + 9 * wide - 13 * squint) * Math.max(0, ca) ** 0.6 - 3;
+                const openEdge = ((ROSE ? 33 : 33) + 9 * wide - 13 * squint) * Math.max(0, ca) ** 0.6 - 3;
                 const closedEdge = -14 * Math.max(0, ca) ** 0.5 - 4;
                 const edge = lerp(openEdge, closedEdge, blink) * deg;
                 const top = 82 * deg;
@@ -463,7 +464,7 @@ function buildFace(p) {
 
             for (let j = 6; j < N - 1; j++) {
                 const outer = side * Math.sin((-105 + (210 * j) / N) * deg);
-                const length = 0.0015 + 0.0027 * smooth(-0.3, 0.9, outer);
+                const length = 0.0012 + 0.0022 * smooth(-0.3, 0.9, outer);
                 const p0 = b.positions[edgeRow[j]];
                 const p1 = b.positions[edgeRow[j + 1]];
                 const mid = mul(add(p0, p1), 0.5);
@@ -487,7 +488,7 @@ function buildFace(p) {
             for (let j = 0; j <= N; j++) {
                 const a = (-105 + (210 * j) / N) * deg;
                 const ca = Math.max(0, Math.cos(a));
-                const edge = (-(ROSE ? 29 : 30) * ca ** 0.5 + 15 * squint * ca) * deg - 6 * deg;
+                const edge = (-(ROSE ? 30 : 30) * ca ** 0.5 + 15 * squint * ca) * deg - 6 * deg;
                 const beta = lerp(-80 * deg, edge, i / LR);
                 const d = [Math.sin(a) * Math.cos(beta), Math.sin(beta), Math.cos(a) * Math.cos(beta)];
                 const q = add(eye, mul([side * d[0], d[1], d[2]], R - 0.0002));
@@ -928,7 +929,7 @@ function buildHairAndGlasses() {
 
 // Teacher Rose : tresses fines qui tombent sur les côtés et dans le dos (au-dessus des épaules), boucles d'oreilles.
 function buildBraidsAndEarrings(b, tube) {
-    const R = 0.0062;
+    const R = 0.0054;
 
     for (let n = 0; n < 40; n++) {
         const side = n % 2 ? -1 : 1;
@@ -948,7 +949,7 @@ function buildBraidsAndEarrings(b, tube) {
             const base = headPoint(c * Math.sin(phi), along, c * Math.cos(phi));
             const out = norm([Math.sin(phi), 0, Math.cos(phi)]);
             // Posée sur les cheveux, puis tombe tout droit en s'écartant un peu.
-            const lift = 0.020 + 0.012 * smooth(-0.35, -0.9, dy);
+            const lift = 0.013 + 0.008 * smooth(-0.35, -0.9, dy);
             const q = add(base, add(mul(out, lift), [0, dy < -0.35 ? (dy + 0.35) * AY : 0, 0]));
             points.push(add(HEAD, q));
         }
