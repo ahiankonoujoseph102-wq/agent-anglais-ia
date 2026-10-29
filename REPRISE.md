@@ -1,4 +1,4 @@
-# REPRISE — chantier en cours : deuxième professeure, Teacher Rose (étape 2 sur 8)
+# REPRISE — chantier en cours : Teacher Rose (étape 3 sur 8, en attente de validation du visage)
 
 À lire avec `CLAUDE.md` pour reprendre ce travail dans une autre session. Ce fichier ne contient jamais de clé, ni de conversation réelle, ni de transcription.
 
@@ -6,14 +6,17 @@
 
 
 
-## Teacher Rose, étape 3, visage (29 octobre 2026, branche `claude/rose-visage`)
+## État au 29 octobre 2026, midi (nouveau compte Claude Code) : tout est fusionné
 
-Modèle 3D repris de `claude/festive-keller-2hkpxl` et retouché (joues légèrement rosées, bas du visage plus clair, lèvres plus colorées) ; Teacher Joe reconstruit identique à l'octet (vérifié avec `cmp`). Captures (3D et visage simple) envoyées au fondateur, gardées HORS du dépôt. `ready` reste à false : à passer à true SEULEMENT après sa validation. Photos d'inspiration : jamais dans le dépôt.
-## Vidéo du Club fiable (29 octobre 2026, nouveau compte Claude Code)
+- **#137** : `tools/video/render.html` ne bloque plus quand une machine trop lente est refusée (passages n° 10, 14 et 18 annulés à 80 minutes).
+- **#138** : vidéo du Club de 3 minutes (parole visée 150 secondes, silences de répétition allongés si la voix est un peu courte, sinon nouveau script), rendu 396 × 704 à 20 images par seconde, relance automatique d'un passage « Club seulement » après un arrêt anticipé (3 essais au plus).
+- **Vidéo du Club du 29 octobre (vidéo 25, mini-dialogue au restaurant)** : PRÊTE (passage n° 19, machine rapide : 124 millisecondes par image, 5 055 images en 631 secondes, −13,9 LUFS, crête −1,8 dB, lèvres 0,89). Gardée à 4 minutes 12 : sa voix existait déjà (aucune nouvelle demande de synthèse vocale).
+- **#139** : synthèse vocale en peu de demandes (`VoiceSplitter`, environ 2 par vidéo au lieu de 11 à 15 ; limite gratuite de Gemini : 10 par jour pour ce modèle), deuxième clé Gemini en secours de toute la synthèse vocale, message d'erreur de « Essai des voix » (cause, bonne clé).
+- **#140** : bouton « Écouter en séance » dans « Essai des voix » (vraie séance avec cette voix, sans micro, extrait gardé, raccrochée par le serveur).
+- **#141** : personnage 3D de Teacher Rose (retouché : joues rosées, bas du visage plus clair, lèvres plus colorées) ; Teacher Joe reconstruit identique à l'octet. Captures envoyées au fondateur, gardées HORS du dépôt. **`teachers.list.rose.ready` reste à false** : à passer à true SEULEMENT après sa validation sur images (étape suivante : ses remarques, puis `ready`).
+- **Branche `claude/festive-keller-2hkpxl`** : tout son contenu utile est maintenant sur `main` (render.html, test, message de « Essai des voix », modèle de Teacher Rose) ; elle peut être abandonnée.
+- **Photos d'inspiration** : jamais dans le dépôt (ni fichier, ni branche, ni commit, ni pull request), aucune information personnelle.
 
-- **#137 (fusionnée)** : `tools/video/render.html` ne bloque plus quand une machine trop lente est refusée (passages n° 10, 14 et 18 annulés à 80 minutes).
-- **Branche `claude/voix-quota`** : synthèse vocale en peu de demandes (`VoiceSplitter`, environ 2 par vidéo au lieu de 11 à 15), deuxième clé Gemini en secours de toute la synthèse vocale, message d'erreur de « Essai des voix » repris de `claude/festive-keller-2hkpxl`. (#139, fusionnée.) Puis branche `claude/ecouter-en-seance` : bouton « Écouter en séance » (voir CLAUDE.md).
-- **#138 (fusionnée), branche `claude/club-trois-minutes`** : vidéo du Club de 3 minutes (parole visée 150 secondes, silences de répétition allongés si la voix est un peu courte), rendu 396 × 704 à 20 images par seconde, relance automatique d'un passage « Club seulement » après un arrêt anticipé (3 essais). Vidéo du 29 octobre (4 minutes 12) gardée telle quelle : sa voix existe déjà, pas de nouvelle demande de synthèse vocale (quota de 10 par jour chez Gemini).
 ## Chantier en cours : Teacher Rose, étape 2, séances payantes (29 octobre 2026, branche `claude/festive-keller-2hkpxl`)
 
 Décision du fondateur (message de l'étape 2) : PAS d'interrupteur ni de compte de test ; il ne peut pas tester lui-même (micro de son téléphone en panne), un ami fera les essais réels après la mise en ligne ; tout doit être prouvé par les tests (faux Gemini, faux OpenAI). Conditions : (1) le choix de Teacher Rose n'apparaît qu'avec sa voix ET son visage prêts et validés par lui sur images ; (2) Teacher Joe identique au caractère près (garde-fou) ; (3) évaluation non touchée avant son essai réel ; (4) retour rapide à Teacher Joe seul ; (5) choix dans « Mon espace », « Consommation » et « Essai des voix » par professeur.
