@@ -42,7 +42,7 @@
     <x-guide-cta />
 
     @if ($guide->relatedGuides())
-        <section class="section-tight" aria-labelledby="guides-lies">
+        <section class="section-tight reveal" aria-labelledby="guides-lies">
             <h2 id="guides-lies">À lire aussi</h2>
             <ul class="link-list">
                 @foreach ($guide->relatedGuides() as $related)

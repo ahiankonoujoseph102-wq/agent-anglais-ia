@@ -51,7 +51,7 @@
         @endforeach
     @endif
 
-    <section class="section" aria-labelledby="comment-etapes">
+    <section class="section reveal" aria-labelledby="comment-etapes">
         <h2 id="comment-etapes">En quatre étapes</h2>
         <ol class="how-steps">
             <li>Créez votre compte avec votre nom et votre numéro de téléphone.</li>

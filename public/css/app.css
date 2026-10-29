@@ -1930,6 +1930,26 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .country-hero .lead { font-size: var(--fs-base); }
 }
 
+   Fond léger des pages publiques autres que l'accueil (refonte, point 5) : deux formes floues en CSS, aucune image ni
+   requête en plus. Immobiles sur téléphone (fluidité) ; dérive lente seulement à partir de 900 pixels, coupée par
+   « réduire les animations ». Seulement transform (aucun recalcul de la page).
+   ========================================================================== */
+body.page-public main { position: relative; isolation: isolate; }
+body.page-public main::before, body.page-public main::after { content: ""; position: absolute; z-index: -1; pointer-events: none; }
+/* Formes tenues DANS la page (aucune coordonnée négative) : sur téléphone, Chrome élargirait sinon la page, malgré le
+   découpage de main. Le dégradé part du bord : l'effet est le même qu'une forme à moitié sortie. */
+body.page-public main::before { width: min(300px, 80vw); height: 300px; top: 0; right: 0; background: radial-gradient(circle at 100% 0%, var(--c-accent-soft), transparent 68%); }
+body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260px; left: 0; background: radial-gradient(circle at 0% 50%, var(--c-primary-soft), transparent 70%); }
+@media (min-width: 900px) {
+    /* Marge de 40 pixels : la dérive (au plus 24 pixels et 6 %) reste dans la page. */
+    body.page-public main::before { width: 420px; height: 420px; top: 0; right: 40px; border-radius: 50%; background: radial-gradient(circle at 60% 40%, var(--c-accent-soft), transparent 68%); }
+    body.page-public main::after { width: 340px; height: 340px; left: 40px; border-radius: 50%; background: radial-gradient(circle, var(--c-primary-soft), transparent 70%); }
+}
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+    body.page-public main::before { animation: drift 26s ease-in-out infinite alternate; }
+    body.page-public main::after { animation: drift 32s ease-in-out -6s infinite alternate-reverse; }
+}
+=======
 /* Repères de navigation des pages publiques (refonte, point 4) : « Vous êtes ici », retour en haut, sommaire des guides. */
 .page-crumb { margin: 0 0 var(--space-2); }
 .back-top { margin: var(--space-6) 0 0; text-align: center; font-size: var(--fs-sm); }
@@ -1941,3 +1961,4 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .guide-toc ol { margin: 0; padding-left: 1.4em; display: grid; gap: var(--space-1); }
 .guide-toc li { padding: 5px 0; line-height: 1.45; }
 .guide-body h2 { scroll-margin-top: 80px; }
+/* ===================================================================
