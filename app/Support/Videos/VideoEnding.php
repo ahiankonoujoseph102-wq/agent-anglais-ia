@@ -39,7 +39,7 @@ class VideoEnding
         ];
     }
 
-    /** Phrase de l'action principale, affichée (adresse telle quelle) ou dite (« talkami point laravel point cloud »). */
+    /** Phrase de l'action principale, affichée (adresse telle quelle) ou dite (« talkami point net »). */
     public static function closing(string $site, bool $spoken = false): string
     {
         return str_replace(':site', $spoken ? str_replace('.', ' point ', $site) : $site, (string) config('videos.closing')).'.';

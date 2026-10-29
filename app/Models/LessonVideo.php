@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
+use App\Support\Videos\OldAddress;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -114,6 +115,15 @@ class LessonVideo extends Model
      * Professeur de la vidéo (Teacher Joe un jour, Teacher Rose le lendemain : VideoTeachers), fixé à la création ;
      * vide (vidéos d'avant) ou inconnu : le professeur par défaut. Les vidéos de présentation (autre table) n'en ont pas.
      */
+    /**
+     * L'ancienne adresse du site (talkami.laravel.cloud) est-elle dite ou affichée dans cette vidéo (script gardé :
+     * sous-titres, voix, fin) ? Une vidéo prête qui la porte est à refaire, jamais refaite toute seule.
+     */
+    public function showsOldAddress(): bool
+    {
+        return OldAddress::in(json_encode($this->script ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '');
+    }
+
     public function teacher(): Teacher
     {
         return Teachers::find($this->getAttributes()['teacher'] ?? null) ?? Teachers::default();
