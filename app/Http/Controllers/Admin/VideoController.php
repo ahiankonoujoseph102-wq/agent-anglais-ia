@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LessonVideo;
 use App\Support\Gemini\SpeechFailed;
 use App\Support\PrivateStorage;
+use App\Support\Teachers\Teachers;
 use App\Support\Videos\ClubVideos;
 use App\Support\Videos\LessonVideos;
 use App\Support\Videos\PresentationVideos;
@@ -50,6 +51,8 @@ class VideoController extends Controller
             'remaining' => VideoTopics::remaining(),
             'tokenConfigured' => filled(config('videos.token')),
             'voices' => collect(VideoVoice::providers())->map(fn ($provider) => $provider->label().' (voix « '.VideoVoice::voiceFor($provider).' »)')->all(),
+            // Autres professeurs (un jour chacun) : leur propre voix, celle de leurs séances.
+            'teacherVoices' => collect(Teachers::choosable())->reject(fn ($teacher) => $teacher->isDefault())->map(fn ($teacher) => $teacher->name().' : '.collect(VideoVoice::providers($teacher))->map(fn ($provider) => $provider->label().' « '.VideoVoice::voiceFor($provider, $teacher).' »')->implode(', puis '))->values()->all(),
             'site' => VideoSettings::site(),
             'blocked' => VideoSettings::blocked(),
             'closing' => VideoSettings::site() !== null ? VideoEnding::closing(VideoSettings::site()) : null,

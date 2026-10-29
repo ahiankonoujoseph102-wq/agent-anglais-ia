@@ -54,6 +54,9 @@
         <ul>
             <li>Jeton de GitHub (VIDEO_UPLOAD_TOKEN) : <strong>{{ $tokenConfigured ? 'réglé' : 'non réglé' }}</strong>@unless ($tokenConfigured) <span class="muted">(sans lui, aucune vidéo n'est ajoutée chaque matin et GitHub est refusé)</span>@endunless</li>
             <li>Voix des nouvelles vidéos : <strong>{{ $voices === [] ? 'aucun fournisseur avec une clé' : implode(', puis ', $voices) }}</strong></li>
+            @foreach ($teacherVoices ?? [] as $line)
+                <li>Les jours de {{ $line }} (un jour chacun, voix de ses séances)</li>
+            @endforeach
             <li>Sujets encore jamais traités : <strong>{{ $remaining }}</strong></li>
         </ul>
 
@@ -127,7 +130,7 @@
                     <h3>{{ $video->title }}</h3>
                 </div>
                 <p class="muted small">
-                    {{ $video->day->translatedFormat('l j F Y') }} · vidéo {{ $video->slot }} · niveau {{ $video->level }}
+                    {{ $video->day->translatedFormat('l j F Y') }} · vidéo {{ $video->slot }} · niveau {{ $video->level }} · {{ $video->teacher()->name() }}
                     @if ($video->duration_seconds) · {{ \App\Support\Duration::formatPrecise($video->duration_seconds) }} @endif
                     @if ($video->size_bytes) · {{ number_format($video->size_bytes / 1048576, 1, ',', ' ') }} mégaoctets @endif
                 </p>

@@ -3,8 +3,12 @@
 <section class="card" id="club" aria-labelledby="club-titre">
     <h2 id="club-titre">Club des abonnés</h2>
     <p class="muted small">
-        Une vidéo par jour pour le groupe WhatsApp des abonnés payants, dite par {{ config('avatar.model.name') }}.
-        Thème d'aujourd'hui : <strong>{{ $clubTheme['label'] }}</strong>. Abonnés payants actifs : {{ $clubMembers }}.
+        @php
+            // Professeur de la vidéo d'aujourd'hui si elle existe déjà, sinon celui du jour (un jour chacun).
+            $todayTeacher = ($clubVideos->first(fn ($video) => $video->day->isToday())?->teacher() ?? \App\Support\Videos\VideoTeachers::forDay(today()))->name();
+        @endphp
+        Une vidéo par jour pour le groupe WhatsApp des abonnés payants, dite par {{ \App\Support\Teachers\Teachers::names() }}{{ \App\Support\Teachers\Teachers::hasChoice() ? ' (un jour chacun)' : '' }}.
+        Thème d'aujourd'hui : <strong>{{ $clubTheme['label'] }}</strong>. Professeur d'aujourd'hui : <strong>{{ $todayTeacher }}</strong>. Abonnés payants actifs : {{ $clubMembers }}.
         Le site ne publie rien : téléchargez la vidéo, publiez-la dans le groupe avec le texte ci-dessous, puis cochez « Publiée ».
     </p>
 
@@ -21,7 +25,7 @@
 
     @foreach ($clubVideos as $video)
         <article class="video-card club-video" id="club-{{ $video->id }}">
-            <h3>{{ $video->themeLabel() }} · {{ $video->day->translatedFormat('l j F Y') }}</h3>
+            <h3>{{ $video->themeLabel() }} · {{ $video->day->translatedFormat('l j F Y') }} · {{ $video->teacher()->name() }}</h3>
             <p class="muted small">
                 {{ $video->title }}
                 @if ($video->duration_seconds) · {{ \App\Support\Duration::formatPrecise($video->duration_seconds) }} @endif

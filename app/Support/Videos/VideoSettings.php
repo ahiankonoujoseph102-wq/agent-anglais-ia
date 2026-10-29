@@ -3,6 +3,8 @@
 namespace App\Support\Videos;
 
 use App\Models\Setting;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use Throwable;
 
 /**
@@ -93,10 +95,10 @@ class VideoSettings
         Setting::put(self::PER_DAY, (string) $count);
     }
 
-    /** Nom du professeur en filigrane (VIDEO_WATERMARK, sinon le nom du professeur de la configuration). */
-    public static function watermark(): string
+    /** Nom du professeur en filigrane (VIDEO_WATERMARK, sinon le nom du professeur de la vidéo, Teacher Joe par défaut). */
+    public static function watermark(?Teacher $teacher = null): string
     {
-        return (string) (config('videos.render.watermark') ?: config('avatar.model.name'));
+        return (string) (config('videos.render.watermark') ?: ($teacher ?? Teachers::default())->name());
     }
 
     private static function read(string $key): ?string

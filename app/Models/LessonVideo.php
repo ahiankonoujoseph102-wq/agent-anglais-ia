@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
  * Vidéo de leçon de Teacher Joe (App\Support\Videos\LessonVideos) : un sujet du programme des vidéos, son script,
  * sa voix (disque privé), puis la vidéo fabriquée par GitHub Actions. Un sujet n'est jamais traité deux fois.
  */
-#[Fillable(['kind', 'theme', 'items', 'topic_key', 'day', 'slot', 'level', 'title', 'status', 'script', 'caption', 'hashtags', 'text_provider', 'voice_provider', 'voice_name', 'timings', 'audio_path', 'video_path', 'duration_seconds', 'size_bytes', 'lips_correlation', 'lips_open', 'loudness_lufs', 'true_peak_db', 'attempts', 'next_attempt_at', 'error', 'render_started_at', 'ready_at', 'published_at'])]
+#[Fillable(['kind', 'teacher', 'theme', 'items', 'topic_key', 'day', 'slot', 'level', 'title', 'status', 'script', 'caption', 'hashtags', 'text_provider', 'voice_provider', 'voice_name', 'timings', 'audio_path', 'video_path', 'duration_seconds', 'size_bytes', 'lips_correlation', 'lips_open', 'loudness_lufs', 'true_peak_db', 'attempts', 'next_attempt_at', 'error', 'render_started_at', 'ready_at', 'published_at'])]
 class LessonVideo extends Model
 {
     /** Vidéo de promotion (TikTok, chaîne WhatsApp). */
@@ -108,10 +110,19 @@ class LessonVideo extends Model
         return 'videos/'.$this->day->format('Y-m-d').'/'.$this->id;
     }
 
-    /** Ton demandé à la synthèse vocale (VideoVoice). */
+    /**
+     * Professeur de la vidéo (Teacher Joe un jour, Teacher Rose le lendemain : VideoTeachers), fixé à la création ;
+     * vide (vidéos d'avant) ou inconnu : le professeur par défaut. Les vidéos de présentation (autre table) n'en ont pas.
+     */
+    public function teacher(): Teacher
+    {
+        return Teachers::find($this->getAttributes()['teacher'] ?? null) ?? Teachers::default();
+    }
+
+    /** Ton demandé à la synthèse vocale (VideoVoice), accordé au professeur de la vidéo. */
     public function voiceStyle(): string
     {
-        return (string) config('videos.voice.style');
+        return $this->teacher()->speechStyle((string) config('videos.voice.style'));
     }
 
     /** Silence entre deux parties de la voix, en millisecondes. */
@@ -133,6 +144,6 @@ class LessonVideo extends Model
             return 'talkami-club-'.$this->day->format('Y-m-d').'.mp4';
         }
 
-        return 'teacher-joe-'.$this->day->format('Y-m-d').'-'.$this->slot.'-'.$this->topic_key.'.mp4';
+        return str($this->teacher()->name())->slug().'-'.$this->day->format('Y-m-d').'-'.$this->slot.'-'.$this->topic_key.'.mp4';
     }
 }

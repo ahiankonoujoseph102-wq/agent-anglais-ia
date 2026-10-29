@@ -68,6 +68,7 @@ class ClubVideos
         try {
             return LessonVideo::query()->create([
                 'kind' => LessonVideo::CLUB,
+                'teacher' => VideoTeachers::forDay(today())->key,
                 'theme' => $theme['key'],
                 'topic_key' => 'club-'.today()->format('Y-m-d'),
                 'day' => today()->toDateString(),
@@ -94,7 +95,7 @@ class ClubVideos
     public function writeScript(LessonVideo $video): bool
     {
         $brief = $this->brief($video);
-        $written = $this->writer->write($brief, $this->firstNames());
+        $written = $this->writer->write($brief, $this->firstNames(), teacher: $video->teacher());
 
         if ($written === null) {
             $attempts = $video->attempts + 1;
@@ -113,7 +114,7 @@ class ClubVideos
             'status' => LessonVideo::SCRIPTED,
             'script' => $script,
             'title' => $script['title'],
-            'caption' => ClubScriptWriter::publication($script['caption']),
+            'caption' => ClubScriptWriter::publication($script['caption'], $video->teacher()),
             'hashtags' => null,
             'items' => $brief['items'],
             'theme' => $brief['theme'],

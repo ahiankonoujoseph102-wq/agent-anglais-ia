@@ -11,6 +11,7 @@ use App\Support\PrivateStorage;
 use App\Support\Speech\Loudness;
 use App\Support\Speech\SpeechProvider;
 use App\Support\Speech\SpeechProviders;
+use App\Support\Teachers\Teacher;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Sleep;
 
@@ -34,12 +35,12 @@ class VideoVoice
      *
      * @return list<SpeechProvider>
      */
-    public static function providers(): array
+    public static function providers(?Teacher $teacher = null): array
     {
         $names = array_map('strtolower', (array) config('videos.voice.providers', []));
 
-        // Voix choisie dans l'essai comparatif : son fournisseur passe en premier.
-        if (($chosen = VideoSettings::voice()) !== null) {
+        // Voix choisie dans l'essai comparatif (voix de Teacher Joe) : son fournisseur passe en premier.
+        if (self::isDefault($teacher) && ($chosen = VideoSettings::voice()) !== null) {
             array_unshift($names, $chosen['provider']);
         }
 
@@ -51,9 +52,20 @@ class VideoVoice
         ));
     }
 
-    /** Voix utilisée par ce fournisseur pour les vidéos. */
-    public static function voiceFor(SpeechProvider $provider): string
+    /**
+     * Voix utilisée par ce fournisseur pour les vidéos du professeur (Teacher Joe par défaut, réglages d'avant). Un
+     * autre professeur (Teacher Rose) garde SA voix : celle de ses séances chez Gemini, sa voix d'appel chez OpenAI.
+     */
+    public static function voiceFor(SpeechProvider $provider, ?Teacher $teacher = null): string
     {
+        if (! self::isDefault($teacher)) {
+            return match ($provider->name()) {
+                'gemini' => (string) ($teacher->geminiVoice() ?: $provider->voice()),
+                'openai' => $teacher->openaiSpeechVoice(),
+                default => $provider->voice(),
+            };
+        }
+
         $chosen = VideoSettings::voice();
 
         if ($chosen !== null && $chosen['provider'] === $provider->name()) {
@@ -65,6 +77,11 @@ class VideoVoice
             'openai' => (string) (config('videos.voice.openai_voice') ?: $provider->voice()),
             default => $provider->voice(),
         };
+    }
+
+    private static function isDefault(?Teacher $teacher): bool
+    {
+        return $teacher === null || $teacher->isDefault();
     }
 
     /** Ce fournisseur est-il mis de côté (limite atteinte) ? */
@@ -79,7 +96,7 @@ class VideoVoice
      */
     public function prepare(LessonVideo $video, float $deadline): string
     {
-        $providers = self::providers();
+        $providers = self::providers($video->teacher());
 
         if ($providers === []) {
             return $this->failure($video, 'Aucun fournisseur de voix n\'a de clé.');
@@ -95,7 +112,7 @@ class VideoVoice
         }
 
         if ($video->voice_provider !== $provider->name()) {
-            $video->update(['voice_provider' => $provider->name(), 'voice_name' => self::voiceFor($provider)]);
+            $video->update(['voice_provider' => $provider->name(), 'voice_name' => self::voiceFor($provider, $video->teacher())]);
         }
 
         $disk = PrivateStorage::disk();
@@ -130,7 +147,7 @@ class VideoVoice
             $groupTexts = array_map(fn (int $index) => $texts[$index], $group);
 
             try {
-                $wav = $this->synthesize($provider, (string) ($video->voice_name ?: self::voiceFor($provider)), VoiceSplitter::join($groupTexts), $video->voiceLabel(), $video->voiceStyle());
+                $wav = $this->synthesize($provider, (string) ($video->voice_name ?: self::voiceFor($provider, $video->teacher())), VoiceSplitter::join($groupTexts), $video->voiceLabel(), $video->voiceStyle());
             } catch (SpeechFailed $e) {
                 if ($e->exhaustsProvider() || $e->isRetryable()) {
                     // Limite : ce fournisseur est mis de côté ; la vidéo entière passera au suivant.

@@ -48,6 +48,8 @@ class ClubVideoTest extends TestCase
 
         Storage::fake('local');
         Sleep::fake();
+        // Teacher Joe chaque jour : l'alternance avec Teacher Rose est vérifiée par tests/Feature/Videos/VideoTeachersTest.php.
+        config(['teachers.list.rose.ready' => false]);
         config([
             'filesystems.private_disk' => 'local',
             'services.gemini.key' => 'cle-gemini',

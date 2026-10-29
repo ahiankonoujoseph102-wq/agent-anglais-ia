@@ -3,6 +3,8 @@
 namespace App\Support\Videos;
 
 use App\Models\LearnerError;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use App\Support\Text\TextProviders;
 use App\Support\Text\TextRequest;
 use App\Support\Text\TextResult;
@@ -71,21 +73,22 @@ class ClubScriptWriter
      * @param  list<string>  $names  prénoms des abonnés : un script qui en contient un est refusé
      * @return array{script: array<string, mixed>, provider: string}|null
      */
-    public function write(array $brief, array $names = [], int $timeout = 45): ?array
+    public function write(array $brief, array $names = [], int $timeout = 45, ?Teacher $teacher = null): ?array
     {
+        $teacher ??= Teachers::default();
         $seconds = (int) config('videos.club.duration_seconds');
         $words = self::targetWords();
         $minWords = self::minWords();
 
-        $instructions = strtr(self::INSTRUCTIONS, [
-            ':teacher' => (string) config('avatar.model.name'),
+        $instructions = VideoTeachers::instructions(strtr(self::INSTRUCTIONS, [
+            ':teacher' => $teacher->name(),
             ':platform' => (string) config('platform.name'),
             ':theme' => self::THEMES[$brief['theme']] ?? self::THEMES['revision'],
             ':words' => (string) $words,
             ':min_words' => (string) $minWords,
             ':max_words' => (string) self::maxWords(),
             ':seconds' => (string) $seconds,
-        ]);
+        ]), $teacher);
 
         $result = TextProviders::generate(new TextRequest(
             kind: 'club',
@@ -226,10 +229,10 @@ class ClubScriptWriter
         return ['title' => $title, 'segments' => $segments, 'caption' => $caption];
     }
 
-    /** Texte à copier dans le groupe : la légende, signée par le professeur. */
-    public static function publication(string $caption): string
+    /** Texte à copier dans le groupe : la légende, signée par le professeur de la vidéo. */
+    public static function publication(string $caption, ?Teacher $teacher = null): string
     {
-        return trim($caption)."\n\n".strtr((string) config('videos.club.signature'), [':teacher' => (string) config('avatar.model.name')]);
+        return trim($caption)."\n\n".strtr((string) config('videos.club.signature'), [':teacher' => ($teacher ?? Teachers::default())->name()]);
     }
 
     /** Clé d'historique d'une erreur : son intitulé, simplifié. */
