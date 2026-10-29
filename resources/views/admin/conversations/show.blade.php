@@ -16,6 +16,7 @@
             <li><x-icon name="calendar" /> {{ $conversation->started_at->timezone('Africa/Lome')->translatedFormat('j F Y à H:i') }}</li>
             <li><x-icon name="clock" /> {{ Duration::formatPrecise((int) $conversation->used_seconds) }}</li>
             <li><x-icon name="mic" /> {{ LiveProviders::label($conversation->liveProvider()) }}</li>
+            <li><x-icon name="user" /> {{ $conversation->teacher()->name() }}</li>
             <li><x-icon name="check" /> {{ $verdict ?? 'Aucun verdict' }}</li>
         </ul>
         {{-- Délais de réponse de Teacher Joe : de la fin de la parole de l'apprenant à son premier son. --}}
@@ -46,7 +47,7 @@
                     @php($line = $item['line'])
                     <li @class(['chat-bubble', 'chat-learner' => $line->isLearner(), 'chat-teacher' => ! $line->isLearner()])>
                         <p class="chat-meta">
-                            <strong>{{ $line->isLearner() ? $user->name : config('avatar.model.name') }}</strong>
+                            <strong>{{ $line->isLearner() ? $user->name : $conversation->teacher()->name() }}</strong>
                             <time datetime="{{ $line->spoken_at->toIso8601String() }}">{{ $line->spoken_at->timezone('Africa/Lome')->format('H:i:s') }}</time>
                         </p>
                         <p class="chat-text">{{ $line->text }}</p>

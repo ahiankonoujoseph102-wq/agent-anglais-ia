@@ -20,6 +20,7 @@ use App\Support\Live\AssessmentVersion;
 use App\Support\Live\LiveEarlyEnd;
 use App\Support\Live\LivePage;
 use App\Support\Plan;
+use App\Support\Teachers\Teachers;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -151,7 +152,8 @@ class AssessmentController extends Controller
         $allowedSeconds = $assessment?->allowed_seconds ?? (int) config('platform.assessment.max_minutes') * 60;
         $deadline = $assessment?->deadline() ?? now()->addSeconds($allowedSeconds);
         // Durée de l'évaluation elle-même (le moment des questions s'ajoute après le verdict).
-        $setup = TeacherSetup::assessment($user, (int) config('platform.assessment.max_minutes'), $request->handle());
+        // Évaluation gratuite : toujours le professeur par défaut (Teacher Joe), quel que soit le choix de l'apprenant.
+        $setup = TeacherSetup::assessment($user, (int) config('platform.assessment.max_minutes'), $request->handle(), Teachers::default());
 
         try {
             // Avant le verdict, le jeton couvre aussi la mini-leçon et les questions : aucun renouvellement en route.

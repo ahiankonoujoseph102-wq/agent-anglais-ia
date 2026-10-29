@@ -4,7 +4,7 @@
     App\Support\Live\WorkingTogether). À lire seulement : aucun bouton ne parle à la place de l'élève, il s'entraîne
     à le dire. Déplié aux premières séances, replié ensuite (une ligne).
 --}}
-@props(['open' => false])
+@props(['open' => false, 'teacherName' => null])
 
 <details id="useful-phrases" class="useful-phrases" @if ($open) open @endif>
     <summary class="useful-head">
@@ -12,7 +12,7 @@
         <span class="useful-hint">À dire à voix haute</span>
     </summary>
     <div class="useful-body">
-        <p class="useful-intro">Vous pouvez poser vos questions en français et vous avez le droit de vous tromper. Pour demander de l'aide à {{ config('avatar.model.name') }}, dites simplement :</p>
+        <p class="useful-intro">Vous pouvez poser vos questions en français et vous avez le droit de vous tromper. Pour demander de l'aide à {{ $teacherName ?? config('avatar.model.name') }}, dites simplement :</p>
         <ul class="useful-list">
             @foreach (\App\Support\Live\WorkingTogether::phrases() as $phrase)
                 <li>

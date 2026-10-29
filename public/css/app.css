@@ -710,6 +710,10 @@ main { overflow-x: clip; }
 .face-eyes { fill: #1d1410; animation: blink 5s infinite; transform-origin: 100px 92px; }
 .face-brows { fill: none; stroke: #2b1a12; stroke-width: 4; stroke-linecap: round; }
 .face-mouth { fill: #4a1f1a; }
+/* Teacher Rose (visage simple) : tresses cuivrées, sourcils plus fins. */
+.face-rose .face-locs { fill: #7a3418; }
+.face-rose .face-loc-lines { fill: none; stroke: #5a2410; stroke-width: 3; stroke-linecap: round; }
+.face-rose .face-brows-thin { stroke-width: 3; }
 /* Attente de la réponse (« Un instant… ») : petit hochement du visage simple. */
 [data-waiting] .face { animation: nod 1.2s ease-in-out 2; transform-origin: 50% 80%; }
 @keyframes nod { 0%, 100% { transform: none; } 40% { transform: translateY(3px) rotate(1deg); } }
@@ -1840,3 +1844,8 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 /* Club des abonnés (<x-club-invite>) : liste à coches déjà écrites dans le texte. */
 .club-list { list-style: none; padding: 0; margin: 0 0 var(--space-4); display: grid; gap: var(--space-2); }
 .club-signature { margin: var(--space-3) 0 0; }
+
+/* Choix du professeur (« Mon espace », <x-teacher-choice>) : une ligne par professeur prêt. */
+.teacher-choice-list { display: grid; gap: var(--space-2); }
+.teacher-choice-current { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; margin: 0; }
+.teacher-choice-current .icon { color: var(--c-accent-strong); }

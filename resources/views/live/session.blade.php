@@ -1,5 +1,10 @@
 {{-- Écran de conversation vocale, commun à l'évaluation et à la séance du jour. --}}
 @php
+    // Professeur de la séance (contrôleur ; sinon le professeur par défaut, Teacher Joe) : nom, voix, personnage.
+    $teacher ??= \App\Support\Teachers\Teachers::default();
+    $teacherName = $teacher->name();
+    $teacher3d = \App\Support\Avatar::enabled($teacher);
+
     // Réglages audio lus par public/js/live-session.js (config/platform.php → live).
     $audio = [
         'echo_cancellation' => (bool) config('platform.live.echo_cancellation'),
@@ -14,12 +19,11 @@
         'voice_stuck_seconds' => (float) config('platform.live.voice_stuck_seconds'),
         'voice_gap_hold_seconds' => (float) config('platform.live.voice_gap_hold_seconds'),
         'greeting_wait_seconds' => (float) config('platform.live.greeting_wait_seconds'),
-        'messages' => array_map(fn ($text) => strtr($text, [':teacher' => config('avatar.model.name'), ':rule' => config('platform.live.disconnect_rule')]), config('platform.live.messages')),
+        'messages' => array_map(fn ($text) => strtr($text, [':teacher' => $teacherName, ':rule' => config('platform.live.disconnect_rule')]), config('platform.live.messages')),
     ];
 
     // LA SUITE à la fin de la conversation (<x-next-step>, montrée par live-session.js, avant le résumé) :
     // UN bouton orange, une phrase qui dit ce qui attend l'élève, les retours en liens discrets.
-    $teacherName = config('avatar.model.name');
     $next = match ($mode) {
         'assessment' => auth()->user()?->activeSubscription
             ? ['title' => 'Évaluation terminée', 'text' => 'Votre niveau est enregistré : retrouvez votre programme dans votre espace.', 'href' => route('dashboard'), 'label' => 'Aller à mon espace', 'icon' => null]
@@ -59,9 +63,9 @@
          data-turn-watch="{{ \App\Support\Asset::url('js/turn-watch.js') }}"
          data-lesson-board="{{ \App\Support\Asset::url('js/lesson-board.js') }}"
          data-audio='@json($audio)'
-         @if (\App\Support\Avatar::enabled())
+         @if ($teacher3d)
              data-teacher-view="{{ \App\Support\Avatar::asset('js/teacher-view.js') }}"
-             data-teacher3d='@json(\App\Support\Avatar::clientConfig())'
+             data-teacher3d='@json(\App\Support\Avatar::clientConfig($teacher))'
          @endif
          @if (\App\Support\SessionRecording::enabled($mode))
              data-recorder="{{ \App\Support\Asset::url('js/session-recorder.js') }}"
@@ -70,9 +74,9 @@
              data-video-leave='@json(\App\Support\Confirmation::for('video.leave'))'
          @endif
          {{-- Professeur 3D attendu : emplacement de chargement, jamais le visage simple avant lui (teacher-view.js). --}}
-         data-teacher="{{ \App\Support\Avatar::enabled() ? 'loading' : 'svg' }}"
+         data-teacher="{{ $teacher3d ? 'loading' : 'svg' }}"
          data-phase="intro"
-         data-teacher-name="{{ config('avatar.model.name') }}">
+         data-teacher-name="{{ $teacherName }}">
 
         <div class="live-head">
             <h1>{{ $title }}</h1>
@@ -81,25 +85,29 @@
         {{-- Colonne du professeur (à gauche en paysage et sur ordinateur). --}}
         <div class="live-stage">
             <div class="teacher" aria-hidden="true">
-                <svg viewBox="0 0 200 250" class="face" role="img">
-                    {{-- Tenue de Teacher Joe : gilet bleu nuit, chemise blanche, cravate orange. --}}
-                    <path d="M16 250 Q20 206 72 194 L128 194 Q180 206 184 250 Z" class="face-vest"/>
-                    <path d="M78 194 L100 236 L122 194 Z" class="face-shirt"/>
-                    <path d="M94 200 L106 200 L110 236 L100 246 L90 236 Z" class="face-tie"/>
-                    <circle cx="100" cy="100" r="88" class="face-skin"/>
-                    <path d="M30 78 Q40 18 100 16 Q160 18 170 78 Q150 50 100 48 Q50 50 30 78 Z" class="face-hair"/>
-                    <g class="face-eyes">
-                        <ellipse cx="70" cy="92" rx="9" ry="10"/>
-                        <ellipse cx="130" cy="92" rx="9" ry="10"/>
-                    </g>
-                    <path d="M56 72 Q70 64 84 72 M116 72 Q130 64 144 72" class="face-brows"/>
-                    <ellipse id="mouth" cx="100" cy="142" rx="24" ry="3" class="face-mouth"/>
-                </svg>
+                @if ($teacher->face() === 'rose')
+                    @include('live.face-rose')
+                @else
+                    <svg viewBox="0 0 200 250" class="face" role="img">
+                        {{-- Tenue de Teacher Joe : gilet bleu nuit, chemise blanche, cravate orange. --}}
+                        <path d="M16 250 Q20 206 72 194 L128 194 Q180 206 184 250 Z" class="face-vest"/>
+                        <path d="M78 194 L100 236 L122 194 Z" class="face-shirt"/>
+                        <path d="M94 200 L106 200 L110 236 L100 246 L90 236 Z" class="face-tie"/>
+                        <circle cx="100" cy="100" r="88" class="face-skin"/>
+                        <path d="M30 78 Q40 18 100 16 Q160 18 170 78 Q150 50 100 48 Q50 50 30 78 Z" class="face-hair"/>
+                        <g class="face-eyes">
+                            <ellipse cx="70" cy="92" rx="9" ry="10"/>
+                            <ellipse cx="130" cy="92" rx="9" ry="10"/>
+                        </g>
+                        <path d="M56 72 Q70 64 84 72 M116 72 Q130 64 144 72" class="face-brows"/>
+                        <ellipse id="mouth" cx="100" cy="142" rx="24" ry="3" class="face-mouth"/>
+                    </svg>
+                @endif
                 {{-- Professeur 3D : chargé en arrière-plan, remplace le visage SVG une fois prêt. --}}
                 <div id="teacher3d" class="teacher3d-stage"></div>
                 <div id="teacher3d-loading" class="teacher3d-loading teacher-wait" role="status" hidden>
                     <span class="teacher-wait-dots" aria-hidden="true"><span></span><span></span><span></span></span>
-                    <p class="teacher-wait-title">{{ config('avatar.model.name') }} arrive…</p>
+                    <p class="teacher-wait-title">{{ $teacherName }} arrive…</p>
                     <p class="teacher-wait-text">Patientez un instant.</p>
                     <progress max="100" value="0" aria-hidden="true"></progress>
                 </div>
@@ -154,7 +162,7 @@
                     <p class="intro-mic-line"><x-icon name="mic" /> <span>Touchez « Autoriser » quand le téléphone demande le micro.</span></p>
                 </div>
                 {{-- Pendant la connexion : « Teacher Joe arrive… », indicateur discret. --}}
-                <p id="arriving" class="live-arriving" role="status"><span class="live-arriving-dots" aria-hidden="true"><span></span><span></span><span></span></span> {{ config('avatar.model.name') }} arrive…</p>
+                <p id="arriving" class="live-arriving" role="status"><span class="live-arriving-dots" aria-hidden="true"><span></span><span></span><span></span></span> {{ $teacherName }} arrive…</p>
                 @include('live.before-start')
             </div>
 
@@ -178,7 +186,7 @@
                 <x-icon name="hourglass" />
                 <div>
                     <p id="wait-text"></p>
-                    <button type="button" id="nudge" class="btn btn-accent" hidden><x-icon name="refresh" /> Relancer {{ config('avatar.model.name') }}</button>
+                    <button type="button" id="nudge" class="btn btn-accent" hidden><x-icon name="refresh" /> Relancer {{ $teacherName }}</button>
                 </div>
             </div>
 
@@ -236,7 +244,7 @@
                     <p id="record-ready" class="recorder-ready" role="status" hidden><x-icon name="download" /> <span>Votre vidéo est prête. Téléchargez-la avant de quitter cette page.</span></p>
                     <a id="record-download" class="btn btn-lg btn-block" href="#" hidden><x-icon name="download" /> Télécharger ma vidéo <span class="recorder-size">(<span id="record-size"></span>)</span></a>
                     <p id="record-saved" class="recorder-saved" role="status" hidden><x-icon name="check-circle" /> <span>Vidéo téléchargée : retrouvez-la dans l'application Fichiers de votre téléphone, dossier « Téléchargements ».</span></p>
-                    <p class="recorder-note">La vidéo montre {{ config('avatar.model.name') }}, le tableau, et on y entend vos deux voix. Elle reste sur votre téléphone : elle n'est jamais envoyée à {{ config('platform.name') }}. Elle s'arrête avec la séance : téléchargez-la avant de quitter la page.</p>
+                    <p class="recorder-note">La vidéo montre {{ $teacherName }}, le tableau, et on y entend vos deux voix. Elle reste sur votre téléphone : elle n'est jamais envoyée à {{ config('platform.name') }}. Elle s'arrête avec la séance : téléchargez-la avant de quitter la page.</p>
                     <x-recording-share />
                 </section>
                 <p id="record-unsupported" class="recorder-note" hidden>Cet appareil ne permet pas d'enregistrer la séance en vidéo. Votre séance fonctionne normalement.</p>
@@ -249,7 +257,7 @@
             @if ($mode === 'assessment')
                 {{-- Affiché sous le résultat de l'évaluation : le professeur dit d'y toucher le bouton orange. --}}
                 <section id="plans-offer" class="plans-offer" hidden>
-                    <h2>Continuez avec {{ config('avatar.model.name') }} : choisissez votre formule</h2>
+                    <h2>Continuez avec {{ $teacherName }} : choisissez votre formule</h2>
                     @include('assessment.plans')
                 </section>
             @endif
@@ -263,7 +271,7 @@
             {{-- Évaluation, séance du jour, « Mes cours » : ce que l'élève peut dire pour demander de l'aide. En bas de la
                  colonne : sur téléphone, les sous-titres, le résultat et les formules passent avant. --}}
             @if (in_array($mode, ['assessment', 'lesson', 'course'], true))
-                <x-useful-phrases :open="$usefulPhrasesOpen ?? false" />
+                <x-useful-phrases :open="$usefulPhrasesOpen ?? false" :teacher-name="$teacherName" />
             @endif
         </div>
     </div>

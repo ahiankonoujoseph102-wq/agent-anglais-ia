@@ -16,6 +16,7 @@ use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
 use App\Support\Live\LivePage;
+use App\Support\Teachers\Teachers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,12 +43,15 @@ class LevelTestController extends Controller
         $test = $this->openTest($user);
         $minutes = (int) config('program.level_test_minutes');
 
+        $teacher = $test?->teacher() ?? Teachers::forUser($user);
+
         return view('live.session', [
             'mode' => 'level_test',
+            'teacher' => $teacher,
             'title' => 'Bilan de fin de niveau '.$program->level->value,
             // UNE ligne courte sous « Commencer » ; le détail est replié sous « Avant de commencer ».
             'intro' => "{$minutes} minutes au plus pour vérifier votre niveau {$program->level->value}.",
-            'introMore' => "Le professeur vérifie que vous maîtrisez le niveau {$program->level->value}. "
+            'introMore' => ucfirst($teacher->theTeacher())." vérifie que vous maîtrisez le niveau {$program->level->value}. "
                 .'Si vous réussissez, vous passez au niveau suivant et recevez votre attestation de niveau.',
             'remainingSeconds' => $test?->remainingSeconds() ?? $minutes * 60,
             'urls' => [
@@ -77,7 +81,8 @@ class LevelTestController extends Controller
 
         $allowedSeconds = $test?->allowed_seconds ?? (int) config('program.level_test_minutes') * 60;
         $deadline = $test?->deadline() ?? now()->addSeconds($allowedSeconds);
-        $setup = TeacherSetup::levelTest($user, $program->level, (int) ceil($allowedSeconds / 60), $request->handle());
+        $teacher = $test?->teacher() ?? Teachers::forUser($user);
+        $setup = TeacherSetup::levelTest($user, $program->level, (int) ceil($allowedSeconds / 60), $request->handle(), $teacher);
 
         try {
             $token = $live->request($setup, $deadline, $test, $request->failedProvider());
@@ -95,6 +100,7 @@ class LevelTestController extends Controller
             'status' => LevelTestStatus::InProgress,
             'started_at' => now(),
             'allowed_seconds' => $allowedSeconds,
+            'teacher' => $teacher->key,
         ]);
 
         $warningMinutes = 1;

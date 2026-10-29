@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 /**
  * Bilan oral de fin de niveau, passé avec le professeur quand les 12 unités sont terminées.
  */
-#[Fillable(['program_id', 'level', 'status', 'started_at', 'ended_at', 'allowed_seconds', 'used_seconds'])]
+#[Fillable(['program_id', 'level', 'status', 'started_at', 'ended_at', 'allowed_seconds', 'used_seconds', 'teacher'])]
 class LevelTest extends Model
 {
     use IsLiveConversation;

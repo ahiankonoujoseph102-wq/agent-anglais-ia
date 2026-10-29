@@ -7,7 +7,7 @@
     <summary><x-icon name="info" /> <span>Avant de commencer</span></summary>
     <div class="before-start-body">
         @if ($mode === 'assessment')
-            <p>{{ config('avatar.model.name') }} vous pose des questions adaptées à vos réponses. Ensuite : votre niveau, une mini-leçon sur vos propres erreurs et vos questions, {{ \App\Models\Assessment::totalMinutes() }} minutes au plus en tout.</p>
+            <p>{{ $teacherName ?? config('avatar.model.name') }} vous pose des questions adaptées à vos réponses. Ensuite : votre niveau, une mini-leçon sur vos propres erreurs et vos questions, {{ \App\Models\Assessment::totalMinutes() }} minutes au plus en tout.</p>
         @endif
         @if (! empty($introMore))
             <p>{{ $introMore }}</p>

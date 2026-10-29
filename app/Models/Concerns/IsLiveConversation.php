@@ -36,11 +36,12 @@ trait IsLiveConversation
      */
     public static function bootIsLiveConversation(): void
     {
-        // Professeur de la séance, fixé à sa création (sa voix est figée dans le jeton) : celui de l'apprenant.
+        // Professeur de la séance, fixé à sa création (sa voix est figée dans le jeton) : celui donné par le contrôleur
+        // (séance du jour, « Mes cours », bilan de niveau : celui de l'apprenant), sinon le professeur par défaut
+        // (évaluation gratuite : toujours Teacher Joe pour l'instant).
         static::creating(function (self $conversation) {
             if (blank($conversation->getAttributes()['teacher'] ?? null)) {
-                $userId = $conversation->getAttributes()['user_id'] ?? null;
-                $conversation->setAttribute('teacher', Teachers::forUserId($userId === null ? null : (int) $userId)->key);
+                $conversation->setAttribute('teacher', Teachers::default()->key);
             }
         });
 

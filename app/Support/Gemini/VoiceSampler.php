@@ -6,7 +6,11 @@ use App\Support\PrivateStorage;
 use App\Support\Speech\GeminiSpeech;
 use App\Support\Speech\Loudness;
 use App\Support\Speech\SpeechProvider;
+use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\SpeechUsage;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
+use App\Support\Videos\VideoVoice;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -24,36 +28,49 @@ class VoiceSampler
     public const DIRECTORY = 'voice-samples';
 
     /**
-     * Phrase et ton de l'extrait (config/teacher.php → voice_trial).
+     * Phrase et ton de l'extrait (config/teacher.php → voice_trial), au nom et avec le ton du professeur
+     * (Teacher Joe par défaut).
      *
      * @return array{text: string, style: string}
      */
-    public static function script(): array
+    public static function script(?Teacher $teacher = null): array
     {
-        $replace = [':teacher' => (string) config('avatar.model.name'), ':platform' => (string) config('platform.name')];
+        $teacher ??= Teachers::default();
+        $replace = [':teacher' => $teacher->name(), ':platform' => (string) config('platform.name')];
 
         return [
             'text' => strtr((string) config('teacher.voice_trial.text'), $replace),
-            'style' => (string) config('teacher.voice_trial.style'),
+            'style' => $teacher->sampleStyle(),
         ];
     }
 
     /**
      * Chemin de l'extrait : change si la voix, le modèle, la phrase ou le ton changent.
      */
-    public static function path(string $voice): string
+    public static function path(string $voice, ?Teacher $teacher = null): string
     {
-        $script = self::script();
+        $script = self::script($teacher);
         $hash = substr(sha1(implode('|', [config('services.gemini.tts_model'), $voice, $script['text'], $script['style']])), 0, 16);
 
         return self::DIRECTORY.'/'.$voice.'-'.$hash.'.wav';
     }
 
-    public function cached(string $voice): ?string
+    /** Extrait d'une voix OpenAI (même phrase, même ton) : change avec le modèle et les réglages de la synthèse. */
+    public static function openAiPath(string $voice, ?Teacher $teacher = null): string
+    {
+        $script = self::script($teacher);
+        $speech = SpeechProviders::find('openai');
+        $hash = substr(sha1(implode('|', [$speech?->model(), $speech?->settings(), $voice, $script['text'], $script['style']])), 0, 16);
+
+        return self::DIRECTORY.'/openai-'.$voice.'-'.$hash.'.wav';
+    }
+
+    public function cached(string $voice, ?Teacher $teacher = null, string $provider = 'gemini'): ?string
     {
         $disk = PrivateStorage::disk();
+        $path = $provider === 'openai' ? self::openAiPath($voice, $teacher) : self::path($voice, $teacher);
 
-        return $disk->exists(self::path($voice)) ? $disk->get(self::path($voice)) : null;
+        return $disk->exists($path) ? $disk->get($path) : null;
     }
 
     /**
@@ -61,13 +78,34 @@ class VoiceSampler
      *
      * @throws GeminiUnavailable
      */
-    public function generate(string $voice): string
+    public function generate(string $voice, ?Teacher $teacher = null): string
     {
-        $script = self::script();
+        $script = self::script($teacher);
         $label = 'Essai des voix : '.$voice;
         $wav = $this->synthesize($voice, $script['text'], $script['style'], $label);
 
-        return self::store(self::path($voice), $wav, $label);
+        return self::store(self::path($voice, $teacher), $wav, $label);
+    }
+
+    /**
+     * Extrait d'une voix OpenAI pour « Essai des voix » (voix des séances en direct chez OpenAI) : produit par la
+     * synthèse vocale d'OpenAI avec la même voix, puis gardé.
+     *
+     * @throws SpeechFailed
+     */
+    public function generateOpenAi(string $voice, ?Teacher $teacher = null): string
+    {
+        $speech = SpeechProviders::find('openai');
+
+        if ($speech === null || ! $speech->hasKey()) {
+            throw new SpeechFailed(SpeechFailed::MISSING_KEY, 'Clé absente.');
+        }
+
+        $script = self::script($teacher);
+        $label = 'Essai des voix : '.$voice;
+        $wav = app(VideoVoice::class)->synthesize($speech, $voice, $script['text'], $label, $script['style']);
+
+        return self::store(self::openAiPath($voice, $teacher), $wav, $label, $speech);
     }
 
     /**

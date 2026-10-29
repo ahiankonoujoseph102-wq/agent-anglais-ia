@@ -8,6 +8,7 @@ use App\Models\CourseSession;
 use App\Models\Lesson;
 use App\Models\LevelTest;
 use App\Support\Gemini\UsageCost;
+use App\Support\Teachers\Teachers;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -96,6 +97,39 @@ final class LiveUsage
 
         foreach ($totals as $provider => $total) {
             $totals[$provider]['cost'] = round($total['seconds'] / 60 * self::costPerMinute($provider), 4);
+        }
+
+        return $totals;
+    }
+
+    /**
+     * Séances en direct par professeur (config/teachers.php) : nombre, minutes réelles et coût estimé d'après les
+     * jetons (chaque séance au tarif de son fournisseur). Une séance d'avant les professeurs compte pour le
+     * professeur par défaut (Teacher Joe).
+     *
+     * @return array<string, array{name: string, count: int, seconds: int, cost: float}>
+     */
+    public static function byTeacher(): array
+    {
+        $default = Teachers::default()->key;
+        $totals = [];
+
+        foreach (Teachers::all() as $key => $teacher) {
+            $totals[$key] = ['name' => $teacher->name(), 'count' => 0, 'seconds' => 0, 'cost' => 0.0];
+            $only = fn (Builder $query) => $key === $default
+                ? $query->where(fn (Builder $q) => $q->where('teacher', $key)->orWhereNull('teacher'))
+                : $query->where('teacher', $key);
+
+            foreach ([Assessment::query(), Lesson::query(), LevelTest::query(), CourseSession::query()] as $query) {
+                $query = $only($query->whereNotNull('started_at'));
+                $row = (clone $query)->toBase()->selectRaw('count(*) as aggregate_count, coalesce(sum(used_seconds), 0) as seconds')->first();
+
+                $totals[$key]['count'] += (int) ($row->aggregate_count ?? 0);
+                $totals[$key]['seconds'] += (int) ($row->seconds ?? 0);
+                $totals[$key]['cost'] += self::tokenCost($query);
+            }
+
+            $totals[$key]['cost'] = round($totals[$key]['cost'], 4);
         }
 
         return $totals;

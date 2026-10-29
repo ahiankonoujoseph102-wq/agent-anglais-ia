@@ -46,6 +46,25 @@ return [
         'voice_hz' => 130,
     ],
 
+    // Teacher Rose (config/teachers.php) : même personnage animé que Teacher Joe une fois son modèle prêt (étape 3) ;
+    // sans fichier 3D, l'écran de séance montre son visage simple (SVG). Son choix n'est montré aux apprenants que
+    // quand son visage est prêt et validé (teachers.list.rose.ready).
+    'rose' => [
+        'name' => 'Teacher Rose',
+        'file' => null,
+        'profile' => 'teacher-joe',
+        'camera' => [
+            'target' => [0, 0.57, 0],
+            'half_height' => 0.33,
+            'half_width' => 0.30,
+            'eye_height' => 0.68,
+        ],
+        'desk_height' => 0.175,
+        'resting_smile' => 0.3,
+        // Voix plus aiguë que celle de Teacher Joe (lecture labiale).
+        'voice_hz' => 210,
+    ],
+
     // Expressions du professeur 3D, déclenchées dans le navigateur d'après ses paroles (public/js/teacher-cues.js).
     'expressions' => [
         'welcome' => 'once, at the very beginning, with your greeting (smile and wave)',

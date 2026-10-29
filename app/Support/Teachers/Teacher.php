@@ -2,7 +2,8 @@
 
 namespace App\Support\Teachers;
 
-use App\Support\Gemini\TeacherVoice;
+use App\Models\Setting;
+use App\Support\Avatar;
 
 /**
  * Un professeur (config/teachers.php) : son nom, sa voix chez chaque fournisseur, son personnage. Tout ce qui est
@@ -31,16 +32,128 @@ final class Teacher
         return (array) config('avatar.'.$this->avatarKey());
     }
 
-    /** Voix figée dans le jeton Gemini Live ; sans voix propre, celle de « Essai des voix ». */
+    /** Professeur animé en 3D disponible (sinon : visage simple). */
+    public function has3d(): bool
+    {
+        return Avatar::enabled($this);
+    }
+
+    /** Visage simple (SVG) de l'écran de séance. */
+    public function face(): string
+    {
+        return (string) ($this->config['face'] ?? 'joe');
+    }
+
+    /** Le choix de ce professeur est montré aux apprenants (voix et visage prêts). */
+    public function isReady(): bool
+    {
+        return (bool) ($this->config['ready'] ?? false);
+    }
+
+    /** Ce que le professeur dit être quand on le lui demande (« un professeur virtuel »). */
+    public function virtualTeacher(): string
+    {
+        return (string) ($this->config['virtual_teacher'] ?? 'un professeur virtuel');
+    }
+
+    /** « il » ou « elle » (textes de l'écran de séance). */
+    public function pronoun(): string
+    {
+        return (string) ($this->config['pronoun'] ?? 'il');
+    }
+
+    /** « le professeur » ou « la professeure ». */
+    public function theTeacher(): string
+    {
+        return (string) ($this->config['the_teacher'] ?? 'le professeur');
+    }
+
+    /** Court bloc de personnalité propre au professeur (vide : rien n'est ajouté aux consignes). */
+    public function personality(): string
+    {
+        return trim((string) ($this->config['personality'] ?? ''));
+    }
+
+    /** Ton des extraits de « Essai des voix ». */
+    public function sampleStyle(): string
+    {
+        return (string) ($this->config['sample_style'] ?? config('teacher.voice_trial.style'));
+    }
+
+    /**
+     * Voix Gemini proposées dans « Essai des voix » : nom => description officielle.
+     *
+     * @return array<string, string>
+     */
+    public function geminiTrials(): array
+    {
+        return (array) ($this->config['gemini_trials'] ?? config('services.gemini.voice_trials', []));
+    }
+
+    /**
+     * Voix OpenAI proposées dans « Essai des voix » : nom => description (vide : aucun choix).
+     *
+     * @return array<string, string>
+     */
+    public function openaiTrials(): array
+    {
+        return filled($this->config['realtime_setting'] ?? null) ? (array) ($this->config['openai_trials'] ?? []) : [];
+    }
+
+    public function defaultGeminiVoice(): string
+    {
+        return (string) (($this->config['gemini_voice'] ?? null) ?: config('services.gemini.voice'));
+    }
+
+    public function defaultRealtimeVoice(): string
+    {
+        return (string) (($this->config['realtime_voice'] ?? null) ?: config('services.openai.realtime_voice'));
+    }
+
+    /**
+     * Voix figée dans le jeton Gemini Live : celle choisie dans « Essai des voix » si elle est proposée, sinon la
+     * voix par défaut du professeur (Teacher Joe : même règle que App\Support\Gemini\TeacherVoice::current).
+     */
     public function geminiVoice(): ?string
     {
-        return filled($this->config['gemini_voice'] ?? null) ? (string) $this->config['gemini_voice'] : TeacherVoice::current();
+        $chosen = $this->chosen($this->config['voice_setting'] ?? null);
+        $default = $this->defaultGeminiVoice();
+
+        return filled($chosen) && (array_key_exists($chosen, $this->geminiTrials()) || $chosen === $default) ? $chosen : $default;
     }
 
     /** Voix de l'appel OpenAI Realtime (secours des séances en direct). */
     public function realtimeVoice(): string
     {
-        return (string) (($this->config['realtime_voice'] ?? null) ?: config('services.openai.realtime_voice'));
+        $chosen = $this->chosen($this->config['realtime_setting'] ?? null);
+
+        return filled($chosen) && array_key_exists($chosen, $this->openaiTrials()) ? $chosen : $this->defaultRealtimeVoice();
+    }
+
+    /** La voix Gemini a-t-elle été choisie dans « Essai des voix » ? */
+    public function isGeminiVoiceChosen(): bool
+    {
+        return $this->geminiVoice() === $this->chosen($this->config['voice_setting'] ?? null);
+    }
+
+    public function isRealtimeVoiceChosen(): bool
+    {
+        return $this->realtimeVoice() === $this->chosen($this->config['realtime_setting'] ?? null);
+    }
+
+    /** Enregistre la voix choisie dans « Essai des voix » (fournisseur gemini ou openai). */
+    public function chooseVoice(string $provider, string $voice): void
+    {
+        $setting = $provider === 'openai' ? ($this->config['realtime_setting'] ?? null) : ($this->config['voice_setting'] ?? null);
+
+        if (filled($setting)) {
+            Setting::put((string) $setting, $voice);
+        }
+    }
+
+    private function chosen(mixed $setting): ?string
+    {
+        return filled($setting) ? Setting::get((string) $setting) : null;
     }
 
     private function avatarKey(): string

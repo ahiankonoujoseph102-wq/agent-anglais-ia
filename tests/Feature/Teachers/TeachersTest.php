@@ -27,13 +27,13 @@ class TeachersTest extends TestCase
     {
         config([
             'avatar.second' => ['name' => 'Teacher Test'] + (array) config('avatar.model'),
-            'teachers.list.second' => ['avatar' => 'second', 'gemini_voice' => 'Kore', 'realtime_voice' => 'marin'],
+            'teachers.list.second' => ['avatar' => 'second', 'ready' => true, 'gemini_voice' => 'Kore', 'realtime_voice' => 'marin'],
         ]);
     }
 
-    public function test_teacher_joe_is_the_only_teacher_and_the_default(): void
+    public function test_teacher_joe_is_the_default_and_the_only_one_offered_for_now(): void
     {
-        $this->assertSame(['joe'], array_keys(Teachers::all()));
+        $this->assertSame(['joe'], array_keys(Teachers::choosable()));
         $this->assertSame('joe', Teachers::default()->key);
         $this->assertSame(config('avatar.model.name'), Teachers::default()->name());
         $this->assertSame(config('avatar.model'), Teachers::default()->avatar());
@@ -111,9 +111,12 @@ class TeachersTest extends TestCase
         $this->assertStringContainsString('Teacher Test', SiteGuide::text('lesson', $second));
         $this->assertSame('marin', OpenAiRealtime::session($setup, 'A2', $second)['audio']['output']['voice']);
 
-        // Une séance commencée par cet apprenant garde ce professeur.
+        // Une séance créée sans professeur (évaluation gratuite) prend le professeur par défaut ; les contrôleurs de la
+        // séance du jour, de « Mes cours » et du bilan de niveau donnent celui de l'apprenant.
         $assessment = $user->assessment()->create(['status' => AssessmentStatus::InProgress, 'started_at' => now(), 'allowed_seconds' => 300]);
-        $this->assertSame('second', $assessment->teacher()->key);
+        $this->assertSame('joe', $assessment->teacher()->key);
+        $assessment->forceFill(['teacher' => 'second'])->save();
+        $this->assertSame('second', $assessment->fresh()->teacher()->key);
 
         // Teacher Joe, lui, ne change pas.
         $joe = TeacherSetup::lesson($user, 15, null, 'LESSON OF THE DAY', 1, Teachers::default());

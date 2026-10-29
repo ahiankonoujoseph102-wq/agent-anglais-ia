@@ -1,14 +1,20 @@
-# REPRISE — chantier en cours : deuxième professeure, Teacher Rose (étape 1 sur 8)
+# REPRISE — chantier en cours : deuxième professeure, Teacher Rose (étape 2 sur 8)
 
 À lire avec `CLAUDE.md` pour reprendre ce travail dans une autre session. Ce fichier ne contient jamais de clé, ni de conversation réelle, ni de transcription.
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
-## Chantier en cours : Teacher Rose, étape 1, socle invisible (29 octobre 2026, branche `claude/festive-keller-2hkpxl`)
+## Chantier en cours : Teacher Rose, étape 2, séances payantes (29 octobre 2026, branche `claude/festive-keller-2hkpxl`)
+
+Décision du fondateur (message de l'étape 2) : PAS d'interrupteur ni de compte de test ; il ne peut pas tester lui-même (micro de son téléphone en panne), un ami fera les essais réels après la mise en ligne ; tout doit être prouvé par les tests (faux Gemini, faux OpenAI). Conditions : (1) le choix de Teacher Rose n'apparaît qu'avec sa voix ET son visage prêts et validés par lui sur images ; (2) Teacher Joe identique au caractère près (garde-fou) ; (3) évaluation non touchée avant son essai réel ; (4) retour rapide à Teacher Joe seul ; (5) choix dans « Mon espace », « Consommation » et « Essai des voix » par professeur.
+- **Fait** : voir CLAUDE.md, « Professeurs », étape 2. `teachers.list.rose.ready` = false : AUCUN apprenant ne la voit. L'administrateur peut déjà choisir ses voix (« Essai des voix », onglet Teacher Rose) et l'entendre en direct (« Diagnostic des fournisseurs », « Essayer 30 secondes avec Teacher Rose »).
+- **Retour à Teacher Joe seul** : `ready` à false, ou retirer le bloc `rose` de `config/teachers.php`, puis déployer.
+- **Étape 3 (suivante)** : visage 3D de Teacher Rose (variante du script `tools/teacher3d/build-teacher-joe.mjs`, personnage stylisé et ORIGINAL), images envoyées au fondateur ; après son accord : `config/avatar.php` → `rose.file`, puis `ready` à true. Les photos d'inspiration ne doivent JAMAIS entrer dans le dépôt.
+
+## Chantier précédent : Teacher Rose, étape 1, socle invisible (29 octobre 2026, branche `claude/festive-keller-2hkpxl`)
 
 Décision du fondateur : les deux professeurs partout (scénario B complet), avec trois corrections acceptées : choix « à l'abonnement » sur la page de bienvenue (jamais sur la page de paiement), vidéos en alternance, évaluation seulement à l'étape 5 après son essai réel. Plan en 8 étapes : CLAUDE.md, « Professeurs (Teacher Joe et Teacher Rose) ».
 - **Étape 1 (cette branche)** : liste des professeurs (`config/teachers.php`, Teacher Joe seul), professeur gardé sur le compte et dans chaque séance, consignes, voix Gemini et OpenAI et fiche du site construites à partir du professeur. Rien ne change pour personne : garde-fou par empreintes enregistré sur `main` AVANT tout changement (premier commit de la branche), puis vérifié après.
-- **Étape 2 (suivante)** : Teacher Rose dans la séance du jour, « Mes cours » et le bilan de niveau, derrière un interrupteur dans « Réglages » (désactivée, comptes de test, tout le monde) ; choix dans « Mon espace » et « Avec … · Changer » sous « Commencer » ; contrôleurs qui passent le professeur de la séance (`$conversation->teacher()`) à `TeacherSetup` ; « Consommation » et « Essai des voix » par professeur ; voix à proposer au fondateur : Gemini Sulafat, Kore, Aoede, Despina, Erinome ; OpenAI marin, shimmer, coral. L'évaluation n'est PAS touchée avant l'étape 5.
 - **Visage (étape 3)** : personnage stylisé et ORIGINAL, jamais un portrait. Le fondateur a donné des photos d'inspiration générale : elles ne doivent JAMAIS entrer dans le dépôt (public), ni aucune information personnelle ; il les renverra au moment de l'étape 3.
 - **Gestes du fondateur à l'étape 1** : aucun (rien de visible).
 
@@ -116,7 +122,7 @@ Terminé et fusionné (pull requests #114 à #118). Après la mise en ligne : de
 
 ## Prochaine étape exacte
 
-1. Teacher Rose : étape 1 fusionnée si les tests sont verts ; ensuite étape 2 (voir plus haut), sur l'accord du fondateur. L'essai réel ci-dessous reste la condition de l'étape 5.
+1. Teacher Rose : étape 2 fusionnée si les tests sont verts ; ensuite étape 3 (visage), sur l'accord du fondateur. L'essai réel ci-dessous reste la condition de l'étape 5.
 2. Le fondateur refait une évaluation avec un compte de test (« Réinitialiser l'évaluation » sur sa fiche), en filmant avec « Enregistrer ma séance », et vérifie : bienvenue, nom, « comment ça va » ; aucune coupure sur « Je… » ; plus de longs silences après sa réponse ; aucune coupure vers 5 minutes ; mini-leçon qui attend sa répétition ; niveau dit en français une seule fois ; « Avez-vous une autre question ? » ; jamais « les formules s'affichent ». « Lire la conversation » : plus de « répond en 17,9 secondes » ni de « auth token has expired ».
 3. En cas de problème : « Réglages » → « Nouvelle évaluation » → « Désactivée » remet l'ancienne évaluation sans redéploiement (les corrections techniques A, B, C restent pour tout le monde).
 4. Lancer le banc d'essai sur Laravel Cloud : `php artisan teacher:rehearse --compare --only=nouvelle-evaluation-debut-de-phrase,nouvelle-evaluation-reponse-fausse,nouvelle-evaluation-question-formules,nouvelle-evaluation-conclusion`.
