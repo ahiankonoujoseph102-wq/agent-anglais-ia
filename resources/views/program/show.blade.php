@@ -13,7 +13,7 @@
     @if ($program->status === ProgramStatus::LevelTestDue)
         <x-next-step class="rise"
             title="Bravo, vous avez terminé les 12 unités !"
-            text="Passez le bilan oral de fin de niveau avec {{ config('avatar.model.name') }} : vous obtiendrez votre attestation et passerez au niveau suivant."
+            text="Passez le bilan oral de fin de niveau avec {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }} : vous obtiendrez votre attestation et passerez au niveau suivant."
             :href="route('level-test.show')" label="Passer mon bilan de fin de niveau" icon="award" />
     @elseif ($current)
         <x-next-step class="rise next-step-compact"

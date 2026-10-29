@@ -46,7 +46,7 @@
                 {{-- Replié : la page reste courte ; ouvert s'il y a déjà un choix ou une erreur. --}}
                 <details class="field other-goals" @if ($otherGoals !== [] || $errors->has('other_goals') || $errors->has('other_goals.*')) open @endif>
                     <summary>Vous avez d'autres raisons ? Ajoutez-en deux au plus (facultatif)</summary>
-                    <p class="hint">{{ config('avatar.model.name') }} s'en servira pour ses exemples et ses questions.</p>
+                    <p class="hint">{{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }} s'en servira pour ses exemples et ses questions.</p>
                     @foreach ($goals as $goal)
                         <label class="checkbox option">
                             <input type="checkbox" name="other_goals[]" value="{{ $goal->value }}" @checked(in_array($goal->value, $otherGoals, true))>
@@ -117,9 +117,9 @@
             <h2 class="aside-title"><x-icon name="info" /> À quoi servent vos réponses</h2>
             <ul class="aside-list">
                 <li><strong>Votre objectif</strong> : dans chaque unité, les situations qui s'en rapprochent passent en premier.</li>
-                <li><strong>Votre métier et vos centres d'intérêt</strong> : les situations proches de votre vie viennent ensuite, et {{ config('avatar.model.name') }} les connaît.</li>
+                <li><strong>Votre métier et vos centres d'intérêt</strong> : les situations proches de votre vie viennent ensuite, et {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }} les connaît.</li>
                 <li><strong>Vos jours</strong> : une leçon par jour de travail, dans votre calendrier.</li>
-                <li><strong>Vos difficultés</strong> : {{ config('avatar.model.name') }} les connaît dès le début de chaque séance.</li>
+                <li><strong>Vos difficultés</strong> : {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }} les connaît dès le début de chaque séance.</li>
             </ul>
             <p class="muted small">Vous pourrez changer vos réponses plus tard avec « Modifier mes objectifs ».</p>
         </x-slot:aside>

@@ -3,9 +3,11 @@
 namespace Tests\Feature\Videos;
 
 use App\Models\PresentationVideo;
+use App\Models\User;
 use App\Support\Videos\PresentationScripts;
 use App\Support\Videos\PresentationVideos;
 use App\Support\Videos\VideoSettings;
+use Database\Seeders\PresentationDemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -79,9 +81,9 @@ class PresentationRoseTest extends TestCase
     public function test_demo_accounts_choose_her_only_for_her_videos(): void
     {
         config(['videos.presentations.demo_teacher' => 'rose']);
-        $this->seed(\Database\Seeders\PresentationDemoSeeder::class);
+        $this->seed(PresentationDemoSeeder::class);
 
-        $this->assertSame(0, \App\Models\User::query()->where('role', 'learner')->where(fn ($q) => $q->whereNull('teacher')->orWhere('teacher', '!=', 'rose'))->count());
-        $this->assertSame(0, \App\Models\User::query()->where('role', 'admin')->where('teacher', 'rose')->count());
+        $this->assertSame(0, User::query()->where('role', 'learner')->where(fn ($q) => $q->whereNull('teacher')->orWhere('teacher', '!=', 'rose'))->count());
+        $this->assertSame(0, User::query()->where('role', 'admin')->where('teacher', 'rose')->count());
     }
 }

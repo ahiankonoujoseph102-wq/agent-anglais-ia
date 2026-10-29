@@ -1,12 +1,16 @@
 <x-layout title="Mon espace" install>
     {{-- Vrai dès qu'un rappel de « Enregistrer ma séance » est affiché : l'aide « Comment partager ma vidéo » suit. --}}
-    @php $recordShare = false; @endphp
+    @php
+        $recordShare = false;
+        // Professeur de l'apprenant (Teacher Joe, ou Teacher Rose s'il l'a choisie).
+        $myTeacher = \App\Support\Teachers\Teachers::forUser($user);
+    @endphp
     <div class="welcome rise">
-        {{-- Petit visage de Teacher Joe (au lieu du logo). --}}
-        <span class="hero-teacher-face welcome-face"><img src="{{ \App\Support\Asset::url('images/teacher-joe.webp') }}" width="56" height="56" alt=""></span>
+        {{-- Petit visage du professeur de l'apprenant (au lieu du logo). --}}
+        <span class="hero-teacher-face welcome-face"><img src="{{ \App\Support\Asset::url($myTeacher->portrait()) }}" width="56" height="56" alt=""></span>
         <div>
             <h1>Bonjour {{ $user->name }}</h1>
-            <p>Votre professeur {{ config('avatar.model.name') }} est prêt.</p>
+            <p>{{ $myTeacher->pronoun() === 'elle' ? 'Votre professeure' : 'Votre professeur' }} {{ $myTeacher->name() }} est {{ $myTeacher->pronoun() === 'elle' ? 'prête' : 'prêt' }}.</p>
         </div>
     </div>
 
@@ -22,7 +26,7 @@
             </p>
             <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-lg btn-block btn-next"><x-icon name="mic" /> Commencer mon évaluation gratuite</a>
             @if (\App\Support\SessionRecording::enabled('assessment'))
-                <x-recording-hint share="partager-ma-video" />
+                <x-recording-hint share="partager-ma-video" :teacher="\App\Support\Teachers\Teachers::default()" />
                 @php $recordShare = true; @endphp
             @endif
         @elseif ($pendingPayment && ! $subscription)
@@ -62,7 +66,7 @@
             @endif
         @elseif (! $program && ! $attestations->contains('level', \App\Enums\Level::C2))
             <h2 id="next-step-title">Construisons votre programme</h2>
-            <p>Répondez à 4 petites questions : {{ config('avatar.model.name') }} prépare un programme adapté à votre objectif et à votre rythme.</p>
+            <p>Répondez à 4 petites questions : {{ $myTeacher->name() }} prépare un programme adapté à votre objectif et à votre rythme.</p>
             <a href="{{ route('program.questionnaire', 1) }}" class="btn btn-lg btn-block">Construire mon programme <x-icon name="arrow-right" /></a>
         @elseif ($program?->status === \App\Enums\ProgramStatus::LevelTestDue)
             <h2 id="next-step-title">Bilan de fin de niveau {{ $program->level->value }}</h2>
@@ -151,7 +155,7 @@
             <a href="{{ route('assessment.show') }}" class="btn btn-outline btn-block"><x-icon name="mic" /> Passer mon évaluation gratuite</a>
             {{-- Le rappel « Enregistrer ma séance » n'est dit qu'une fois sur la page. --}}
             @if (\App\Support\SessionRecording::enabled('assessment') && ! $recordShare)
-                <x-recording-hint share="partager-ma-video" />
+                <x-recording-hint share="partager-ma-video" :teacher="\App\Support\Teachers\Teachers::default()" />
                 @php $recordShare = true; @endphp
             @endif
         </section>
@@ -291,7 +295,7 @@
 
     @if ($assessment?->feedback)
         <section class="card next-step reveal">
-            <div class="card-title"><span class="icon-bubble icon-bubble-accent"><x-icon name="badge-check" /></span><h2>L'avis de {{ config('avatar.model.name') }}</h2></div>
+            <div class="card-title"><span class="icon-bubble icon-bubble-accent"><x-icon name="badge-check" /></span><h2>L'avis de {{ $assessment->teacher()->name() }}</h2></div>
             <p>{{ $assessment->feedback }}</p>
         </section>
     @endif
