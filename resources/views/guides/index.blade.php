@@ -12,6 +12,7 @@
         <h1>Guides gratuits pour apprendre l'anglais</h1>
         <p>Des conseils concrets et des phrases prêtes à dire, en anglais américain. Lisez, puis entraînez-vous à l'oral avec {{ $teacher }}.</p>
     </div>
+    <x-top-cta />
 
     <section class="section" aria-label="Les guides">
         <ul class="guide-list">

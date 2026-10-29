@@ -72,7 +72,9 @@ class HowItWorksTest extends TestCase
         // Aucune vidéo dans la page avant le toucher : ni balise vidéo, ni adresse du bucket.
         $this->assertStringNotContainsString('<video', $html);
         $this->assertStringNotContainsString('-site.mp4', $html);
-        $this->assertSame(1, substr_count($html, 'btn-accent'));
+        // Une seule action en orange : l'évaluation gratuite, en haut (visible sans défiler) et après les étapes.
+        $this->assertSame(2, substr_count($html, 'btn-accent'));
+        $this->assertSame(2, substr_count($html, 'class="btn btn-accent btn-lg" href="'.route('register').'"'));
         $this->assertDoesNotMatchRegularExpression('/\b(Gemini|OpenAI|ChatGPT|intelligence artificielle)\b/i', strip_tags($html));
     }
 

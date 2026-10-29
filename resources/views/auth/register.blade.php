@@ -1,49 +1,53 @@
 <x-layout title="Inscription et évaluation d'anglais gratuite" narrow :description="'Créez votre compte '.config('platform.name').' avec votre nom et votre numéro de téléphone, puis passez votre évaluation d\'anglais orale gratuite avec '.config('avatar.model.name').'.'">
     <x-form-aside :label="'Votre professeur, '.config('avatar.model.name')">
-        <div class="auth-head rise">
+        <div class="auth-head register-head rise">
             <span class="icon-bubble icon-bubble-primary"><x-icon name="user-plus" /></span>
-            <h1>Créer mon compte</h1>
-            <p>Gratuit. Votre évaluation orale vous attend juste après.</p>
+            <h1>Créer mon compte gratuit</h1>
         </div>
 
-        <form method="POST" action="{{ route('register') }}" class="card form-card rise" style="--i: 1" novalidate>
+        <form method="POST" action="{{ route('register') }}" class="card form-card register-form rise" style="--i: 1" novalidate>
             @csrf
 
             <x-input name="name" label="Nom complet" autocomplete="name" required autofocus />
-            {{-- Pays : tous les pays du monde (pays de paiement d'abord, puis pays francophones), ou « Autre pays ». --}}
+            {{-- Pays : tous les pays du monde (pays de paiement d'abord, puis pays francophones), ou « Autre pays ».
+                 Replié sur le Togo (public d'abord togolais) pour que « Créer mon compte » reste visible sans défiler ;
+                 ouvert dès qu'un autre pays est choisi ou en cas d'erreur. Fermé, le champ est tout de même envoyé. --}}
             @php($country = old('country', 'TG'))
-            <div class="field">
-                <label for="country">Pays</label>
-                <select id="country" name="country" autocomplete="country" required
-                        aria-describedby="country-hint{{ $errors->has('country') ? ' country-error' : '' }}" @error('country') aria-invalid="true" class="is-invalid" @enderror>
-                    @foreach (\App\Support\Countries::choices() as $group => $options)
-                        <optgroup label="{{ $group }}">
-                            @foreach ($options as $code => $name)
-                                <option value="{{ $code }}" @selected($country === $code)>{{ $name }}</option>
-                            @endforeach
-                        </optgroup>
-                    @endforeach
-                </select>
-                <p id="country-hint" class="hint">{{ config('platform.name') }} accueille les francophones de tous les pays.</p>
-                @error('country')
-                    <p id="country-error" class="error">{{ $message }}</p>
-                @enderror
-            </div>
+            <details class="optional-field country-field" @if ($country !== 'TG' || $errors->has('country')) open @endif>
+                <summary>Pas au Togo ? Choisir votre pays</summary>
+                <div class="field">
+                    <label for="country">Pays</label>
+                    <select id="country" name="country" autocomplete="country" required
+                            @error('country') aria-describedby="country-error" aria-invalid="true" class="is-invalid" @enderror>
+                        @foreach (\App\Support\Countries::choices() as $group => $options)
+                            <optgroup label="{{ $group }}">
+                                @foreach ($options as $code => $name)
+                                    <option value="{{ $code }}" @selected($country === $code)>{{ $name }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
+                    @error('country')
+                        <p id="country-error" class="error">{{ $message }}</p>
+                    @enderror
+                </div>
+            </details>
             <x-input name="phone" label="Numéro de téléphone" type="tel" inputmode="tel" autocomplete="tel" required
-                     hint="Exemple : 90 12 34 56. Hors du Togo, l'indicatif du pays choisi est ajouté ; vous pouvez aussi l'écrire, par exemple +237 6 77 12 34 56." />
-            <x-input name="email" label="Adresse e-mail" type="email" inputmode="email" autocomplete="email"
-                     :hint="\App\Support\EmailAddress::HINT" />
-            {{-- Code ambassadeur, facultatif et replié (le formulaire ne s'allonge pas) ; ouvert et rempli quand la personne
-                 est arrivée par le lien d'un ambassadeur (elle le voit et peut le changer). --}}
+                     hint="Exemple : 90 12 34 56" />
+            {{-- Un seul champ : le bouton « œil » permet de vérifier ce qui a été tapé. --}}
+            <x-input name="password" label="Mot de passe" type="password" autocomplete="new-password" required
+                     hint="8 caractères minimum." />
+
+            {{-- Facultatif et replié : e-mail (documents de révision) et code ambassadeur. Ouvert et rempli quand la
+                 personne est arrivée par le lien d'un ambassadeur (elle le voit et peut le changer), ou en cas d'erreur. --}}
             @php($ambassadorCode = old('ambassador_code', $suggestedCode ?? null))
-            <details class="ambassador-field" @if (filled($ambassadorCode) || $errors->has('ambassador_code')) open @endif>
-                <summary>Vous avez un code ambassadeur ?</summary>
+            <details class="optional-field ambassador-field" @if (filled($ambassadorCode) || filled(old('email')) || $errors->hasAny(['email', 'ambassador_code'])) open @endif>
+                <summary>Facultatif : e-mail, code ambassadeur</summary>
+                <x-input name="email" label="Adresse e-mail" type="email" inputmode="email" autocomplete="email"
+                         :hint="\App\Support\EmailAddress::HINT" />
                 <x-input name="ambassador_code" label="Code ambassadeur" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20"
                          :value="$ambassadorCode" hint="Facultatif. Tapez le code que vous a donné la personne qui vous a parlé de nous." />
             </details>
-            {{-- Un seul champ : le bouton « œil » permet de vérifier ce qui a été tapé. --}}
-            <x-input name="password" label="Mot de passe" type="password" autocomplete="new-password" required
-                     hint="8 caractères minimum. Touchez l'œil pour voir ce que vous avez tapé." />
 
             <button type="submit" class="btn btn-accent btn-block btn-lg">Créer mon compte</button>
             <p class="muted small register-privacy">En créant un compte, vous acceptez notre <a href="{{ route('privacy') }}">politique de confidentialité</a>.</p>

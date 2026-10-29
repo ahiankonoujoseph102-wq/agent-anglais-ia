@@ -82,7 +82,7 @@ class WorldwideTest extends TestCase
         $html = $this->get('/inscription')->assertOk()->getContent();
 
         $this->assertStringContainsString('name="country"', $html);
-        $this->assertStringContainsString('accueille les francophones de tous les pays', $html);
+        $this->assertStringContainsString('Pas au Togo ? Choisir votre pays', $html);
 
         $payment = strpos($html, 'Pays où l\'on peut payer par Mobile Money');
         $francophone = strpos($html, 'Autres pays francophones');

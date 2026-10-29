@@ -22,6 +22,7 @@
         <h1>Comment ça marche ?</h1>
         <p>Regardez {{ $teacher }} en action avant de créer votre compte.</p>
     </div>
+    <x-top-cta />
 
     @if ($videos->isNotEmpty())
         @foreach ($videos as $video)
