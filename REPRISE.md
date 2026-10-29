@@ -6,6 +6,13 @@
 
 
 
+## Grand chantier de qualité (30 octobre 2026) : étapes 1 à 3 tout de suite, étape 4 (refonte du site) APRÈS l'accord du fondateur sur l'audit
+
+- **Étape 1, Teacher Rose enseigne comme Teacher Joe (branche `claude/rose-enseigne-comme-joe`)** : voir CLAUDE.md, feuille de route. Ses consignes étaient déjà celles de Teacher Joe ; cause probable : la VOIX (Sulafat plus vive) et la phrase « gentle sense of humour ». Au fondateur : « Essai des voix » → Teacher Rose → « Écouter en séance » sur Sulafat, Zephyr, Achernar, Gacrux et Vindemiatrix (et sur la voix de Teacher Joe, onglet Teacher Joe), comparer les mots par seconde, choisir la plus lente qui lui plaît.
+- **Étape 2, passage de relais entre professeurs** : à faire.
+- **Étape 3, faire connaître Teacher Rose aux abonnés** : à faire.
+- **Étape 4, refonte du site** : audit remis au fondateur, en attente de son accord.
+
 ## Chantier en cours : présentations de Teacher Rose redites avec Zephyr (29 octobre 2026, branche `claude/rose-presentations-zephyr`)
 
 - **Décision du fondateur** : Zephyr (Gemini) pour les vidéos et les messages de Teacher Rose. Correction de l'adresse (#154) vérifiée : fusionnée, en ligne (talkami.laravel.cloud répond 301 vers talkami.net).

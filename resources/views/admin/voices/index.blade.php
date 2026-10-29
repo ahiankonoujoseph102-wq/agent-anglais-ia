@@ -125,6 +125,10 @@
         }
 
         $isDefaultTeacher = $teacher->key === \App\Support\Teachers\Teachers::default()->key;
+        // Débit mesuré par « Écouter en séance » (même phrase pour toutes les voix) ; repère : la voix de Teacher Joe.
+        $paceText = fn (?array $pace) => $pace === null ? null : $pace['words'].' mots en '.number_format($pace['seconds'], 1, ',', ' ').' secondes, soit '.number_format($pace['per_second'], 1, ',', ' ').' mots par seconde';
+        $joe = \App\Support\Teachers\Teachers::default();
+        $joePace = $isDefaultTeacher ? null : \App\Support\Live\LiveVoiceSample::pace('gemini', (string) $joe->geminiVoice(), $joe);
     @endphp
 
     @foreach ($sections as $section)
@@ -143,6 +147,17 @@
                 @endif
             </p>
 
+            @if ($section['provider'] === 'gemini')
+                <p class="muted">
+                    Débit en séance : touchez « Écouter en séance » ; la même phrase est dite par chaque voix, une voix plus lente compte moins de mots par seconde.
+                    @if ($joePace)
+                        Repère, Teacher Joe ({{ $joe->geminiVoice() }}) : {{ $paceText($joePace) }}.
+                    @elseif (! $isDefaultTeacher)
+                        Repère : écoutez aussi la voix de Teacher Joe en séance (onglet Teacher Joe) pour comparer.
+                    @endif
+                </p>
+            @endif
+
             <ul class="voice-list">
                 @foreach ($section['trials'] as $voice => $description)
                     @php
@@ -157,6 +172,9 @@
                             @endif
                             @if ($voice === $section['current'])
                                 <span class="badge">voix actuelle</span>
+                            @endif
+                            @if ($section['provider'] === 'gemini' && ($pace = \App\Support\Live\LiveVoiceSample::pace('gemini', $voice, $teacher)))
+                                <br><span class="muted">Débit en séance : {{ $paceText($pace) }}.</span>
                             @endif
                         </div>
                         <div class="voice-actions">
