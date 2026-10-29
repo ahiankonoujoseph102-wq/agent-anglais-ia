@@ -3,8 +3,12 @@
 <section class="card" id="club" aria-labelledby="club-titre">
     <h2 id="club-titre">Club des abonnés</h2>
     <p class="muted small">
-        Une vidéo par jour pour le groupe WhatsApp des abonnés payants, dite par {{ config('avatar.model.name') }}.
-        Thème d'aujourd'hui : <strong>{{ $clubTheme['label'] }}</strong>. Professeur d'aujourd'hui : <strong>{{ \App\Support\Videos\VideoTeachers::forDay(today())->name() }}</strong> (un jour chacun). Abonnés payants actifs : {{ $clubMembers }}.
+        @php
+            // Professeur de la vidéo d'aujourd'hui si elle existe déjà, sinon celui du jour (un jour chacun).
+            $todayTeacher = ($clubVideos->first(fn ($video) => $video->day->isToday())?->teacher() ?? \App\Support\Videos\VideoTeachers::forDay(today()))->name();
+        @endphp
+        Une vidéo par jour pour le groupe WhatsApp des abonnés payants, dite par {{ \App\Support\Teachers\Teachers::names() }}{{ \App\Support\Teachers\Teachers::hasChoice() ? ' (un jour chacun)' : '' }}.
+        Thème d'aujourd'hui : <strong>{{ $clubTheme['label'] }}</strong>. Professeur d'aujourd'hui : <strong>{{ $todayTeacher }}</strong>. Abonnés payants actifs : {{ $clubMembers }}.
         Le site ne publie rien : téléchargez la vidéo, publiez-la dans le groupe avec le texte ci-dessous, puis cochez « Publiée ».
     </p>
 
