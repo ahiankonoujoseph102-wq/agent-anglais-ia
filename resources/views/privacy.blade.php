@@ -43,6 +43,7 @@
             <li>Vérifier vos paiements : la capture est lue automatiquement, puis contrôlée par l'administrateur.</li>
             <li>Vous aider sur vos leçons d'anglais de l'école, avec « Mes cours », et vous préparer après chaque séance un document de révision, à télécharger et, si vous avez donné votre adresse, envoyé par e-mail.</li>
             <li>Relire les conversations pour améliorer {{ $teacher }}, vérifier qu'il se comporte bien et répondre à vos questions ou à vos réclamations. Des extraits anonymisés (sans nom, numéro ni adresse) peuvent être analysés, y compris avec un outil d'intelligence artificielle, pour améliorer {{ $teacher }}.</li>
+            <li>Préparer les vidéos du Club des abonnés (groupe WhatsApp des abonnés payants) : {{ $teacher }} peut y présenter les erreurs fréquentes des abonnés, seulement si au moins trois personnes différentes les ont faites, sans jamais donner de nom ni reprendre une phrase telle qu'elle a été dite (l'exemple est toujours réécrit) ; les progrès du Club n'y sont donnés qu'en chiffres globaux.</li>
             <li>Vous délivrer une attestation de niveau. Toute personne qui a son code de vérification peut voir sur le site votre nom, le niveau validé et la date.</li>
         </ul>
     </section>

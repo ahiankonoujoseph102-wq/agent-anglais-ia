@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\Videos\ClubVideos;
 use App\Support\Videos\LessonVideos;
 use App\Support\Videos\PresentationVideos;
 use App\Support\Videos\VideoSettings;
@@ -10,7 +11,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Vidéos de leçon : avec --plan, ajoute les vidéos du jour (seulement si le jeton de GitHub Actions est réglé),
+ * Vidéos de leçon : avec --plan, ajoute les vidéos du jour (seulement si le jeton de GitHub Actions est réglé) ;
+ * à chaque passage, la vidéo du jour du Club des abonnés si elle manque ;
  * puis écrit les scripts et prépare les voix en attente, dans le temps accordé. Lancée chaque minute par le
  * planificateur (sans --plan) et chaque matin (avec --plan). Ne fait jamais échouer une tâche.
  */
@@ -52,6 +54,11 @@ class PrepareVideos extends Command
                 $created = $videos->planToday();
                 $this->line("Vidéos ajoutées pour aujourd'hui : {$created}. Sujets encore jamais traités : ".VideoTopics::remaining().'.');
             }
+        }
+
+        // Vidéo du jour du Club des abonnés : ajoutée dès qu'elle manque (chaque minute), jamais deux le même jour.
+        if (filled(config('videos.token')) && ($club = app(ClubVideos::class)->ensureToday()) !== null) {
+            $this->line('Vidéo du Club des abonnés ajoutée pour aujourd\'hui : '.$club->themeLabel().'.');
         }
 
         if (($blocked = VideoSettings::blocked()) !== null) {

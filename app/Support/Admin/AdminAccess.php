@@ -17,8 +17,9 @@ final class AdminAccess
     /**
      * Permis à un Assistant : valider ou refuser les captures, voir « Inscrits » (fiche en lecture, sans actions),
      * « Abonnés payants », « Inactifs », « Provenance », les candidatures et la liste d'attente des ambassadeurs,
-     * et relancer sur WhatsApp. Jamais : « Réglages », coûts et « Consommation », diagnostics, historique des
-     * paiements, rôles, accès offerts, conversations, commissions, vidéos.
+     * relancer sur WhatsApp, et publier la vidéo du Club des abonnés (bloc « Club des abonnés » de la page « Vidéos » :
+     * aperçu, téléchargement, texte, « Publiée »). Jamais : « Réglages », coûts et « Consommation », diagnostics,
+     * historique des paiements, rôles, accès offerts, conversations, commissions, vidéos de promotion.
      */
     public const ASSISTANT_ROUTES = [
         'admin.home',
@@ -34,6 +35,10 @@ final class AdminAccess
         'admin.origins.index',
         'admin.ambassadors.index',
         'admin.waitlist.notify',
+        // Bloc « Club des abonnés » de la page « Vidéos » seulement (le contrôleur refuse les autres vidéos).
+        'admin.videos.index',
+        'admin.videos.file',
+        'admin.videos.publish',
     ];
 
     /** Membre de l'équipe : administrateur principal ou assistant. */

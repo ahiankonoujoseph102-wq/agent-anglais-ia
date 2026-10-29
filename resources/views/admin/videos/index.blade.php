@@ -2,6 +2,10 @@
     @include('admin.nav')
 
     <h1>Vidéos de {{ config('avatar.model.name') }}</h1>
+
+    @include('admin.videos.club')
+
+    @unless ($onlyClub)
     <p>
         Chaque jour, {{ $perDay }} {{ $perDay > 1 ? 'vidéos verticales' : 'vidéo verticale' }} de leçon d'anglais, prêtes pour TikTok et la chaîne WhatsApp :
         le site choisit le sujet, écrit le script et prépare la voix ; GitHub fabrique ensuite la vidéo.
@@ -309,6 +313,8 @@
             </article>
         @endforeach
     </section>
+
+    @endunless
 
     <script type="module" src="{{ \App\Support\Asset::url('js/copy.js') }}"></script>
     <script type="module" src="{{ \App\Support\Asset::url('js/admin-videos.js') }}"></script>

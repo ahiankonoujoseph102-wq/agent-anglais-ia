@@ -73,6 +73,41 @@ return [
         'per_hour' => 20,
     ],
 
+    /*
+    | Vidéo du jour du CLUB DES ABONNÉS (App\Support\Videos\ClubVideos) : une par jour, en plus des vidéos de
+    | promotion, fabriquée en priorité. Thème selon le jour (1 = lundi … 7 = dimanche). Teacher Joe parle à ses
+    | abonnés ; aucune fin publicitaire. Rien n'est publié par le site : bloc « Club des abonnés » de la page
+    | « Vidéos » (aperçu, « Télécharger pour WhatsApp », texte signé à copier), visible aussi par un assistant.
+    */
+    'club' => [
+        'duration_seconds' => 80,
+        'level' => 'A2',
+        // Un élément (expression, son, situation, erreur, piège) n'est pas repris avant tant de semaines.
+        'repeat_weeks' => 8,
+        // Lundi : erreurs des abonnés payants sur tant de jours ; une erreur n'est retenue que si au moins
+        // « min_people » personnes différentes l'ont faite (même seuil pour donner les chiffres du samedi).
+        'errors_days' => 14,
+        'min_people' => 3,
+        // Samedi : chiffres globaux sur tant de jours (séances d'au moins « min_session_seconds »).
+        'stats_days' => 7,
+        'min_session_seconds' => 60,
+        'progress_sentence' => 'Ces :days derniers jours, les membres du Club ont parlé anglais :minutes minutes avec moi, en :sessions séances. Bravo à vous !',
+        'themes' => [
+            1 => ['key' => 'errors', 'label' => 'Ce que j\'ai remarqué chez vous'],
+            2 => ['key' => 'expression', 'label' => 'L\'expression du jour'],
+            3 => ['key' => 'sound', 'label' => 'Le son difficile'],
+            4 => ['key' => 'dialogue', 'label' => 'Mini-dialogue de situation'],
+            5 => ['key' => 'challenge', 'label' => 'Le défi de la semaine'],
+            6 => ['key' => 'progress', 'label' => 'Les progrès du Club'],
+            7 => ['key' => 'revision', 'label' => 'La révision de la semaine'],
+        ],
+        // Lundi sans assez d'erreurs communes : un piège des francophones, présenté comme tel.
+        'pitfall_label' => 'Les pièges des francophones',
+        // Dite et sous-titrée à la fin de chaque vidéo du Club ; signature du texte à copier.
+        'closing' => 'Répondez-moi dans le groupe du Club. À demain !',
+        'signature' => '— :teacher',
+    ],
+
     // Temps accordé à une préparation (videos:prepare), en secondes : la suite reprend au passage suivant.
     'prepare_budget' => 50,
 

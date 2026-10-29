@@ -8,8 +8,10 @@
 
 Dépôt PUBLIC jusqu'au début du mois (minutes gratuites), puis de nouveau privé. Nouveau jeton des vidéos en place (workflow n° 16 réussi : vidéo 19 en 473 secondes de rendu, 155 millisecondes par image).
 
-- **Partie 1 (branche `claude/minutes-actions`)** : tests seulement sur les pull requests ; 2 vidéos de promotion par jour, réglage « Vidéos de promotion par jour » (page « Vidéos ») ; passage limité à 50 minutes, une vidéo à la fois, budget de 42 minutes. Quand le dépôt redevient privé : régler « Vidéos de promotion par jour » sur 1.
-- **Partie 2 (branche à part)** : vidéo quotidienne du Club des abonnés (thème selon le jour, anonymat d'au moins 3 personnes, historique sans répétition), bloc « Club des abonnés » de la page « Vidéos », visible par l'assistant.
+- **Partie 1 (#131, fusionnée, branche `claude/minutes-actions`)** : tests seulement sur les pull requests ; 2 vidéos de promotion par jour, réglage « Vidéos de promotion par jour » (page « Vidéos ») ; passage limité à 50 minutes, une vidéo à la fois, budget de 42 minutes. Quand le dépôt redevient privé : régler « Vidéos de promotion par jour » sur 1.
+- **Partie 2 (branche `claude/video-club`)** : vidéo quotidienne du Club des abonnés (thème selon le jour, anonymat d'au moins 3 personnes, repli honnête du lundi, chiffres globaux du samedi écrits par le code, historique sans répétition de 8 semaines), bloc « Club des abonnés » en haut de la page « Vidéos », seul bloc visible par un assistant. Voir CLAUDE.md, « Vidéo du Club des abonnés » (dont le calcul des minutes).
+- **Gestes du propriétaire** : chaque jour, page « Vidéos » → bloc « Club des abonnés » → « Télécharger pour WhatsApp », « Copier le texte », publier dans le groupe, cocher « Publiée ». Au retour en privé : « Vidéos de promotion par jour » sur 1.
+- **À proposer plus tard (non codé)** : e-mail ou notification « vidéo du Club prête » ; réponses vocales du vendredi écoutées par l'équipe (rien n'est reçu par le site).
 
 ## Chantier précédent : icône du site pour Google (29 octobre 2026, branche `claude/icone-du-site`)
 
