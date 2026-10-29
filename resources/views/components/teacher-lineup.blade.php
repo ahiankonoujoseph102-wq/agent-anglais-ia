@@ -33,7 +33,7 @@
             <ul class="lineup">
                 @foreach ($teachers as $teacher)
                     <li class="card lineup-card reveal reveal-side" style="--i: {{ $loop->index }}">
-                        <img src="{{ Asset::url($teacher->portrait()) }}" width="96" height="96" loading="lazy" alt="{{ $teacher->name() }}, {{ $teacher->theTeacher() }} d'anglais de {{ config('platform.name') }}">
+                        <span class="lineup-face"><img src="{{ Asset::url($teacher->portrait()) }}" width="96" height="96" loading="lazy" alt="{{ $teacher->name() }}, {{ $teacher->theTeacher() }} d'anglais de {{ config('platform.name') }}"></span>
                         <div>
                             <h3>{{ $teacher->name() }}</h3>
                             <p>{{ $teacher->publicLine() }}</p>
