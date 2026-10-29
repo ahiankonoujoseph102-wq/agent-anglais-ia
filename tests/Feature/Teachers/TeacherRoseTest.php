@@ -148,8 +148,10 @@ class TeacherRoseTest extends TestCase
         $page = $this->actingAs($user)->get('/seance')->assertOk();
         $page->assertSee('data-teacher-name="Teacher Rose"', false)
             ->assertSee('face-rose', false)
-            ->assertSee('data-teacher="svg"', false)
-            ->assertDontSee('data-teacher3d', false)
+            // Son personnage 3D (même module que Teacher Joe), son visage simple en repli.
+            ->assertSee('data-teacher="loading"', false)
+            ->assertSee('teacher-rose.glb', false)
+            ->assertDontSee('teacher-joe.glb', false)
             ->assertSee('La professeure vous annoncera la durée');
 
         $setup = $this->geminiSetup($user, '/seance/connexion');
@@ -317,5 +319,25 @@ class TeacherRoseTest extends TestCase
         $this->assertStringNotContainsString('YOUR PERSONALITY', self::instructions($setup));
         $this->assertSame(TeacherVoice::current(), Teachers::default()->geminiVoice());
         $this->assertSame(json_encode(TeacherSetup::lesson(new User(['name' => 'Afi']), 15)), json_encode(TeacherSetup::lesson(new User(['name' => 'Afi']), 15, null, null, 1, Teachers::default())));
+    }
+
+    // --- Visage 3D ---------------------------------------------------------------------------------------------------
+
+    public function test_rose_has_her_own_3d_model_with_the_same_bones_and_mouth_shapes_as_joe(): void
+    {
+        $rose = public_path((string) config('avatar.rose.file'));
+        $joe = public_path((string) config('avatar.model.file'));
+
+        $this->assertFileExists($rose);
+        $this->assertNotSame(hash_file('sha256', $joe), hash_file('sha256', $rose));
+        $this->assertLessThan(5 * 1024 * 1024, filesize($rose));
+
+        // Même squelette et mêmes formes de bouche que Teacher Joe : même animation, mêmes lèvres synchronisées.
+        foreach (['Hips', 'Head', 'LeftEye', 'RightHand', 'viseme_aa', 'viseme_PP', 'jawOpen', 'eyeBlinkLeft', 'mouthSmileLeft'] as $name) {
+            $this->assertStringContainsString('"'.$name.'"', (string) file_get_contents($rose));
+        }
+
+        // Toujours invisible pour les apprenants tant que le fondateur n'a pas validé son visage.
+        $this->assertFalse((bool) config('teachers.list.rose.ready'));
     }
 }
