@@ -18,6 +18,7 @@
             <h1 id="guide-titre">{{ $guide->heading }}</h1>
             <p class="lead">{{ $guide->lead }}</p>
             <p class="muted small">Publié le {{ $guide->published->translatedFormat('j F Y') }} par {{ config('platform.name') }} · Lecture : {{ $minutes }} {{ $minutes > 1 ? 'minutes' : 'minute' }}</p>
+            <x-top-cta class="guide-top-cta" />
         </header>
 
         <div class="guide-body">

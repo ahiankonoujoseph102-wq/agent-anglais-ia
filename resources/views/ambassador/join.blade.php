@@ -29,6 +29,16 @@
                 <x-icon name="users" /> <strong>Toutes les places d'ambassadeurs sont prises.</strong>
             @endif
         </p>
+        {{-- Action principale visible sans défiler à 360 × 640 : mène à la candidature (ou à l'espace d'un ambassadeur). --}}
+        @php($topAction = match ($state) {
+            'open', 'guest' => ['#candidature', 'award', 'Poser ma candidature'],
+            'full', 'full_guest' => ['#candidature', 'calendar-clock', 'Être prévenu quand une place se libère'],
+            'ambassador' => [route('ambassador.show'), 'award', 'Ouvrir mon espace ambassadeur'],
+            default => null,
+        })
+        @if ($topAction)
+            <a class="btn btn-accent btn-lg join-top-cta" href="{{ $topAction[0] }}"><x-icon :name="$topAction[1]" /> {{ $topAction[2] }}</a>
+        @endif
     </section>
 
     <section class="section" aria-labelledby="ambassadeur-recoit">

@@ -1867,9 +1867,10 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
 .ambassador-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .ambassador-actions form { margin: 0; }
 /* Inscription : « Vous avez un code ambassadeur ? », replié (zone de toucher de 44 pixels). */
-.ambassador-field { margin: 0 0 var(--space-4); }
-.ambassador-field > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--c-primary-strong); font-weight: var(--fw-bold); text-decoration: underline; text-underline-offset: 3px; }
-.ambassador-field[open] > summary { margin-bottom: var(--space-2); }
+.optional-field { margin: 0 0 var(--space-2); }
+.optional-field:last-of-type { margin-bottom: var(--space-4); }
+.optional-field > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--c-primary-strong); font-weight: var(--fw-bold); text-decoration: underline; text-underline-offset: 3px; }
+.optional-field[open] > summary { margin-bottom: var(--space-2); }
 .referral-flags { margin: var(--space-1) 0 0; padding-left: var(--space-4); color: var(--c-accent-strong); font-size: var(--fs-sm); }
 /* Commissions des ambassadeurs (administration). */
 .commission-row { padding: var(--space-3) 0; border-top: 1px solid var(--c-border); }
@@ -1906,4 +1907,25 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .teacher-lineup .lineup { grid-template-columns: repeat(2, 1fr); }
     .lineup-card { grid-template-columns: 96px 1fr; }
     .lineup-face { width: 96px; height: 96px; }
+}
+/* Inscription courte sur téléphone : « Créer mon compte » visible sans défiler à 360 × 640. */
+@media (max-width: 639.98px) {
+    .register-form.form-card { padding: var(--space-3) var(--space-4) var(--space-4); }
+    .register-form .field { margin-bottom: var(--space-2); }
+    .register-head { margin-bottom: var(--space-2); }
+    .register-head h1 { font-size: var(--fs-xl); margin-bottom: 0; }
+    .register-form .optional-field > summary { font-size: var(--fs-sm); min-height: 44px; }
+    .register-form .hint { margin-top: var(--space-1); }
+}
+/* Action principale en haut d'une page publique longue (<x-top-cta>). */
+.top-cta { text-align: center; margin: 0 auto var(--space-5); max-width: 460px; }
+.top-cta p { margin: var(--space-2) 0 0; }
+@media (max-width: 639.98px) { .top-cta .btn { width: 100%; } }
+@media (max-width: 639.98px) { .join-top-cta { width: 100%; } }
+.join-top-cta { margin-top: var(--space-3); }
+/* Pages pays sur téléphone : accroche plus compacte, « Passer mon évaluation gratuite » bien dans le premier écran. */
+@media (max-width: 639.98px) {
+    .country-hero.section { padding-top: var(--space-3); }
+    .country-hero .students { padding: var(--space-4); }
+    .country-hero .lead { font-size: var(--fs-base); }
 }

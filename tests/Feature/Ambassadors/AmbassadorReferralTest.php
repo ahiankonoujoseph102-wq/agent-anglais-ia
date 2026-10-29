@@ -102,8 +102,8 @@ class AmbassadorReferralTest extends TestCase
     {
         $ambassador = $this->ambassador();
 
-        $this->get('/inscription')->assertSee('Vous avez un code ambassadeur ?')->assertDontSee('value="'.$ambassador->code.'"', false);
-        $this->withLink($ambassador)->get('/inscription')->assertSee('value="'.$ambassador->code.'"', false)->assertSee('<details class="ambassador-field"  open', false);
+        $this->get('/inscription')->assertSee('Facultatif : e-mail, code ambassadeur')->assertDontSee('value="'.$ambassador->code.'"', false);
+        $this->withLink($ambassador)->get('/inscription')->assertSee('value="'.$ambassador->code.'"', false)->assertSee('<details class="optional-field ambassador-field"  open', false);
     }
 
     public function test_an_unknown_or_removed_code_is_refused_clearly(): void

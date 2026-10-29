@@ -23,6 +23,7 @@
         <h1>{{ $founder['name'] }} et l'histoire de {{ $platform }}</h1>
         <p>Apprendre à parler anglais depuis son téléphone, avec un professeur disponible chaque jour.</p>
     </div>
+    <x-top-cta />
 
     <section class="section" aria-labelledby="apropos-fondateur" id="fondateur">
         <div class="card about-card reveal">
