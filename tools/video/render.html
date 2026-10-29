@@ -149,15 +149,30 @@ window.renderVideo = async (job, audioUrl) => {
     // Images pendant la voix : une pause du contexte audio à chaque image.
     const audioFrames = Math.min(frames, Math.floor(audioSeconds * fps));
 
+    // Une image refusée (machine trop lente) ne doit jamais bloquer le contexte audio : sans reprise, le rendu
+    // attendait pour toujours (vidéo du Club du 29 octobre 2026, passage annulé à sa limite de 80 minutes).
+    let failure = null;
+
     for (let i = 1; i < audioFrames; i++) {
         context.suspend(i / fps).then(async () => {
-            await shoot();
-            context.resume();
+            try {
+                if (!failure) {
+                    await shoot();
+                }
+            } catch (error) {
+                failure = error;
+            } finally {
+                context.resume();
+            }
         });
     }
 
     await shoot();
     await context.startRendering();
+
+    if (failure) {
+        throw failure;
+    }
 
     // Après la voix : quelques images de plus (fin de la phrase, au revoir).
     while (frame < frames) {
