@@ -22,11 +22,14 @@ class VideoJobController extends Controller
         // « apercu » : combien attendent, sans rien prendre (GitHub n'installe rien s'il n'y a rien à faire).
         $blocked = VideoSettings::blocked();
 
+        // « type » : club ou promo (le Club a son propre passage de GitHub, avec plus de temps).
+        $kind = in_array($request->query('type'), [LessonVideo::CLUB, LessonVideo::PROMO], true) ? (string) $request->query('type') : null;
+
         if ($request->boolean('apercu')) {
-            return response()->json(['waiting' => $videos->waiting(), 'blocked' => $blocked]);
+            return response()->json(['waiting' => $videos->waiting($kind), 'blocked' => $blocked]);
         }
 
-        return response()->json(['jobs' => $videos->claim((int) $request->integer('limit', 1)), 'blocked' => $blocked]);
+        return response()->json(['jobs' => $videos->claim((int) $request->integer('limit', 1), $kind), 'blocked' => $blocked]);
     }
 
     public function audio(LessonVideo $video): StreamedResponse|JsonResponse
@@ -92,5 +95,15 @@ class VideoJobController extends Controller
         }
 
         return response()->json(['recorded' => true]);
+    }
+
+    /** Machine de GitHub trop lente : la vidéo est rendue, sans échec compté. */
+    public function release(LessonVideo $video, LessonVideos $videos): JsonResponse
+    {
+        if ($video->status === LessonVideo::RENDERING) {
+            $videos->release($video);
+        }
+
+        return response()->json(['released' => true]);
     }
 }

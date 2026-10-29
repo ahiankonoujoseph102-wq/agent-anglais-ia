@@ -1,10 +1,19 @@
-# REPRISE — chantier en cours : deuxième clé Gemini (après minutes GitHub Actions et vidéo du Club)
+# REPRISE — chantier en cours : vidéos du Club (son, traduction, 3 minutes)
 
 À lire avec `CLAUDE.md` pour reprendre ce travail dans une autre session. Ce fichier ne contient jamais de clé, ni de conversation réelle, ni de transcription.
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
-## Dernier chantier : deuxième clé Gemini (29 octobre 2026, branche `claude/deuxieme-cle-gemini`)
+## Dernier chantier : vidéos du Club, son, traduction et 3 minutes (29 octobre 2026, branche `claude/club-son-traduction-duree`)
+
+Demande du fondateur après la vidéo 25 (mini-dialogue, 56 secondes) : son trop faible, chaque phrase anglaise traduite et expliquée, 3 minutes au moins.
+- **Son** (toutes les vidéos de leçon, promotion comprise) : journal GitHub de la vidéo 25 : −13,7 LUFS mais crête +1,4 dB (vidéo 19 de promotion : −14, crête −0,4). Cause : le limiteur travaillait à 24 kHz (fréquence de la voix), puis passage à 44,1 kHz et compression AAC : les crêtes entre deux échantillons dépassaient 0 dB (son écrêté, que le téléphone ou WhatsApp rabaisse et qui grésille). Corrigé : passage à 48 kHz AVANT le limiteur (plafond 0,708, soit −3 dB), son en 48 kHz, puis mesure de la vidéo encodée et, hors de −14 ± 1 LUFS ou crête au-dessus de −1 dB, le son seul est refait (trois fois au plus, quelques secondes). Essai local : −14,0 LUFS, crête −2,2 dB.
+- **Script** : chaque segment donne `say` (français), `english`, `translation`, `explain`, `repeat` ; le CODE assemble « phrase anglaise. En français : traduction. explication. Répétez après moi : phrase » et ajoute 2,5 secondes de silence pour répéter ; une phrase sans traduction ou sans explication fait refuser le script ; au moins 4 phrases traduites et 3 à répéter (samedi et vendredi : 3 et 2) ; rappel final demandé.
+- **Durée** : visée 210 secondes, minimum 180 : script refusé sous 378 mots, et une voix de moins de 180 secondes fait écrire un nouveau script.
+- **Fabrication** : travail GitHub séparé pour le Club (80 minutes, 72 accordées), rendu allégé (432 × 768, 20 images par seconde : environ 70 % du temps, mesuré en local) ; après 250 images, si la fin prévue dépasse le temps accordé, la vidéo est rendue à Talkami sans échec compté (`POST /api/videos/{id}/reporter`) et reprise au passage suivant. Travail « promotion » inchangé (50 minutes, 42 accordées).
+- **Vidéo d'aujourd'hui** : migration `rewrite_short_club_videos` (vidéos du Club d'aujourd'hui ou plus tard de moins de 180 secondes : nouveau script, nouvelle voix). « Refaire la vidéo (nouveau script) » sur une vidéo du Club fait de même.
+
+## Chantier précédent : deuxième clé Gemini (29 octobre 2026, branche `claude/deuxieme-cle-gemini`)
 
 Fournisseur `gemini2` des séances en direct, variable `GEMINI_API_KEY_2`, ordre par défaut `gemini,openai,gemini2` ; clé absente : ignorée ; invalide : mise de côté 5 minutes. Offre payante de Google écartée (décision du fondateur). Voir CLAUDE.md. Gestes du propriétaire : créer la clé dans Google AI Studio avec le deuxième compte (nouveau projet, aucun moyen de paiement), la coller dans Laravel Cloud (`GEMINI_API_KEY_2`), mettre `LIVE_PROVIDERS` à `gemini,openai,gemini2` si la variable existe, Deploy, puis « Diagnostic des fournisseurs » → « Tester Gemini (deuxième clé) ».
 

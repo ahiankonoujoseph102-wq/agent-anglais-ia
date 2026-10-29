@@ -39,6 +39,9 @@ class ClubVideoTest extends TestCase
     /** Réponse du regroupement des erreurs. */
     private array $groups = ['groups' => []];
 
+    /** Durée de chaque partie de la voix simulée, en secondes. */
+    private int $pieceSeconds = 16;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -59,7 +62,7 @@ class ClubVideoTest extends TestCase
         Http::fake([
             '*/interactions' => function (Request $request) {
                 if (($request['response_format']['type'] ?? null) === 'audio') {
-                    return Http::response(['steps' => [['type' => 'model_output', 'content' => [['type' => 'audio', 'mime_type' => 'audio/l16;codec=pcm;rate=24000', 'data' => base64_encode(str_repeat("\x10\x00", 12000))]]]]]);
+                    return Http::response(['steps' => [['type' => 'model_output', 'content' => [['type' => 'audio', 'mime_type' => 'audio/l16;codec=pcm;rate=24000', 'data' => base64_encode(str_repeat("\x10\x00", 24000 * $this->pieceSeconds))]]]]]);
                 }
 
                 $answer = str_contains(json_encode($request->data()), 'You group the English mistakes') ? $this->groups : $this->script;
@@ -69,15 +72,24 @@ class ClubVideoTest extends TestCase
         ]);
     }
 
-    /** Un script d'environ 170 mots, la longueur visée. */
-    private function script(string $extra = ''): array
+    /** Un script d'environ 500 mots (un peu plus de 3 minutes) : chaque phrase anglaise traduite et expliquée. */
+    private function script(string $extra = '', array $override = []): array
     {
-        $segment = fn (string $i) => [
-            'spoken' => "Partie {$i} : aujourd'hui on travaille ensemble, et vous allez dire How's it going lentement, avec une voix claire et sans peur de vous tromper. {$extra}",
-            'subtitle' => "Partie {$i} : on dit [en]How's it going?[/en]",
+        $segment = fn (string $i) => $override + [
+            'say' => "Partie {$i} : on apprend ensemble une phrase utile pour la vie de tous les jours. {$extra}",
+            'english' => "How's it going?",
+            'translation' => 'Comment ça va ?',
+            'explain' => 'On l\'utilise avec des amis ou des collègues, le matin ou l\'après-midi, jamais dans une lettre officielle.',
+            'repeat' => true,
         ];
+        $numbers = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze'];
 
-        return ['title' => 'Une expression pour le Club', 'segments' => array_map($segment, ['une', 'deux', 'trois', 'quatre', 'cinq', 'six']), 'caption' => 'Voici votre vidéo du jour. Répondez-moi en message vocal dans le groupe !'];
+        return ['title' => 'Une expression pour le Club', 'segments' => [['say' => 'Bonjour à tous, bienvenue dans la vidéo du Club ! Aujourd\'hui, une petite leçon pour parler tout de suite.', 'english' => '', 'translation' => '', 'explain' => '', 'repeat' => false], ...array_map($segment, $numbers)], 'caption' => 'Voici votre vidéo du jour. Répondez-moi en message vocal dans le groupe !'];
+    }
+
+    private function words(): int
+    {
+        return (int) round(config('videos.club.duration_seconds') * config('videos.words_per_second'));
     }
 
     private function member(string $name = 'Kossi Mensah'): User
@@ -221,7 +233,7 @@ class ClubVideoTest extends TestCase
         Http::assertNothingSent();
 
         // « J'ai remarqué » sur un piège qui n'a pas été observé : script refusé.
-        $words = (int) round(80 * 2.1);
+        $words = $this->words();
         $this->assertNull(ClubScriptWriter::normalize($this->script("J'ai remarqué cette erreur chez vous."), $words, $brief));
         $this->assertNotNull(ClubScriptWriter::normalize($this->script(), $words, $brief));
 
@@ -232,7 +244,7 @@ class ClubVideoTest extends TestCase
 
     public function test_a_script_naming_a_subscriber_is_refused(): void
     {
-        $words = (int) round(80 * 2.1);
+        $words = $this->words();
         $brief = ['theme' => 'expression', 'data' => 'x', 'figures' => null];
 
         $this->assertNull(ClubScriptWriter::normalize($this->script('Bravo Kossi !'), $words, $brief, ['Kossi']));
@@ -242,7 +254,7 @@ class ClubVideoTest extends TestCase
     public function test_saturday_gives_global_figures_written_by_the_code_only_with_three_people(): void
     {
         Carbon::setTestNow('2026-10-31 08:00'); // samedi
-        $words = (int) round(80 * 2.1);
+        $words = $this->words();
         $members = [$this->member('Kossi Mensah'), $this->member('Afi Amouzou')];
 
         foreach ($members as $member) {
@@ -299,5 +311,109 @@ class ClubVideoTest extends TestCase
             ->assertSee('Préparer les vidéos du Club des abonnés')
             ->assertSee('seulement si au moins trois personnes différentes les ont faites')
             ->assertSee('chiffres globaux');
+    }
+
+    public function test_every_english_sentence_is_translated_explained_and_repeated_with_a_pause(): void
+    {
+        $brief = ['theme' => 'expression', 'data' => 'x', 'figures' => null];
+        $script = ClubScriptWriter::normalize($this->script(), $this->words(), $brief);
+
+        $this->assertNotNull($script);
+        $lesson = $script['segments'][1];
+        $this->assertStringContainsString("How's it going? En français : Comment ça va ? On l'utilise avec des amis", $lesson['spoken']);
+        $this->assertStringEndsWith("Répétez après moi : How's it going?", $lesson['spoken']);
+        $this->assertStringContainsString("[en]How's it going?[/en] En français : Comment ça va ?", $lesson['subtitle']);
+        $this->assertSame(config('videos.club.repeat_pause_ms'), $lesson['pause_after']);
+        // Une partie en français seulement : ni traduction ni pause.
+        $this->assertArrayNotHasKey('pause_after', $script['segments'][0]);
+        $this->assertStringNotContainsString('En français', $script['segments'][0]['spoken']);
+
+        // Phrase anglaise sans traduction, traduction recopiée en anglais, sans explication : script refusé.
+        $this->assertNull(ClubScriptWriter::normalize($this->script(override: ['translation' => '']), $this->words(), $brief));
+        $this->assertNull(ClubScriptWriter::normalize($this->script(override: ['translation' => "How's it going?"]), $this->words(), $brief));
+        $this->assertNull(ClubScriptWriter::normalize($this->script(override: ['explain' => '']), $this->words(), $brief));
+        // Rien à répéter à voix haute : refusé.
+        $this->assertNull(ClubScriptWriter::normalize($this->script(override: ['repeat' => false]), $this->words(), $brief));
+    }
+
+    public function test_a_club_script_shorter_than_three_minutes_is_refused(): void
+    {
+        $brief = ['theme' => 'expression', 'data' => 'x', 'figures' => null];
+        $short = $this->script();
+        $short['segments'] = array_slice($short['segments'], 0, 8);
+
+        $this->assertSame(180, config('videos.club.min_seconds'));
+        $this->assertGreaterThanOrEqual(180, config('videos.club.duration_seconds'));
+        $this->assertNull(ClubScriptWriter::normalize($short, $this->words(), $brief));
+        $this->assertStringContainsString('NEVER fewer than :min_words', ClubScriptWriter::INSTRUCTIONS);
+        $this->assertStringContainsString('EVERY English sentence', ClubScriptWriter::INSTRUCTIONS);
+    }
+
+    public function test_a_club_voice_shorter_than_three_minutes_gets_a_new_script(): void
+    {
+        Carbon::setTestNow('2026-10-27 08:00');
+        $this->member();
+        $this->pieceSeconds = 5; // 12 parties de 5 secondes : une minute
+        app(ClubVideos::class)->ensureToday();
+        $this->prepareAll();
+
+        $video = LessonVideo::query()->club()->firstOrFail();
+        $this->assertSame(LessonVideo::PLANNED, $video->status);
+        $this->assertNull($video->audio_path);
+        $this->assertStringContainsString('Voix trop courte', (string) $video->error);
+
+        $this->pieceSeconds = 16;
+        $this->prepareAll();
+        $video->refresh();
+        $this->assertSame(LessonVideo::VOICED, $video->status);
+        $this->assertGreaterThanOrEqual(180, $video->timings['duration']);
+    }
+
+    public function test_the_club_has_its_own_lighter_github_pass_and_a_slow_machine_gives_the_video_back(): void
+    {
+        Carbon::setTestNow('2026-10-27 08:00');
+        $this->member();
+        app(ClubVideos::class)->ensureToday();
+        $this->prepareAll();
+        app(LessonVideos::class)->plan(today(), 1);
+        $promo = LessonVideo::query()->promo()->firstOrFail();
+        $promo->update(['status' => LessonVideo::VOICED, 'audio_path' => 'x.wav', 'script' => $promo->script ?? ['segments' => []]]);
+
+        $this->withToken(self::TOKEN)->getJson('/api/videos/travaux?apercu=1&type=club')->assertJsonPath('waiting', 1);
+        $this->withToken(self::TOKEN)->getJson('/api/videos/travaux?apercu=1&type=promo')->assertJsonPath('waiting', 1);
+
+        $job = $this->withToken(self::TOKEN)->getJson('/api/videos/travaux?limit=1&type=club')->assertOk()->json('jobs.0');
+        $club = LessonVideo::query()->club()->firstOrFail();
+        $this->assertSame($club->id, $job['id']);
+        $this->assertSame(432, $job['render']['avatar_width']);
+        $this->assertSame(20, $job['render']['fps']);
+        $this->assertSame(-14, $job['render']['audio']['target_lufs']);
+        $this->assertSame(-1, $job['render']['audio']['max_peak_db']);
+
+        // Machine trop lente : la vidéo est rendue sans échec compté, reprise au passage suivant.
+        $this->withToken(self::TOKEN)->postJson($job['release_url'])->assertOk();
+        $club->refresh();
+        $this->assertSame(LessonVideo::VOICED, $club->status);
+        $this->assertSame(0, $club->attempts);
+        $this->assertStringContainsString('trop lente', (string) $club->error);
+
+        // Le passage des vidéos de promotion ne prend jamais la vidéo du Club.
+        $this->assertNotContains($club->id, array_column($this->withToken(self::TOKEN)->getJson('/api/videos/travaux?limit=1&type=promo')->json('jobs'), 'id'));
+        $this->assertSame(LessonVideo::VOICED, $club->fresh()->status);
+    }
+
+    public function test_redoing_a_club_video_writes_a_new_script(): void
+    {
+        Carbon::setTestNow('2026-10-27 08:00');
+        $this->member();
+        $video = app(ClubVideos::class)->ensureToday();
+        $video->update(['status' => LessonVideo::READY, 'script' => ['segments' => []], 'audio_path' => 'videos/x/voice.wav', 'video_path' => 'videos/x/club.mp4']);
+
+        $this->assertTrue(app(LessonVideos::class)->redo($video));
+        $video->refresh();
+        $this->assertSame(LessonVideo::PLANNED, $video->status);
+        $this->assertNull($video->script);
+        $this->assertNull($video->audio_path);
+        $this->assertSame('videos/x/club.mp4', $video->video_path);
     }
 }

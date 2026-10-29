@@ -179,6 +179,22 @@ class VideoVoice
         }
 
         $duration = strlen($data) / ($format['rate'] * $format['channels'] * 2);
+
+        // Club : une voix plus courte que la durée minimale fait écrire un nouveau script (essai compté).
+        if ($video->isClub() && $duration < (int) config('videos.club.min_seconds')) {
+            $disk->deleteDirectory($video->folder().'/voice');
+            $attempts = $video->attempts + 1;
+            $video->update([
+                'status' => $attempts >= (int) config('videos.max_attempts') ? LessonVideo::FAILED : LessonVideo::PLANNED,
+                'script' => null,
+                'attempts' => $attempts,
+                'error' => 'Voix trop courte ('.(int) round($duration).' secondes, '.(int) config('videos.club.min_seconds').' au moins) : nouveau script.',
+                'next_attempt_at' => null,
+            ]);
+
+            return self::FAILED;
+        }
+
         $path = $video->folder().'/voice.wav';
         $disk->put($path, Loudness::normalize(self::wav($data, $format['rate'], $format['channels'])));
         $disk->deleteDirectory($video->folder().'/voice');

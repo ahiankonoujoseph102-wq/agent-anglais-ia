@@ -15,6 +15,7 @@ Route::middleware(['video.token', 'throttle:120,1'])->prefix('videos')->name('ap
     Route::put('/{video}/fichier', [VideoJobController::class, 'upload'])->name('upload');
     Route::post('/{video}/prete', [VideoJobController::class, 'done'])->name('done');
     Route::post('/{video}/echec', [VideoJobController::class, 'failed'])->name('failed');
+    Route::post('/{video}/reporter', [VideoJobController::class, 'release'])->name('release');
 });
 
 /*

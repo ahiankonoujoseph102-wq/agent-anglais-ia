@@ -12,14 +12,14 @@
 // (navigateur), VIDEO_PEEK=1 (dire seulement combien de vidéos attendent, sans rien prendre).
 // Essai en local, sans Talkami : node render.mjs --job=job.json --audio=voix.wav --out=video.mp4
 
-import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, writeFile, rm, stat } from 'node:fs/promises';
+import { spawn, spawnSync } from 'node:child_process';
+import { mkdtemp, readFile, rename, writeFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { chromium } from 'playwright-core';
 import { join, resolve } from 'node:path';
 import { buildAss } from './subtitles.mjs';
 import { lipCheck } from './lip-check.mjs';
-import { AUDIO_PRE, FONTS, audioDuration, gainFor, launch, measureLoudness, serve } from './common.mjs';
+import { AUDIO_PRE, FONTS, audioDuration, audioFilter, gainFor, launch, measureLoudness, serve, soundFix, willFinish } from './common.mjs';
 
 export { gainFor, measureLoudness };
 
@@ -60,10 +60,10 @@ function ffmpeg(job, workdir, audio, out, total, gainDb) {
         '-i', audio,
         '-filter_complex', filter,
         '-map', '[v]', '-map', '1:a',
-        '-af', `${AUDIO_PRE},volume=${gainDb}dB,alimiter=limit=${r.audio.limit}:attack=3:release=60:level=false,apad`, '-t', total.toFixed(2),
+        '-af', audioFilter(r.audio, gainDb), '-t', total.toFixed(2),
         '-c:v', 'libx264', '-preset', 'medium', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-r', String(r.fps), '-g', String(r.fps * 2),
         '-b:v', r.video_bitrate, '-maxrate', '1500k', '-bufsize', '3000k',
-        '-c:a', 'aac', '-b:a', r.audio_bitrate, '-ar', '44100', '-ac', '1',
+        '-c:a', 'aac', '-b:a', r.audio_bitrate, '-ar', String(r.audio.rate ?? 48000), '-ac', '1',
         '-movflags', '+faststart',
         out,
     ], { stdio: ['pipe', 'inherit', 'inherit'] });
@@ -73,8 +73,55 @@ function ffmpeg(job, workdir, audio, out, total, gainDb) {
     return { child, done };
 }
 
+/** Refait le son seul d'une vidéo déjà encodée (image copiée telle quelle) : quelques secondes. */
+function remixAudio(job, video, audio, out, total, gainDb, limit) {
+    const r = job.render;
+    const run = spawnSync('ffmpeg', [
+        '-hide_banner', '-loglevel', 'error', '-y', '-i', video, '-i', audio,
+        '-map', '0:v', '-map', '1:a', '-c:v', 'copy',
+        '-af', audioFilter(r.audio, gainDb, limit), '-t', total.toFixed(2),
+        '-c:a', 'aac', '-b:a', r.audio_bitrate, '-ar', String(r.audio.rate ?? 48000), '-ac', '1',
+        '-movflags', '+faststart', out,
+    ], { encoding: 'utf8' });
+
+    if (run.status !== 0) {
+        throw new Error(`ffmpeg (son) a échoué : ${(run.stderr ?? '').slice(0, 200)}`);
+    }
+}
+
+/**
+ * Vérifie le son de la vidéo encodée et, au besoin, le refait (trois fois au plus) : sonie visée à un point près,
+ * crête vraie sous « max_peak_db ». Renvoie la dernière mesure.
+ */
+export async function fixSound(job, out, audioFile, total, gainDb) {
+    const audio = job.render.audio;
+    let sound = measureLoudness(out);
+    let gain = gainDb;
+    let limit = audio.limit;
+
+    for (let round = 0; round < 3; round++) {
+        const fix = soundFix(sound, audio, gain, limit);
+
+        if (fix === null) {
+            break;
+        }
+
+        log(`vidéo ${job.id} : son ${sound.lufs} LUFS, crête ${sound.peak} dBFS : son refait (gain ${fix.gainDb} dB, plafond ${fix.limit}).`);
+        const again = `${out}.son.mp4`;
+        remixAudio(job, out, audioFile, again, total, fix.gainDb, fix.limit);
+        await rename(again, out);
+        ({ gainDb: gain, limit } = fix);
+        sound = measureLoudness(out);
+    }
+
+    return { ...sound, gain };
+}
+
+/** Machine trop lente pour finir la vidéo dans le temps accordé : la vidéo est rendue à Talkami, sans échec compté. */
+export class TooSlowError extends Error {}
+
 /** Fabrique une vidéo : renvoie sa durée et ses mesures (lèvres, son). Lèvres hors des seuils : erreur. */
-async function renderOne(browser, job, audioFile, out) {
+async function renderOne(browser, job, audioFile, out, deadline = 0) {
     const workdir = await mkdtemp(join(tmpdir(), 'video-'));
     const server = await serve({ '/__video/voice.wav': audioFile });
     const port = server.address().port;
@@ -89,6 +136,7 @@ async function renderOne(browser, job, audioFile, out) {
 
         let encoder = null;
         let count = 0;
+        let frames = 0;
         const started = Date.now();
         await page.exposeFunction('sendFrame', async (base64) => {
             const chunk = Buffer.from(base64, 'base64');
@@ -99,6 +147,10 @@ async function renderOne(browser, job, audioFile, out) {
 
             if (++count % 250 === 0) {
                 log(`vidéo ${job.id} : ${count} images (${((Date.now() - started) / count).toFixed(0)} millisecondes par image)`);
+
+                if (!willFinish(started, Date.now(), count, frames, deadline)) {
+                    throw new TooSlowError(`machine trop lente (${((Date.now() - started) / count).toFixed(0)} millisecondes par image) : la vidéo ne finirait pas dans le temps accordé`);
+                }
             }
         });
 
@@ -107,18 +159,31 @@ async function renderOne(browser, job, audioFile, out) {
         // Durée totale connue d'avance : voix + 1,2 seconde (même calcul que la page).
         const audioSeconds = await audioDuration(audioFile);
         const total = Math.max(job.duration, audioSeconds) + 1.2;
+        frames = Math.ceil(total * job.render.fps);
         await writeFile(join(workdir, 'subtitles.ass'), buildAss(job, total));
         const gainDb = gainFor(measureLoudness(audioFile, AUDIO_PRE).lufs, job.render.audio);
         encoder = ffmpeg(job, workdir, audioFile, out, total, gainDb);
 
-        const result = await page.evaluate(([j, url]) => window.renderVideo(j, url), [job, '/__video/voice.wav']);
+        let result;
+
+        try {
+            result = await page.evaluate(([j, url]) => window.renderVideo(j, url), [job, '/__video/voice.wav']);
+        } catch (error) {
+            if (error.message?.includes('machine trop lente')) {
+                encoder.done.catch(() => {});
+                encoder.child.kill('SIGKILL');
+                throw new TooSlowError(error.message.match(/machine trop lente[^\n]*accordé/)?.[0] ?? 'machine trop lente');
+            }
+
+            throw error;
+        }
         encoder.child.stdin.end();
         await encoder.done;
         await page.close();
 
         const lips = lipCheck(result.rms, result.open, job.render.lips);
-        const sound = measureLoudness(out);
-        log(`vidéo ${job.id} : ${result.frames} images en ${((Date.now() - started) / 1000).toFixed(0)} secondes ; lèvres ${result.lipSync ? 'HeadAudio' : 'selon le volume'}, accord ${lips.correlation}, ouverture ${lips.open_speech} ; son ${sound.lufs} LUFS, crête ${sound.peak} dBFS (gain ${gainDb} dB).`);
+        const sound = await fixSound(job, out, audioFile, total, gainDb);
+        log(`vidéo ${job.id} : ${result.frames} images en ${((Date.now() - started) / 1000).toFixed(0)} secondes ; lèvres ${result.lipSync ? 'HeadAudio' : 'selon le volume'}, accord ${lips.correlation}, ouverture ${lips.open_speech} ; son ${sound.lufs} LUFS, crête ${sound.peak} dBFS (gain ${sound.gain} dB).`);
 
         if (!lips.ok) {
             throw new Error(`Lèvres : ${lips.reason}. Vidéo non déposée.`);
@@ -136,7 +201,9 @@ async function local() {
     const browser = await launch(chromium);
 
     try {
-        const { total } = await renderOne(browser, job, resolve(args.audio), resolve(args.out ?? 'video.mp4'));
+        // --budget=minutes : essai local de l'arrêt d'une machine trop lente.
+        const deadline = args.budget ? Date.now() + Number(args.budget) * 60000 : 0;
+        const { total } = await renderOne(browser, job, resolve(args.audio), resolve(args.out ?? 'video.mp4'), deadline);
         log(`Vidéo écrite : ${args.out ?? 'video.mp4'} (${total.toFixed(1)} secondes).`);
     } finally {
         await browser.close();
@@ -148,8 +215,12 @@ async function remote() {
         throw new Error('TALKAMI_URL ou TALKAMI_VIDEO_TOKEN manquant (variables du dépôt GitHub).');
     }
 
+    // « club » ou « promo » : chaque travail de GitHub ne prend que ses vidéos (le Club a son propre passage).
+    const kind = ['club', 'promo'].includes(process.env.VIDEO_KIND) ? process.env.VIDEO_KIND : '';
+    const type = kind ? `&type=${kind}` : '';
+
     if (process.env.VIDEO_PEEK === '1') {
-        const { waiting, blocked } = await (await api('/api/videos/travaux?apercu=1')).json();
+        const { waiting, blocked } = await (await api(`/api/videos/travaux?apercu=1${type}`)).json();
         log(`Vidéos dont la voix est prête : ${waiting}.`);
 
         if (blocked) {
@@ -181,7 +252,7 @@ async function remote() {
                 break;
             }
 
-            const { jobs, blocked } = await (await api('/api/videos/travaux?limit=1')).json();
+            const { jobs, blocked } = await (await api(`/api/videos/travaux?limit=1${type}`)).json();
 
             if (blocked) {
                 log(`Fabrication bloquée : ${blocked}`);
@@ -205,7 +276,7 @@ async function remote() {
                 const audio = join(workdir, 'voice.wav');
                 await writeFile(audio, Buffer.from(await (await api(job.audio_url)).arrayBuffer()));
                 const out = join(workdir, 'video.mp4');
-                const { total, lips, sound } = await renderOne(browser, job, audio, out);
+                const { total, lips, sound } = await renderOne(browser, job, audio, out, budget > 0 ? started + budget : 0);
                 const size = (await stat(out)).size;
                 log(`vidéo ${job.id} : ${(size / 1048576).toFixed(1)} mégaoctets, envoi…`);
 
@@ -224,6 +295,13 @@ async function remote() {
                 await api(job.done_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ duration: total, lips_correlation: lips.correlation, lips_open: lips.open_speech, loudness_lufs: sound.lufs, true_peak_db: sound.peak }) });
                 log(`vidéo ${job.id} : prête.`);
             } catch (error) {
+                if (error instanceof TooSlowError) {
+                    // Rendue telle quelle à Talkami (aucun échec compté) : le passage suivant la reprendra.
+                    log(`vidéo ${job.id} : arrêtée, ${error.message}. Elle sera reprise au prochain passage.`);
+                    await api(job.release_url, { method: 'POST' }).catch(() => {});
+                    break;
+                }
+
                 failures++;
                 log(`vidéo ${job.id} : échec : ${error.message}`);
                 await api(job.failed_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: String(error.message).slice(0, 280) }) }).catch(() => {});

@@ -144,14 +144,21 @@ class LessonVideos
             return false;
         }
 
+        // Vidéo du Club : aucune fin à remettre à jour ; elle est réécrite (nouveau script, nouvelle voix) avec les
+        // règles du moment. L'ancienne vidéo reste visible jusqu'à l'arrivée de la nouvelle.
+        if ($video->isClub()) {
+            $video->update(['status' => LessonVideo::PLANNED, 'script' => null, 'audio_path' => null, 'timings' => null, 'attempts' => 0, 'next_attempt_at' => null, 'error' => null, 'render_started_at' => null]);
+
+            return true;
+        }
+
         if ($video->audio_path === null) {
             $this->retry($video);
 
             return true;
         }
 
-        // Vidéo du Club : aucune fin à remettre à jour, elle repart directement en fabrication.
-        $video->update(['status' => $video->isClub() ? LessonVideo::VOICED : LessonVideo::SCRIPTED, 'attempts' => 0, 'next_attempt_at' => null, 'error' => null, 'render_started_at' => null]);
+        $video->update(['status' => LessonVideo::SCRIPTED, 'attempts' => 0, 'next_attempt_at' => null, 'error' => null, 'render_started_at' => null]);
 
         return true;
     }
@@ -195,18 +202,20 @@ class LessonVideos
     }
 
     /** Vidéos que GitHub Actions peut prendre maintenant. */
-    public function waiting(): int
+    /** @param  string|null  $kind  « club », « promo », ou null pour toutes */
+    public function waiting(?string $kind = null): int
     {
-        return VideoSettings::blocked() === null ? $this->claimable()->count() : 0;
+        return VideoSettings::blocked() === null ? $this->claimable($kind)->count() : 0;
     }
 
     /** @return Builder<LessonVideo> */
-    private function claimable()
+    private function claimable(?string $kind = null)
     {
         $stale = now()->subMinutes((int) config('videos.render_timeout_minutes'));
 
         return LessonVideo::query()->where(fn ($query) => $query->where('status', LessonVideo::VOICED)
-            ->orWhere(fn ($query) => $query->where('status', LessonVideo::RENDERING)->where('render_started_at', '<', $stale)));
+            ->orWhere(fn ($query) => $query->where('status', LessonVideo::RENDERING)->where('render_started_at', '<', $stale)))
+            ->when(in_array($kind, [LessonVideo::CLUB, LessonVideo::PROMO], true), fn ($query) => $query->where('kind', $kind));
     }
 
     /**
@@ -215,7 +224,7 @@ class LessonVideos
      *
      * @return list<array<string, mixed>>
      */
-    public function claim(int $limit): array
+    public function claim(int $limit, ?string $kind = null): array
     {
         if (VideoSettings::blocked() !== null) {
             return [];
@@ -228,9 +237,9 @@ class LessonVideos
             }
         }
 
-        $videos = DB::transaction(function () use ($limit) {
+        $videos = DB::transaction(function () use ($limit, $kind) {
             // La vidéo du Club d'abord : elle est attendue dans le groupe chaque jour.
-            $videos = $this->claimable()
+            $videos = $this->claimable($kind)
                 ->orderByRaw("case when kind = 'club' then 0 else 1 end")->orderBy('day')->orderBy('slot')
                 ->limit(max(1, min(6, $limit)))
                 ->lockForUpdate()
@@ -272,7 +281,9 @@ class LessonVideos
             'upload' => $this->uploadTarget($video),
             'done_url' => route('api.videos.done', $video),
             'failed_url' => route('api.videos.failed', $video),
-            'render' => ['watermark' => VideoSettings::watermark()] + config('videos.render'),
+            'release_url' => route('api.videos.release', $video),
+            // Club : fabrication plus légère (config videos.club.render).
+            'render' => ['watermark' => VideoSettings::watermark()] + ($video->isClub() ? array_replace(config('videos.render'), (array) config('videos.club.render')) : config('videos.render')),
             'avatar' => array_intersect_key(Avatar::clientConfig()['model'] ?? [], array_flip(['profile', 'camera', 'desk_height', 'resting_smile', 'voice_hz'])),
         ];
     }
@@ -337,6 +348,19 @@ class LessonVideos
             'status' => $attempts >= (int) config('videos.max_attempts') ? LessonVideo::FAILED : LessonVideo::VOICED,
             'attempts' => $attempts,
             'error' => mb_substr('Fabrication : '.$error, 0, 300),
+            'render_started_at' => null,
+        ]);
+    }
+
+    /**
+     * Fabrication arrêtée par GitHub parce que la machine était trop lente pour finir à temps : la vidéo redevient
+     * « voix prête », sans échec compté, et sera reprise au passage suivant.
+     */
+    public function release(LessonVideo $video): void
+    {
+        $video->update([
+            'status' => LessonVideo::VOICED,
+            'error' => 'Fabrication reportée : la machine de GitHub était trop lente, nouvel essai au prochain passage.',
             'render_started_at' => null,
         ]);
     }

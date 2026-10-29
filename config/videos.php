@@ -80,7 +80,15 @@ return [
     | « Vidéos » (aperçu, « Télécharger pour WhatsApp », texte signé à copier), visible aussi par un assistant.
     */
     'club' => [
-        'duration_seconds' => 80,
+        // Durée visée (environ 3 minutes 30) et durée MINIMALE de la voix : un script trop court est refusé, une voix
+        // plus courte que « min_seconds » fait réécrire le script (ClubScriptWriter, VideoVoice).
+        'duration_seconds' => 210,
+        'min_seconds' => 180,
+        // Silence laissé après « Répétez après moi : … » pour que l'abonné répète à voix haute (millisecondes).
+        'repeat_pause_ms' => 2500,
+        // Fabrication plus légère que les vidéos de promotion (mesuré : environ 70 % du temps) : Teacher Joe rendu en
+        // 432 × 768 puis agrandi, 20 images par seconde. Remplace ces réglages de « render » pour le Club seulement.
+        'render' => ['avatar_width' => 432, 'avatar_height' => 768, 'fps' => 20],
         'level' => 'A2',
         // Un élément (expression, son, situation, erreur, piège) n'est pas repris avant tant de semaines.
         'repeat_weeks' => 8,
@@ -116,7 +124,7 @@ return [
     'retry_minutes' => 10,
 
     // Fabrication (GitHub Actions) : une vidéo prise mais non rendue après ce temps peut être reprise.
-    'render_timeout_minutes' => 60,
+    'render_timeout_minutes' => 90,
 
     // Jeton de GitHub Actions (php artisan videos:generate-token, variable VIDEO_UPLOAD_TOKEN). Absent : l'API refuse tout.
     'token' => env('VIDEO_UPLOAD_TOKEN') ?: null,
@@ -240,7 +248,10 @@ return [
         'audio_bitrate' => '128k',
         // Son : compresseur léger, gain calculé d'après la sonie (visée : −14 LUFS), limiteur (crête sous −1 dB
         // après la compression AAC). La sonie finale est mesurée et montrée dans la page « Vidéos ».
-        'audio' => ['target_lufs' => -14, 'limit' => 0.8, 'limiter_makeup_db' => 0.8],
+        // Le limiteur travaille à 48 kHz (avant : à la fréquence de la voix, 24 kHz, puis passage à 44,1 kHz et
+        // compression AAC, qui faisaient dépasser 0 dB entre deux échantillons). Après l'encodage, sonie et crête
+        // vraie sont mesurées ; hors de « tolerance_lu » ou au-dessus de « max_peak_db », le son seul est refait.
+        'audio' => ['target_lufs' => -14, 'limit' => 0.708, 'limiter_makeup_db' => 1.5, 'max_peak_db' => -1, 'tolerance_lu' => 1, 'rate' => 48000],
         // Garde-fou des lèvres (tools/video/lip-check.mjs) : sinon, la vidéo n'est pas déposée.
         'lips' => ['min_correlation' => 0.5, 'min_open' => 0.08],
     ],
