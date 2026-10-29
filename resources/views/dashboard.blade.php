@@ -21,7 +21,7 @@
         @if ($needsAssessment && ! $subscription)
             <h2 id="next-step-title">Passez votre évaluation gratuite</h2>
             <p>
-                Parlez {{ $assessmentMinutes }} minutes avec {{ config('avatar.model.name') }} pour connaître votre niveau
+                Parlez {{ $assessmentMinutes }} minutes avec {{ \App\Support\Teachers\Teachers::names() }} pour connaître votre niveau
                 d'anglais, puis découvrez une première leçon et posez vos questions. C'est gratuit : une évaluation par compte.
             </p>
             <a href="{{ route('assessment.show') }}" class="btn btn-accent btn-lg btn-block btn-next"><x-icon name="mic" /> Commencer mon évaluation gratuite</a>
@@ -150,7 +150,7 @@
     @if ($needsAssessment && $subscription)
         <section class="card next-step rise" aria-labelledby="assessment-invite">
             <div class="card-title"><span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span><h2 id="assessment-invite">Passez votre évaluation gratuite</h2></div>
-            <p>{{ $assessmentMinutes }} minutes avec {{ config('avatar.model.name') }} pour mesurer votre niveau, puis une mini-leçon et vos questions.</p>
+            <p>{{ $assessmentMinutes }} minutes avec {{ \App\Support\Teachers\Teachers::names() }} pour mesurer votre niveau, puis une mini-leçon et vos questions.</p>
             {{-- Contour : le seul bouton orange reste celui de la prochaine étape ; un libellé différent pour une action différente. --}}
             <a href="{{ route('assessment.show') }}" class="btn btn-outline btn-block"><x-icon name="mic" /> Passer mon évaluation gratuite</a>
             {{-- Le rappel « Enregistrer ma séance » n'est dit qu'une fois sur la page. --}}

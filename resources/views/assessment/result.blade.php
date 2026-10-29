@@ -1,7 +1,9 @@
 @php
     use App\Support\Asset;
 
-    $teacher = config('avatar.model.name');
+    // Professeur de l'évaluation (Teacher Joe, ou Teacher Rose si elle a été choisie).
+    $teacherModel = $assessment->teacher();
+    $teacher = $teacherModel->name();
     // Niveau affiché : celui de l'évaluation (recommandé) ; un autre niveau choisi est signalé.
     $foundRank = $found ? $rank[$found->value] : null;
 @endphp
@@ -9,7 +11,7 @@
 <x-layout title="Votre résultat" :description="'Votre niveau d\'anglais après l\'évaluation gratuite avec '.$teacher.'.'">
     <section class="result-hero rise" aria-labelledby="niveau">
         <div class="result-teacher">
-            <img src="{{ Asset::url('images/teacher-joe.webp') }}" width="560" height="560" alt="{{ $teacher }}, votre professeur d'anglais">
+            <img src="{{ Asset::url($teacherModel->portrait()) }}" width="560" height="560" alt="{{ $teacher }}, {{ $teacherModel->pronoun() === 'elle' ? 'votre professeure' : 'votre professeur' }} d'anglais">
         </div>
         <div class="result-main">
             @if ($found)
@@ -117,7 +119,7 @@
         <span class="eyebrow">Votre prochaine étape</span>
         <h2 id="formules">Commencez votre programme {{ $chosen?->value ?? $found?->value }} dès aujourd'hui</h2>
         <p class="muted">
-            Chaque jour, une séance orale avec {{ $teacher }}, à votre niveau : il vous fait parler, corrige vos erreurs
+            Chaque jour, une séance orale avec {{ $teacher }}, à votre niveau : {{ $teacherModel->pronoun() }} vous fait parler, corrige vos erreurs
             et les reprend aux séances suivantes. Plus vous commencez tôt, plus vite l'anglais devient une habitude.
         </p>
         @include('assessment.plans')

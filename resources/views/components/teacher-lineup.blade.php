@@ -12,9 +12,10 @@
     $teachers = Teachers::choosable();
     $count = [2 => 'Deux', 3 => 'Trois', 4 => 'Quatre'][count($teachers)] ?? (string) count($teachers);
     // Faits vérifiés dans le code : choix dans « Mon espace » (TeacherChoiceController), changement possible chaque jour
-    // (jamais pendant une séance), même programme ; l'évaluation gratuite se fait avec le professeur par défaut.
+    // (jamais pendant une séance), même programme ; évaluation gratuite : le professeur par défaut est proposé d'avance,
+    // l'autre se choisit avant « Commencer » (AssessmentController::chosenTeacher).
     $choice = 'Vous choisissez votre professeur dans « Mon espace », et vous pouvez en changer chaque jour.';
-    $assessment = 'L\'évaluation gratuite se passe avec '.Teachers::default()->name().'.';
+    $assessment = 'Pour l\'évaluation gratuite, vous choisissez aussi avant de commencer.';
 @endphp
 
 @if (Teachers::hasChoice())

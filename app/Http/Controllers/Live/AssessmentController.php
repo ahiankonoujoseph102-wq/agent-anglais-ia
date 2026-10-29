@@ -20,6 +20,7 @@ use App\Support\Live\AssessmentVersion;
 use App\Support\Live\LiveEarlyEnd;
 use App\Support\Live\LivePage;
 use App\Support\Plan;
+use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
@@ -45,18 +46,23 @@ class AssessmentController extends Controller
         }
 
         $minutes = (int) config('platform.assessment.max_minutes');
+        // Professeur de l'évaluation : celui d'une évaluation déjà commencée, sinon celui choisi sur cette page
+        // (?professeur=rose), Teacher Joe par défaut.
+        $teacher = $assessment?->teacher() ?? self::chosenTeacher($request);
 
         return view('live.session', [
             'mode' => 'assessment',
+            'teacher' => $teacher,
+            'assessmentChoice' => $assessment === null && Teachers::hasChoice(),
             // Premier contact avec Teacher Joe : phrases utiles dépliées.
             'usefulPhrasesOpen' => true,
             'title' => 'Évaluation gratuite',
             // UNE ligne courte sous « Commencer » ; le reste (ce qui suit, calme, droit à l'erreur, micro) est replié
             // sous « Avant de commencer » (live/before-start).
-            'intro' => $minutes.' minutes à l\'oral avec '.config('avatar.model.name').', pour trouver votre niveau.',
+            'intro' => $minutes.' minutes à l\'oral avec '.$teacher->name().', pour trouver votre niveau.',
             'remainingSeconds' => $assessment?->remainingSeconds() ?? $minutes * 60,
             'urls' => [
-                'connect' => route('assessment.connect'),
+                'connect' => route('assessment.connect', $teacher->isDefault() ? [] : ['professeur' => $teacher->key]),
                 'signal' => route('assessment.signal'),
                 'finish' => route('assessment.finish'),
                 'result' => route('assessment.result'),
@@ -155,8 +161,10 @@ class AssessmentController extends Controller
         $allowedSeconds = $assessment?->allowed_seconds ?? (int) config('platform.assessment.max_minutes') * 60;
         $deadline = $assessment?->deadline() ?? now()->addSeconds($allowedSeconds);
         // Durée de l'évaluation elle-même (le moment des questions s'ajoute après le verdict).
-        // Évaluation gratuite : toujours le professeur par défaut (Teacher Joe), quel que soit le choix de l'apprenant.
-        $setup = TeacherSetup::assessment($user, (int) config('platform.assessment.max_minutes'), $request->handle(), Teachers::default());
+        // Professeur : celui de l'évaluation déjà commencée (jamais changé en route), sinon celui choisi sur la page
+        // (Teacher Joe par défaut).
+        $teacher = $assessment?->teacher() ?? self::chosenTeacher($request);
+        $setup = TeacherSetup::assessment($user, (int) config('platform.assessment.max_minutes'), $request->handle(), $teacher);
 
         try {
             // Avant le verdict, le jeton couvre aussi la mini-leçon et les questions : aucun renouvellement en route.
@@ -175,6 +183,10 @@ class AssessmentController extends Controller
                     'started_at' => now(),
                     'allowed_seconds' => $allowedSeconds,
                 ]);
+                // Professeur choisi (le crochet de création a mis le professeur par défaut).
+                if (! $teacher->isDefault()) {
+                    $assessment->forceFill(['teacher' => $teacher->key])->save();
+                }
             } catch (UniqueConstraintViolationException) {
                 // Deux onglets en même temps : la base garantit l'unicité.
                 return $this->refuse(self::ALREADY_DONE, 409);
@@ -189,6 +201,14 @@ class AssessmentController extends Controller
             'warning' => TeacherSetup::cue('assessment_warning', ['remaining' => $warningMinutes]),
             'conclusion' => TeacherSetup::cue('assessment_conclusion', ['seconds' => (int) config('platform.assessment.conclusion_cue_seconds')]),
         ], $warningMinutes * 60, $resumed) + self::ending($assessment));
+    }
+
+    /** Professeur choisi pour l'évaluation (?professeur=…), seulement parmi ceux proposés ; sinon Teacher Joe. */
+    private static function chosenTeacher(Request $request): Teacher
+    {
+        $key = $request->query('professeur');
+
+        return (is_string($key) ? (Teachers::choosable()[$key] ?? null) : null) ?? Teachers::default();
     }
 
     public function signal(SignalRequest $request): JsonResponse

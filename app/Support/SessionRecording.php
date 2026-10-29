@@ -3,6 +3,8 @@
 namespace App\Support;
 
 use App\Models\User;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use Illuminate\Support\Str;
 
 /**
@@ -36,7 +38,7 @@ final class SessionRecording
      *
      * @return array<string, mixed>
      */
-    public static function clientConfig(string $mode, ?User $user = null): array
+    public static function clientConfig(string $mode, ?User $user = null, ?Teacher $teacher = null): array
     {
         $platform = (string) config('platform.name');
 
@@ -58,7 +60,7 @@ final class SessionRecording
             // Début du nom du fichier : « talkami-evaluation », « talkami-seance ».
             'file_prefix' => Str::slug($platform).'-'.($mode === 'assessment' ? 'evaluation' : 'seance'),
             // Évaluation : tableau neutre avant le verdict, puis le niveau (null ailleurs).
-            'assessment' => $mode === 'assessment' ? self::assessmentBoard() : null,
+            'assessment' => $mode === 'assessment' ? self::assessmentBoard($teacher) : null,
         ];
     }
 
@@ -68,11 +70,11 @@ final class SessionRecording
      *
      * @return array<string, mixed>
      */
-    public static function assessmentBoard(): array
+    public static function assessmentBoard(?Teacher $teacher = null): array
     {
         $board = (array) config('platform.recording.assessment_board');
         $fill = fn (string $text): string => strtr($text, [
-            ':teacher' => (string) config('avatar.model.name'),
+            ':teacher' => ($teacher ?? Teachers::default())->name(),
             ':minutes' => (string) (int) config('platform.assessment.max_minutes'),
         ]);
 
