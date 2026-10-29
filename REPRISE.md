@@ -4,6 +4,11 @@
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
+
+## Vidéo du Club fiable (29 octobre 2026, nouveau compte Claude Code)
+
+- **#137 (fusionnée)** : `tools/video/render.html` ne bloque plus quand une machine trop lente est refusée (passages n° 10, 14 et 18 annulés à 80 minutes).
+- **Branche `claude/club-trois-minutes`** : vidéo du Club de 3 minutes (parole visée 150 secondes, silences de répétition allongés si la voix est un peu courte), rendu 396 × 704 à 20 images par seconde, relance automatique d'un passage « Club seulement » après un arrêt anticipé (3 essais). Vidéo du 29 octobre (4 minutes 12) gardée telle quelle : sa voix existe déjà, pas de nouvelle demande de synthèse vocale (quota de 10 par jour chez Gemini).
 ## Chantier en cours : Teacher Rose, étape 2, séances payantes (29 octobre 2026, branche `claude/festive-keller-2hkpxl`)
 
 Décision du fondateur (message de l'étape 2) : PAS d'interrupteur ni de compte de test ; il ne peut pas tester lui-même (micro de son téléphone en panne), un ami fera les essais réels après la mise en ligne ; tout doit être prouvé par les tests (faux Gemini, faux OpenAI). Conditions : (1) le choix de Teacher Rose n'apparaît qu'avec sa voix ET son visage prêts et validés par lui sur images ; (2) Teacher Joe identique au caractère près (garde-fou) ; (3) évaluation non touchée avant son essai réel ; (4) retour rapide à Teacher Joe seul ; (5) choix dans « Mon espace », « Consommation » et « Essai des voix » par professeur.

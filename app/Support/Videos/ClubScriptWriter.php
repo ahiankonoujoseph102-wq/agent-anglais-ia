@@ -22,7 +22,7 @@ class ClubScriptWriter
 
         TODAY'S THEME: :theme
 
-        LENGTH: a real little lesson of about :seconds seconds: about :words spoken words in total, NEVER fewer than :min_words, in 10 to 18 segments. Develop it: several examples from daily life, repetition aloud, a short final recap of everything seen.
+        LENGTH: a real little lesson of about :seconds seconds (3 minutes): about :words spoken words in total, NEVER fewer than :min_words nor more than :max_words, in 8 to 14 segments. Develop it: several examples from daily life, repetition aloud, a short final recap of everything seen.
 
         THE GOLDEN RULE: the members are beginners. EVERY English sentence (an example, a dialogue line, a word to repeat) is given in the field "english" of its own segment, and the SAME segment gives its French translation ("translation") and a short explanation ("explain"). Never put an English sentence anywhere else: "say" and "explain" are in French only (a single English word already translated may appear in "explain", for example to describe a sound).
 
@@ -74,7 +74,7 @@ class ClubScriptWriter
     public function write(array $brief, array $names = [], int $timeout = 45): ?array
     {
         $seconds = (int) config('videos.club.duration_seconds');
-        $words = (int) round($seconds * (float) config('videos.words_per_second'));
+        $words = self::targetWords();
         $minWords = self::minWords();
 
         $instructions = strtr(self::INSTRUCTIONS, [
@@ -83,6 +83,7 @@ class ClubScriptWriter
             ':theme' => self::THEMES[$brief['theme']] ?? self::THEMES['revision'],
             ':words' => (string) $words,
             ':min_words' => (string) $minWords,
+            ':max_words' => (string) self::maxWords(),
             ':seconds' => (string) $seconds,
         ]);
 
@@ -104,10 +105,22 @@ class ClubScriptWriter
         return ['script' => self::normalize($result->json(), $words, $brief, $names), 'provider' => $result->provider];
     }
 
-    /** Nombre de mots au-dessous duquel la vidéo durerait moins de « min_seconds » (pauses non comptées). */
+    /** Mots de parole visés : « speech_seconds » au débit des vidéos (le reste de la durée : silences). */
+    public static function targetWords(): int
+    {
+        return (int) round((int) config('videos.club.speech_seconds') * (float) config('videos.words_per_second'));
+    }
+
+    /** Au-dessous : la vidéo durerait moins de 3 minutes, même avec des silences de répétition plus longs. */
     public static function minWords(): int
     {
-        return (int) ceil((int) config('videos.club.min_seconds') * (float) config('videos.words_per_second'));
+        return (int) ceil(self::targetWords() * 0.9);
+    }
+
+    /** Au-dessus : la vidéo dépasserait nettement les 3 minutes (et coûterait plus de temps de fabrication). */
+    public static function maxWords(): int
+    {
+        return (int) floor(self::targetWords() * 1.25);
     }
 
     /**
@@ -183,7 +196,7 @@ class ClubScriptWriter
         $required = self::required((string) $brief['theme']);
 
         if ($title === null || $caption === null || count($segments) < 8 || $english < $required['english'] || $repeats < $required['repeat']
-            || $count < self::minWords() || $count > $words * 1.6 || preg_match(self::FORBIDDEN, $all)) {
+            || $count < self::minWords() || $count > self::maxWords() || preg_match(self::FORBIDDEN, $all)) {
             return null;
         }
 
@@ -343,7 +356,7 @@ class ClubScriptWriter
                 'title' => $string('French video title, 60 characters at most.'),
                 'segments' => [
                     'type' => 'array',
-                    'description' => '10 to 18 segments, in order.',
+                    'description' => '8 to 14 segments, in order.',
                     'items' => [
                         'type' => 'object',
                         'properties' => [

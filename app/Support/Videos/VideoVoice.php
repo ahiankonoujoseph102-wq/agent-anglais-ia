@@ -151,49 +151,72 @@ class VideoVoice
     private function assemble(LessonVideo $video, SpeechProvider $provider, int $count): string
     {
         $disk = PrivateStorage::disk();
-        $format = null;
-        $data = '';
-        $timings = [];
+        $pieces = [];
 
         for ($index = 0; $index < $count; $index++) {
             $wav = self::parse((string) $disk->get($this->piecePath($video, $provider, $index)));
 
-            if ($wav === null || ($format !== null && [$wav['rate'], $wav['channels']] !== [$format['rate'], $format['channels']])) {
+            if ($wav === null || ($pieces !== [] && [$wav['rate'], $wav['channels']] !== [$pieces[0]['rate'], $pieces[0]['channels']])) {
                 return $this->failure($video, 'Parties de la voix dans des formats différents.');
             }
 
-            $format ??= $wav;
-            $bytesPerSecond = $format['rate'] * $format['channels'] * 2;
+            $pieces[] = $wav;
+        }
 
+        $format = $pieces[0];
+        $frame = $format['channels'] * 2;
+        $bytesPerSecond = $format['rate'] * $frame;
+        $silence = fn (float $seconds) => str_repeat("\0", (int) round($bytesPerSecond * $seconds) - (int) round($bytesPerSecond * $seconds) % $frame);
+        $segments = $video->script['segments'] ?? [];
+        // Silence voulu après la phrase (« Réfléchissez… » d'une publicité, « Répétez après moi » du Club).
+        $pauses = array_map(fn (int $index) => (int) ($segments[$index]['pause_after'] ?? 0) / 1000, array_keys($pieces));
+        $natural = array_sum(array_map(fn (array $wav) => strlen($wav['data']) / $bytesPerSecond, $pieces))
+            + ($count - 1) * $video->voiceGapMs() / 1000 + array_sum($pauses);
+        $tail = 0.0;
+
+        // Club : jamais moins de « min_seconds ». Une voix un peu courte reçoit des silences de répétition plus longs
+        // (3 secondes de plus chacun au plus), puis un silence final ; plus courte encore : nouveau script.
+        if ($video->isClub() && $natural < ($minimum = (int) config('videos.club.min_seconds'))) {
+            $missing = $minimum - $natural + 0.5;
+
+            if ($missing > (float) config('videos.club.max_pad_seconds')) {
+                $disk->deleteDirectory($video->folder().'/voice');
+                $attempts = $video->attempts + 1;
+                $video->update([
+                    'status' => $attempts >= (int) config('videos.max_attempts') ? LessonVideo::FAILED : LessonVideo::PLANNED,
+                    'script' => null,
+                    'attempts' => $attempts,
+                    'error' => 'Voix trop courte ('.(int) round($natural).' secondes, '.$minimum.' au moins) : nouveau script.',
+                    'next_attempt_at' => null,
+                ]);
+
+                return self::FAILED;
+            }
+
+            $repeats = array_keys(array_filter($pauses, fn (float $pause) => $pause > 0));
+            $each = $repeats === [] ? 0.0 : min(3.0, $missing / count($repeats));
+
+            foreach ($repeats as $index) {
+                $pauses[$index] += $each;
+            }
+
+            $tail = max(0.0, $missing - $each * count($repeats));
+        }
+
+        $data = '';
+        $timings = [];
+
+        foreach ($pieces as $index => $wav) {
             if ($index > 0) {
-                $gap = (int) round($bytesPerSecond * $video->voiceGapMs() / 1000);
-                $data .= str_repeat("\0", $gap - $gap % ($format['channels'] * 2));
+                $data .= $silence($video->voiceGapMs() / 1000);
             }
 
             $start = strlen($data) / $bytesPerSecond;
-            $data .= $wav['data'];
-            // Silence voulu après la phrase (« Réfléchissez… » d'une publicité) : il fait partie de la phrase.
-            $pause = (int) round($bytesPerSecond * (int) ($video->script['segments'][$index]['pause_after'] ?? 0) / 1000);
-            $data .= str_repeat("\0", $pause - $pause % ($format['channels'] * 2));
+            $data .= $wav['data'].$silence($pauses[$index] + ($index === $count - 1 ? $tail : 0.0));
             $timings[] = ['start' => round($start, 3), 'end' => round(strlen($data) / $bytesPerSecond, 3)];
         }
 
-        $duration = strlen($data) / ($format['rate'] * $format['channels'] * 2);
-
-        // Club : une voix plus courte que la durée minimale fait écrire un nouveau script (essai compté).
-        if ($video->isClub() && $duration < (int) config('videos.club.min_seconds')) {
-            $disk->deleteDirectory($video->folder().'/voice');
-            $attempts = $video->attempts + 1;
-            $video->update([
-                'status' => $attempts >= (int) config('videos.max_attempts') ? LessonVideo::FAILED : LessonVideo::PLANNED,
-                'script' => null,
-                'attempts' => $attempts,
-                'error' => 'Voix trop courte ('.(int) round($duration).' secondes, '.(int) config('videos.club.min_seconds').' au moins) : nouveau script.',
-                'next_attempt_at' => null,
-            ]);
-
-            return self::FAILED;
-        }
+        $duration = strlen($data) / $bytesPerSecond;
 
         $path = $video->folder().'/voice.wav';
         $disk->put($path, Loudness::normalize(self::wav($data, $format['rate'], $format['channels'])));

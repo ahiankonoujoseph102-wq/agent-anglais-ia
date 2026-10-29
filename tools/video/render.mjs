@@ -299,6 +299,12 @@ async function remote() {
                     // Rendue telle quelle à Talkami (aucun échec compté) : le passage suivant la reprendra.
                     log(`vidéo ${job.id} : arrêtée, ${error.message}. Elle sera reprise au prochain passage.`);
                     await api(job.release_url, { method: 'POST' }).catch(() => {});
+
+                    // Le workflow relance aussitôt un passage (autre machine) au lieu d'attendre le suivant.
+                    if (process.env.GITHUB_OUTPUT) {
+                        await writeFile(process.env.GITHUB_OUTPUT, 'released=1\n', { flag: 'a' });
+                    }
+
                     break;
                 }
 

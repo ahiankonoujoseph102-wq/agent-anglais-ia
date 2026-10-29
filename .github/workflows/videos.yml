@@ -16,9 +16,19 @@ on:
         type: choice
         options: ['3', '2', '1']
         default: '3'
+      partie:
+        description: 'Ce qu''il faut fabriquer'
+        type: choice
+        options: ['tout', 'club']
+        default: 'tout'
+      essai:
+        description: 'Numéro de l''essai (relance automatique du Club après une machine trop lente)'
+        type: string
+        default: '1'
 
+# Un passage « Club seulement » (relance automatique) n'attend pas la fin des vidéos de promotion du passage en cours.
 concurrency:
-  group: videos
+  group: videos-${{ inputs.partie || 'tout' }}
   cancel-in-progress: false
 
 permissions:
@@ -27,11 +37,14 @@ permissions:
 jobs:
   club:
     runs-on: ubuntu-latest
-    # Vidéo du Club (environ 3 minutes 30, rendu allégé : 432 × 768, 20 images par seconde) : 10 à 20 minutes sur
-    # une machine normale. Certaines machines de GitHub sont 7 fois plus lentes : après 250 images, render.mjs
-    # calcule la fin ; si elle dépasse 72 minutes, il s'arrête et rend la vidéo à Talkami (reprise au passage suivant)
-    # au lieu de brûler les minutes jusqu'à la limite.
+    # Vidéo du Club (3 minutes, rendu allégé : 396 × 704, 20 images par seconde) : environ 8 minutes sur une machine
+    # rapide, 15 sur le dépôt privé, 55 sur une machine lente. Certaines machines de GitHub sont 7 fois plus lentes :
+    # après 250 images, render.mjs calcule la fin ; si elle dépasse 72 minutes, il s'arrête, rend la vidéo à Talkami
+    # et un nouveau passage « Club seulement » est lancé aussitôt (autre machine), 3 essais au plus.
     timeout-minutes: 80
+    permissions:
+      contents: read
+      actions: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -72,9 +85,20 @@ jobs:
           VIDEO_COUNT: '1'
           VIDEO_BUDGET_MINUTES: '72'
           CHROME_PATH: /usr/bin/google-chrome
+        id: make
         run: node render.mjs
 
+      - name: Relancer sur une autre machine
+        if: steps.make.outputs.released == '1' && fromJSON(inputs.essai || '1') < 3
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ESSAI: ${{ inputs.essai || '1' }}
+        run: |
+          gh workflow run videos.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME" -f partie=club -f count=1 -f essai=$((ESSAI + 1))
+          echo "Machine trop lente : nouveau passage « Club seulement » lancé (essai $((ESSAI + 1)) sur 3)."
+
   promotion:
+    if: (inputs.partie || 'tout') != 'club'
     runs-on: ubuntu-latest
     # Limite d'un passage : 50 minutes. render.mjs ne commence pas une vidéo qu'il n'aurait pas le temps de finir
     # (VIDEO_BUDGET_MINUTES) : elle attend le passage suivant.
