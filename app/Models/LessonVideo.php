@@ -83,7 +83,8 @@ class LessonVideo extends Model
 
     public function isClub(): bool
     {
-        return $this->kind === self::CLUB;
+        // Lu sans passer par l'attribut : les vidéos de présentation (même modèle, autre table) n'ont pas de « kind ».
+        return ($this->getAttributes()['kind'] ?? null) === self::CLUB;
     }
 
     /** Thème du jour d'une vidéo du Club (« Le son difficile »…), repli du lundi compris. */

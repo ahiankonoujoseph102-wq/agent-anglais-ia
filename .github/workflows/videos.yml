@@ -1,5 +1,6 @@
 # Vidéos de leçon de Teacher Joe : fabrication (Chromium sans écran + ffmpeg) des vidéos dont la voix est prête sur
 # Talkami, puis dépôt dans le bucket privé. Deux passages par jour, et à la demande (Actions, Run workflow).
+# Deux travaux en parallèle : la vidéo du Club des abonnés (seule, plus de temps), puis les vidéos de promotion.
 # Secret : TALKAMI_VIDEO_TOKEN ; variable : TALKAMI_URL (Settings, Secrets and variables, Actions).
 name: Vidéos de Teacher Joe
 
@@ -11,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       count:
-        description: 'Nombre de vidéos à fabriquer'
+        description: 'Nombre de vidéos de promotion à fabriquer (la vidéo du Club a son propre travail)'
         type: choice
         options: ['3', '2', '1']
         default: '3'
@@ -24,7 +25,56 @@ permissions:
   contents: read
 
 jobs:
-  fabriquer:
+  club:
+    runs-on: ubuntu-latest
+    # Vidéo du Club (environ 3 minutes 30, rendu allégé : 432 × 768, 20 images par seconde) : 10 à 20 minutes sur
+    # une machine normale. Certaines machines de GitHub sont 7 fois plus lentes : après 250 images, render.mjs
+    # calcule la fin ; si elle dépasse 72 minutes, il s'arrête et rend la vidéo à Talkami (reprise au passage suivant)
+    # au lieu de brûler les minutes jusqu'à la limite.
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            public
+            tools/video
+            resources/pdf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Combien de vidéos attendent ?
+        id: peek
+        working-directory: tools/video
+        env:
+          TALKAMI_URL: ${{ vars.TALKAMI_URL }}
+          TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
+          VIDEO_KIND: club
+          VIDEO_PEEK: '1'
+        run: |
+          npm install --no-audit --no-fund --silent
+          node render.mjs
+
+      - name: Installer ffmpeg
+        if: steps.peek.outputs.waiting != '0'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+
+      - name: Fabriquer les vidéos
+        if: steps.peek.outputs.waiting != '0'
+        working-directory: tools/video
+        env:
+          TALKAMI_URL: ${{ vars.TALKAMI_URL }}
+          TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
+          VIDEO_KIND: club
+          VIDEO_COUNT: '1'
+          VIDEO_BUDGET_MINUTES: '72'
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node render.mjs
+
+  promotion:
     runs-on: ubuntu-latest
     # Limite d'un passage : 50 minutes. render.mjs ne commence pas une vidéo qu'il n'aurait pas le temps de finir
     # (VIDEO_BUDGET_MINUTES) : elle attend le passage suivant.
@@ -47,6 +97,7 @@ jobs:
         env:
           TALKAMI_URL: ${{ vars.TALKAMI_URL }}
           TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
+          VIDEO_KIND: promo
           VIDEO_PEEK: '1'
         run: |
           npm install --no-audit --no-fund --silent
@@ -64,6 +115,7 @@ jobs:
         env:
           TALKAMI_URL: ${{ vars.TALKAMI_URL }}
           TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
+          VIDEO_KIND: promo
           VIDEO_COUNT: ${{ inputs.count || '3' }}
           VIDEO_BUDGET_MINUTES: '42'
           CHROME_PATH: /usr/bin/google-chrome

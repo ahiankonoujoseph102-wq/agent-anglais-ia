@@ -63,7 +63,7 @@
                 <div class="voice-actions video-redo">
                     <form method="POST" action="{{ route('admin.videos.redo', $video) }}">
                         @csrf
-                        <button type="submit" class="btn btn-light"><x-icon name="refresh" /> Refaire la vidéo</button>
+                        <button type="submit" class="btn btn-light"><x-icon name="refresh" /> Refaire la vidéo (nouveau script)</button>
                     </form>
                     @if ($video->status === \App\Models\LessonVideo::FAILED)
                         <form method="POST" action="{{ route('admin.videos.retry', $video) }}">

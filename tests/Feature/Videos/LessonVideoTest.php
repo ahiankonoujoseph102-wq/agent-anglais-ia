@@ -349,11 +349,16 @@ class LessonVideoTest extends TestCase
         $this->assertMatchesRegularExpression('/^on:\n  pull_request:\n\n/m', $tests);
         $this->assertStringNotContainsString('push:', $tests);
 
+        // Deux travaux : le Club (seul, 80 minutes, arrêt anticipé avant 72) et la promotion (50 minutes, 42).
         $videos = (string) file_get_contents(base_path('.github/workflows/videos.yml'));
-        $this->assertStringContainsString('timeout-minutes: 50', $videos);
-        $this->assertMatchesRegularExpression("/VIDEO_BUDGET_MINUTES: '(\\d+)'/", $videos);
-        preg_match("/VIDEO_BUDGET_MINUTES: '(\\d+)'/", $videos, $budget);
-        $this->assertLessThan(50, (int) $budget[1]);
+        [$club, $promo] = explode('  promotion:', explode("\njobs:\n", $videos)[1]);
+
+        foreach ([[$club, 80, 'club'], [$promo, 50, 'promo']] as [$job, $timeout, $kind]) {
+            $this->assertStringContainsString("timeout-minutes: {$timeout}", $job);
+            $this->assertStringContainsString("VIDEO_KIND: {$kind}", $job);
+            preg_match("/VIDEO_BUDGET_MINUTES: '(\\d+)'/", $job, $budget);
+            $this->assertLessThan($timeout - 5, (int) $budget[1]);
+        }
 
         $render = (string) file_get_contents(base_path('tools/video/render.mjs'));
         $this->assertStringContainsString('/api/videos/travaux?limit=1', $render);

@@ -63,6 +63,53 @@ export function gainFor(measured, audio) {
     return Math.round(Math.min(24, Math.max(-12, audio.target_lufs - measured + (audio.limiter_makeup_db ?? 0))) * 10) / 10;
 }
 
+/**
+ * Chaîne du son d'une vidéo : passage à 48 kHz D'ABORD (le limiteur voit alors les crêtes telles qu'elles seront
+ * jouées), compresseur léger, gain, limiteur, silence jusqu'à la fin de l'image.
+ */
+export function audioFilter(audio, gainDb, limit = audio.limit) {
+    return `aresample=${audio.rate ?? 48000},${AUDIO_PRE},volume=${gainDb}dB,alimiter=limit=${limit}:attack=3:release=60:level=false,apad`;
+}
+
+/**
+ * Son mesuré après l'encodage : null s'il est bon (sonie à « tolerance_lu » près, crête vraie sous « max_peak_db »),
+ * sinon le nouveau gain et le nouveau plafond du limiteur pour refaire le son seul.
+ * @returns {{gainDb: number, limit: number}|null}
+ */
+export function soundFix(sound, audio, gainDb, limit = audio.limit) {
+    const maxPeak = audio.max_peak_db ?? -1;
+    const tolerance = audio.tolerance_lu ?? 1;
+
+    if (sound.lufs === null || sound.peak === null) {
+        return null;
+    }
+
+    const peakOk = sound.peak <= maxPeak;
+    const loudOk = Math.abs(sound.lufs - audio.target_lufs) <= tolerance;
+
+    if (peakOk && loudOk) {
+        return null;
+    }
+
+    // Crête trop haute : plafond baissé d'autant, plus une marge d'un demi-décibel ; sonie : gain corrigé.
+    const nextLimit = peakOk ? limit : limit * 10 ** ((maxPeak - 0.5 - sound.peak) / 20);
+    const nextGain = gainDb + (audio.target_lufs - sound.lufs);
+
+    return { gainDb: Math.round(Math.min(30, Math.max(-12, nextGain)) * 10) / 10, limit: Math.round(Math.max(0.3, Math.min(1, nextLimit)) * 1000) / 1000 };
+}
+
+/**
+ * Après « after » images, la vidéo finira-t-elle avant « deadline » (heure, en millisecondes) ? Faux si la
+ * projection dépasse : inutile de brûler des minutes pour être coupé par la limite de GitHub.
+ */
+export function willFinish(started, now, count, frames, deadline, after = 250) {
+    if (!deadline || count < after || count === 0) {
+        return true;
+    }
+
+    return started + ((now - started) / count) * frames <= deadline;
+}
+
 /** Durée d'un WAV PCM 16 bits, lue dans son en-tête. */
 export async function audioDuration(file) {
     const bytes = await readFile(file);
