@@ -6,6 +6,8 @@
     use App\Support\Seo;
 
     $article = view($guide->view())->render();
+    // Sommaire : une ancre sur chaque partie (h2), la liste en haut du guide.
+    ['html' => $article, 'items' => $toc] = \App\Support\GuideToc::build($article);
     $minutes = max(1, (int) round(str_word_count(strip_tags($article), 0, 'àâäçéèêëîïôöùûüÿœæÀÂÇÉÈÊÎÔÙÛŒ\'’-') / 200));
 @endphp
 
@@ -20,6 +22,17 @@
             <p class="muted small">Publié le {{ $guide->published->translatedFormat('j F Y') }} par {{ config('platform.name') }} · Lecture : {{ $minutes }} {{ $minutes > 1 ? 'minutes' : 'minute' }}</p>
             <x-top-cta class="guide-top-cta" />
         </header>
+
+        @if (count($toc) > 1)
+            <nav class="card guide-toc" aria-labelledby="sommaire" id="sommaire-guide">
+                <h2 id="sommaire" class="guide-toc-title"><x-icon name="list" /> Dans ce guide</h2>
+                <ol>
+                    @foreach ($toc as $anchor => $title)
+                        <li><a href="#{{ $anchor }}">{{ preg_replace('/^\d+\.\s*/u', '', $title) }}</a></li>
+                    @endforeach
+                </ol>
+            </nav>
+        @endif
 
         <div class="guide-body">
             {!! $article !!}

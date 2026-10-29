@@ -1930,7 +1930,6 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .country-hero .lead { font-size: var(--fs-base); }
 }
 
-/* ==========================================================================
    Fond léger des pages publiques autres que l'accueil (refonte, point 5) : deux formes floues en CSS, aucune image ni
    requête en plus. Immobiles sur téléphone (fluidité) ; dérive lente seulement à partir de 900 pixels, coupée par
    « réduire les animations ». Seulement transform (aucun recalcul de la page).
@@ -1947,3 +1946,16 @@ body.page-public main::after { width: 260px; height: 260px; top: 260px; left: -1
     body.page-public main::before { animation: drift 26s ease-in-out infinite alternate; }
     body.page-public main::after { animation: drift 32s ease-in-out -6s infinite alternate-reverse; }
 }
+=======
+/* Repères de navigation des pages publiques (refonte, point 4) : « Vous êtes ici », retour en haut, sommaire des guides. */
+.page-crumb { margin: 0 0 var(--space-2); }
+.back-top { margin: var(--space-6) 0 0; text-align: center; font-size: var(--fs-sm); }
+.back-top a { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 44px; }
+.back-top .icon { transform: rotate(-90deg); width: 18px; height: 18px; }
+.guide-toc { margin: var(--space-4) 0; }
+.guide-toc-title { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-2); font-size: var(--fs-md); }
+.guide-toc-title .icon { color: var(--c-accent-strong); }
+.guide-toc ol { margin: 0; padding-left: 1.4em; display: grid; gap: var(--space-1); }
+.guide-toc li { padding: 5px 0; line-height: 1.45; }
+.guide-body h2 { scroll-margin-top: 80px; }
+/* ===================================================================
