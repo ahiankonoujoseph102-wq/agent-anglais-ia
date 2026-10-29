@@ -7,6 +7,7 @@ use App\Support\Live\LiveLog;
 use App\Support\Live\LiveProviders;
 use App\Support\Live\LiveUnavailable;
 use App\Support\Live\OpenAiRealtime;
+use App\Support\Live\TrialCalls;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -56,8 +57,10 @@ class RealtimeCallController extends Controller
                 $openai->hangup((string) $previous);
             }
         } else {
-            // Essai de l'administrateur (diagnostic) : raccroché au plus tard à la fin des secondes prévues.
+            // Essai de l'administrateur (diagnostic, « Écouter en séance ») : raccroché à la fin des secondes prévues.
             Cache::put('live-trial-call:'.$request->user()->id, ['call_id' => $call['call_id'], 'ends_at' => now()->addSeconds((int) $data['trial_seconds'])->getTimestamp()], now()->addMinutes(10));
+            // Raccroché par le serveur même si la page est fermée sans rien dire (live:close-stale).
+            TrialCalls::remember((string) $call['call_id'], now()->addSeconds((int) $data['trial_seconds'])->getTimestamp());
         }
 
         return response()->json(['sdp' => $call['sdp']]);
