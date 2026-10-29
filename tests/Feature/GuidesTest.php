@@ -102,7 +102,7 @@ class GuidesTest extends TestCase
         preg_match_all('/<ol class="errors"[^>]*>(.*?)<\/ol>/s', $this->get('/guides/erreurs-anglais-francophones')->getContent(), $lists);
         $this->assertSame(20, array_sum(array_map(fn (string $list) => substr_count($list, '<li>'), $lists[1])));
 
-        $this->assertSame(10, preg_match_all('/<h2>\d+\. /', $this->get('/guides/entretien-en-anglais-questions')->getContent()));
+        $this->assertSame(10, preg_match_all('/<h2 id="partie-[^"]+">\d+\. /', $this->get('/guides/entretien-en-anglais-questions')->getContent()));
     }
 
     public function test_landing_pages_show_their_questions_as_structured_data_and_never_promise(): void

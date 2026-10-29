@@ -320,15 +320,25 @@ final class Seo
     public static function currentBreadcrumbs(?Request $request = null): ?array
     {
         $request ??= request();
+        $crumb = self::currentCrumb($request);
+
+        return $crumb !== null ? self::breadcrumbs([$crumb => '/'.ltrim($request->path(), '/')]) : null;
+    }
+
+    /**
+     * Nom de la page publique affichée dans le fil d'Ariane (« Formules », titre d'une page pays), ou null : accueil,
+     * guides (qui ont le leur), page non publique.
+     */
+    public static function currentCrumb(?Request $request = null): ?string
+    {
+        $request ??= request();
         $route = $request->route()?->getName();
 
         if ($route === 'country') {
-            $page = CountryPage::find((string) $request->route('country'));
-
-            return $page !== null ? self::breadcrumbs([$page->heading => '/'.ltrim($request->path(), '/')]) : null;
+            return CountryPage::find((string) $request->route('country'))?->heading;
         }
 
-        return isset(self::CRUMBS[$route]) ? self::breadcrumbs([self::CRUMBS[$route] => '/'.ltrim($request->path(), '/')]) : null;
+        return self::CRUMBS[$route] ?? null;
     }
 
     /**

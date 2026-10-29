@@ -1929,3 +1929,15 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .country-hero .students { padding: var(--space-4); }
     .country-hero .lead { font-size: var(--fs-base); }
 }
+
+/* Repères de navigation des pages publiques (refonte, point 4) : « Vous êtes ici », retour en haut, sommaire des guides. */
+.page-crumb { margin: 0 0 var(--space-2); }
+.back-top { margin: var(--space-6) 0 0; text-align: center; font-size: var(--fs-sm); }
+.back-top a { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 44px; }
+.back-top .icon { transform: rotate(-90deg); width: 18px; height: 18px; }
+.guide-toc { margin: var(--space-4) 0; }
+.guide-toc-title { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-2); font-size: var(--fs-md); }
+.guide-toc-title .icon { color: var(--c-accent-strong); }
+.guide-toc ol { margin: 0; padding-left: 1.4em; display: grid; gap: var(--space-1); }
+.guide-toc li { padding: 5px 0; line-height: 1.45; }
+.guide-body h2 { scroll-margin-top: 80px; }
