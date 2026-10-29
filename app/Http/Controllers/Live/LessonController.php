@@ -173,7 +173,11 @@ class LessonController extends Controller
         $warningMinutes = (int) config('platform.lessons.warning_minutes_before_end');
 
         return response()->json($live->attach($lesson, $token, $setup, [
-            'start' => TeacherSetup::cue('lesson_start', ['minutes' => $minutes, 'duration_note' => self::durationNote($minutes, $subscription?->daily_minutes ?? $minutes)]),
+            'start' => TeacherSetup::cue('lesson_start', [
+                'minutes' => $minutes,
+                'duration_note' => self::durationNote($minutes, $subscription?->daily_minutes ?? $minutes),
+                'welcome_note' => self::isFirstPaidLesson($lesson) ? TeacherSetup::cue('first_paid_lesson') : '',
+            ]),
             'resume' => TeacherSetup::cue('resume'),
             'warning' => TeacherSetup::cue('lesson_warning', ['remaining' => $warningMinutes]),
             // Séance en quatre temps : reprise selon l'étape en cours, et une seule relance douce vers la conversation.
@@ -272,6 +276,26 @@ class LessonController extends Controller
         return $minutes < $dailyMinutes
             ? ', and add in French: « C\'est le temps qu\'il vous reste aujourd\'hui. »'
             : '';
+    }
+
+    /**
+     * Première séance d'une formule PAYÉE (ni accès offert, ni mois d'ambassadeur) : Teacher Joe félicite et remercie
+     * en une phrase, puis dit en deux phrases comment se passe la séance. Une seule fois par formule : une séance
+     * déjà tenue (au moins held_seconds) sur cette formule l'arrête ; un renouvellement est une nouvelle formule.
+     */
+    private static function isFirstPaidLesson(Lesson $lesson): bool
+    {
+        $subscription = $lesson->subscription;
+
+        if ($subscription === null || $subscription->granted_days !== null || $subscription->ambassador_id !== null) {
+            return false;
+        }
+
+        return ! Lesson::query()
+            ->where('subscription_id', $subscription->id)
+            ->whereKeyNot($lesson->id)
+            ->where('used_seconds', '>=', WorkingTogether::heldSeconds())
+            ->exists();
     }
 
     /**
