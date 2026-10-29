@@ -14,6 +14,7 @@ use App\Support\Videos\OldAddress;
 use App\Support\Videos\PresentationScripts;
 use App\Support\Videos\VideoSettings;
 use App\Support\Videos\VideoVoice;
+use Carbon\CarbonInterface;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
@@ -214,7 +215,7 @@ class VoiceSampler
                 $failure = $e;
 
                 if ($e->kind === SpeechFailed::QUOTA_DAILY) {
-                    Cache::put(self::exhaustedKey($index), true, now()->endOfDay());
+                    Cache::put(self::exhaustedKey($index), true, self::quotaResetsAt());
                 }
 
                 if ($last || ! self::switchesKey($e)) {
@@ -248,6 +249,16 @@ class VoiceSampler
     {
         return in_array($e->kind, [SpeechFailed::QUOTA, SpeechFailed::QUOTA_DAILY, SpeechFailed::TIMEOUT, SpeechFailed::CONNECTION, SpeechFailed::NO_AUDIO], true)
             || ($e->kind === SpeechFailed::HTTP && ($e->status === null || $e->status >= 500 || in_array($e->status, [400, 401, 403], true)));
+    }
+
+    /**
+     * Fin de la journée de quota de Google : minuit, heure du Pacifique (« Requests per day … reset at midnight
+     * Pacific time », documentation des limites de l'API Gemini), soit 7 ou 8 heures du matin à Lomé. Avant : minuit à
+     * Lomé, et une clé à sa limite à 2 heures du matin restait mise de côté toute la journée suivante.
+     */
+    public static function quotaResetsAt(): CarbonInterface
+    {
+        return now('America/Los_Angeles')->endOfDay();
     }
 
     private static function exhaustedKey(int $index): string

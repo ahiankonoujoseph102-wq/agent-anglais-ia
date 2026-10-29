@@ -72,7 +72,11 @@ class PresentationVideos
 
             $hash = PresentationScripts::hash($script);
             $disk = PrivateStorage::disk();
-            $voiceReady = $video->audio_path !== null && $video->script_hash === $hash && $disk->exists($video->audio_path);
+            // Voix gardée seulement si elle est celle choisie aujourd'hui (« Essai des voix » : voix des vidéos et
+            // des messages de Teacher Rose, essai comparatif de Teacher Joe) ; sinon la vidéo est redite.
+            $current = VideoVoice::current($video->teacher());
+            $voiceReady = $video->audio_path !== null && $video->script_hash === $hash && $disk->exists($video->audio_path)
+                && ($current === null || [$video->voice_provider, $video->voice_name] === [$current['provider'], $current['voice']]);
 
             if (! $voiceReady && $video->audio_path !== null) {
                 // Texte changé : l'ancienne voix n'est plus jamais utilisée.

@@ -75,6 +75,9 @@ return [
                 'Despina' => 'Smooth',
                 'Erinome' => 'Clear',
                 'Vindemiatrix' => 'Gentle',
+                // Voix des vidéos et des messages choisie le 29 octobre 2026 : proposée aussi en séance, à écouter d'abord
+                // avec « Écouter en séance » (le modèle des séances n'est pas celui de la synthèse vocale).
+                'Zephyr' => 'Bright',
             ],
             'realtime_setting' => 'teacher_realtime_voice.rose',
             'realtime_voice' => 'marin',

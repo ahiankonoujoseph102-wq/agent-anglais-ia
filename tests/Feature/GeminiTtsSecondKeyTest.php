@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Support\Gemini\SpeechFailed;
 use App\Support\Gemini\SpeechLog;
 use App\Support\Gemini\VoiceSampler;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -68,6 +69,29 @@ class GeminiTtsSecondKeyTest extends TestCase
 
         // Première demande : principale (refusée pour la journée), puis deuxième ; ensuite : deuxième directement.
         $this->assertSame(['principale', 'deuxième', 'deuxième'], $this->keysSent());
+    }
+
+    public function test_a_key_at_its_limit_comes_back_when_google_resets_the_quota_at_midnight_pacific_time(): void
+    {
+        config(['app.timezone' => 'Africa/Lome']);
+        $this->answers[self::MAIN] = 429;
+        $sampler = app(VoiceSampler::class);
+
+        // 2 heures du matin à Lomé (19 heures la veille en Californie) : clé principale à sa limite.
+        $this->travelTo(Carbon::parse('2026-10-29 02:00', 'Africa/Lome'));
+        $sampler->synthesize('Achird', 'Un.', 'calme');
+
+        // 6 heures 59 à Lomé : la journée de quota de Google n'est pas finie, la clé reste de côté.
+        $this->travelTo(Carbon::parse('2026-10-29 06:59', 'Africa/Lome'));
+        $sampler->synthesize('Achird', 'Deux.', 'calme');
+
+        // 7 heures 01 à Lomé (minuit passé en Californie) : la clé principale est essayée de nouveau, la même journée à
+        // Lomé (avant : seulement le lendemain à minuit, une journée de limite perdue).
+        $this->answers[self::MAIN] = 200;
+        $this->travelTo(Carbon::parse('2026-10-29 07:01', 'Africa/Lome'));
+        $sampler->synthesize('Achird', 'Trois.', 'calme');
+
+        $this->assertSame(['principale', 'deuxième', 'deuxième', 'principale'], $this->keysSent());
     }
 
     public function test_without_a_second_key_the_failure_is_reported_as_before(): void

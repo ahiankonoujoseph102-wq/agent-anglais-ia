@@ -6,6 +6,12 @@
 
 
 
+## Chantier en cours : présentations de Teacher Rose redites avec Zephyr (29 octobre 2026, branche `claude/rose-presentations-zephyr`)
+
+- **Décision du fondateur** : Zephyr (Gemini) pour les vidéos et les messages de Teacher Rose. Correction de l'adresse (#154) vérifiée : fusionnée, en ligne (talkami.laravel.cloud répond 301 vers talkami.net).
+- **Fait** : vidéos de présentation regroupées en quelques demandes (`VoiceSplitter`, comme le Club : 9 demandes au lieu de 105 pour les 7 vidéos de Teacher Rose) ; une présentation attend la voix choisie au lieu de passer à une autre voix ; une voix gardée qui n'est plus la voix choisie est redite ; clé Gemini à sa limite remise à minuit, heure du Pacifique (7 heures à Lomé jusqu'au 1er novembre, 8 heures ensuite), plus à minuit à Lomé ; migration `revoice_rose_presentations` : les 7 « rose-… » repartent en préparation au déploiement ; Zephyr proposée aussi en séance (voix par défaut inchangée : Sulafat).
+- **Au fondateur** : page « Vidéos », attendre que les 7 vidéos de Teacher Rose affichent « Voix prête » (Voix : Zephyr), puis GitHub → Actions → « Vidéos de présentation » → « Run workflow » → « Teacher Rose seulement ». Une ou plusieurs encore « Voix à préparer » : attendre le lendemain matin (après 7 heures à Lomé).
+
 ## Chantier en cours : clarté des voix de Teacher Rose (29 octobre 2026, branche `claude/rose-voix-francais`)
 
 - **Fait** : comparaison Teacher Joe / Teacher Rose (même modèle, aucun réglage de langue chez les fournisseurs, ton déjà au féminin sauf la vidéo « Rendez-vous ce soir », consigne de prononciation française seulement après le choix de la voix, nombres en chiffres dans ses messages) : corrigé ; mesure de clarté dans « Essai des voix ». Aucune vidéo refaite.

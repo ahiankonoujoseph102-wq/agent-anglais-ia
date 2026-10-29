@@ -44,7 +44,14 @@ class PresentationVideoTest extends TestCase
         VideoSettings::saveSite('talkami.net');
 
         Http::fake([
-            '*/interactions' => fn (Request $request) => Http::response(['steps' => [['type' => 'model_output', 'content' => [['type' => 'audio', 'mime_type' => 'audio/l16;codec=pcm;rate=24000', 'data' => base64_encode(str_repeat("\x10\x00", 12000))]]]]]),
+            // Une demande peut dire plusieurs phrases (séparées par un saut de paragraphe) : 0,5 seconde de voix par
+            // phrase, 0,3 seconde de silence entre deux, comme une vraie voix que VoiceSplitter recoupe.
+            '*/interactions' => function (Request $request) {
+                $phrases = substr_count((string) ($request['input'][0]['content'][0]['text'] ?? ''), "\n\n") + 1;
+                $pcm = implode(str_repeat("\x00\x00", 7200), array_fill(0, $phrases, str_repeat("\x00\x10", 12000)));
+
+                return Http::response(['steps' => [['type' => 'model_output', 'content' => [['type' => 'audio', 'mime_type' => 'audio/l16;codec=pcm;rate=24000', 'data' => base64_encode($pcm)]]]]]);
+            },
         ]);
     }
 
@@ -173,10 +180,11 @@ class PresentationVideoTest extends TestCase
         $video = PresentationVideo::query()->where('key', 'pub-marche')->firstOrFail();
         $this->assertSame(LessonVideo::VOICED, $video->status);
 
-        // Chaque partie de voix simulée dure 0,5 seconde ; « Réfléchissez… » est suivie de 2 secondes de silence.
+        // Phrases dites en une demande puis recoupées au milieu des silences : 0,5 seconde de voix et 0,15 seconde de
+        // silence de chaque côté ; « Réfléchissez… » est suivie de 2 secondes de silence en plus.
         $think = $video->timings['segments'][1];
-        $this->assertEqualsWithDelta(2.5, $think['end'] - $think['start'], 0.01);
-        $this->assertEqualsWithDelta(0.5, $video->timings['segments'][0]['end'] - $video->timings['segments'][0]['start'], 0.01);
+        $this->assertEqualsWithDelta(0.8 + 2.0, $think['end'] - $think['start'], 0.03);
+        $this->assertEqualsWithDelta(0.65, $video->timings['segments'][0]['end'] - $video->timings['segments'][0]['start'], 0.03);
 
         $job = $videos->job($video);
         $this->assertSame('ad', $job['render']['layout']);
