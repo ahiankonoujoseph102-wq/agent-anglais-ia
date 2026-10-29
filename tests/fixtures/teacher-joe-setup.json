@@ -1,0 +1,66 @@
+{
+    "assessment.old": {
+        "length": 83729,
+        "sha256": "8786247ad60c7e271cc3361fba7dad9ed96e8463485f34b5c4654c0b05b4d301"
+    },
+    "assessment.new": {
+        "length": 83584,
+        "sha256": "b5ef75fd0373d53cede6b12cb94f96b0e306fe52f2508aa8e0c1ff5155681ec7"
+    },
+    "lesson.A1.first": {
+        "length": 81582,
+        "sha256": "1adbfe2b2f822bd15058582c0e8919e3e272b9ddf2b42d0cfa794c411479c335"
+    },
+    "lesson.B2.later": {
+        "length": 80261,
+        "sha256": "fbdfa7d5a75bf47f3f2ef41fb318285992ebdf46ad4786bfc12a98e79b95f758"
+    },
+    "lesson.without_programme": {
+        "length": 81286,
+        "sha256": "a7e1bd9511c51a281f4d03b18d8c64ad87e159f7c449fabcb3aceb66610327e0"
+    },
+    "course.A2": {
+        "length": 80708,
+        "sha256": "aebb59bcae0e10101389d6962458e4d29b10567b886d98f41f687fce861a616a"
+    },
+    "level_test.B1": {
+        "length": 59088,
+        "sha256": "1ff03ad50e317c4e821532ec916c3165f4b9b6c5b14bad3b5b29966a2f7cfd3a"
+    },
+    "trial": {
+        "length": 33535,
+        "sha256": "a5095dad386638b3deae693699e79a2cc7a57ff9277c68974ff93af9fc91a6ef"
+    },
+    "lesson.A1.chosen_voice": {
+        "length": 81582,
+        "sha256": "b5340c2c08c8ebaba5f35cfe93d69ff66605fb65accd82a6dec832d2dcf49aed"
+    },
+    "site_guide.all": {
+        "length": 22911,
+        "sha256": "1b927a8129fa47561166b780ad78eef40cee1bd9ab09a9a25c3877810b36e15f"
+    },
+    "site_guide.assessment": {
+        "length": 20081,
+        "sha256": "2f7e9bca91ed8b04bd47386e53da1de1a61b8e60d58c5e1e0ece8732b2f27fff"
+    },
+    "site_guide.lesson": {
+        "length": 11201,
+        "sha256": "5a543e9fbefa914802e4ef17922ca17f64c5ee14850bafa43366039a9c2e58b4"
+    },
+    "site_guide.course": {
+        "length": 16266,
+        "sha256": "b0a83f900c587be7749fd04d8ee57c41601e5d90a6b2aaf2f4d088bb1dbe2ac3"
+    },
+    "site_guide.level_test": {
+        "length": 9507,
+        "sha256": "356ededf7d853857064a487a739dbace0313656f4b20718a658c0f8895843c16"
+    },
+    "site_guide.trial": {
+        "length": 6677,
+        "sha256": "40bbc5b78244f5dd1a9f8c174e80f6db1577afff37598db783e676ded7ea79b2"
+    },
+    "cue.lesson_start": {
+        "length": 340,
+        "sha256": "486f0d5b942748e83c6e34e871796986ceaf07e7bf45c997a8f8aa3bd75e37c0"
+    }
+}
