@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Teachers;
 
+use App\Models\LessonVideo;
+use App\Models\PresentationVideo;
 use App\Models\User;
 use App\Support\Gemini\VoiceSampler;
 use App\Support\Speech\SpeechProviders;
@@ -133,6 +135,14 @@ class TeacherRoseSpeechVoiceTest extends TestCase
         $this->assertNull($joe->speechVoice());
         $this->assertSame('gemini', SpeechProviders::configured($joe)[0]->name());
         $this->assertSame('Lis calmement.', $joe->speechStyle('Lis calmement.'));
+    }
+
+    public function test_each_video_card_says_which_voice_spoke_it(): void
+    {
+        PresentationVideo::create(['key' => 'talkami', 'title' => 'Talkami en 5 minutes', 'status' => LessonVideo::READY, 'script' => ['segments' => []], 'caption' => 'Texte', 'voice_provider' => 'openai', 'voice_name' => 'cedar']);
+
+        $this->actingAs(User::factory()->admin()->create())->get(route('admin.videos.index'))
+            ->assertOk()->assertSee('Voix : cedar (OpenAI)');
     }
 
     public function test_a_voice_that_is_not_proposed_cannot_be_chosen(): void

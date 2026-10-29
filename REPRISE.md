@@ -6,6 +6,12 @@
 
 
 
+## Chantier en cours : voix française de Teacher Rose (29 octobre 2026, branche `claude/amazing-bohr-sizyh1`)
+
+- **Fait** : voir CLAUDE.md, feuille de route, « Voix de Teacher Rose en français ». Aucune vidéo refaite ; exécution n° 5 non touchée.
+- **Au fondateur** : « Essai des voix » → onglet Teacher Rose → « Voix des vidéos et des messages : test en français et en anglais » → « Préparer les extraits manquants » (retoucher s'il en reste ; Gemini : 10 demandes par jour et par clé, deuxième clé d'abord), écouter, « Choisir pour les vidéos et les messages ». Puis « Diagnostic de la voix » → « Préparer le message de bienvenue ». Ensuite seulement, avec son accord : refaire ses vidéos de présentation (« Refaire cette vidéo », puis GitHub « Teacher Rose seulement »).
+- **Pas encore fait** : si aucune voix ne convient en français, solution proposée dans le compte rendu (voir la discussion) ; rien de codé.
+
 ## Chantier en cours : ancienne adresse dans les vidéos, professeur des présentations (29 octobre 2026, branche `claude/amazing-bohr-sizyh1`)
 
 - **Fait** : voir CLAUDE.md, feuille de route, « Ancienne adresse dans les vidéos et professeur des présentations ». Aucune vidéo refaite (décision du fondateur : seulement avec son accord) ; exécution n° 5 de « Vidéos de présentation » (rose-grande, rose-courtes) non touchée : ses travaux étaient déjà chargés, ses vidéos diront et afficheront l'ancienne adresse.
