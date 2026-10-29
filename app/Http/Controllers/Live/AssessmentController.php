@@ -72,11 +72,13 @@ class AssessmentController extends Controller
      */
     public function voice(Request $request, LevelMessage $message): Response
     {
-        $level = $request->user()->assessment()->first()?->level;
+        $assessment = $request->user()->assessment()->first();
+        $level = $assessment?->level;
 
         abort_if($level === null, 404);
 
-        $wav = $message->get($level);
+        // Dit par le professeur de l'évaluation.
+        $wav = $message->get($level, $assessment->teacher());
 
         abort_if($wav === null, 503, 'Le message vocal n\'est pas disponible pour le moment.');
 
@@ -93,14 +95,15 @@ class AssessmentController extends Controller
      */
     public function voiceStatus(Request $request): JsonResponse
     {
-        $level = $request->user()->assessment()->first()?->level;
+        $assessment = $request->user()->assessment()->first();
+        $level = $assessment?->level;
 
         abort_if($level === null, 404);
 
-        $ready = LevelMessage::ready($level);
+        $ready = LevelMessage::ready($level, $assessment->teacher());
 
         if (! $ready) {
-            LevelMessage::queue($level);
+            LevelMessage::queue($level, $assessment->teacher());
         }
 
         return response()->json(['ready' => $ready]);
@@ -240,7 +243,7 @@ class AssessmentController extends Controller
         // Moment des questions libres et conclusion (seulement si la conversation est encore ouverte).
         $assessment->startQuestions();
         // Message vocal du résultat : prêt quand l'apprenant arrive sur la page de résultat.
-        LevelMessage::queue($assessment->level);
+        LevelMessage::queue($assessment->level, $assessment->teacher());
 
         return response()->json([
             'level' => $assessment->level->value,

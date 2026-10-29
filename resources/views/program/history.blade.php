@@ -68,6 +68,10 @@
             @endif
             @if ($lesson->summary)
                 <p>{{ $lesson->summary }}</p>
+                {{-- Plusieurs professeurs proposés : le résumé est signé par le professeur de la séance. --}}
+                @if (\App\Support\Teachers\Teachers::hasChoice())
+                    <p class="muted small">Résumé de {{ $lesson->teacher()->name() }}</p>
+                @endif
             @else
                 <p class="muted">Pas de résumé pour cette séance (interrompue avant la fin).</p>
             @endif
@@ -88,7 +92,7 @@
             <p>Aucune séance pour le moment.</p>
             <div class="actions">
                 @if (auth()->user()->activeSubscription && auth()->user()->activeProgram)
-                    <a href="{{ route('lesson.show') }}" class="btn btn-accent btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
+                    <a href="{{ route('lesson.show') }}" class="btn btn-accent btn-block"><x-icon name="mic" /> Parler avec {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }}</a>
                 @else
                     <a href="{{ route('dashboard') }}" class="btn btn-accent btn-block"><x-icon name="arrow-right" /> Aller à mon espace</a>
                 @endif

@@ -350,7 +350,7 @@ class TeacherRoseTest extends TestCase
         // Léger sourire et regard ouvert, même quand elle ne parle pas ; la bouche animée reste là.
         $this->assertStringContainsString('class="face-smile"', $face);
         $this->assertStringContainsString('class="face-shine"', $face);
-        $this->assertStringContainsString('id="mouth"', $face);
+        $this->assertStringContainsString('id="{{ $mouthId ?? \'mouth\' }}"', $face);
         $this->assertGreaterThan(config('avatar.model.resting_smile'), config('avatar.rose.resting_smile'));
     }
 

@@ -2,6 +2,8 @@
 
 namespace App\Support\Speech;
 
+use App\Support\Teachers\Teacher;
+
 /**
  * Les fournisseurs de synthèse vocale, dans l'ordre de config/services.php → tts.providers (TTS_PROVIDERS,
  * « gemini,openai » par défaut) : le premier d'abord, le suivant en secours. Un nom inconnu est ignoré ;
@@ -16,20 +18,21 @@ final class SpeechProviders
     ];
 
     /**
-     * Tous les fournisseurs connus, même absents de l'ordre (leurs fichiers restent valables).
+     * Tous les fournisseurs connus, même absents de l'ordre (leurs fichiers restent valables), avec la voix de
+     * ce professeur (null : professeur par défaut).
      *
      * @return list<SpeechProvider>
      */
-    public static function all(): array
+    public static function all(?Teacher $teacher = null): array
     {
-        return array_map(fn (string $class) => app($class), array_values(self::CLASSES));
+        return array_map(fn (string $class) => app($class)->forTeacher($teacher), array_values(self::CLASSES));
     }
 
-    public static function find(?string $name): ?SpeechProvider
+    public static function find(?string $name, ?Teacher $teacher = null): ?SpeechProvider
     {
         $class = self::CLASSES[strtolower((string) $name)] ?? null;
 
-        return $class !== null ? app($class) : null;
+        return $class !== null ? app($class)->forTeacher($teacher) : null;
     }
 
     /**
@@ -37,11 +40,11 @@ final class SpeechProviders
      *
      * @return list<SpeechProvider>
      */
-    public static function configured(): array
+    public static function configured(?Teacher $teacher = null): array
     {
         $names = array_unique(array_map('strtolower', (array) config('services.tts.providers', [])));
 
-        return array_values(array_filter(array_map(fn (string $name) => self::find($name), $names)));
+        return array_values(array_filter(array_map(fn (string $name) => self::find($name, $teacher), $names)));
     }
 
     /**
@@ -49,9 +52,9 @@ final class SpeechProviders
      *
      * @return list<SpeechProvider>
      */
-    public static function available(): array
+    public static function available(?Teacher $teacher = null): array
     {
-        return array_values(array_filter(self::configured(), fn (SpeechProvider $provider) => $provider->hasKey()));
+        return array_values(array_filter(self::configured($teacher), fn (SpeechProvider $provider) => $provider->hasKey()));
     }
 
     /**
@@ -68,7 +71,7 @@ final class SpeechProviders
         $best = null;
         $bestScore = null;
 
-        foreach (self::configured() as $position => $provider) {
+        foreach (self::configured($message->teacher) as $position => $provider) {
             $ready = $message->readyCount($provider, $files);
 
             if ($total > 0 && $ready === $total) {

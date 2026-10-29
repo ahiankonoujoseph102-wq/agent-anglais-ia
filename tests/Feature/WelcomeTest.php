@@ -41,6 +41,9 @@ class WelcomeTest extends TestCase
     {
         parent::setUp();
 
+        // Mécanique de la préparation, avec Teacher Joe seul (Teacher Rose : tests/Feature/Teachers/TeacherRoseVoiceTest.php).
+        config(['teachers.list.rose.ready' => false]);
+
         Storage::fake('local');
         config(['filesystems.private_disk' => 'local', 'services.gemini.key' => 'cle-de-test', 'app.timezone' => 'Africa/Lome']);
     }

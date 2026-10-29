@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\CourseReview;
+use App\Support\Teachers\Teachers;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -51,6 +52,7 @@ class CourseReviewPdf
 
         $html = view('pdf.course-review', [
             'title' => 'Document de révision · '.config('platform.name'),
+            'teacher' => ($review->session?->teacher() ?? Teachers::default())->name(),
             'content' => $review->content,
             'learner' => (string) $review->user?->name,
             'date' => $date->locale('fr')->translatedFormat('j F Y'),

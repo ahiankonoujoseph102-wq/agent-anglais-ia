@@ -4,7 +4,8 @@
     orange foncé #B25512 sur fond clair. Police Sora (resources/pdf, OFL). Aucune marque d'intelligence artificielle.
 --}}
 @php
-    $teacher = config('avatar.model.name');
+    // Signé par le professeur de la séance (CourseReviewPdf::html).
+    $teacher ??= config('avatar.model.name');
 @endphp
 <!doctype html>
 <html lang="fr">

@@ -33,7 +33,8 @@ class TeacherChoiceController extends Controller
     }
 
     /**
-     * Page où revenir après le choix (« Changer » de la séance du jour ou d'une leçon de « Mes cours ») : seulement ces
+     * Page où revenir après le choix (« Changer » de la séance du jour ou d'une leçon de « Mes cours », page de
+     * bienvenue) : seulement ces
      * adresses du site, jamais une adresse extérieure.
      */
     public static function back(mixed $path): ?string
@@ -45,6 +46,11 @@ class TeacherChoiceController extends Controller
         // Adresse complète du site (formulaire) ou chemin seul (lien « Changer »).
         $root = rtrim(url('/'), '/');
         $path = str_starts_with($path, $root.'/') ? substr($path, strlen($root)) : $path;
+
+        // Page de bienvenue : elle se réécoute avec le professeur choisi.
+        if ($path === '/bienvenue' || $path === '/bienvenue?reecouter=1') {
+            return url('/bienvenue?reecouter=1');
+        }
 
         return preg_match('#^/(seance|mes-cours/\d+/seance)$#', $path) === 1 ? url($path) : null;
     }

@@ -1080,6 +1080,25 @@ main { overflow-x: clip; }
 .welcome-page .btn-link, .welcome-page .btn-link:hover { color: var(--c-on-dark); }
 .welcome-page .btn-light, .welcome-page .btn-light:hover, .welcome-page .btn-light:focus-visible { background: var(--c-on-dark-glow); color: var(--c-on-dark); border: 1px solid var(--c-on-dark-line); box-shadow: none; }
 .welcome-panel { display: grid; gap: var(--space-3); }
+/* « Avec qui voulez-vous travailler ? » : une ligne par professeur, compacte (le bouton d'écoute reste visible). */
+.welcome-choice { text-align: center; margin: 0 0 var(--space-2); }
+.welcome-choice h2 { color: var(--c-on-dark); font-size: var(--fs-base); margin: 0 0 var(--space-2); }
+.welcome-choice-list { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.welcome-choice-item { display: flex; align-items: center; justify-content: space-between; gap: var(--space-1); min-height: 48px; padding: 0 var(--space-1) 0 var(--space-2); border: 1px solid var(--c-on-dark-line); border-radius: var(--radius); }
+.welcome-choice-item.is-current { border-color: var(--c-accent); background: var(--c-on-dark-glow); }
+.welcome-choice-item form { flex: 1; min-width: 0; }
+.welcome-choice-name { margin: 0; color: var(--c-on-dark); display: flex; align-items: center; gap: var(--space-1); font-size: var(--fs-sm); text-align: left; }
+.welcome-choice-name .icon { color: var(--c-accent); }
+.welcome-choice-pick { background: none; border: 0; padding: 0; min-height: 44px; width: 100%; cursor: pointer; font: inherit; font-size: var(--fs-sm); color: var(--c-on-dark); text-decoration: underline; text-underline-offset: 3px; display: block; }
+.welcome-choice-voice { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--c-on-dark-line); background: var(--c-on-dark-glow); color: var(--c-on-dark); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.welcome-choice-note { color: var(--c-on-dark-muted); font-size: var(--fs-xs, .8rem); margin: var(--space-1) 0 0; }
+.welcome-page.has-choice .teacher-3d .teacher3d-stage { height: clamp(150px, 24dvh, 440px); }
+.js .welcome-page.has-choice[data-teacher="loading"] .teacher { min-height: clamp(150px, 24dvh, 440px); }
+.welcome-page.has-choice .face { width: min(170px, 50%); }
+@media (min-width: 900px) {
+    .welcome-page.has-choice .teacher-3d .teacher3d-stage { height: clamp(300px, 46dvh, 480px); }
+    .js .welcome-page.has-choice[data-teacher="loading"] .teacher { min-height: clamp(300px, 46dvh, 480px); }
+}
 .welcome-start { text-align: center; }
 .welcome-hint { color: var(--c-on-dark-muted); font-size: var(--fs-sm); margin: var(--space-2) 0 0; }
 .welcome-controls { display: flex; align-items: center; justify-content: center; gap: var(--space-3); }

@@ -134,6 +134,7 @@ Route::middleware('auth')->group(function () {
     // Bienvenue de Teacher Joe : message vocal après l'inscription, puis à l'ouverture d'un accès.
     Route::get('/bienvenue', [WelcomeController::class, 'show'])->name('welcome.show');
     Route::get('/bienvenue/audio/{index}', [WelcomeController::class, 'audio'])->whereNumber('index')->middleware('throttle:60,1')->name('welcome.audio');
+    Route::get('/bienvenue/voix/{teacher}', [WelcomeController::class, 'voice'])->where('teacher', '[a-z]+')->middleware('throttle:30,1')->name('welcome.voice');
 
     // Compte : adresse e-mail facultative.
     Route::get('/compte', [AccountController::class, 'edit'])->name('account.edit');

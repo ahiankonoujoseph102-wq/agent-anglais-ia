@@ -12,6 +12,8 @@ use App\Support\Speech\SpeechFiles;
 use App\Support\Speech\SpeechProvider;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\VoiceMessage;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 
@@ -27,6 +29,9 @@ use Illuminate\Support\Facades\Cache;
  * UNE seule voix par message : le fournisseur du message (SpeechProviders::choose) dit aussi la salutation ;
  * si elle échoue, elle reste en texte et les paragraphes de ce même fournisseur sont joués.
  * En cas d'échec, aucune nouvelle demande pendant quelques minutes.
+ *
+ * Un message par professeur (Teacher Joe, Teacher Rose) : son nom, sa voix, son ton et ses accords. Les fichiers
+ * de Teacher Joe gardent exactement leur nom d'avant (rien n'est refait pour lui).
  */
 class WelcomeMessage
 {
@@ -53,10 +58,11 @@ class WelcomeMessage
      * Les textes du message pour cet apprenant : ouverture et paragraphes ; null sans aucun accès.
      * Le nom de la formule et ses minutes viennent de son accès ; les limites, de la configuration.
      *
-     * @return array{period: string, first_name: string, opening: string, paragraphs: list<string>, plan: string}|null
+     * @return array{period: string, first_name: string, opening: string, paragraphs: list<string>, plan: string, teacher: Teacher, introduction: ?string}|null
      */
-    public static function texts(User $user, ?string $period = null): ?array
+    public static function texts(User $user, ?string $period = null, ?Teacher $teacher = null): ?array
     {
+        $teacher ??= Teachers::forUser($user);
         $subscription = self::subscription($user);
 
         if ($subscription === null) {
@@ -76,8 +82,11 @@ class WelcomeMessage
             'period' => $period,
             'first_name' => $firstName,
             'opening' => $opening,
-            'paragraphs' => self::paragraphs($planName, (int) $subscription->daily_minutes, $user->activeProgram()->exists()),
+            'paragraphs' => self::paragraphs($planName, (int) $subscription->daily_minutes, $user->activeProgram()->exists(), $teacher),
             'plan' => $planName,
+            'teacher' => $teacher,
+            // Paragraphe où le professeur se présente : extrait de sa voix sur la page de bienvenue.
+            'introduction' => self::namedParagraphs($planName, (int) $subscription->daily_minutes, $user->activeProgram()->exists(), $teacher)['teacher'] ?? null,
         ];
     }
 
@@ -87,9 +96,9 @@ class WelcomeMessage
      *
      * @return list<string>
      */
-    private static function paragraphs(string $planName, int $dailyMinutes, bool $programReady): array
+    private static function paragraphs(string $planName, int $dailyMinutes, bool $programReady, Teacher $teacher): array
     {
-        return array_values(self::namedParagraphs($planName, $dailyMinutes, $programReady));
+        return array_values(self::namedParagraphs($planName, $dailyMinutes, $programReady, $teacher));
     }
 
     /**
@@ -97,9 +106,10 @@ class WelcomeMessage
      *
      * @return array<string, string>
      */
-    private static function namedParagraphs(string $planName, int $dailyMinutes, bool $programReady): array
+    private static function namedParagraphs(string $planName, int $dailyMinutes, bool $programReady, Teacher $teacher): array
     {
-        $paragraphs = (array) config('teacher.welcome.paragraphs', []);
+        // Paragraphes propres au professeur (accords au féminin) ; jamais un paragraphe en plus.
+        $paragraphs = array_replace((array) config('teacher.welcome.paragraphs', []), array_intersect_key($teacher->welcomeParagraphs(), (array) config('teacher.welcome.paragraphs', [])));
 
         if ($programReady && isset($paragraphs['questionnaire'])) {
             $paragraphs['questionnaire'] = (string) config('teacher.welcome.program_ready');
@@ -107,7 +117,7 @@ class WelcomeMessage
 
         $replace = [
             ':platform' => (string) config('platform.name'),
-            ':teacher' => (string) config('avatar.model.name'),
+            ':teacher' => $teacher->name(),
             ':plan' => $planName,
             ':daily_duration' => Duration::format($dailyMinutes * 60),
             ':course_minutes' => Duration::format((int) config('platform.courses.max_session_minutes') * 60),
@@ -124,6 +134,22 @@ class WelcomeMessage
      */
     public static function messages(): array
     {
+        $messages = [];
+
+        foreach (Teachers::choosable() as $teacher) {
+            array_push($messages, ...self::messagesFor($teacher));
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Les messages communs d'un professeur.
+     *
+     * @return list<VoiceMessage>
+     */
+    public static function messagesFor(Teacher $teacher): array
+    {
         $plans = Plan::all();
         uasort($plans, fn (Plan $a, Plan $b) => (int) $b->recommended <=> (int) $a->recommended);
         $messages = [];
@@ -133,16 +159,17 @@ class WelcomeMessage
                 $pieces = [];
                 $position = 0;
 
-                foreach (self::namedParagraphs($plan->name, $plan->dailyMinutes, $programReady) as $name => $text) {
+                foreach (self::namedParagraphs($plan->name, $plan->dailyMinutes, $programReady, $teacher) as $name => $text) {
                     $position++;
                     $name = $programReady && $name === 'questionnaire' ? 'program_ready' : $name;
-                    $pieces[] = ['label' => "Bienvenue, paragraphe {$position} ({$name}, {$plan->name})", 'text' => $text];
+                    $pieces[] = ['label' => "Bienvenue, paragraphe {$position} ({$name}, {$plan->name})".self::of($teacher), 'text' => $text];
                 }
 
                 $messages[] = self::voiceMessage(
-                    'welcome:'.$plan->key.($programReady ? ':program' : ''),
-                    'Bienvenue, formule '.$plan->name.($programReady ? ', programme déjà prêt' : ''),
+                    'welcome:'.($teacher->isDefault() ? '' : $teacher->key.':').$plan->key.($programReady ? ':program' : ''),
+                    'Bienvenue, formule '.$plan->name.($programReady ? ', programme déjà prêt' : '').self::of($teacher),
                     $pieces,
+                    $teacher,
                 );
             }
         }
@@ -158,10 +185,22 @@ class WelcomeMessage
         $pieces = [];
 
         foreach ($texts['paragraphs'] as $position => $text) {
-            $pieces[] = ['label' => 'Bienvenue, paragraphe '.($position + 1).' ('.$texts['plan'].')', 'text' => $text];
+            $pieces[] = ['label' => 'Bienvenue, paragraphe '.($position + 1).' ('.$texts['plan'].')'.self::of($texts['teacher']), 'text' => $text];
         }
 
-        return self::voiceMessage('welcome', 'Bienvenue, formule '.$texts['plan'], $pieces);
+        return self::voiceMessage('welcome', 'Bienvenue, formule '.$texts['plan'].self::of($texts['teacher']), $pieces, $texts['teacher']);
+    }
+
+    /** « (Teacher Rose) » dans les libellés des journaux ; rien pour le professeur par défaut. */
+    private static function of(Teacher $teacher): string
+    {
+        return $teacher->isDefault() ? '' : ' ('.$teacher->name().')';
+    }
+
+    /** Ton du message de bienvenue pour ce professeur (Teacher Joe : celui de la configuration). */
+    public static function style(Teacher $teacher): string
+    {
+        return $teacher->speechStyle((string) config('teacher.welcome.style'));
     }
 
     /**
@@ -175,9 +214,9 @@ class WelcomeMessage
     /**
      * @param  list<array{label: string, text: string}>  $pieces
      */
-    private static function voiceMessage(string $key, string $label, array $pieces): VoiceMessage
+    private static function voiceMessage(string $key, string $label, array $pieces, Teacher $teacher): VoiceMessage
     {
-        return new VoiceMessage($key, $label, $pieces, (string) config('teacher.welcome.style'), fn (string $text, SpeechProvider $provider) => self::path($text, $provider));
+        return new VoiceMessage($key, $label, $pieces, self::style($teacher), fn (string $text, SpeechProvider $provider) => self::path($text, $provider), $teacher->isDefault() ? null : $teacher);
     }
 
     /**
@@ -185,11 +224,11 @@ class WelcomeMessage
      *
      * @return list<array{label: string, text: string}>
      */
-    public static function commonParagraphs(): array
+    public static function commonParagraphs(?Teacher $teacher = null): array
     {
         $pieces = [];
 
-        foreach (self::messages() as $message) {
+        foreach (self::messagesFor($teacher ?? Teachers::default()) as $message) {
             foreach ($message->pieces as $piece) {
                 $pieces[$piece['text']] ??= $piece;
             }
@@ -208,9 +247,12 @@ class WelcomeMessage
     {
         $paths = [];
 
-        foreach (SpeechProviders::all() as $provider) {
-            foreach (self::commonParagraphs() as $piece) {
-                $paths[] = self::path($piece['text'], $provider);
+        // Tous les professeurs de la liste, même pas encore proposés : leurs fichiers ne sont jamais effacés.
+        foreach (Teachers::all() as $teacher) {
+            foreach (SpeechProviders::all($teacher) as $provider) {
+                foreach (self::commonParagraphs($teacher) as $piece) {
+                    $paths[] = self::path($piece['text'], $provider);
+                }
             }
         }
 
@@ -330,7 +372,7 @@ class WelcomeMessage
     public static function path(string $text, SpeechProvider $provider, bool $opening = false): string
     {
         $hash = substr(sha1(implode('|', array_filter([
-            $provider->model(), $provider->voice(), $text, config('teacher.welcome.style'), $provider->settings(),
+            $provider->model(), $provider->voice(), $text, self::style($provider->teacher()), $provider->settings(),
         ], fn ($part) => $part !== ''))), 0, 20);
 
         return self::DIRECTORY.'/'.($opening ? self::OPENINGS.'/' : '').$provider->name().'-'.$provider->voice().'-'.$hash.'.wav';
@@ -371,7 +413,7 @@ class WelcomeMessage
                 }
 
                 try {
-                    $wav = $provider->synthesize($text, (string) config('teacher.welcome.style'), 'Bienvenue, salutation', (int) config('services.gemini.tts_listen_timeout'));
+                    $wav = $provider->synthesize($text, self::style($provider->teacher()), 'Bienvenue, salutation'.self::of($provider->teacher()), (int) config('services.gemini.tts_listen_timeout'));
                     $wav = VoiceSampler::store($path, $wav, 'Bienvenue, salutation', $provider);
                 } catch (GeminiUnavailable) {
                     // Cause déjà journalisée ; aucune nouvelle demande pendant quelques minutes.
