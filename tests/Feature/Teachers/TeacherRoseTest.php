@@ -84,10 +84,11 @@ class TeacherRoseTest extends TestCase
         return $setup['systemInstruction']['parts'][0]['text'];
     }
 
-    // --- Rien de visible tant qu'elle n'est pas prête -------------------------------------------------------------
+    // --- Retour à Teacher Joe seul (« ready » à false) : plus rien de visible ------------------------------------
 
-    public function test_teacher_rose_exists_but_is_not_offered_to_learners_before_her_face_is_ready(): void
+    public function test_teacher_rose_is_not_offered_to_learners_when_she_is_not_ready(): void
     {
+        config(['teachers.list.rose.ready' => false]);
         $this->assertSame(['joe', 'rose'], array_keys(Teachers::all()));
         $this->assertSame('Teacher Rose', Teachers::find('rose')->name());
         $this->assertFalse(Teachers::find('rose')->isReady());
@@ -102,6 +103,7 @@ class TeacherRoseTest extends TestCase
 
     public function test_a_learner_set_on_rose_while_she_is_not_ready_gets_teacher_joe(): void
     {
+        config(['teachers.list.rose.ready' => false]);
         $user = $this->subscriber('rose');
 
         $setup = $this->geminiSetup($user, '/seance/connexion');
@@ -337,8 +339,8 @@ class TeacherRoseTest extends TestCase
             $this->assertStringContainsString('"'.$name.'"', (string) file_get_contents($rose));
         }
 
-        // Toujours invisible pour les apprenants tant que le fondateur n'a pas validé son visage.
-        $this->assertFalse((bool) config('teachers.list.rose.ready'));
+        // Visage validé par le fondateur : Teacher Rose est proposée aux apprenants.
+        $this->assertTrue((bool) config('teachers.list.rose.ready'));
     }
 
     public function test_rose_looks_welcoming_at_rest_on_the_simple_face_and_in_3d(): void
@@ -350,5 +352,59 @@ class TeacherRoseTest extends TestCase
         $this->assertStringContainsString('class="face-shine"', $face);
         $this->assertStringContainsString('id="mouth"', $face);
         $this->assertGreaterThan(config('avatar.model.resting_smile'), config('avatar.rose.resting_smile'));
+    }
+
+    // --- Teacher Rose visible (visage validé) ------------------------------------------------------------------------
+
+    public function test_rose_is_offered_to_subscribers_by_default_but_not_before_a_subscription(): void
+    {
+        $this->assertTrue(Teachers::hasChoice());
+        $this->assertSame(['joe', 'rose'], array_keys(Teachers::choosable()));
+
+        $this->actingAs($this->subscriber())->get('/espace')->assertOk()
+            ->assertSee('id="professeur"', false)->assertSee('Choisir Teacher Rose');
+
+        // Sans formule : ni carte, ni choix (l'évaluation gratuite se fait avec Teacher Joe).
+        $newcomer = User::factory()->create(['welcomed_at' => now()]);
+        $this->actingAs($newcomer)->get('/espace')->assertOk()->assertDontSee('id="professeur"', false);
+    }
+
+    public function test_the_change_line_appears_before_the_daily_lesson_and_my_courses_but_not_the_assessment(): void
+    {
+        $user = $this->subscriber('rose');
+
+        $this->actingAs($user)->get('/seance')->assertOk()
+            ->assertSee('class="teacher-switch"', false)
+            ->assertSee('Avec <strong>Teacher Rose</strong>', false)
+            ->assertSee(route('dashboard', ['retour' => '/seance']).'#professeur', false);
+
+        $course = $this->storedLesson($user);
+        $this->actingAs($user)->get(route('courses.session', $course))->assertOk()
+            ->assertSee('class="teacher-switch"', false)
+            ->assertSee(route('dashboard', ['retour' => '/mes-cours/'.$course->id.'/seance']).'#professeur', false);
+
+        $newcomer = User::factory()->create(['welcomed_at' => now()]);
+        $this->actingAs($newcomer)->get('/evaluation')->assertOk()->assertDontSee('class="teacher-switch"', false);
+    }
+
+    public function test_changing_from_a_session_page_brings_the_learner_back_there_and_never_elsewhere(): void
+    {
+        $user = $this->subscriber();
+
+        $this->actingAs($user)->get('/espace?retour=/seance')->assertOk()->assertSee('name="retour" value="'.url('/seance').'"', false);
+
+        $this->actingAs($user)->post('/espace/professeur', ['teacher' => 'rose', 'retour' => url('/seance')])
+            ->assertRedirect(url('/seance'));
+        $this->assertSame('rose', $user->fresh()->teacher);
+
+        $this->actingAs($user)->post('/espace/professeur', ['teacher' => 'joe', 'retour' => 'https://exemple.com/seance'])
+            ->assertRedirect(route('dashboard').'#professeur');
+        $this->assertSame('joe', $user->fresh()->teacher);
+    }
+
+    public function test_rose_keeps_her_default_voices_until_the_founder_chooses(): void
+    {
+        $this->assertSame('Sulafat', Teachers::find('rose')->geminiVoice());
+        $this->assertSame('marin', Teachers::find('rose')->realtimeVoice());
     }
 }

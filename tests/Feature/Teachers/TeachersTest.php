@@ -31,9 +31,9 @@ class TeachersTest extends TestCase
         ]);
     }
 
-    public function test_teacher_joe_is_the_default_and_the_only_one_offered_for_now(): void
+    public function test_teacher_joe_is_the_default_and_teacher_rose_is_offered_too(): void
     {
-        $this->assertSame(['joe'], array_keys(Teachers::choosable()));
+        $this->assertSame(['joe', 'rose'], array_keys(Teachers::choosable()));
         $this->assertSame('joe', Teachers::default()->key);
         $this->assertSame(config('avatar.model.name'), Teachers::default()->name());
         $this->assertSame(config('avatar.model'), Teachers::default()->avatar());

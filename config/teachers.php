@@ -57,8 +57,8 @@ return [
 
         'rose' => [
             'avatar' => 'rose',
-            // Étape 3 : passer à true quand son visage est prêt et validé par le fondateur sur des images.
-            'ready' => false,
+            // Visage (3D et visage simple) validé par le fondateur le 29 octobre 2026. Retour à Teacher Joe seul : false.
+            'ready' => true,
             'voice_setting' => 'teacher_voice.rose',
             'gemini_voice' => 'Sulafat',
             // Descriptions officielles de Google (documentation de la synthèse vocale de Gemini).

@@ -78,7 +78,7 @@
             @endif
             @if ($canStartToday)
                 <p>{{ \App\Support\DailyTime::remainingSentence((int) $remainingSeconds) }} Ce temps est partagé entre la séance orale et « Mes cours ».</p>
-                <a href="{{ route('lesson.show') }}" class="btn btn-lg btn-block"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
+                <a href="{{ route('lesson.show') }}" class="btn btn-lg btn-block"><x-icon name="mic" /> Parler avec {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }}</a>
                 @if (\App\Support\SessionRecording::enabled('lesson'))
                     <x-recording-hint share="partager-ma-video" />
                     @php $recordShare = true; @endphp
@@ -221,7 +221,7 @@
             </div>
             <p>
                 Un complément facultatif pour vos leçons d'anglais de l'école, de l'université ou de votre formation.
-                {{ \App\Support\CourseFiles::offer() }} : {{ config('avatar.model.name') }} vous aide à les comprendre et à vous exercer.
+                {{ \App\Support\CourseFiles::offer() }} : {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }} vous aide à les comprendre et à vous exercer.
             </p>
             <p class="course-counter"><x-icon name="clock" /> <span>Pris sur votre temps du jour, partagé avec la séance orale.</span></p>
             <a href="{{ route('courses.index') }}" class="btn btn-outline btn-block"><x-icon name="arrow-right" /> Ouvrir Mes cours</a>

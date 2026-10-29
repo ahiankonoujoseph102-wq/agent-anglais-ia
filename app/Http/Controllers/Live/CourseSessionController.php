@@ -63,6 +63,8 @@ class CourseSessionController extends Controller
         return view('live.session', [
             'mode' => 'course',
             'teacher' => $teacher,
+            // « Changer » de professeur : seulement avant une séance pas encore commencée.
+            'switchBack' => $open === null ? '/mes-cours/'.$course->id.'/seance' : null,
             'usefulPhrasesOpen' => WorkingTogether::isFirst(WorkingTogether::courseNumber($user, $open)),
             'title' => 'Mon cours',
             // UNE ligne courte sous « Commencer » ; le détail est replié sous « Avant de commencer ».

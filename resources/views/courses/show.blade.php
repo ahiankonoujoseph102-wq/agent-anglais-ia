@@ -8,7 +8,8 @@
     $grammar = $content['grammar'] ?? [];
     $vocabulary = $content['vocabulary'] ?? [];
     $exercises = $content['exercises'] ?? [];
-    $teacher = config('avatar.model.name');
+    $teacherOf = \App\Support\Teachers\Teachers::forUser(auth()->user());
+    $teacher = $teacherOf->name();
 @endphp
 
 <x-layout :title="$course->title" narrow>
@@ -95,7 +96,7 @@
             <span class="icon-bubble icon-bubble-primary"><x-icon name="mic" /></span>
             <h2 id="travailler-titre">Travailler cette leçon avec {{ $teacher }}</h2>
         </div>
-        <p>Il vous demande ce que vous voulez : comprendre toute la leçon, poser une question précise ou travailler un exercice. Il vous guide, vous répond en français simple et vous fait pratiquer l'anglais à l'oral.</p>
+        <p>{{ ucfirst($teacherOf->pronoun()) }} vous demande ce que vous voulez : comprendre toute la leçon, poser une question précise ou travailler un exercice. {{ ucfirst($teacherOf->pronoun()) }} vous guide, vous répond en français simple et vous fait pratiquer l'anglais à l'oral.</p>
 
         <p class="course-counter">
             <x-icon name="clock" />

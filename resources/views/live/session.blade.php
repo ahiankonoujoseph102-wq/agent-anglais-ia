@@ -160,6 +160,10 @@
                     <button type="button" id="start" class="btn btn-accent btn-block btn-lg"><x-icon name="play" /> Commencer</button>
                     <p class="intro-text">{{ $intro }}</p>
                     <p class="intro-mic-line"><x-icon name="mic" /> <span>Touchez « Autoriser » quand le téléphone demande le micro.</span></p>
+                    {{-- Séance du jour et « Mes cours » : le professeur choisi, et « Changer » (jamais pendant une séance commencée). --}}
+                    @if (in_array($mode, ['lesson', 'course'], true) && ($switchBack ?? null))
+                        <x-teacher-switch :teacher="$teacher" :back="$switchBack" />
+                    @endif
                 </div>
                 {{-- Pendant la connexion : « Teacher Joe arrive… », indicateur discret. --}}
                 <p id="arriving" class="live-arriving" role="status"><span class="live-arriving-dots" aria-hidden="true"><span></span><span></span><span></span></span> {{ $teacherName }} arrive…</p>
