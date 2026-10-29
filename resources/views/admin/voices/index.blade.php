@@ -28,6 +28,70 @@
 
     <div id="voice-error" class="alert alert-error" role="alert" hidden></div>
 
+    @if ($teacher->speechTrials() !== [])
+        @php
+            $speechChosen = $teacher->speechVoice();
+            $speechLabels = ['gemini' => 'Gemini', 'openai' => 'OpenAI'];
+        @endphp
+        <section class="card" id="voix-francais" aria-labelledby="voix-francais-titre">
+            <h2 id="voix-francais-titre">Voix des vidéos et des messages : test en français et en anglais</h2>
+            <p>
+                Écoutez chaque voix dire la même phrase en français puis en anglais, avec des chiffres et des mots difficiles,
+                puis choisissez celle des vidéos et des messages vocaux de {{ $teacher->name() }}. Sa voix de séance (plus bas) ne change pas.
+            </p>
+            <p class="muted small">Phrase : « {{ \App\Support\Gemini\VoiceSampler::bilingualScript($teacher)['text'] }} »</p>
+            <p>
+                Voix actuelle des vidéos et des messages :
+                @if ($speechChosen)
+                    <strong>{{ $speechChosen['voice'] }}</strong> ({{ $speechLabels[$speechChosen['provider']] ?? $speechChosen['provider'] }}, choisie ici)
+                @else
+                    <strong>{{ $teacher->geminiVoice() }}</strong> (Gemini, sa voix de séance : rien de choisi ici)
+                @endif
+            </p>
+            <form method="POST" action="{{ route('admin.voices.speech.prepare') }}">
+                @csrf
+                <input type="hidden" name="teacher" value="{{ $teacher->key }}">
+                <button type="submit" class="btn btn-light" data-busy-label="Préparation en cours…"><x-icon name="download" /> Préparer les extraits manquants</button>
+                <span class="muted small">Gemini : la deuxième clé d'abord, pour garder la clé principale aux vidéos du jour.</span>
+            </form>
+
+            @foreach ($teacher->speechTrials() as $provider => $voices)
+                <h3>{{ $speechLabels[$provider] ?? $provider }}</h3>
+                <ul class="voice-list">
+                    @foreach ($voices as $voice => $description)
+                        @php $isCurrent = $speechChosen && $speechChosen['provider'] === $provider && $speechChosen['voice'] === $voice; @endphp
+                        <li @class(['voice-item', 'is-current' => $isCurrent])>
+                            <div>
+                                <strong>{{ $voice }}</strong>
+                                <span class="muted">— « {{ $description }} » {{ $provider === 'gemini' ? '(description officielle)' : '(notre description)' }}</span>
+                                @if (app(\App\Support\Gemini\VoiceSampler::class)->cachedBilingual($provider, $voice, $teacher) !== null)
+                                    <span class="badge badge-muted">extrait prêt</span>
+                                @endif
+                                @if ($isCurrent)
+                                    <span class="badge">voix actuelle</span>
+                                @endif
+                            </div>
+                            <div class="voice-actions">
+                                <button type="button" class="btn btn-light" data-voice-sample="{{ route('admin.voices.speech.sample', ['provider' => $provider, 'voice' => $voice, 'professeur' => $teacher->key]) }}">
+                                    <x-icon name="play" /> Écouter
+                                </button>
+                                @unless ($isCurrent)
+                                    <form method="POST" action="{{ route('admin.voices.speech.choose') }}">
+                                        @csrf
+                                        <input type="hidden" name="teacher" value="{{ $teacher->key }}">
+                                        <input type="hidden" name="provider" value="{{ $provider }}">
+                                        <input type="hidden" name="voice" value="{{ $voice }}">
+                                        <button type="submit" class="btn">Choisir pour les vidéos et les messages</button>
+                                    </form>
+                                @endunless
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endforeach
+        </section>
+    @endif
+
     @php
         $sections = [['provider' => 'gemini', 'title' => count($openaiTrials) ? 'Voix Gemini (séances en direct)' : null, 'trials' => $trials, 'current' => $current, 'chosen' => $chosen, 'default' => $default, 'official' => true]];
 

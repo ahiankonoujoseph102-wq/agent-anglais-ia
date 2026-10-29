@@ -42,7 +42,7 @@ class GeminiSpeech extends SpeechProvider
     public function voice(): string
     {
         // Teacher Joe : la voix d'« Essai des voix », comme avant ; un autre professeur : la sienne.
-        return (string) ($this->teacher?->geminiVoice() ?? TeacherVoice::current());
+        return (string) ($this->teacher?->speechVoiceFor('gemini') ?? $this->teacher?->geminiVoice() ?? TeacherVoice::current());
     }
 
     public function spacing(): int

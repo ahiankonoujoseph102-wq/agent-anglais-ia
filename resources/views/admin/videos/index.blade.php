@@ -138,6 +138,7 @@
                     <span @class(['badge', 'badge-accent' => $video->status === \App\Models\LessonVideo::READY, 'badge-alert' => $video->status === \App\Models\LessonVideo::FAILED])>{{ $video->statusLabel() }}</span>
                     @if ($video->published_at)<span class="badge">Publiée</span>@endif
                 </p>
+                @include('admin.videos.voice-line', ['video' => $video])
                 @include('admin.videos.old-address', ['video' => $video])
                 @if ($video->lips_correlation !== null || $video->loudness_lufs !== null)
                     <p class="small video-measures">
@@ -272,6 +273,7 @@
                 <p>
                     <span @class(['badge', 'badge-accent' => $presentation->status === \App\Models\LessonVideo::READY, 'badge-alert' => $presentation->status === \App\Models\LessonVideo::FAILED])>{{ $presentation->statusLabel() }}</span>
                 </p>
+                @include('admin.videos.voice-line', ['video' => $presentation])
                 @include('admin.videos.old-address', ['video' => $presentation])
                 @if ($presentation->lips_correlation !== null || $presentation->loudness_lufs !== null)
                     <p class="small video-measures">

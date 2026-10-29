@@ -44,6 +44,11 @@ class VideoVoice
             array_unshift($names, $chosen['provider']);
         }
 
+        // Voix des vidéos choisie pour un autre professeur (Teacher Rose, test en français et en anglais).
+        if (! self::isDefault($teacher) && ($chosen = $teacher->speechVoice()) !== null) {
+            array_unshift($names, $chosen['provider']);
+        }
+
         $names = array_unique($names);
 
         return array_values(array_filter(
@@ -59,6 +64,10 @@ class VideoVoice
     public static function voiceFor(SpeechProvider $provider, ?Teacher $teacher = null): string
     {
         if (! self::isDefault($teacher)) {
+            if (($chosen = $teacher->speechVoiceFor($provider->name())) !== null) {
+                return $chosen;
+            }
+
             return match ($provider->name()) {
                 'gemini' => (string) ($teacher->geminiVoice() ?: $provider->voice()),
                 'openai' => $teacher->openaiSpeechVoice(),

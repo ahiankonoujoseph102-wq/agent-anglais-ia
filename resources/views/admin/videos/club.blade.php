@@ -35,6 +35,7 @@
                 <span @class(['badge', 'badge-accent' => $video->status === \App\Models\LessonVideo::READY, 'badge-alert' => $video->status === \App\Models\LessonVideo::FAILED])>{{ $video->statusLabel() }}</span>
                 @if ($video->published_at)<span class="badge">Publiée</span>@endif
             </p>
+            @include('admin.videos.voice-line', ['video' => $video])
             @include('admin.videos.old-address', ['video' => $video])
             @if ($video->error && ! $onlyClub)
                 <p class="muted small">Dernière erreur : {{ $video->error }}</p>

@@ -84,6 +84,39 @@ return [
                 'coral' => 'chaleureuse et vive',
                 'sage' => 'posée',
             ],
+            // Voix des VIDÉOS et des MESSAGES vocaux (synthèse vocale), choisie à part de sa voix de séance avec le
+            // test en français et en anglais de « Essai des voix » : toutes les voix féminines de Gemini (descriptions
+            // officielles de Google ; le genre n'est pas publié, voix féminines à l'écoute) et d'OpenAI (synthèse
+            // vocale ; « nova » n'existe pas en séance, seulement ici). Rien de choisi : sa voix de séance, comme avant.
+            'speech_setting' => 'teacher_speech_voice.rose',
+            'speech_trials' => [
+                'gemini' => [
+                    'Sulafat' => 'Warm',
+                    'Kore' => 'Firm',
+                    'Zephyr' => 'Bright',
+                    'Leda' => 'Youthful',
+                    'Aoede' => 'Breezy',
+                    'Callirrhoe' => 'Easy-going',
+                    'Autonoe' => 'Bright',
+                    'Despina' => 'Smooth',
+                    'Erinome' => 'Clear',
+                    'Laomedeia' => 'Upbeat',
+                    'Achernar' => 'Soft',
+                    'Gacrux' => 'Mature',
+                    'Pulcherrima' => 'Forward',
+                    'Vindemiatrix' => 'Gentle',
+                ],
+                'openai' => [
+                    'marin' => 'recommandée par OpenAI, la plus naturelle',
+                    'coral' => 'chaleureuse et vive',
+                    'shimmer' => 'claire et douce',
+                    'sage' => 'posée',
+                    'nova' => 'vive et nette (synthèse vocale seulement)',
+                    'alloy' => 'neutre',
+                ],
+            ],
+            // Ajouté au ton de ses vidéos et messages une fois cette voix choisie (jamais avant : aucun fichier refait).
+            'speech_extra' => 'Le français : prononciation française standard, naturelle et soignée ; chaque mot dit en entier, sans syllabe avalée ni ajoutée ; les nombres et les prix dits en français. L\'anglais : prononciation américaine.',
             'virtual_teacher' => 'une professeure virtuelle',
             'pronoun' => 'elle',
             'the_teacher' => 'la professeure',

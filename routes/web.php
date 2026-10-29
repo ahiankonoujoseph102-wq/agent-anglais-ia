@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\VideoController as AdminVideoController;
 use App\Http\Controllers\Admin\VoiceController;
 use App\Http\Controllers\Admin\VoiceDiagnosticController;
 use App\Http\Controllers\Admin\VoiceLiveController;
+use App\Http\Controllers\Admin\VoiceSpeechTrialController;
 use App\Http\Controllers\Ambassador\AmbassadorJoinController;
 use App\Http\Controllers\Ambassador\AmbassadorLinkController;
 use App\Http\Controllers\Ambassador\AmbassadorSpaceController;
@@ -259,6 +260,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/voix', [VoiceController::class, 'index'])->name('voices.index');
     Route::get('/voix/{voice}/extrait', [VoiceController::class, 'sample'])->where('voice', '[A-Za-z]+')->middleware('throttle:30,1')->name('voices.sample');
     Route::post('/voix', [VoiceController::class, 'choose'])->name('voices.choose');
+    Route::get('/voix/test-francais/{provider}/{voice}/extrait', [VoiceSpeechTrialController::class, 'sample'])->whereIn('provider', ['gemini', 'openai'])->where('voice', '[A-Za-z]+')->middleware('throttle:30,1')->name('voices.speech.sample');
+    Route::post('/voix/test-francais/preparer', [VoiceSpeechTrialController::class, 'prepare'])->middleware('throttle:6,1')->name('voices.speech.prepare');
+    Route::post('/voix/test-francais', [VoiceSpeechTrialController::class, 'choose'])->name('voices.speech.choose');
     // « Écouter en séance » : vraie connexion de séance avec cette voix, sans micro (VoiceLiveController).
     Route::post('/voix/seance/fin', [VoiceLiveController::class, 'finish'])->name('voices.live.finish');
     Route::post('/voix/seance/{voice}', [VoiceLiveController::class, 'start'])->where('voice', '[A-Za-z]+')->middleware('throttle:30,1')->name('voices.live');

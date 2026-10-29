@@ -42,7 +42,14 @@ final class SpeechProviders
      */
     public static function configured(?Teacher $teacher = null): array
     {
-        $names = array_unique(array_map('strtolower', (array) config('services.tts.providers', [])));
+        $names = array_map('strtolower', (array) config('services.tts.providers', []));
+
+        // Voix des messages choisie pour ce professeur (Teacher Rose) : son fournisseur passe en premier.
+        if (($chosen = $teacher?->speechVoice()) !== null && in_array($chosen['provider'], $names, true)) {
+            array_unshift($names, $chosen['provider']);
+        }
+
+        $names = array_unique($names);
 
         return array_values(array_filter(array_map(fn (string $name) => self::find($name, $teacher), $names)));
     }
