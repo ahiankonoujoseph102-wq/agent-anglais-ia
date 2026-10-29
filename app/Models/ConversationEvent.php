@@ -28,6 +28,7 @@ class ConversationEvent extends Model
         'interrupt' => 'Professeur interrompu',
         'pause' => 'Pause',
         'resume' => 'Reprise après la pause',
+        'session_end' => 'Fin de séance (indication du site)',
     ];
 
     /**

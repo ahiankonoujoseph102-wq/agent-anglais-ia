@@ -192,8 +192,9 @@ return [
         // Durée d'une séance au plus, en minutes, et jamais plus que le temps restant du jour
         // (le serveur coupe à la limite).
         'max_session_minutes' => 10,
-        // Teacher Joe est prévenu ce nombre de secondes avant la fin : il conclut poliment.
-        'warning_seconds' => 90,
+        // Minuteur en orange ce nombre de secondes avant la fin. La fin elle-même (annonce d'une minute, puis
+        // conclusion) suit live.session_end, comme la séance du jour.
+        'warning_seconds' => 60,
         // Photos : nombre de pages, poids d'une photo et de l'ensemble (kilooctets). Le navigateur les
         // réduit avant l'envoi (côté le plus long, qualité JPEG) ; ces plafonds valent sans réduction.
         'max_photos' => 4,
@@ -316,6 +317,25 @@ return [
     */
     'live' => [
         'heartbeat_seconds' => 15,
+        // Fin de la séance du jour et de « Mes cours » (public/js/session-closing.js), d'après le TEMPS RESTANT
+        // calculé par le site, jamais d'après le volume du micro. Vers « announce_seconds » de la fin, le
+        // professeur dit « announce_phrase » et ne commence rien de nouveau ; vers « conclude_seconds » (quand il
+        // ne parle pas, au plus tard « latest_seconds »), UNE conclusion qui commence par « stop_phrase » et finit
+        // par « closing_phrase » ; la séance se ferme dès cette phrase dite (voix terminée), sinon après
+        // « silent_end_seconds » de silence. Minuteur à zéro : la phrase en cours finit (« grace_seconds »), et si
+        // la conclusion n'a pas pu être dite, elle a encore « overtime_seconds » (temps compté inchangé : le
+        // serveur plafonne toujours au temps accordé).
+        'session_end' => [
+            'announce_seconds' => 60,
+            'conclude_seconds' => 40,
+            'latest_seconds' => 25,
+            'grace_seconds' => 8,
+            'overtime_seconds' => 30,
+            'silent_end_seconds' => 10,
+            'announce_phrase' => 'Il nous reste environ une minute.',
+            'stop_phrase' => 'On va s\'arrêter ici pour aujourd\'hui.',
+            'closing_phrase' => 'À demain !',
+        ],
         'stale_after_seconds' => 60,
         // Coupure de connexion : le temps de séance est mis en pause (IsLiveConversation). Une coupure compte sur un
         // signal explicite du navigateur (connexion avec le professeur perdue), ou au-delà de ce temps sans aucun

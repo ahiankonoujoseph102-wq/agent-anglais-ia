@@ -15,6 +15,7 @@ use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
 use App\Support\Live\LivePage;
+use App\Support\Live\SessionEnd;
 use App\Support\Live\WorkingTogether;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -181,14 +182,16 @@ class CourseSessionController extends Controller
             'status' => LessonStatus::InProgress,
         ]);
 
-        // Séance raccourcie au temps restant du jour : le préavis ne tombe jamais avant la moitié de la séance.
+        // Minuteur en orange : jamais avant la moitié d'une séance raccourcie. Aucune indication à ce moment : la fin
+        // suit SessionEnd (annonce d'une minute, puis UNE conclusion).
         $warning = min((int) config('platform.courses.warning_seconds'), intdiv((int) $session->allowed_seconds, 2));
 
         return response()->json($live->attach($session, $token, $setup, [
             'start' => TeacherSetup::cue('course_start', ['minutes' => (int) ceil($allowedSeconds / 60)]),
             'resume' => TeacherSetup::cue('resume'),
-            'warning' => TeacherSetup::cue('course_warning', ['remaining' => $warning]),
-        ], $warning, $resumed));
+        ], $warning, $resumed) + [
+            'session_end' => SessionEnd::client('course', (int) $session->allowed_seconds),
+        ]);
     }
 
     /**

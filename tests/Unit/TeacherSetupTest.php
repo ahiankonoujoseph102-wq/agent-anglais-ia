@@ -25,6 +25,7 @@ class TeacherSetupTest extends TestCase
             'teacher.listening' => '',
             'teacher.american_english' => '',
             'teacher.pace.rules' => '',
+            'teacher.session_end' => '',
             'teacher.level_test' => 'Test of :minutes minutes.',
         ]);
 

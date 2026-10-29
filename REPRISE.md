@@ -1,10 +1,14 @@
-# REPRISE — chantier en cours : évaluation fiable (fin de tour, autorisation, consignes)
+# REPRISE — chantier en cours : fin de séance, accueil de la première séance, référencement
 
 À lire avec `CLAUDE.md` pour reprendre ce travail dans une autre session. Ce fichier ne contient jamais de clé, ni de conversation réelle, ni de transcription.
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
-## Dernier chantier : assistants de l'administration (28 octobre 2026, branche `claude/assistants`)
+## Dernier chantier : fin de séance professionnelle (29 octobre 2026, branche `claude/fin-de-seance`)
+
+Partie 1 de 3 (puis accueil de la première séance d'un abonné, puis audit du référencement). Cause trouvée dans le code (aucune conversation réelle lue) : « Mes cours » disait au revoir puis se taisait 90 secondes avant la fin ; séance du jour : au revoir à 2 minutes, silence jusqu'au minuteur si `end_lesson` n'était pas appelé, puis coupure au milieu d'une phrase. Corrigé par `SessionClosing` (annonce à 60 secondes, conclusion à 40, « À demain ! », fermeture propre), d'après le temps restant seulement. Voir CLAUDE.md, feuille de route.
+
+## Chantier précédent : assistants de l'administration (28 octobre 2026, branche `claude/assistants`)
 
 Analyse : l'administration était protégée par UN middleware (`admin`) qui laissait entrer le seul rôle `admin` de la colonne `users.role` ; aucune autre distinction. Ajouté : rôle `assistant` dans ce même système, liste unique des pages permises (`App\Support\Admin\AdminAccess::ASSISTANT_ROUTES`), refus par défaut de tout le reste, menu et boutons filtrés, « Nommer assistant » / « Retirer le rôle d'assistant » sur la fiche d'un inscrit (administrateur principal seul), « Traité par » dans l'historique des paiements. Voir CLAUDE.md, feuille de route.
 

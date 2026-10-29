@@ -58,10 +58,12 @@ class CourseSessionTest extends TestCase
             ->assertJsonPath('remaining_seconds', 600)
             // Le jeton vaut pour toute la séance (10 minutes) et une marge d'une minute.
             ->assertJsonPath('token_expires_in', 600 + 60)
-            ->assertJsonPath('warning_seconds', 90)
+            ->assertJsonPath('warning_seconds', 60)
             ->assertJsonPath('resumed', false)
             ->assertJsonPath('cues.start', fn (string $cue) => str_contains($cue, 'at most 10 minutes') && str_contains($cue, 'understand the whole lesson, ask a precise question, or work on an exercise'))
-            ->assertJsonPath('cues.warning', fn (string $cue) => str_contains($cue, 'About 90 seconds remain') && str_contains($cue, 'conclude politely'));
+            // Plus de « dites au revoir » à 90 secondes : la fin suit SessionEnd (annonce d'une minute, puis la conclusion).
+            ->assertJsonPath('cues.warning', null)
+            ->assertJsonPath('session_end.conclude', fn (string $cue) => str_contains($cue, 'CONCLUSION') && str_contains($cue, '« À demain ! »'));
 
         Http::assertSent(function (Request $request) {
             if (! str_ends_with($request->url(), '/auth_tokens')) {
@@ -273,7 +275,8 @@ class CourseSessionTest extends TestCase
         $this->actingAs($user)->postJson(route('courses.connect', $lesson))
             ->assertOk()
             ->assertJsonPath('remaining_seconds', 240)
-            ->assertJsonPath('warning_seconds', 90);
+            ->assertJsonPath('warning_seconds', 60)
+            ->assertJsonPath('session_end.total', 240);
         $this->assertTrue(CourseSession::sole()->deadline()->equalTo(now()->addMinutes(4)), 'Le serveur coupe à la fin du temps du jour.');
 
         // Teacher Joe annonce la vraie durée, jamais 10 minutes.
