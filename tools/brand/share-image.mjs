@@ -10,8 +10,15 @@ const here = fileURLToPath(new URL('.', import.meta.url));
 const out = here + '../../public/images/';
 mkdirSync(out + 'partage', { recursive: true });
 
+// Deux professeurs (Teacher Joe et Teacher Rose) sur l'image de l'accueil et des pages pays.
+const duo = { duo: '1', name: 'Teacher Joe et Teacher Rose', note: 'Vos professeurs d\'anglais à l\'oral' };
+
 const images = [
     ['partage-talkami.jpg', {}],
+    // Versions avec les deux professeurs (choisies par le site quand le choix du professeur est proposé).
+    ['partage-talkami-duo.jpg', { ...duo }],
+    ...[['togo', 'au Togo'], ['benin', 'au Bénin'], ['burkina-faso', 'au Burkina Faso'], ['cote-d-ivoire', 'en Côte d\'Ivoire']]
+        .map(([slug, accent]) => [`partage/pays-${slug}-duo.jpg`, { title: 'Apprendre l\'anglais', accent, ...duo }]),
     // Pages « Apprendre l'anglais » par pays (App\Support\CountryPage::shareImage).
     ['partage/pays-togo.jpg', { title: 'Apprendre l\'anglais', accent: 'au Togo' }],
     ['partage/pays-benin.jpg', { title: 'Apprendre l\'anglais', accent: 'au Bénin' }],

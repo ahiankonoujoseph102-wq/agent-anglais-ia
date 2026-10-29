@@ -47,7 +47,7 @@
         <meta property="og:title" content="{{ $pageTitle }}">
         <meta property="og:description" content="{{ $pageDescription }}">
         <meta property="og:url" content="{{ Seo::canonical() }}">
-        <meta property="og:image" content="{{ Seo::url($shareImage ?? Seo::SHARE_IMAGE) }}">
+        <meta property="og:image" content="{{ Seo::url($shareImage ?? Seo::shareImage()) }}">
         <meta property="og:image:type" content="image/jpeg">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
@@ -55,7 +55,7 @@
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="{{ $pageTitle }}">
         <meta name="twitter:description" content="{{ $pageDescription }}">
-        <meta name="twitter:image" content="{{ Seo::url($shareImage ?? Seo::SHARE_IMAGE) }}">
+        <meta name="twitter:image" content="{{ Seo::url($shareImage ?? Seo::shareImage()) }}">
     @endif
     <link rel="manifest" href="{{ route('manifest') }}">
     <x-site-icons />

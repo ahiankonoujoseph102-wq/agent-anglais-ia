@@ -24,6 +24,7 @@ class FaqTest extends TestCase
         'Comment Teacher Joe corrige-t-il mes erreurs ?',
         "Vais-je oublier ce que j'ai appris ?",
         'Quel anglais vais-je apprendre ?',
+        'Puis-je choisir mon professeur ?',
         "Puis-je travailler mes cours d'anglais, même en PDF ?",
         'Puis-je préparer un entretien ou un exposé ?',
         'Puis-je enregistrer ma séance en vidéo ?',

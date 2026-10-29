@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Support\Teachers\Teachers;
 use DOMDocument;
 use DOMXPath;
 use Illuminate\Http\Request;
@@ -24,11 +25,23 @@ final class Seo
     /** Image de partage (WhatsApp, Facebook…), 1200 × 630 pixels, produite par tools/brand/share-image.mjs. */
     public const SHARE_IMAGE = 'images/partage-talkami.jpg';
 
+    /** Image de partage avec les deux professeurs (tools/brand/share-image.mjs), quand le choix est proposé. */
+    public const SHARE_IMAGE_DUO = 'images/partage-talkami-duo.jpg';
+
     /** Débuts d'adresse des pages privées, fermés aux robots (robots.txt). */
     public const PRIVATE_PATHS = [
         '/admin', '/espace', '/bienvenue', '/compte', '/abonnement', '/paiements', '/evaluation', '/programme',
         '/mes-cours', '/mes-seances', '/bilan-niveau', '/seance', '/attestations', '/mot-de-passe', '/deconnexion',
     ];
+
+    /**
+     * Image de partage par défaut : avec les professeurs proposés (Teacher Joe et Teacher Rose) si le choix est
+     * proposé, sinon celle de Teacher Joe seul (retour à Teacher Joe seul : aucune image à refaire).
+     */
+    public static function shareImage(): string
+    {
+        return Teachers::hasChoice() && is_file(public_path(self::SHARE_IMAGE_DUO)) ? self::SHARE_IMAGE_DUO : self::SHARE_IMAGE;
+    }
 
     public static function base(): string
     {
@@ -188,7 +201,7 @@ final class Seo
         return [
             '@context' => 'https://schema.org',
             '@type' => 'Service',
-            'name' => 'Cours d\'anglais oral en ligne avec '.config('avatar.model.name'),
+            'name' => 'Cours d\'anglais oral en ligne avec '.Teachers::names(),
             'serviceType' => 'Cours d\'anglais en ligne',
             'provider' => ['@id' => self::url().'#organisation'],
             'areaServed' => $countries,
@@ -222,7 +235,7 @@ final class Seo
             'description' => $guide->description,
             'inLanguage' => 'fr',
             'datePublished' => $guide->published->toDateString(),
-            'image' => self::url(self::SHARE_IMAGE),
+            'image' => self::url(self::shareImage()),
             'mainEntityOfPage' => $url,
             'url' => $url,
             'author' => ['@type' => 'Organization', '@id' => self::url().'#organisation', 'name' => config('platform.name'), 'url' => self::url()],

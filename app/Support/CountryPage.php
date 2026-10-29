@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Assessment;
+use App\Support\Teachers\Teachers;
 
 /**
  * Page « Apprendre l'anglais » d'un pays de paiement (resources/content/pays.php) : textes propres au
@@ -94,11 +95,19 @@ final readonly class CountryPage
     }
 
     /**
-     * Image de partage propre au pays (public/images/partage/pays-{slug}.jpg, tools/brand/share-image.mjs), sinon null
+     * Image de partage propre au pays (public/images/partage/pays-{slug}.jpg, ou pays-{slug}-duo.jpg avec les deux
+     * professeurs, tools/brand/share-image.mjs), sinon null
      * (image de l'accueil).
      */
     public function shareImage(): ?string
     {
+        $duo = 'images/partage/pays-'.$this->slug.'-duo.jpg';
+
+        // Avec les deux professeurs quand le choix est proposé (retour à Teacher Joe seul : l'image d'avant).
+        if (Teachers::hasChoice() && is_file(public_path($duo))) {
+            return $duo;
+        }
+
         $path = 'images/partage/pays-'.$this->slug.'.jpg';
 
         return is_file(public_path($path)) ? $path : null;

@@ -44,6 +44,18 @@ final class Teacher
         return (string) ($this->config['face'] ?? 'joe');
     }
 
+    /** Portrait fixe (pages publiques, « Mon espace ») : chemin dans public/. */
+    public function portrait(): string
+    {
+        return (string) ($this->config['portrait'] ?? 'images/teacher-joe.webp');
+    }
+
+    /** Une phrase qui présente le professeur sur les pages publiques (jamais une promesse). */
+    public function publicLine(): string
+    {
+        return (string) ($this->config['public_line'] ?? '');
+    }
+
     /** Professeur par défaut (Teacher Joe) : ses messages vocaux gardent exactement les réglages d'avant. */
     public function isDefault(): bool
     {
