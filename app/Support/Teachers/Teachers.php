@@ -69,6 +69,29 @@ class Teachers
     }
 
     /**
+     * Nouveaux professeurs à faire connaître à un abonné (annonce « Nouveau : … est arrivée ! » de « Mon espace ») :
+     * proposés, autres que le professeur par défaut et que le sien, et avec qui il n'a jamais fait aucune séance.
+     * Seulement pour un apprenant qui a déjà tenu une séance du jour : un nouvel abonné choisit sur la page de
+     * bienvenue (« Avec qui voulez-vous travailler ? »).
+     *
+     * @return list<Teacher>
+     */
+    public static function untried(User $user): array
+    {
+        if (! self::hasChoice() || $user->isStaff() || ! $user->lessons()->exists()) {
+            return [];
+        }
+
+        $current = self::forUser($user)->key;
+
+        return array_values(array_filter(self::choosable(), fn (Teacher $teacher) => ! $teacher->isDefault()
+            && $teacher->key !== $current
+            && ! $user->lessons()->where('teacher', $teacher->key)->exists()
+            && ! $user->courseSessions()->where('teacher', $teacher->key)->exists()
+            && ! $user->levelTests()->where('teacher', $teacher->key)->exists()));
+    }
+
+    /**
      * Professeur choisi par l'apprenant s'il peut encore être choisi, sinon le professeur par défaut : retirer un
      * professeur de la liste (ou le marquer pas prêt) ramène ses apprenants vers Teacher Joe.
      */

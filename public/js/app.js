@@ -596,3 +596,32 @@ window.addEventListener('pageshow', (event) => {
         document.querySelectorAll('form[data-busy]').forEach(unmarkBusy);
     }
 });
+
+/*
+ * Annonces qu'on peut cacher (« Nouveau : Teacher Rose est arrivée ! » de « Mon espace ») : « Plus tard » les cache sur
+ * ce téléphone (localStorage, clé = data-dismissible) ; sans stockage, elles restent affichées.
+ */
+document.querySelectorAll('[data-dismissible]').forEach((block) => {
+    const key = 'dismissed:' + block.dataset.dismissible;
+    const store = storage();
+
+    try {
+        if (store?.getItem(key)) {
+            block.hidden = true;
+
+            return;
+        }
+    } catch {
+        // Stockage refusé : l'annonce reste.
+    }
+
+    block.querySelector('[data-dismiss]')?.addEventListener('click', () => {
+        block.hidden = true;
+
+        try {
+            store?.setItem(key, '1');
+        } catch {
+            // Stockage refusé : cachée seulement pour cette page.
+        }
+    });
+});

@@ -6,8 +6,8 @@
 @props(['teacher', 'back'])
 @if (\App\Support\Teachers\Teachers::hasChoice())
     <p class="teacher-switch">
-        <x-icon name="user" />
+        <span class="teacher-switch-face"><img src="{{ \App\Support\Asset::url($teacher->portrait()) }}" width="36" height="36" alt=""></span>
         <span>Avec <strong>{{ $teacher->name() }}</strong></span>
-        <a href="{{ route('dashboard', ['retour' => $back]) }}#professeur">Changer<span class="sr-only"> de professeur</span></a>
+        <a href="{{ $back !== '' ? route('dashboard', ['retour' => $back]) : route('dashboard') }}#professeur">Changer de professeur</a>
     </p>
 @endif
