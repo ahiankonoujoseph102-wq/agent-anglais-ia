@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VideoController as AdminVideoController;
 use App\Http\Controllers\Admin\VoiceController;
 use App\Http\Controllers\Admin\VoiceDiagnosticController;
+use App\Http\Controllers\Admin\VoiceLiveController;
 use App\Http\Controllers\Ambassador\AmbassadorJoinController;
 use App\Http\Controllers\Ambassador\AmbassadorLinkController;
 use App\Http\Controllers\Ambassador\AmbassadorSpaceController;
@@ -257,6 +258,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/voix', [VoiceController::class, 'index'])->name('voices.index');
     Route::get('/voix/{voice}/extrait', [VoiceController::class, 'sample'])->where('voice', '[A-Za-z]+')->middleware('throttle:30,1')->name('voices.sample');
     Route::post('/voix', [VoiceController::class, 'choose'])->name('voices.choose');
+    // « Écouter en séance » : vraie connexion de séance avec cette voix, sans micro (VoiceLiveController).
+    Route::post('/voix/seance/fin', [VoiceLiveController::class, 'finish'])->name('voices.live.finish');
+    Route::post('/voix/seance/{voice}', [VoiceLiveController::class, 'start'])->where('voice', '[A-Za-z]+')->middleware('throttle:30,1')->name('voices.live');
+    Route::get('/voix/seance/{voice}/extrait', [VoiceLiveController::class, 'show'])->where('voice', '[A-Za-z]+')->name('voices.live.file');
+    Route::post('/voix/seance/{voice}/extrait', [VoiceLiveController::class, 'store'])->where('voice', '[A-Za-z]+')->middleware('throttle:30,1')->name('voices.live.store');
     Route::get('/diagnostic-voix', [VoiceDiagnosticController::class, 'index'])->name('voice-diagnostic.index');
     Route::post('/diagnostic-voix/essai/{provider}', [VoiceDiagnosticController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('voice-diagnostic.test');
     Route::post('/diagnostic-voix/preparer', [VoiceDiagnosticController::class, 'prepare'])->middleware('throttle:6,1')->name('voice-diagnostic.prepare');

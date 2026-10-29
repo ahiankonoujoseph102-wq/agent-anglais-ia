@@ -21,7 +21,9 @@
     <p class="muted small">
         Phrase : <span lang="en">« {{ $script }} »</span><br>
         Chaque extrait est créé une seule fois puis gardé ; au plus {{ config('services.gemini.voice_trial_per_hour') }} nouveaux extraits par heure.
-        L'extrait est produit par le modèle de synthèse vocale : la voix en conversation peut sonner un peu différemment.
+        « Écouter » : extrait du modèle de synthèse vocale (la voix des vidéos et des messages).
+        « Écouter en séance » : la même phrase dite par une vraie séance avec cette voix (sans micro), telle que les apprenants l'entendent ;
+        raccrochée par le serveur après {{ \App\Support\Live\LiveVoiceSample::SECONDS }} secondes, aucune minute comptée, extrait gardé pour les écoutes suivantes.
     </p>
 
     <div id="voice-error" class="alert alert-error" role="alert" hidden></div>
@@ -72,6 +74,9 @@
                             <button type="button" class="btn btn-light" data-voice-sample="{{ route('admin.voices.sample', ['voice' => $voice] + $query) }}">
                                 <x-icon name="play" /> Écouter
                             </button>
+                            <button type="button" class="btn btn-light" data-voice-live="{{ route('admin.voices.live', ['voice' => $voice, 'professeur' => $teacher->key, 'fournisseur' => $section['provider']]) }}" data-voice-live-finish="{{ route('admin.voices.live.finish') }}">
+                                <x-icon name="headphones" /> Écouter en séance
+                            </button>
                             @if ($voice !== $section['current'])
                                 <form method="POST" action="{{ route('admin.voices.choose') }}">
                                     @csrf
@@ -91,4 +96,5 @@
     @endforeach
 
     <script type="module" src="{{ \App\Support\Asset::url('js/voice-trial.js') }}"></script>
+    <script type="module" src="{{ \App\Support\Asset::url('js/voice-live-sample.js') }}"></script>
 </x-layout>

@@ -9,6 +9,8 @@ use App\Models\Assessment;
 use App\Models\CourseSession;
 use App\Models\Lesson;
 use App\Models\LevelTest;
+use App\Support\Live\OpenAiRealtime;
+use App\Support\Live\TrialCalls;
 use Illuminate\Console\Command;
 
 class CloseStaleConversations extends Command
@@ -36,7 +38,10 @@ class CloseStaleConversations extends Command
             });
         }
 
-        $this->info($closed.' conversation(s) clôturée(s).');
+        // Essais de l'administrateur (diagnostic, « Écouter en séance ») : appels OpenAI raccrochés à leur durée.
+        $hungUp = TrialCalls::hangUpOverdue(app(OpenAiRealtime::class));
+
+        $this->info($closed.' conversation(s) clôturée(s)'.($hungUp > 0 ? ', '.$hungUp.' essai(s) raccroché(s)' : '').'.');
 
         return self::SUCCESS;
     }

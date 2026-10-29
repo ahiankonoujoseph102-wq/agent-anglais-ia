@@ -8,7 +8,7 @@
 ## Vidéo du Club fiable (29 octobre 2026, nouveau compte Claude Code)
 
 - **#137 (fusionnée)** : `tools/video/render.html` ne bloque plus quand une machine trop lente est refusée (passages n° 10, 14 et 18 annulés à 80 minutes).
-- **Branche `claude/voix-quota`** : synthèse vocale en peu de demandes (`VoiceSplitter`, environ 2 par vidéo au lieu de 11 à 15), deuxième clé Gemini en secours de toute la synthèse vocale, message d'erreur de « Essai des voix » repris de `claude/festive-keller-2hkpxl`. Reste de la priorité 2 : bouton « Écouter en séance » (pull request suivante).
+- **Branche `claude/voix-quota`** : synthèse vocale en peu de demandes (`VoiceSplitter`, environ 2 par vidéo au lieu de 11 à 15), deuxième clé Gemini en secours de toute la synthèse vocale, message d'erreur de « Essai des voix » repris de `claude/festive-keller-2hkpxl`. (#139, fusionnée.) Puis branche `claude/ecouter-en-seance` : bouton « Écouter en séance » (voir CLAUDE.md).
 - **#138 (fusionnée), branche `claude/club-trois-minutes`** : vidéo du Club de 3 minutes (parole visée 150 secondes, silences de répétition allongés si la voix est un peu courte), rendu 396 × 704 à 20 images par seconde, relance automatique d'un passage « Club seulement » après un arrêt anticipé (3 essais). Vidéo du 29 octobre (4 minutes 12) gardée telle quelle : sa voix existe déjà, pas de nouvelle demande de synthèse vocale (quota de 10 par jour chez Gemini).
 ## Chantier en cours : Teacher Rose, étape 2, séances payantes (29 octobre 2026, branche `claude/festive-keller-2hkpxl`)
 
