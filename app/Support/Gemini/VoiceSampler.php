@@ -13,6 +13,7 @@ use App\Support\Teachers\Teachers;
 use App\Support\Videos\VideoVoice;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -120,17 +121,66 @@ class VoiceSampler
      */
     public function synthesize(string $voice, string $text, string $style, string $label = 'Synthèse vocale', ?int $timeout = null): string
     {
-        try {
-            $wav = $this->request($voice, $text, $style, max(1, $timeout ?? (int) config('services.gemini.tts_timeout')));
-        } catch (SpeechFailed $e) {
-            SpeechLog::failure($e, $label);
+        $timeout = max(1, $timeout ?? (int) config('services.gemini.tts_timeout'));
+        $keys = self::keys();
+        $failure = null;
 
-            throw $e;
+        // Clé principale, puis la deuxième clé Gemini (GEMINI_API_KEY_2, autre projet Google, autre limite) en
+        // secours : limite du jour ou par minute, service surchargé (503), délai, connexion, clé refusée. Une clé
+        // déjà à sa limite du jour n'est plus essayée avant le lendemain (aucune demande perdue).
+        foreach ($keys as $index => $key) {
+            $last = $index === array_key_last($keys);
+
+            if (! $last && Cache::has(self::exhaustedKey($index))) {
+                continue;
+            }
+
+            try {
+                $wav = $this->request($voice, $text, $style, $timeout, $key);
+            } catch (SpeechFailed $e) {
+                SpeechLog::failure($e, $label.(count($keys) > 1 ? ($index === 0 ? ' (clé principale)' : ' (deuxième clé)') : ''));
+                $failure = $e;
+
+                if ($e->kind === SpeechFailed::QUOTA_DAILY) {
+                    Cache::put(self::exhaustedKey($index), true, now()->endOfDay());
+                }
+
+                if ($last || ! self::switchesKey($e)) {
+                    throw $e;
+                }
+
+                continue;
+            }
+
+            SpeechUsage::record(app(GeminiSpeech::class), $label, $text, $wav, $voice);
+
+            return $wav;
         }
 
-        SpeechUsage::record(app(GeminiSpeech::class), $label, $text, $wav, $voice);
+        throw $failure ?? new SpeechFailed(SpeechFailed::MISSING_KEY, 'GEMINI_API_KEY manquante dans les variables d\'environnement.');
+    }
 
-        return $wav;
+    /**
+     * Clés Gemini de la synthèse vocale, dans l'ordre : principale (GEMINI_API_KEY), puis la deuxième
+     * (GEMINI_API_KEY_2) si elle est réglée. Liste vide : aucune clé.
+     *
+     * @return list<string>
+     */
+    public static function keys(): array
+    {
+        return array_values(array_filter([config('services.gemini.key'), config('services.gemini.key_2')], fn ($key) => filled($key)));
+    }
+
+    /** Échec qui vaut la peine d'essayer l'autre clé (autre projet Google, autre limite). */
+    private static function switchesKey(SpeechFailed $e): bool
+    {
+        return in_array($e->kind, [SpeechFailed::QUOTA, SpeechFailed::QUOTA_DAILY, SpeechFailed::TIMEOUT, SpeechFailed::CONNECTION, SpeechFailed::NO_AUDIO], true)
+            || ($e->kind === SpeechFailed::HTTP && ($e->status === null || $e->status >= 500 || in_array($e->status, [400, 401, 403], true)));
+    }
+
+    private static function exhaustedKey(int $index): string
+    {
+        return 'gemini-tts-key-exhausted:'.$index;
     }
 
     /**
@@ -161,9 +211,9 @@ class VoiceSampler
         return $wav;
     }
 
-    private function request(string $voice, string $text, string $style, int $timeout): string
+    private function request(string $voice, string $text, string $style, int $timeout, ?string $key = null): string
     {
-        $key = config('services.gemini.key');
+        $key ??= config('services.gemini.key');
 
         if (blank($key)) {
             throw new SpeechFailed(SpeechFailed::MISSING_KEY, 'GEMINI_API_KEY manquante dans les variables d\'environnement.');

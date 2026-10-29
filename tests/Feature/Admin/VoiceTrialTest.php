@@ -111,7 +111,13 @@ class VoiceTrialTest extends TestCase
         $this->geminiResponse = Http::response(['error' => ['status' => 'INTERNAL']], 500);
         $this->actingAs($admin)->get('/admin/voix/Orus/extrait')
             ->assertStatus(503)
-            ->assertJsonPath('message', 'L\'extrait n\'a pas pu être créé. Réessayez dans quelques instants.');
+            ->assertJsonPath('message', 'L\'extrait n\'a pas pu être créé. Réessayez dans quelques instants. Cause : Demande refusée par le service (code 500).');
+
+        // Clé Gemini absente : le message nomme la bonne variable.
+        config(['services.gemini.key' => null]);
+        $this->actingAs($admin)->get('/admin/voix/Charon/extrait')
+            ->assertStatus(503)
+            ->assertJsonPath('message', fn ($message) => str_contains($message, 'GEMINI_API_KEY') && ! str_contains($message, 'OPENAI'));
     }
 
     public function test_chosen_voice_is_saved_and_locked_in_every_new_token(): void
