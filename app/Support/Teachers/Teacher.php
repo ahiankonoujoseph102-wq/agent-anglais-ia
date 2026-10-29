@@ -60,6 +60,16 @@ final class Teacher
         return (array) ($this->config['presentation_texts'] ?? []);
     }
 
+    /**
+     * Phrases de la fiche du site accordées au professeur (Teacher Rose : « Elle explique… »), texte d'origine => texte.
+     *
+     * @return array<string, string>
+     */
+    public function siteGuideTexts(): array
+    {
+        return (array) ($this->config['site_guide_texts'] ?? []);
+    }
+
     /** Une phrase qui présente le professeur sur les pages publiques (jamais une promesse). */
     public function publicLine(): string
     {

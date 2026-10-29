@@ -42,7 +42,7 @@ class SiteGuide
         // Les commentaires HTML sont des notes pour la personne qui modifie la fiche.
         $text = trim((string) preg_replace('/<!--.*?-->\s*/s', '', $raw));
 
-        return strtr($text, [
+        $text = strtr($text, [
             ':platform' => (string) config('platform.name'),
             ':teacher' => $teacher->name(),
             ':assessment' => Duration::format((int) config('platform.assessment.max_minutes') * 60),
@@ -68,6 +68,9 @@ class SiteGuide
             ':ambassador_window' => (string) (int) config('platform.ambassadors.commission_days'),
             ':ambassador_link_days' => (string) (int) config('platform.ambassadors.link_days'),
         ]);
+
+        // Accords propres au professeur (Teacher Rose : « Elle explique… ») ; Teacher Joe : aucun changement.
+        return strtr($text, $teacher->siteGuideTexts());
     }
 
     /**

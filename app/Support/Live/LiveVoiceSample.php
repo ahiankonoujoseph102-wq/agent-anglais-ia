@@ -8,6 +8,7 @@ use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\VoiceSampler;
 use App\Support\PrivateStorage;
 use App\Support\Teachers\Teacher;
+use App\Support\Videos\VideoVoice;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -120,6 +121,105 @@ class LiveVoiceSample
         }
 
         return null;
+    }
+
+    /**
+     * Débit mesuré de la voix en séance (même phrase pour toutes les voix) : mots, secondes de parole (silences du
+     * début et de la fin retirés), mots par seconde. Null : pas encore mesuré (extrait absent, ou WebM d'OpenAI).
+     *
+     * @return array{words: int, seconds: float, per_second: float}|null
+     */
+    public static function pace(string $provider, string $voice, Teacher $teacher): ?array
+    {
+        $key = 'live-voice-pace:'.self::basePath($provider, $voice, $teacher);
+        $pace = Cache::get($key);
+
+        if ($pace === null) {
+            try {
+                $disk = PrivateStorage::disk();
+                $path = self::basePath($provider, $voice, $teacher).'.pace.json';
+                $pace = $disk->exists($path) ? json_decode((string) $disk->get($path), true) : false;
+            } catch (\Throwable) {
+                return null;
+            }
+
+            Cache::put($key, $pace, now()->addDay());
+        }
+
+        return is_array($pace) ? $pace : null;
+    }
+
+    /**
+     * Mesure le débit d'un extrait WAV gardé (Gemini) et garde le résultat à côté de l'extrait.
+     *
+     * @return array{words: int, seconds: float, per_second: float}|null
+     */
+    public static function measure(string $provider, string $voice, Teacher $teacher): ?array
+    {
+        $stored = self::stored($provider, $voice, $teacher);
+
+        if ($stored === null || ! str_ends_with($stored['path'], '.wav')) {
+            return null;
+        }
+
+        $seconds = self::speechSeconds((string) PrivateStorage::disk()->get($stored['path']));
+
+        if ($seconds === null) {
+            return null;
+        }
+
+        $words = count(preg_split('/\s+/u', trim(VoiceSampler::script($teacher)['text'])) ?: []);
+        $pace = ['words' => $words, 'seconds' => round($seconds, 1), 'per_second' => round($words / $seconds, 2)];
+        PrivateStorage::disk()->put(self::basePath($provider, $voice, $teacher).'.pace.json', (string) json_encode($pace));
+        Cache::put('live-voice-pace:'.self::basePath($provider, $voice, $teacher), $pace, now()->addDay());
+
+        return $pace;
+    }
+
+    /** Durée de la parole d'un WAV : du premier au dernier passage audible (fenêtres de 20 millisecondes). */
+    public static function speechSeconds(string $wav): ?float
+    {
+        $parsed = VideoVoice::parse($wav);
+
+        if ($parsed === null) {
+            return null;
+        }
+
+        $frame = $parsed['channels'] * 2;
+        $window = max(1, (int) round($parsed['rate'] * 0.02));
+        $samples = unpack('v*', $parsed['data']) ?: [];
+        $levels = [];
+        $sum = 0;
+        $n = 0;
+        $index = 0;
+
+        foreach ($samples as $value) {
+            if ($index++ % $parsed['channels'] !== 0) {
+                continue;
+            }
+
+            $sum += abs($value >= 32768 ? $value - 65536 : $value);
+
+            if (++$n === $window) {
+                $levels[] = $sum / $n;
+                [$sum, $n] = [0, 0];
+            }
+        }
+
+        if ($levels === []) {
+            return null;
+        }
+
+        $sorted = $levels;
+        sort($sorted);
+        $threshold = max(300.0, $sorted[(int) floor((count($sorted) - 1) * 0.9)] * 0.1);
+        $loud = array_keys(array_filter($levels, fn (float $level) => $level > $threshold));
+
+        if ($loud === []) {
+            return null;
+        }
+
+        return (end($loud) - $loud[0] + 1) * $window / $parsed['rate'];
     }
 
     /** Essai en cours de cet administrateur (pour accepter l'extrait qu'il renvoie). */
