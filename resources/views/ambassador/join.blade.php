@@ -41,7 +41,7 @@
         @endif
     </section>
 
-    <section class="section" aria-labelledby="ambassadeur-recoit">
+    <section class="section reveal" aria-labelledby="ambassadeur-recoit">
         <h2 id="ambassadeur-recoit">Ce que vous recevez</h2>
         <ul class="check-list check-list-plain">
             <li><x-icon name="gift" /> Un accès gratuit à la formule {{ $plan?->name }} ({{ $plan?->dailyMinutes }} minutes par jour), {{ $monthDays }} jours renouvelés par notre équipe, jusqu'à {{ $maxMonths }} mois.</li>
@@ -52,7 +52,7 @@
         </ul>
     </section>
 
-    <section class="section" aria-labelledby="ambassadeur-fait">
+    <section class="section reveal" aria-labelledby="ambassadeur-fait">
         <h2 id="ambassadeur-fait">Ce que vous faites</h2>
         <ul class="check-list check-list-plain">
             <li><x-icon name="mic" /> Vous suivez vos séances avec {{ $teacher }} régulièrement.</li>
@@ -63,7 +63,7 @@
         <p class="muted small">Moins de 18 ans : l'accord écrit d'un parent vous sera demandé. Notre équipe choisit les ambassadeurs parmi les candidatures.</p>
     </section>
 
-    <section class="section" id="regles" aria-labelledby="ambassadeur-regles">
+    <section class="section reveal" id="regles" aria-labelledby="ambassadeur-regles">
         <h2 id="ambassadeur-regles">Les règles</h2>
         <ul class="check-list check-list-plain">
             <li><x-icon name="wallet" /> <strong>Seulement le premier paiement.</strong> La commission porte sur le premier paiement validé de chaque personne inscrite grâce à vous, jamais sur ses paiements suivants.</li>

@@ -18,6 +18,8 @@
     $indexable ??= Seo::indexable();
     $pageTitle = $title ? $title.' · '.config('platform.name') : config('platform.name').' · '.str_replace(':teacher', (string) config('avatar.model.name'), (string) config('platform.brand.home_title'));
     $pageDescription = $description ?: config('platform.brand.tagline');
+    // Fond léger des pages publiques autres que l'accueil (refonte, point 5) : deux formes floues en CSS, aucune image.
+    $publicPage = $indexable && ! request()->routeIs('home');
 @endphp
 
 <!DOCTYPE html>
@@ -77,7 +79,7 @@
         {!! Seo::jsonLd(Seo::currentBreadcrumbs()) !!}
     @endif
 </head>
-<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage, 'is-admin-user' => $user?->isStaff(), 'is-ambassador-user' => $user?->isAmbassador()]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
+<body @class(['has-tabbar' => $tabbar, 'admin' => $isAdminPage, 'is-admin-user' => $user?->isStaff(), 'is-ambassador-user' => $user?->isAmbassador(), 'page-public' => $publicPage]) data-icon-style="{{ \App\Support\IconStyle::current() }}">
     <a class="skip-link" href="#contenu">Aller au contenu</a>
 
     <header class="site-header">

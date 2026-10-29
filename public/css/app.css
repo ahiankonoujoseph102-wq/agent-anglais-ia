@@ -1929,3 +1929,21 @@ p.review-doc-line[hidden], div.review-doc-line[hidden] { display: none; }
     .country-hero .students { padding: var(--space-4); }
     .country-hero .lead { font-size: var(--fs-base); }
 }
+
+/* ==========================================================================
+   Fond léger des pages publiques autres que l'accueil (refonte, point 5) : deux formes floues en CSS, aucune image ni
+   requête en plus. Immobiles sur téléphone (fluidité) ; dérive lente seulement à partir de 900 pixels, coupée par
+   « réduire les animations ». Seulement transform (aucun recalcul de la page).
+   ========================================================================== */
+body.page-public main { position: relative; isolation: isolate; }
+body.page-public main::before, body.page-public main::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; }
+body.page-public main::before { width: 300px; height: 300px; top: -110px; right: -150px; background: radial-gradient(circle at 35% 35%, var(--c-accent-soft), transparent 68%); }
+body.page-public main::after { width: 260px; height: 260px; top: 260px; left: -160px; background: radial-gradient(circle, var(--c-primary-soft), transparent 70%); }
+@media (min-width: 900px) {
+    body.page-public main::before { width: 440px; height: 440px; top: -160px; right: -120px; }
+    body.page-public main::after { width: 360px; height: 360px; left: -140px; }
+}
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+    body.page-public main::before { animation: drift 26s ease-in-out infinite alternate; }
+    body.page-public main::after { animation: drift 32s ease-in-out -6s infinite alternate-reverse; }
+}
