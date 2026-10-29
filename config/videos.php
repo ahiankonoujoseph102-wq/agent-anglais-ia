@@ -16,7 +16,11 @@
 
 return [
 
-    'per_day' => 3,
+    // Vidéos de PROMOTION (leçons pour TikTok et la chaîne WhatsApp) par jour, par défaut. La page « Vidéos » peut
+    // le changer sans redéploiement (réglage « videos.per_day », 1 à 3) : 1 quand le dépôt est privé, pour tenir dans
+    // les minutes gratuites de GitHub Actions.
+    'per_day' => 2,
+    'per_day_choices' => [1, 2, 3],
 
     // Durée parlée visée d'une vidéo, en secondes (le script est écrit pour cette durée, la phrase de fin en plus).
     'duration_seconds' => (int) env('VIDEO_DURATION_SECONDS', 120),

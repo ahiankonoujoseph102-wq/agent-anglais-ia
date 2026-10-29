@@ -1,7 +1,9 @@
+# Tests : seulement sur les pull requests (ouverture et chaque nouvel envoi sur leur branche). Aucun passage à l'envoi
+# d'une branche ni à la fusion sur main (un envoi sur main n'est pas une pull request) : minutes de GitHub Actions
+# économisées.
 name: Tests
 
 on:
-  push:
   pull_request:
 
 permissions:

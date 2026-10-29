@@ -6,6 +6,7 @@ use App\Models\LessonVideo;
 use App\Models\User;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Videos\LessonVideos;
+use App\Support\Videos\VideoEnding;
 use App\Support\Videos\VideoScriptWriter;
 use App\Support\Videos\VideoSettings;
 use App\Support\Videos\VideoTopics;
@@ -313,7 +314,49 @@ class LessonVideoTest extends TestCase
 
         config(['videos.token' => self::TOKEN]);
         $this->artisan('videos:prepare --plan --budget=1')->assertSuccessful();
-        $this->assertSame(3, LessonVideo::query()->count());
+        $this->assertSame(2, LessonVideo::query()->count());
+    }
+
+    public function test_the_number_of_promotion_videos_per_day_is_a_setting_of_the_videos_page(): void
+    {
+        $this->assertSame(2, VideoSettings::perDay());
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->get(route('admin.videos.index'))->assertOk()->assertSee('Vidéos de promotion par jour')->assertSee('videos-par-jour', false);
+        $this->actingAs($admin)->put(route('admin.videos.per-day'), ['per_day' => 1])->assertRedirect(route('admin.videos.index').'#videos-par-jour');
+        $this->assertSame(1, VideoSettings::perDay());
+        $this->assertSame(1, app(LessonVideos::class)->planToday());
+        $this->assertSame(0, app(LessonVideos::class)->planToday());
+
+        $this->actingAs($admin)->put(route('admin.videos.per-day'), ['per_day' => 9])->assertSessionHasErrors('per_day');
+        $this->assertSame(1, VideoSettings::perDay());
+        $this->actingAs(User::factory()->create())->put(route('admin.videos.per-day'), ['per_day' => 3])->assertForbidden();
+    }
+
+    public function test_github_takes_one_video_at_a_time_by_default(): void
+    {
+        app(LessonVideos::class)->plan(today(), 2);
+        $question = ['spoken' => 'Quel est votre prénom ?', 'subtitle' => 'Quel est votre prénom ?'];
+        LessonVideo::query()->get()->each->update(['status' => LessonVideo::VOICED, 'audio_path' => 'x.wav', 'script' => ['question' => $question, 'segments' => VideoEnding::segments($question)]]);
+
+        $jobs = $this->withToken(self::TOKEN)->getJson('/api/videos/travaux')->assertOk()->json('jobs');
+        $this->assertCount(1, $jobs);
+    }
+
+    public function test_tests_run_only_on_pull_requests_and_a_video_pass_stops_before_fifty_minutes(): void
+    {
+        $tests = (string) file_get_contents(base_path('.github/workflows/tests.yml'));
+        $this->assertMatchesRegularExpression('/^on:\n  pull_request:\n\n/m', $tests);
+        $this->assertStringNotContainsString('push:', $tests);
+
+        $videos = (string) file_get_contents(base_path('.github/workflows/videos.yml'));
+        $this->assertStringContainsString('timeout-minutes: 50', $videos);
+        $this->assertMatchesRegularExpression("/VIDEO_BUDGET_MINUTES: '(\\d+)'/", $videos);
+        preg_match("/VIDEO_BUDGET_MINUTES: '(\\d+)'/", $videos, $budget);
+        $this->assertLessThan(50, (int) $budget[1]);
+
+        $render = (string) file_get_contents(base_path('tools/video/render.mjs'));
+        $this->assertStringContainsString('/api/videos/travaux?limit=1', $render);
     }
 
     public function test_the_token_command_shows_a_random_token_once(): void

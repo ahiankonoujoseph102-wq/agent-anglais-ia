@@ -45,10 +45,10 @@ class LessonVideos
         });
     }
 
-    /** Vidéos du jour (config videos.per_day), seulement celles qui manquent. */
+    /** Vidéos du jour (réglage de la page « Vidéos », sinon config videos.per_day), seulement celles qui manquent. */
     public function planToday(): int
     {
-        $missing = (int) config('videos.per_day') - LessonVideo::query()->whereDate('day', today())->count();
+        $missing = VideoSettings::perDay() - LessonVideo::query()->whereDate('day', today())->count();
 
         return $missing > 0 ? $this->plan(today(), $missing) : 0;
     }

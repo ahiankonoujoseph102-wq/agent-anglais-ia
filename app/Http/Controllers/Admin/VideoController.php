@@ -44,7 +44,8 @@ class VideoController extends Controller
             'trialText' => (string) config('videos.voice_trial.text'),
             'redoable' => LessonVideo::query()->whereDate('day', today())->whereIn('status', [LessonVideo::READY, LessonVideo::FAILED])->count(),
             'reminder' => (string) config('videos.ai_label_reminder'),
-            'perDay' => (int) config('videos.per_day'),
+            'perDay' => VideoSettings::perDay(),
+            'perDayChoices' => VideoSettings::perDayChoices(),
             'presentations' => $presentations->all(),
             'catalogue' => app(ScreenCatalogue::class)->last(),
         ]);
@@ -79,6 +80,16 @@ class VideoController extends Controller
         return redirect()->to(route('admin.videos.index').'#reglages-videos')->with('status', $site !== null
             ? "Adresse des vidéos enregistrée : {$site}. Les prochaines vidéos la diront et l'afficheront à la fin."
             : 'Adresse des vidéos effacée : la fabrication est bloquée jusqu\'à ce qu\'une adresse soit renseignée.');
+    }
+
+    /** Vidéos de promotion préparées chaque matin (1 quand le dépôt GitHub est privé : moins de minutes). */
+    public function updatePerDay(Request $request): RedirectResponse
+    {
+        $count = (int) $request->validate(['per_day' => ['required', 'integer', 'in:'.implode(',', VideoSettings::perDayChoices())]])['per_day'];
+        VideoSettings::savePerDay($count);
+
+        return redirect()->to(route('admin.videos.index').'#videos-par-jour')
+            ->with('status', "Vidéos de promotion par jour : {$count}. Pris en compte dès la préparation de demain matin.");
     }
 
     /** Extrait de l'essai comparatif : préparé au premier toucher, puis gardé. */

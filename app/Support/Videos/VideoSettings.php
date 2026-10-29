@@ -7,13 +7,15 @@ use Throwable;
 
 /**
  * Réglages des vidéos choisis dans la page « Vidéos » (table settings, sans redéploiement) : adresse du site dite et
- * affichée à la fin de chaque vidéo, voix des vidéos ; nom du professeur en filigrane.
+ * affichée à la fin de chaque vidéo, voix des vidéos, vidéos de promotion par jour ; nom du professeur en filigrane.
  */
 class VideoSettings
 {
     public const SITE = 'videos.site';
 
     public const VOICE = 'videos.voice';
+
+    public const PER_DAY = 'videos.per_day';
 
     /** Adresse du site des vidéos (« talkami.net »), ou null : la fabrication est alors bloquée. */
     public static function site(): ?string
@@ -68,6 +70,27 @@ class VideoSettings
     public static function saveVoice(string $provider, string $voice): void
     {
         Setting::put(self::VOICE, $provider.':'.$voice);
+    }
+
+    /**
+     * Vidéos de promotion préparées chaque jour : le réglage de la page « Vidéos » (1 à 3), sinon la configuration.
+     */
+    public static function perDay(): int
+    {
+        $saved = (int) self::read(self::PER_DAY);
+
+        return in_array($saved, self::perDayChoices(), true) ? $saved : (int) config('videos.per_day');
+    }
+
+    /** @return list<int> */
+    public static function perDayChoices(): array
+    {
+        return array_map('intval', (array) config('videos.per_day_choices', [1, 2, 3]));
+    }
+
+    public static function savePerDay(int $count): void
+    {
+        Setting::put(self::PER_DAY, (string) $count);
     }
 
     /** Nom du professeur en filigrane (VIDEO_WATERMARK, sinon le nom du professeur de la configuration). */

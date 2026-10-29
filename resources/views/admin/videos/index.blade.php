@@ -3,7 +3,7 @@
 
     <h1>Vidéos de {{ config('avatar.model.name') }}</h1>
     <p>
-        Chaque jour, {{ $perDay }} vidéos verticales de leçon d'anglais, prêtes pour TikTok et la chaîne WhatsApp :
+        Chaque jour, {{ $perDay }} {{ $perDay > 1 ? 'vidéos verticales' : 'vidéo verticale' }} de leçon d'anglais, prêtes pour TikTok et la chaîne WhatsApp :
         le site choisit le sujet, écrit le script et prépare la voix ; GitHub fabrique ensuite la vidéo.
     </p>
 
@@ -26,6 +26,25 @@
         </form>
     </section>
 
+    <section class="card" id="videos-par-jour" aria-labelledby="videos-par-jour-titre">
+        <h2 id="videos-par-jour-titre">Vidéos de promotion par jour</h2>
+        <p class="muted small">
+            Préparées chaque matin, puis fabriquées par GitHub. Dépôt GitHub public : 2 par jour. Dépôt privé (minutes
+            comptées) : choisissez 1.
+        </p>
+        <form method="POST" action="{{ route('admin.videos.per-day') }}" class="video-prepare">
+            @csrf
+            @method('PUT')
+            <label for="videos-per-day">Vidéos de promotion par jour</label>
+            <select id="videos-per-day" name="per_day">
+                @foreach ($perDayChoices as $choice)
+                    <option value="{{ $choice }}" @selected($choice === $perDay)>{{ $choice }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="btn btn-light">Enregistrer</button>
+        </form>
+    </section>
+
     <section class="card card-soft">
         <h2>État</h2>
         <ul>
@@ -39,7 +58,7 @@
             <label for="video-count">Préparer des vidéos maintenant</label>
             <select id="video-count" name="count">
                 @foreach ([1, 2, 3] as $count)
-                    <option value="{{ $count }}" @selected($count === 3)>{{ $count }} vidéo{{ $count > 1 ? 's' : '' }}</option>
+                    <option value="{{ $count }}" @selected($count === $perDay)>{{ $count }} vidéo{{ $count > 1 ? 's' : '' }}</option>
                 @endforeach
             </select>
             <button type="submit" class="btn btn-accent"><x-icon name="play" /> Préparer</button>
@@ -52,7 +71,7 @@
         @endif
         <p class="muted small">
             Script et voix prêts en quelques minutes (état « Voix prête »). Ensuite, sur GitHub : Actions, « Vidéos de
-            {{ config('avatar.model.name') }} », Run workflow. Comptez environ 12 minutes par vidéo.
+            {{ config('avatar.model.name') }} », Run workflow. Comptez environ 8 minutes de fabrication par vidéo quand le dépôt est public, environ 15 quand il est privé.
         </p>
     </section>
 

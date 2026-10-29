@@ -1,10 +1,17 @@
-# REPRISE — chantier en cours : fin de séance, accueil de la première séance, référencement
+# REPRISE — chantier en cours : minutes GitHub Actions, vidéo du Club des abonnés
 
 À lire avec `CLAUDE.md` pour reprendre ce travail dans une autre session. Ce fichier ne contient jamais de clé, ni de conversation réelle, ni de transcription.
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
-## Dernier chantier : icône du site pour Google (29 octobre 2026, branche `claude/icone-du-site`)
+## Dernier chantier : minutes GitHub Actions et vidéo du Club des abonnés (29 octobre 2026)
+
+Dépôt PUBLIC jusqu'au début du mois (minutes gratuites), puis de nouveau privé. Nouveau jeton des vidéos en place (workflow n° 16 réussi : vidéo 19 en 473 secondes de rendu, 155 millisecondes par image).
+
+- **Partie 1 (branche `claude/minutes-actions`)** : tests seulement sur les pull requests ; 2 vidéos de promotion par jour, réglage « Vidéos de promotion par jour » (page « Vidéos ») ; passage limité à 50 minutes, une vidéo à la fois, budget de 42 minutes. Quand le dépôt redevient privé : régler « Vidéos de promotion par jour » sur 1.
+- **Partie 2 (branche à part)** : vidéo quotidienne du Club des abonnés (thème selon le jour, anonymat d'au moins 3 personnes, historique sans répétition), bloc « Club des abonnés » de la page « Vidéos », visible par l'assistant.
+
+## Chantier précédent : icône du site pour Google (29 octobre 2026, branche `claude/icone-du-site`)
 
 Icônes du site refaites sur fond blanc uni (48, 96, 192 pixels et favicon.ico), déclarées sur toutes les pages par `<x-site-icons>`. Google met à jour l'icône à son propre rythme (plusieurs jours à quelques semaines). Voir CLAUDE.md.
 

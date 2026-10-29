@@ -26,7 +26,9 @@ permissions:
 jobs:
   fabriquer:
     runs-on: ubuntu-latest
-    timeout-minutes: 80
+    # Limite d'un passage : 50 minutes. render.mjs ne commence pas une vidéo qu'il n'aurait pas le temps de finir
+    # (VIDEO_BUDGET_MINUTES) : elle attend le passage suivant.
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,5 +65,6 @@ jobs:
           TALKAMI_URL: ${{ vars.TALKAMI_URL }}
           TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
           VIDEO_COUNT: ${{ inputs.count || '3' }}
+          VIDEO_BUDGET_MINUTES: '42'
           CHROME_PATH: /usr/bin/google-chrome
         run: node render.mjs

@@ -8,7 +8,7 @@
 // 3. Vérifie que la bouche a suivi la voix (lip-check.mjs) : sinon, la vidéo n'est PAS déposée (échec).
 // 4. Dépose la vidéo dans le bucket privé (adresse signée donnée par Talkami) et prévient Talkami (avec les mesures).
 //
-// Variables : TALKAMI_URL (adresse du site), TALKAMI_VIDEO_TOKEN (secret), VIDEO_COUNT (1 à 3), CHROME_PATH
+// Variables : TALKAMI_URL (adresse du site), TALKAMI_VIDEO_TOKEN (secret), VIDEO_COUNT (1 à 4), VIDEO_BUDGET_MINUTES (temps accordé), CHROME_PATH
 // (navigateur), VIDEO_PEEK=1 (dire seulement combien de vidéos attendent, sans rien prendre).
 // Essai en local, sans Talkami : node render.mjs --job=job.json --audio=voix.wav --out=video.mp4
 
@@ -164,27 +164,41 @@ async function remote() {
         return;
     }
 
-    const count = Math.max(1, Math.min(3, Number(process.env.VIDEO_COUNT || 3)));
-    const { jobs, blocked } = await (await api(`/api/videos/travaux?limit=${count}`)).json();
-    log(`Vidéos à fabriquer : ${jobs.length}.`);
-
-    if (blocked) {
-        log(`Fabrication bloquée : ${blocked}`);
-        process.exitCode = 1;
-
-        return;
-    }
-
-    if (jobs.length === 0) {
-        return;
-    }
-
-    const browser = await launch(chromium);
+    // Une vidéo à la fois : chaque vidéo est demandée juste avant sa fabrication (adresse de dépôt toute neuve), et
+    // aucune nouvelle vidéo n'est commencée si le temps accordé (VIDEO_BUDGET_MINUTES) ne suffit plus pour la finir :
+    // elle attend le passage suivant au lieu d'être coupée par la limite de GitHub (minutes perdues).
+    const count = Math.max(1, Math.min(4, Number(process.env.VIDEO_COUNT || 3)));
+    const budget = Math.max(0, Number(process.env.VIDEO_BUDGET_MINUTES || 0)) * 60000;
+    const started = Date.now();
+    let longest = 0;
+    let browser = null;
     let failures = 0;
 
     try {
-        for (const job of jobs) {
+        for (let made = 0; made < count; made++) {
+            if (budget > 0 && made > 0 && Date.now() - started + longest * 1.15 > budget) {
+                log(`Temps accordé presque écoulé : les vidéos suivantes attendent le prochain passage.`);
+                break;
+            }
+
+            const { jobs, blocked } = await (await api('/api/videos/travaux?limit=1')).json();
+
+            if (blocked) {
+                log(`Fabrication bloquée : ${blocked}`);
+                process.exitCode = 1;
+
+                return;
+            }
+
+            if (jobs.length === 0) {
+                log(made === 0 ? 'Aucune vidéo à fabriquer.' : `Vidéos fabriquées : ${made}.`);
+                break;
+            }
+
+            browser ??= await launch(chromium);
+            const job = jobs[0];
             const workdir = await mkdtemp(join(tmpdir(), 'job-'));
+            const begun = Date.now();
 
             try {
                 log(`vidéo ${job.id} : « ${job.title} »`);
@@ -214,11 +228,12 @@ async function remote() {
                 log(`vidéo ${job.id} : échec : ${error.message}`);
                 await api(job.failed_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: String(error.message).slice(0, 280) }) }).catch(() => {});
             } finally {
+                longest = Math.max(longest, Date.now() - begun);
                 await rm(workdir, { recursive: true, force: true });
             }
         }
     } finally {
-        await browser.close();
+        await browser?.close();
     }
 
     if (failures > 0) {
