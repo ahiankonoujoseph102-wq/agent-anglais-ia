@@ -37,7 +37,7 @@
                 <x-icon name="clock" />
                 <span>{{ \App\Support\DailyTime::remainingSentence($counter['remaining']) }}</span>
             </p>
-            <p class="muted small">Votre temps du jour est partagé librement entre la séance orale et « Mes cours ». Une séance avec {{ config('avatar.model.name') }} dure {{ \App\Support\Duration::format((int) config('platform.courses.max_session_minutes') * 60) }} au plus, jamais plus que le temps qu'il vous reste. Votre programme et votre séance orale du jour restent l'essentiel.</p>
+            <p class="muted small">Votre temps du jour est partagé librement entre la séance orale et « Mes cours ». Une séance avec {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }} dure {{ \App\Support\Duration::format((int) config('platform.courses.max_session_minutes') * 60) }} au plus, jamais plus que le temps qu'il vous reste. Votre programme et votre séance orale du jour restent l'essentiel.</p>
         </section>
 
         @if ($lessons->total() > 0)

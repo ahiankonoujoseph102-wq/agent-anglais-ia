@@ -12,6 +12,7 @@ use App\Support\DailyTime;
 use App\Support\Gemini\CourseReader;
 use App\Support\PdfPages;
 use App\Support\PrivateStorage;
+use App\Support\Teachers\Teachers;
 use App\Support\UploadLimits;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -113,7 +114,7 @@ class CourseController extends Controller
         }
 
         $lesson = $this->save($user, $request, $reading + ['text' => null], $uploads, $pageCount);
-        $teacher = config('avatar.model.name');
+        $teacher = Teachers::forUser($user)->name();
 
         return $this->respond($request, $byParts
             ? redirect()->to(route('courses.show', $lesson).'#partie')->with('status', "{$teacher} a parcouru vos {$pageCount} pages. Choisissez maintenant la partie à travailler.")
@@ -169,7 +170,7 @@ class CourseController extends Controller
 
             if ($reading['status'] !== CourseReader::LESSON) {
                 throw ValidationException::withMessages(['from' => match ($reading['status']) {
-                    CourseReader::NOT_FOUND => config('avatar.model.name').' n\'a pas trouvé ce passage. Indiquez plutôt les pages (par exemple de la page 3 à la page 5).',
+                    CourseReader::NOT_FOUND => Teachers::forUser($request->user())->name().' n\'a pas trouvé ce passage. Indiquez plutôt les pages (par exemple de la page 3 à la page 5).',
                     CourseReader::UNREADABLE => 'Ces pages ne peuvent pas être lues avec certitude. Choisissez d\'autres pages, ou envoyez des photos nettes de cette partie.',
                     CourseReader::NOT_ENGLISH => 'Ces pages ne sont pas une leçon d\'anglais. Choisissez la partie de votre cours d\'anglais.',
                     default => 'La lecture est momentanément indisponible. Rien n\'a été compté : réessayez dans quelques minutes.',
@@ -191,7 +192,7 @@ class CourseController extends Controller
         $course->update(['current_part_id' => $part->id]);
 
         return $this->respond($request, redirect()->to($back.'#travailler')
-            ->with('status', 'Partie choisie : '.$part->label().'. '.config('avatar.model.name').' se concentrera sur elle.'));
+            ->with('status', 'Partie choisie : '.$part->label().'. '.Teachers::forUser($request->user())->name().' se concentrera sur elle.'));
     }
 
     /**

@@ -3,8 +3,10 @@
     (config/teachers.php → ready : voix ET visage prêts). Vaut pour la séance du jour, « Mes cours » et le bilan de
     niveau ; l'évaluation gratuite se fait avec le professeur par défaut. Tout le reste est commun.
 --}}
-@if (\App\Support\Teachers\Teachers::hasChoice())
+@if (\App\Support\Teachers\Teachers::hasChoice() && auth()->user()?->activeSubscription)
     @php($current = \App\Support\Teachers\Teachers::forUser(auth()->user()))
+    {{-- Arrivé par « Changer » d'une page de séance : le choix y ramène (adresse vérifiée par le contrôleur). --}}
+    @php($back = \App\Http\Controllers\TeacherChoiceController::back(request()->query('retour')))
     <section id="professeur" {{ $attributes->merge(['class' => 'card teacher-choice']) }} aria-labelledby="teacher-choice-title">
         <div class="card-title">
             <span class="icon-bubble"><x-icon name="user" /></span>
@@ -16,6 +18,9 @@
                 <form method="POST" action="{{ route('teacher.choose') }}" class="teacher-choice-item">
                     @csrf
                     <input type="hidden" name="teacher" value="{{ $teacher->key }}">
+                    @if ($back)
+                        <input type="hidden" name="retour" value="{{ $back }}">
+                    @endif
                     @if ($teacher->key === $current->key)
                         <p class="teacher-choice-current"><x-icon name="check-circle" /> <strong>{{ $teacher->name() }}</strong> <span class="muted">Votre professeur</span></p>
                     @else

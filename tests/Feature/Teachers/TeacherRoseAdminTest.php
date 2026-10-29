@@ -68,7 +68,7 @@ class TeacherRoseAdminTest extends TestCase
     {
         $this->actingAs($this->admin())->get('/admin/voix?professeur=rose')->assertOk()
             ->assertSee('choisissez celle de Teacher Rose')
-            ->assertSee('pas encore proposée aux apprenants')
+            ->assertDontSee('pas encore proposée aux apprenants')
             ->assertSee('Voix Gemini (séances en direct)')
             ->assertSee('Voix actuelle : <strong>Sulafat</strong>', false)
             ->assertSee('Kore')->assertSee('Aoede')->assertSee('Despina')->assertSee('Erinome')->assertSee('Vindemiatrix')

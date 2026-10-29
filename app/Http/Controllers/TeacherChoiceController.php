@@ -26,8 +26,26 @@ class TeacherChoiceController extends Controller
 
         $request->user()->forceFill(['teacher' => $key])->save();
         $teacher = Teachers::forUser($request->user());
+        $back = self::back($request->input('retour'));
 
-        return redirect()->to(route('dashboard').'#professeur')
+        return redirect()->to($back ?? route('dashboard').'#professeur')
             ->with('status', 'Votre professeur est maintenant '.$teacher->name().' : '.$teacher->pronoun().' vous accompagne dès votre prochaine séance. Votre niveau, votre programme et vos erreurs à revoir ne changent pas.');
+    }
+
+    /**
+     * Page où revenir après le choix (« Changer » de la séance du jour ou d'une leçon de « Mes cours ») : seulement ces
+     * adresses du site, jamais une adresse extérieure.
+     */
+    public static function back(mixed $path): ?string
+    {
+        if (! is_string($path)) {
+            return null;
+        }
+
+        // Adresse complète du site (formulaire) ou chemin seul (lien « Changer »).
+        $root = rtrim(url('/'), '/');
+        $path = str_starts_with($path, $root.'/') ? substr($path, strlen($root)) : $path;
+
+        return preg_match('#^/(seance|mes-cours/\d+/seance)$#', $path) === 1 ? url($path) : null;
     }
 }

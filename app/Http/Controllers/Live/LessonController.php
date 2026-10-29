@@ -68,6 +68,8 @@ class LessonController extends Controller
         return view('live.session', [
             'mode' => 'lesson',
             'teacher' => $teacher,
+            // « Changer » de professeur : seulement avant une séance pas encore commencée.
+            'switchBack' => $lesson === null ? '/seance' : null,
             // Phrases utiles dépliées aux premières séances, repliées ensuite.
             'usefulPhrasesOpen' => WorkingTogether::isFirst(WorkingTogether::lessonNumber($user, $lesson)),
             'title' => 'Ma séance du jour',

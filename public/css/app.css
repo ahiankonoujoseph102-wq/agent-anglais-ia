@@ -719,6 +719,10 @@ main { overflow-x: clip; }
 .face-rose .face-blush { fill: #b0614f; opacity: .35; }
 .face-rose .face-smile { fill: none; stroke: #6e2a30; stroke-width: 4; stroke-linecap: round; }
 .face-rose .face-mouth { fill: #6e2a30; }
+/* « Avec Teacher Rose · Changer » avant la séance du jour et « Mes cours ». */
+.teacher-switch { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-2) 0 0; font-size: var(--fs-sm); color: var(--c-muted); }
+.teacher-switch .icon { width: 18px; height: 18px; flex: none; }
+.teacher-switch a { margin-left: auto; min-height: 44px; display: inline-flex; align-items: center; font-weight: 600; }
 /* Attente de la réponse (« Un instant… ») : petit hochement du visage simple. */
 [data-waiting] .face { animation: nod 1.2s ease-in-out 2; transform-origin: 50% 80%; }
 @keyframes nod { 0%, 100% { transform: none; } 40% { transform: translateY(3px) rotate(1deg); } }

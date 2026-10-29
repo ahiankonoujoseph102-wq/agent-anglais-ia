@@ -7,7 +7,7 @@
             <h1>Ajouter une leçon</h1>
         </div>
         <p class="muted">
-            Une leçon d'anglais de votre école, de votre lycée, de votre université ou de votre formation. {{ config('avatar.model.name') }} la lit, puis vous aide à la comprendre et à vous exercer.
+            Une leçon d'anglais de votre école, de votre lycée, de votre université ou de votre formation. {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }} la lit, puis vous aide à la comprendre et à vous exercer.
         </p>
     </div>
 
@@ -78,7 +78,7 @@
         <p class="hint" data-course-status aria-live="polite" hidden></p>
 
         <div class="course-tips">
-            <h3>Pour que {{ config('avatar.model.name') }} lise bien</h3>
+            <h3>Pour que {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }} lise bien</h3>
             <ul class="check-list">
                 <li><x-icon name="check" /> Une photo par page, la page entière, sans rien couper.</li>
                 <li><x-icon name="check" /> De la lumière, sans ombre sur le texte.</li>
@@ -88,12 +88,12 @@
 
         <h2 class="course-step course-step-2">2. Un titre ? (facultatif)</h2>
         <x-input name="title" label="Titre de la leçon" :value="old('title')" maxlength="150"
-                 :hint="config('avatar.model.name').' en propose un d\'après votre leçon si vous n\'en donnez pas.'" />
+                 :hint="\App\Support\Teachers\Teachers::forUser(auth()->user())->name().' en propose un d\'après votre leçon si vous n\'en donnez pas.'" />
 
         <p class="error" data-long-submit-error role="alert" hidden></p>
         <button type="submit" class="btn btn-accent btn-block btn-lg btn-plan course-submit" data-course-submit>Envoyer ma leçon</button>
         <p class="hint course-waiting" data-course-waiting hidden role="status">
-            {{ config('avatar.model.name') }} lit votre leçon. Cela peut prendre jusqu'à une minute pour un long PDF : gardez cette page ouverte.
+            {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }} lit votre leçon. Cela peut prendre jusqu'à une minute pour un long PDF : gardez cette page ouverte.
         </p>
         <p class="muted small next-step">Vos pages restent privées : seuls vous et notre équipe pouvez les voir.</p>
     </form>
