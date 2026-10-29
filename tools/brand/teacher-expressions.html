@@ -28,7 +28,7 @@ function seeded(seed) {
     };
 }
 
-window.renderExpressions = async ({ names, size, quality, camera, settle }) => {
+window.renderExpressions = async ({ names, size, quality, camera, settle, model = 'teacher-joe', smile = 0.3 }) => {
     const { createTeacher3D } = await import('/js/teacher-3d.js');
     const results = {};
 
@@ -48,7 +48,7 @@ window.renderExpressions = async ({ names, size, quality, camera, settle }) => {
                     worklet: '/teacher3d/lib/headworklet.min.js',
                     lipsync: '/teacher3d/lib/lipsync-en.bin',
                 },
-                model: { url: '/teacher3d/models/teacher-joe.glb', size: 0, profile: 'teacher-joe', desk_height: 0.175, resting_smile: 0.3, camera },
+                model: { url: `/teacher3d/models/${model}.glb`, size: 0, profile: 'teacher-joe', desk_height: 0.175, resting_smile: smile, camera },
             },
         });
         teacher.resize();
