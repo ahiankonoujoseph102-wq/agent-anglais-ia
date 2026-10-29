@@ -12,14 +12,15 @@ use App\Support\Speech\Loudness;
 use App\Support\Speech\SpeechProvider;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Teachers\Teacher;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Sleep;
 
 /**
  * Voix d'une vidéo de leçon : quelques demandes de synthèse vocale (plusieurs parties du script par demande,
- * recoupées ensuite par VoiceSplitter ; une par phrase pour les vidéos de présentation), TOUTES chez le même fournisseur
- * et avec la même voix (jamais deux voix dans une vidéo). Si ce fournisseur ne peut pas finir (limite du jour,
- * clé refusée), la vidéo ENTIÈRE est refaite chez le suivant. Les parties sont ensuite assemblées en un seul
+ * recoupées ensuite par VoiceSplitter, vidéos de présentation comprises), TOUTES chez le même fournisseur et avec la
+ * même voix (jamais deux voix dans une vidéo). Si ce fournisseur ne peut pas finir (limite du jour, clé refusée), la
+ * vidéo ENTIÈRE est refaite chez le suivant ; une vidéo de présentation attend plutôt la voix choisie. Les parties sont ensuite assemblées en un seul
  * fichier WAV, avec un court silence entre elles, et leurs heures de début et de fin (sous-titres) sont gardées.
  */
 class VideoVoice
@@ -93,6 +94,25 @@ class VideoVoice
         return $teacher === null || $teacher->isDefault();
     }
 
+    /**
+     * Voix que prendrait aujourd'hui une NOUVELLE voix de ce professeur : premier fournisseur avec une clé et sa voix.
+     * Une vidéo de présentation dont la voix gardée n'est pas celle-ci est redite (voix changée dans « Essai des voix »).
+     *
+     * @return array{provider: string, voice: string}|null
+     */
+    public static function current(?Teacher $teacher = null): ?array
+    {
+        $provider = self::providers($teacher)[0] ?? null;
+
+        return $provider === null ? null : ['provider' => $provider->name(), 'voice' => self::voiceFor($provider, $teacher)];
+    }
+
+    /** Fin de la mise de côté d'un fournisseur à sa limite du jour (Gemini : minuit, heure du Pacifique). */
+    private static function pausedUntil(SpeechProvider $provider): CarbonInterface
+    {
+        return $provider->name() === 'gemini' ? VoiceSampler::quotaResetsAt() : now()->endOfDay();
+    }
+
     /** Ce fournisseur est-il mis de côté (limite atteinte) ? */
     public static function isPaused(SpeechProvider $provider): bool
     {
@@ -109,6 +129,12 @@ class VideoVoice
 
         if ($providers === []) {
             return $this->failure($video, 'Aucun fournisseur de voix n\'a de clé.');
+        }
+
+        // Vidéos de présentation : TOUJOURS la voix choisie (fournisseur en tête), quitte à attendre le lendemain ; elles
+        // ne sont pas datées, une autre voix au milieu des présentations d'un professeur se remarquerait.
+        if ($video instanceof PresentationVideo) {
+            $providers = array_slice($providers, 0, 1);
         }
 
         $provider = collect($providers)->first(fn (SpeechProvider $p) => $p->name() === $video->voice_provider && ! self::isPaused($p))
@@ -130,11 +156,10 @@ class VideoVoice
         $requested = false;
 
         $texts = array_map(fn (array $segment) => (string) $segment['spoken'], array_values($segments));
-        // Vidéos de leçon et du Club : plusieurs parties par demande (10 demandes par jour chez Gemini en offre
-        // gratuite), recoupées ensuite ; vidéos de présentation : une demande par phrase (leurs écrans en dépendent).
-        $groups = $video instanceof PresentationVideo
-            ? array_map(fn (int $index) => [$index], array_keys($texts))
-            : VoiceSplitter::groups($texts, (int) config('videos.voice.group_characters'));
+        // Plusieurs parties par demande (10 demandes par jour chez Gemini en offre gratuite), recoupées ensuite au
+        // silence le plus proche : vidéos de leçon, du Club et, depuis le 29 octobre 2026, de présentation (avant :
+        // une demande par phrase, 105 demandes pour les 7 présentations de Teacher Rose, 9 désormais).
+        $groups = VoiceSplitter::groups($texts, (int) config('videos.voice.group_characters'));
 
         foreach ($groups as $group) {
             if (collect($group)->every(fn (int $index) => $disk->exists($this->piecePath($video, $provider, $index)))) {
@@ -160,7 +185,7 @@ class VideoVoice
             } catch (SpeechFailed $e) {
                 if ($e->exhaustsProvider() || $e->isRetryable()) {
                     // Limite : ce fournisseur est mis de côté ; la vidéo entière passera au suivant.
-                    Cache::put(self::pauseKey($provider), $e->kind, $e->isRetryable() ? now()->addMinutes(2) : now()->endOfDay());
+                    Cache::put(self::pauseKey($provider), $e->kind, $e->isRetryable() ? now()->addMinutes(2) : self::pausedUntil($provider));
                     $video->update(['error' => $provider->label().' : '.$e->reason().'.']);
 
                     return self::PENDING;
@@ -350,7 +375,7 @@ class VideoVoice
                 $piece = $this->synthesize($provider, $voice, $segment['spoken'], 'Vidéo de leçon (fin)');
             } catch (SpeechFailed $e) {
                 if ($e->exhaustsProvider() || $e->isRetryable()) {
-                    Cache::put(self::pauseKey($provider), $e->kind, $e->isRetryable() ? now()->addMinutes(2) : now()->endOfDay());
+                    Cache::put(self::pauseKey($provider), $e->kind, $e->isRetryable() ? now()->addMinutes(2) : self::pausedUntil($provider));
                     $video->update(['error' => $provider->label().' : '.$e->reason().'.', 'next_attempt_at' => now()->addMinutes((int) config('videos.retry_minutes'))]);
 
                     return self::PENDING;
