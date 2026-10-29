@@ -8,6 +8,8 @@ use App\Support\Speech\SpeechFiles;
 use App\Support\Speech\SpeechProvider;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\VoiceMessage;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 
@@ -16,6 +18,7 @@ use Illuminate\Support\Facades\Cache;
  * une par niveau (config/teacher.php → level_messages). Généré une seule fois par niveau, par fournisseur
  * et par voix, puis gardé sur le disque privé (le nom du fichier porte le fournisseur et la voix).
  * En cas d'échec, aucune nouvelle demande pendant quelques minutes : la page reste utilisable sans lui.
+ * Un message par professeur (sa voix, son ton) ; les fichiers de Teacher Joe gardent leur nom d'avant.
  */
 class LevelMessage
 {
@@ -49,7 +52,7 @@ class LevelMessage
     private static function legacyName(Level $level, SpeechProvider $provider): string
     {
         $hash = substr(sha1(implode('|', array_filter([
-            $provider->model(), $provider->voice(), self::text($level), config('teacher.level_messages.style'), $provider->settings(),
+            $provider->model(), $provider->voice(), self::text($level), self::style($provider->teacher()), $provider->settings(),
         ], fn ($part) => $part !== ''))), 0, 16);
 
         return $provider->voice().'-'.$hash.'.wav';
@@ -69,26 +72,46 @@ class LevelMessage
         ], array_values(array_filter(Level::cases(), fn (Level $level) => self::text($level) !== '')));
     }
 
-    /**
-     * Le message d'un niveau (un seul morceau).
-     */
-    public static function message(Level $level): VoiceMessage
+    /** Ton du message pour ce professeur (Teacher Joe : celui de la configuration). */
+    public static function style(Teacher $teacher): string
     {
+        return $teacher->speechStyle((string) config('teacher.level_messages.style'));
+    }
+
+    /**
+     * Le message d'un niveau (un seul morceau), dit par ce professeur (null : professeur par défaut).
+     */
+    public static function message(Level $level, ?Teacher $teacher = null): VoiceMessage
+    {
+        $teacher ??= Teachers::default();
+        $label = self::label($level).($teacher->isDefault() ? '' : ' ('.$teacher->name().')');
+
         return new VoiceMessage(
-            'level:'.$level->value,
-            self::label($level),
-            [['label' => self::label($level), 'text' => self::text($level)]],
-            (string) config('teacher.level_messages.style'),
+            'level:'.($teacher->isDefault() ? '' : $teacher->key.':').$level->value,
+            $label,
+            [['label' => $label, 'text' => self::text($level)]],
+            self::style($teacher),
             fn (string $text, SpeechProvider $provider) => self::path($level, $provider),
+            $teacher->isDefault() ? null : $teacher,
         );
     }
 
     /**
+     * Messages à préparer : un par niveau et par professeur proposé.
+     *
      * @return list<VoiceMessage>
      */
     public static function messages(): array
     {
-        return array_map(fn (array $item) => self::message($item['level']), self::all());
+        $messages = [];
+
+        foreach (Teachers::choosable() as $teacher) {
+            foreach (self::all() as $item) {
+                $messages[] = self::message($item['level'], $teacher);
+            }
+        }
+
+        return $messages;
     }
 
     public static function isReady(Level $level, SpeechProvider $provider): bool
@@ -103,10 +126,10 @@ class LevelMessage
     /**
      * Le message de ce niveau est-il prêt à être joué tout de suite (fichier gardé chez son fournisseur) ?
      */
-    public static function ready(Level $level): bool
+    public static function ready(Level $level, ?Teacher $teacher = null): bool
     {
         try {
-            $message = self::message($level);
+            $message = self::message($level, $teacher);
             $provider = $message->provider();
 
             return $provider !== null && $message->isCompleteAt($provider);
@@ -119,15 +142,15 @@ class LevelMessage
      * Fait préparer le message de ce niveau APRÈS la réponse (verdict de l'évaluation, page de résultat), s'il
      * manque : l'apprenant le trouve prêt. Jamais d'erreur visible.
      */
-    public static function queue(Level $level): void
+    public static function queue(Level $level, ?Teacher $teacher = null): void
     {
-        if (self::ready($level) || SpeechProviders::available() === []) {
+        if (self::ready($level, $teacher) || SpeechProviders::available() === []) {
             return;
         }
 
-        defer(static function () use ($level) {
+        defer(static function () use ($level, $teacher) {
             try {
-                app(self::class)->get($level);
+                app(self::class)->get($level, $teacher);
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -162,9 +185,9 @@ class LevelMessage
      * pas disponible : la page affiche alors le texte. Un seul morceau : il est dit en entier par UN fournisseur,
      * celui qui l'a déjà, sinon le premier, dans l'ordre réglé, qui réussit à le générer.
      */
-    public function get(Level $level): ?string
+    public function get(Level $level, ?Teacher $teacher = null): ?string
     {
-        $message = self::message($level);
+        $message = self::message($level, $teacher);
         $disk = PrivateStorage::disk();
         $provider = $message->provider();
 
@@ -172,7 +195,7 @@ class LevelMessage
             return $disk->get(self::path($level, $provider));
         }
 
-        foreach (SpeechProviders::available() as $provider) {
+        foreach (SpeechProviders::available($message->teacher) as $provider) {
             $wav = $this->generate($message, $level, $provider);
 
             if ($wav !== null) {

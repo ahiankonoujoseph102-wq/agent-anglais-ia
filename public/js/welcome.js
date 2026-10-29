@@ -1,5 +1,5 @@
 /*
- * Page de bienvenue de Teacher Joe : lit le message vocal (une suite de morceaux : l'ouverture avec le
+ * Page de bienvenue du professeur (Teacher Joe ou Teacher Rose) : lit le message vocal (une suite de morceaux : l'ouverture avec le
  * prénom, puis les paragraphes), avec le professeur 3D dont la bouche suit la voix (même technique que
  * l'écran de conversation : teacher-view.js, teacher-3d.js, HeadAudio), des sous-titres, « Pause » et
  * « Passer ». À la fin, le bouton de la prochaine étape apparaît, la page y descend et lui donne le focus.
@@ -13,6 +13,23 @@ const root = document.getElementById('welcome');
 
 if (root) {
     run();
+    voiceSamples();
+}
+
+/**
+ * « Sa voix » (choix du professeur) : court extrait de la voix de chaque professeur, un seul à la fois,
+ * jamais avant un toucher. Un extrait illisible ne bloque rien (le bouton disparaît).
+ */
+function voiceSamples() {
+    let current = null;
+
+    for (const button of root.querySelectorAll('[data-voice-sample]')) {
+        button.addEventListener('click', () => {
+            current?.pause();
+            current = new Audio(button.dataset.voiceSample);
+            current.play().catch(() => { button.hidden = true; });
+        });
+    }
 }
 
 async function run() {

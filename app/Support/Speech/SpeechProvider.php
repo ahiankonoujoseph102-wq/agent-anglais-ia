@@ -3,6 +3,8 @@
 namespace App\Support\Speech;
 
 use App\Support\Gemini\SpeechFailed;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 
 /**
  * Un fournisseur de synthèse vocale pour les messages (bienvenue, résultat de l'évaluation) : Gemini, ou
@@ -11,6 +13,25 @@ use App\Support\Gemini\SpeechFailed;
  */
 abstract class SpeechProvider
 {
+    /** Professeur dont ce fournisseur prend la voix (null : professeur par défaut, réglages d'avant). */
+    protected ?Teacher $teacher = null;
+
+    /**
+     * Ce fournisseur avec la voix de ce professeur (copie : le fournisseur partagé ne change pas).
+     */
+    public function forTeacher(?Teacher $teacher): static
+    {
+        $copy = clone $this;
+        $copy->teacher = $teacher === null || $teacher->isDefault() ? null : $teacher;
+
+        return $copy;
+    }
+
+    public function teacher(): Teacher
+    {
+        return $this->teacher ?? Teachers::default();
+    }
+
     /** Nom court, gardé dans les noms de fichiers et les journaux : « gemini », « openai ». */
     abstract public function name(): string;
 

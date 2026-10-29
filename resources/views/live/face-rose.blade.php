@@ -30,5 +30,5 @@
     <path d="M60 78 Q72 71 85 76 M115 76 Q128 71 140 78" class="face-brows face-brows-thin"/>
     {{-- Léger sourire au repos ; la bouche #mouth s'ouvre dedans quand elle parle. --}}
     <path d="M77 143 Q100 164 123 143" class="face-smile"/>
-    <ellipse id="mouth" cx="100" cy="152" rx="12" ry="3" class="face-mouth"/>
+    <ellipse id="{{ $mouthId ?? 'mouth' }}" cx="100" cy="152" rx="12" ry="3" class="face-mouth"/>
 </svg>

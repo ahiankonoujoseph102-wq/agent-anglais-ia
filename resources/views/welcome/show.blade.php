@@ -1,5 +1,7 @@
 {{--
-    Bienvenue de Teacher Joe : message vocal à la première ouverture d'un accès (formule active).
+    Bienvenue du professeur : message vocal à la première ouverture d'un accès (formule active). Plusieurs professeurs
+    proposés : « Avec qui voulez-vous travailler ? » en haut (extrait de la voix de chacun, puis « Choisir »).
+    Le message est dit par le professeur choisi.
     Même technique que l'écran de conversation : professeur 3D (repli : visage simple) dont la bouche suit la
     voix (public/js/welcome.js), sous-titres du texte complet, boutons « Pause » et « Passer », puis le bouton
     de la prochaine étape. Sans JavaScript : le texte complet et le bouton sont affichés tout de suite.
@@ -7,13 +9,13 @@
 @php
     use App\Support\Asset;
 
-    $teacher = config('avatar.model.name');
+    $teacherName = $teacher->name();
     $audio = ['voice_gain' => (float) config('platform.live.voice_gain')];
 @endphp
 <x-layout title="Bienvenue" focus>
-    <div id="welcome" class="welcome-page"
+    <div id="welcome" @class(['welcome-page', 'has-choice' => $choices !== []])
          data-teacher="{{ $teacher3d ? 'loading' : 'svg' }}"
-         data-teacher-name="{{ $teacher }}"
+         data-teacher-name="{{ $teacherName }}"
          data-pieces='@json($pieces)'
          data-audio='@json($audio)'
          data-teacher-cues="{{ Asset::url('js/teacher-cues.js') }}"
@@ -27,8 +29,38 @@
             <p class="welcome-lead">Félicitations pour votre formule {{ $planName }} !</p>
         </div>
 
+        @if ($choices !== [])
+            {{-- Choix du professeur, compact (le bouton d'écoute reste visible sans défiler) ; changeable ensuite chaque jour. --}}
+            <section class="welcome-choice" aria-labelledby="welcome-choice-title">
+                <h2 id="welcome-choice-title">Avec qui voulez-vous travailler ?</h2>
+                <div class="welcome-choice-list">
+                    @foreach ($choices as $choice)
+                        <div @class(['welcome-choice-item', 'is-current' => $choice['current']])>
+                            @if ($choice['current'])
+                                <p class="welcome-choice-name" aria-current="true"><x-icon name="check-circle" /> <strong>{{ $choice['teacher']->name() }}</strong></p>
+                            @else
+                                <form method="POST" action="{{ route('teacher.choose') }}">
+                                    @csrf
+                                    <input type="hidden" name="teacher" value="{{ $choice['teacher']->key }}">
+                                    <input type="hidden" name="retour" value="/bienvenue">
+                                    <button type="submit" class="welcome-choice-name welcome-choice-pick">Choisir <strong>{{ $choice['teacher']->name() }}</strong></button>
+                                </form>
+                            @endif
+                            @if ($choice['sample'])
+                                <button type="button" class="welcome-choice-voice" data-voice-sample="{{ $choice['sample'] }}" aria-label="Écouter la voix de {{ $choice['teacher']->name() }}"><x-icon name="play" /></button>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+                <p class="welcome-choice-note">Vous pourrez changer chaque jour, dans « Mon espace ».</p>
+            </section>
+        @endif
+
         <div class="welcome-stage">
             <div class="teacher" aria-hidden="true">
+                @if ($teacher->face() === 'rose')
+                    @include('live.face-rose', ['mouthId' => 'welcome-mouth'])
+                @else
                 <svg viewBox="0 0 200 250" class="face" role="img">
                     <path d="M16 250 Q20 206 72 194 L128 194 Q180 206 184 250 Z" class="face-vest"/>
                     <path d="M78 194 L100 236 L122 194 Z" class="face-shirt"/>
@@ -42,10 +74,11 @@
                     <path d="M56 72 Q70 64 84 72 M116 72 Q130 64 144 72" class="face-brows"/>
                     <ellipse id="welcome-mouth" cx="100" cy="142" rx="24" ry="3" class="face-mouth"/>
                 </svg>
+                @endif
                 <div id="teacher3d" class="teacher3d-stage"></div>
                 <div id="teacher3d-loading" class="teacher3d-loading teacher-wait" role="status" hidden>
                     <span class="teacher-wait-dots" aria-hidden="true"><span></span><span></span><span></span></span>
-                    <p class="teacher-wait-title">{{ $teacher }} arrive…</p>
+                    <p class="teacher-wait-title">{{ $teacherName }} arrive…</p>
                     <p class="teacher-wait-text">Patientez un instant.</p>
                     <progress max="100" value="0" aria-hidden="true"></progress>
                 </div>
@@ -55,8 +88,8 @@
 
         <div class="welcome-panel">
             <div id="welcome-start" class="welcome-start" hidden>
-                <button type="button" id="welcome-play" class="btn btn-accent btn-lg btn-block"><x-icon name="play" /> Toucher pour écouter {{ $teacher }}</button>
-                <p class="welcome-hint">Écoutez bien : il vous explique comment tout fonctionne.</p>
+                <button type="button" id="welcome-play" class="btn btn-accent btn-lg btn-block"><x-icon name="play" /> Toucher pour écouter {{ $teacherName }}</button>
+                <p class="welcome-hint">Écoutez bien : {{ $teacher->pronoun() }} vous explique comment tout fonctionne.</p>
                 <button type="button" id="welcome-skip-start" class="btn btn-link">Passer</button>
             </div>
 
@@ -76,7 +109,7 @@
             <p id="welcome-partial" class="welcome-status" role="status" hidden>Une partie du message n'est pas encore disponible en voix : elle est écrite juste en dessous.</p>
 
             {{-- Sous-titres : le texte complet, la phrase dite est mise en évidence. --}}
-            <div id="welcome-subtitles" class="welcome-subtitles" role="region" tabindex="0" aria-label="Texte du message de {{ $teacher }}">
+            <div id="welcome-subtitles" class="welcome-subtitles" role="region" tabindex="0" aria-label="Texte du message de {{ $teacherName }}">
                 @foreach ($pieces as $piece)
                     <p>{{ $piece['text'] }}</p>
                 @endforeach

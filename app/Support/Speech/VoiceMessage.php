@@ -4,6 +4,7 @@ namespace App\Support\Speech;
 
 use App\Support\Gemini\SpeechFailed;
 use App\Support\Gemini\VoiceSampler;
+use App\Support\Teachers\Teacher;
 
 /**
  * Un message vocal commun (message de bienvenue d'une formule, ou message du résultat d'un niveau) : ses
@@ -22,11 +23,18 @@ final class VoiceMessage
         public readonly array $pieces,
         public readonly string $style,
         private readonly \Closure $path,
+        public readonly ?Teacher $teacher = null,
     ) {}
+
+    /** Le fournisseur avec la voix du professeur de ce message (null : professeur par défaut). */
+    public function bind(SpeechProvider $provider): SpeechProvider
+    {
+        return $provider->forTeacher($this->teacher);
+    }
 
     public function path(string $text, SpeechProvider $provider): string
     {
-        return ($this->path)($text, $provider);
+        return ($this->path)($text, $this->bind($provider));
     }
 
     /**
@@ -38,7 +46,7 @@ final class VoiceMessage
     {
         $directories = [];
 
-        foreach (SpeechProviders::all() as $provider) {
+        foreach (SpeechProviders::all($this->teacher) as $provider) {
             foreach ($this->pieces as $piece) {
                 $directories[] = dirname($this->path($piece['text'], $provider));
             }
@@ -95,6 +103,7 @@ final class VoiceMessage
      */
     public function prepare(array $piece, SpeechProvider $provider, ?int $timeout = null): string
     {
+        $provider = $this->bind($provider);
         $wav = $provider->synthesize($piece['text'], $this->style, $piece['label'], $timeout);
 
         return VoiceSampler::store($this->path($piece['text'], $provider), $wav, $piece['label'], $provider);

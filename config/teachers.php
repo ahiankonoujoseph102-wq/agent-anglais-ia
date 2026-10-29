@@ -25,6 +25,8 @@
 |   personality       court bloc de personnalité ajouté après le personnage commun (vide : rien)
 |   sample_style      ton des extraits de « Essai des voix » ; null : teacher.voice_trial.style
 |   face              visage simple (SVG) de l'écran de séance : joe ou rose
+|   speech_style      remplacements dans le ton des messages vocaux (écrit pour Teacher Joe : « male teacher »)
+|   welcome_paragraphs  paragraphes du message de bienvenue propres au professeur (accords au féminin)
 |
 | RETOUR À TEACHER JOE SEUL : mettre « ready » de Teacher Rose à false (ou retirer son bloc), puis déployer. Le choix
 | disparaît ; un apprenant qui l'avait choisie retrouve Teacher Joe dès sa prochaine séance (Teachers::forUser).
@@ -86,6 +88,11 @@ return [
                 TXT,
             'sample_style' => 'a calm, warm and confident female teacher, speaking clearly and a little slowly to a beginner',
             'face' => 'rose',
+            // Messages vocaux (bienvenue, résultat) : voix de femme, accords au féminin.
+            'speech_style' => ['male teacher' => 'female teacher'],
+            'welcome_paragraphs' => [
+                'teacher' => "Je suis :teacher, votre professeure d'anglais. Vous avez fait un très bon choix pour parler anglais avec confiance, et je suis heureuse de vous accompagner, jour après jour.",
+            ],
         ],
     ],
 

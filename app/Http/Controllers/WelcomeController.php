@@ -8,6 +8,8 @@ use App\Support\Gemini\WelcomeMessage;
 use App\Support\Greeting;
 use App\Support\Speech\SpeechProvider;
 use App\Support\Speech\SpeechProviders;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use App\Support\WelcomeFlow;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,6 +20,9 @@ use Illuminate\View\View;
  * Page de bienvenue de Teacher Joe, à la première ouverture d'un accès : message vocal qui explique la
  * formule, le questionnaire, la séance orale et « Mes cours ». Montrée automatiquement une seule fois,
  * réécoutable depuis « Mon espace » (?reecouter=1) par un apprenant qui a eu un accès.
+ *
+ * Avec plusieurs professeurs proposés : « Avec qui voulez-vous travailler ? » (un court extrait de la voix de
+ * chacun, puis « Choisir ») ; le message est dit par le professeur choisi. Jamais de choix sur la page de paiement.
  */
 class WelcomeController extends Controller
 {
@@ -55,9 +60,11 @@ class WelcomeController extends Controller
             ];
         }
 
+        $teacher = $texts['teacher'];
+
         // Bouton de fin : le questionnaire, ou la séance si le programme est déjà construit.
         $next = $user->activeProgram()->exists()
-            ? ['label' => 'Parler avec '.config('avatar.model.name'), 'url' => route('lesson.show'), 'icon' => 'mic']
+            ? ['label' => 'Parler avec '.$teacher->name(), 'url' => route('lesson.show'), 'icon' => 'mic']
             : ['label' => 'Construire mon programme', 'url' => route('program.questionnaire', 1), 'icon' => 'arrow-right'];
 
         return view('welcome.show', [
@@ -65,8 +72,57 @@ class WelcomeController extends Controller
             'planName' => $texts['plan'],
             'pieces' => $pieces,
             'next' => $next,
-            'teacher3d' => Avatar::enabled() ? Avatar::clientConfig() + ['scene' => ['mode' => 'brand']] : null,
+            'teacher' => $teacher,
+            'choices' => $this->choices($user, $teacher),
+            'teacher3d' => Avatar::enabled($teacher) ? Avatar::clientConfig($teacher) + ['scene' => ['mode' => 'brand']] : null,
         ]);
+    }
+
+    /**
+     * « Avec qui voulez-vous travailler ? » : chaque professeur proposé, et l'adresse d'un court extrait de sa voix
+     * (sa présentation, déjà préparée) ; vide quand un seul professeur est proposé.
+     *
+     * @return list<array{teacher: Teacher, current: bool, sample: ?string}>
+     */
+    private function choices(User $user, Teacher $current): array
+    {
+        if (! Teachers::hasChoice()) {
+            return [];
+        }
+
+        return array_values(array_map(fn (Teacher $teacher) => [
+            'teacher' => $teacher,
+            'current' => $teacher->key === $current->key,
+            'sample' => $this->sampleWav($user, $teacher) !== null ? route('welcome.voice', $teacher->key) : null,
+        ], Teachers::choosable()));
+    }
+
+    /**
+     * Court extrait de la voix d'un professeur : le paragraphe où il se présente (« Je suis Teacher Rose… »),
+     * déjà préparé pour la formule de l'apprenant ; 404 s'il n'est pas prêt (jamais de demande pendant l'écoute).
+     */
+    public function voice(Request $request, string $teacher): Response
+    {
+        $choice = Teachers::choosable()[$teacher] ?? null;
+        abort_if($choice === null, 404);
+
+        $wav = $this->sampleWav($request->user(), $choice);
+        abort_if($wav === null, 404);
+
+        return response($wav, 200, [
+            'Content-Type' => 'audio/wav',
+            'Content-Length' => (string) strlen($wav),
+            'Cache-Control' => 'private, max-age=3600',
+        ]);
+    }
+
+    private function sampleWav(User $user, Teacher $teacher): ?string
+    {
+        $texts = WelcomeMessage::texts($user, null, $teacher);
+        $text = $texts['introduction'] ?? null;
+        $provider = $texts !== null ? WelcomeMessage::providerFor($texts) : null;
+
+        return $text !== null && $provider !== null ? app(WelcomeMessage::class)->get($text, $provider) : null;
     }
 
     /**
@@ -85,7 +141,7 @@ class WelcomeController extends Controller
 
         // Le fournisseur choisi par la page (toute la page joue la même voix), sinon celui du message.
         $provider = in_array($request->query('voix'), array_map(fn (SpeechProvider $provider) => $provider->name(), SpeechProviders::configured()), true)
-            ? SpeechProviders::find((string) $request->query('voix'))
+            ? SpeechProviders::find((string) $request->query('voix'), $texts['teacher'])
             : WelcomeMessage::providerFor($texts);
 
         $wav = $provider !== null ? $messages->get($text, $provider, $index === 0) : null;

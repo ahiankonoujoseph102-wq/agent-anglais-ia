@@ -44,6 +44,37 @@ final class Teacher
         return (string) ($this->config['face'] ?? 'joe');
     }
 
+    /** Professeur par défaut (Teacher Joe) : ses messages vocaux gardent exactement les réglages d'avant. */
+    public function isDefault(): bool
+    {
+        return $this->key === (string) config('teachers.default');
+    }
+
+    /**
+     * Ton d'un message vocal pour ce professeur : le ton commun (écrit pour Teacher Joe), adapté par
+     * « speech_style » (remplacements, par exemple « male » → « female »). Teacher Joe : inchangé.
+     */
+    public function speechStyle(string $style): string
+    {
+        return strtr($style, (array) ($this->config['speech_style'] ?? []));
+    }
+
+    /**
+     * Paragraphes du message de bienvenue propres à ce professeur (accords au féminin…), par nom de paragraphe.
+     *
+     * @return array<string, string>
+     */
+    public function welcomeParagraphs(): array
+    {
+        return (array) ($this->config['welcome_paragraphs'] ?? []);
+    }
+
+    /** Voix OpenAI des messages vocaux (synthèse vocale) : Teacher Joe : services.openai.tts_voice ; sinon sa voix d'appel. */
+    public function openaiSpeechVoice(): string
+    {
+        return $this->isDefault() ? (string) config('services.openai.tts_voice') : $this->realtimeVoice();
+    }
+
     /** Le choix de ce professeur est montré aux apprenants (voix et visage prêts). */
     public function isReady(): bool
     {

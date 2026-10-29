@@ -1,6 +1,7 @@
 {{-- E-mail du document de révision (App\Mail\CourseReviewMail) : une colonne, couleurs de la marque, PDF joint. --}}
 @php
-    $teacher = config('avatar.model.name');
+    // Signé par le professeur de la séance (Teacher Joe ou Teacher Rose).
+    $teacher = ($review->session?->teacher() ?? \App\Support\Teachers\Teachers::default())->name();
     $firstName = \Illuminate\Support\Str::of((string) $review->user?->name)->before(' ')->limit(30, '');
     $lessonTitle = $review->lesson?->title ?? 'votre leçon';
     $date = ($review->session?->ended_at ?? $review->prepared_at ?? now())->timezone(config('app.timezone'))->locale('fr')->translatedFormat('j F Y');
