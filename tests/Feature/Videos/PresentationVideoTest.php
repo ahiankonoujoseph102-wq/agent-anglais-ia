@@ -32,6 +32,8 @@ class PresentationVideoTest extends TestCase
 
         Storage::fake('local');
         Sleep::fake();
+        // Vidéos de Teacher Joe seulement : les versions de Teacher Rose sont vérifiées par PresentationRoseTest.
+        config(['teachers.list.rose.ready' => false]);
         config([
             'filesystems.private_disk' => 'local',
             'services.gemini.key' => 'cle-gemini',

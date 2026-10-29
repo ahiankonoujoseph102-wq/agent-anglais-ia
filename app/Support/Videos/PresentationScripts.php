@@ -8,6 +8,8 @@ use App\Support\Curriculum\Curriculum;
 use App\Support\PaymentCountry;
 use App\Support\Plan;
 use App\Support\SiteSettings;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 
 /**
  * Scripts des vidéos de présentation (resources/videos/presentations.php) : repères remplis depuis la configuration
@@ -16,10 +18,50 @@ use App\Support\SiteSettings;
  */
 class PresentationScripts
 {
-    /** @return array<string, array<string, mixed>> */
+    /**
+     * Scripts du fichier, puis les versions des autres professeurs proposés (config videos.presentations.
+     * teacher_versions : « rose-talkami »… dites par Teacher Rose, accordées au féminin).
+     *
+     * @return array<string, array<string, mixed>>
+     */
     public static function definitions(): array
     {
-        return require resource_path('videos/presentations.php');
+        $definitions = require resource_path('videos/presentations.php');
+
+        foreach ((array) config('videos.presentations.teacher_versions', []) as $teacherKey => $keys) {
+            $teacher = Teachers::choosable()[$teacherKey] ?? null;
+
+            foreach ($teacher !== null && ! $teacher->isDefault() ? (array) $keys : [] as $key) {
+                if (isset($definitions[$key])) {
+                    $definitions[$teacherKey.'-'.$key] = self::forTeacher($definitions[$key], $teacher);
+                }
+            }
+        }
+
+        return $definitions;
+    }
+
+    /**
+     * Même vidéo dite par un autre professeur : textes accordés (teachers.list.*.presentation_texts), même écran.
+     *
+     * @param  array<string, mixed>  $definition
+     * @return array<string, mixed>
+     */
+    private static function forTeacher(array $definition, Teacher $teacher): array
+    {
+        $texts = $teacher->presentationTexts();
+        $definition['teacher'] = $teacher->key;
+        $definition['title'] = strtr($definition['title'], $texts);
+        $definition['caption'] = strtr($definition['caption'], $texts);
+        $definition['segments'] = array_map(fn (array $segment) => ['text' => strtr($segment['text'], $texts)] + $segment, $definition['segments']);
+
+        return $definition;
+    }
+
+    /** Professeur qui dit une vidéo (Teacher Joe pour les vidéos du fichier). */
+    public static function teacher(string $key): Teacher
+    {
+        return Teachers::find(self::definitions()[$key]['teacher'] ?? null) ?? Teachers::default();
     }
 
     /** @return list<string> */
@@ -42,27 +84,29 @@ class PresentationScripts
             return null;
         }
 
+        $teacher = Teachers::find($definition['teacher'] ?? null) ?? Teachers::default();
+
         $segments = [];
 
         foreach ($definition['segments'] as $segment) {
             $segments[] = [
-                'spoken' => self::render($segment['text'], true, $site),
-                'subtitle' => self::render($segment['text'], false, $site),
+                'spoken' => self::render($segment['text'], true, $site, teacher: $teacher),
+                'subtitle' => self::render($segment['text'], false, $site, teacher: $teacher),
                 'shot' => $segment['shot'] === 'full' ? 'full' : 'screen',
                 'scene' => (string) $segment['scene'],
-                'chapter' => isset($segment['chapter']) ? self::render($segment['chapter'], false, $site) : null,
+                'chapter' => isset($segment['chapter']) ? self::render($segment['chapter'], false, $site, teacher: $teacher) : null,
                 'medallion' => (bool) ($segment['medallion'] ?? true),
                 'closing' => (bool) ($segment['closing'] ?? false),
                 // Bandeau : *mots* en orange ([en]…[/en]), comme les sous-titres.
-                'card' => array_map(fn (string $line) => self::render($line, false, $site), $segment['card'] ?? []),
+                'card' => array_map(fn (string $line) => self::render($line, false, $site, teacher: $teacher), $segment['card'] ?? []),
                 'sfx' => in_array($segment['sfx'] ?? null, self::SFX, true) ? $segment['sfx'] : null,
                 'pause_after' => max(0, min(5000, (int) ($segment['pause_after'] ?? 0))),
             ];
         }
 
         return [
-            'title' => self::render($definition['title'], false, $site, plain: true),
-            'caption' => self::render($definition['caption'], false, $site, plain: true),
+            'title' => self::render($definition['title'], false, $site, plain: true, teacher: $teacher),
+            'caption' => self::render($definition['caption'], false, $site, plain: true, teacher: $teacher),
             'hashtags' => array_values($definition['hashtags']),
             'voice_style' => $definition['voice_style'] ?? null,
             'layout' => ($definition['layout'] ?? null) === 'ad' ? 'ad' : null,
@@ -89,11 +133,11 @@ class PresentationScripts
      * Texte dit (nombres en lettres, aucune balise) ou sous-titre (chiffres, *mots* en [en]…[/en], ou sans balise si
      * « plain »).
      */
-    public static function render(string $text, bool $spoken, string $site, bool $plain = false): string
+    public static function render(string $text, bool $spoken, string $site, bool $plain = false, ?Teacher $teacher = null): string
     {
         // {{dit|écrit}} : « dix-neuf heures » dans la voix, « 19 heures » à l'écran.
         $text = preg_replace_callback('/\{\{([^|}]*)\|([^}]*)\}\}/u', fn (array $m) => $spoken ? $m[1] : $m[2], $text) ?? $text;
-        $text = strtr($text, self::markers($spoken, $site));
+        $text = strtr($text, self::markers($spoken, $site, $teacher));
 
         if ($spoken || $plain) {
             return trim(preg_replace('/\s+/u', ' ', str_replace('*', '', $text)) ?? $text);
@@ -107,11 +151,11 @@ class PresentationScripts
      *
      * @return array<string, string>
      */
-    public static function markers(bool $spoken, string $site): array
+    public static function markers(bool $spoken, string $site, ?Teacher $teacher = null): array
     {
         $number = fn (int $value) => $spoken ? self::words($value) : (string) $value;
         $markers = [
-            ':teacher' => (string) config('avatar.model.name'),
+            ':teacher' => ($teacher ?? Teachers::default())->name(),
             ':platform' => (string) config('platform.name'),
             ':site' => $spoken ? str_replace('.', ' point ', $site) : $site,
             ':assessment_minutes' => $number((int) config('platform.assessment.max_minutes')),

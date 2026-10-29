@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\Teachers\Teacher;
+use App\Support\Videos\PresentationScripts;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 
 /**
@@ -55,10 +57,16 @@ class PresentationVideo extends LessonVideo
         return str((string) config('platform.name'))->slug().'-presentation-'.$this->key.($light ? '-whatsapp' : '').'.mp4';
     }
 
-    /** Ton de la vidéo (« voice_style » de son script), sinon celui des présentations. */
+    /** Professeur qui dit la vidéo : Teacher Joe, ou Teacher Rose pour ses versions (« rose-… »). */
+    public function teacher(): Teacher
+    {
+        return PresentationScripts::teacher((string) $this->key);
+    }
+
+    /** Ton de la vidéo (« voice_style » de son script), sinon celui des présentations ; accordé au professeur. */
     public function voiceStyle(): string
     {
-        return (string) ($this->script['voice_style'] ?? null ?: config('videos.presentations.voice_style'));
+        return $this->teacher()->speechStyle((string) ($this->script['voice_style'] ?? null ?: config('videos.presentations.voice_style')));
     }
 
     public function voiceGapMs(): int

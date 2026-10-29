@@ -96,7 +96,16 @@ return [
             'public_line' => 'Chaleureuse et encourageante, elle vous met à l\'aise dès la première phrase.',
             // Messages vocaux (bienvenue, résultat) : voix de femme, accords au féminin.
             // Vidéos de leçon et du Club (config videos.voice.style, en français) : au féminin aussi.
-            'speech_style' => ['male teacher' => 'female teacher', 'un professeur d\'anglais chaleureux et patient' => 'une professeure d\'anglais chaleureuse et patiente'],
+            'speech_style' => [
+                'male teacher' => 'female teacher',
+                'un professeur d\'anglais chaleureux et patient' => 'une professeure d\'anglais chaleureuse et patiente',
+                'comme un professeur chaleureux' => 'comme une professeure chaleureuse',
+            ],
+            // Vidéos de présentation dites par elle (config videos.presentations.teacher_versions).
+            'presentation_texts' => [
+                'le professeur d\'anglais' => 'la professeure d\'anglais',
+                'J\'ai été conçu et programmé' => 'J\'ai été conçue et programmée',
+            ],
             'welcome_paragraphs' => [
                 'teacher' => "Je suis :teacher, votre professeure d'anglais. Vous avez fait un très bon choix pour parler anglais avec confiance, et je suis heureuse de vous accompagner, jour après jour.",
             ],

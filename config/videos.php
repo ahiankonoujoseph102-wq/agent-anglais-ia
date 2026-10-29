@@ -152,6 +152,14 @@ return [
     | lancé à la main) : écran du site enregistré sur un site LOCAL de démonstration, jamais en production.
     */
     'presentations' => [
+        // Versions dites par un autre professeur proposé (clé « rose-talkami »…) : mêmes scripts accordés au féminin
+        // (teachers.list.rose.presentation_texts), son modèle 3D, sa voix, comptes de démonstration avec elle.
+        'teacher_versions' => [
+            'rose' => ['talkami', 'compte', 'evaluation', 'formules', 'paiement', 'seance', 'mes-cours'],
+        ],
+        // Site de démonstration (tools/presentation) : professeur choisi par les comptes fictifs (PRESENTATION_TEACHER,
+        // donné par le travail de fabrication ; absente : Teacher Joe).
+        'demo_teacher' => env('PRESENTATION_TEACHER'),
         'voice_style' => 'Lis en français comme un professeur chaleureux qui présente son site à un ami : clair, souriant, à un rythme naturel, sans traîner. Les mots anglais avec une prononciation américaine.',
         'gap_ms' => 300,
         // Version légère (WhatsApp) : taille au plus, en mégaoctets ; « long » pour la grande vidéo.

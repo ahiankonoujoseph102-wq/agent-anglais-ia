@@ -7,6 +7,7 @@ use App\Enums\ErrorStatus;
 use App\Enums\LessonStatus;
 use App\Enums\Level;
 use App\Enums\ProgramLessonStatus;
+use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
 use App\Models\Attestation;
 use App\Models\CourseLesson;
@@ -19,6 +20,7 @@ use App\Support\Curriculum\LessonBoards;
 use App\Support\Curriculum\ProgramBuilder;
 use App\Support\Plan;
 use App\Support\PrivateStorage;
+use App\Support\Teachers\Teachers;
 use App\Support\Videos\VideoSettings;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -92,6 +94,14 @@ class PresentationDemoSeeder extends Seeder
 
         $this->command?->info('Comptes de démonstration créés (mot de passe : '.self::PASSWORD.').');
         unset($fresh);
+
+        // Vidéos dites par un autre professeur (Teacher Rose) : les comptes fictifs l'ont choisi(e), comme un apprenant
+        // dans « Mon espace » (séance du jour, « Mes cours »). Sans réglage : Teacher Joe, comme avant.
+        $teacher = Teachers::find((string) config('videos.presentations.demo_teacher'));
+
+        if ($teacher !== null && ! $teacher->isDefault()) {
+            User::query()->where('role', Role::Learner)->update(['teacher' => $teacher->key]);
+        }
     }
 
     private function learner(string $key, string $country, ?Level $level, bool $welcomed = true): User

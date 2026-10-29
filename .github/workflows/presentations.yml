@@ -10,7 +10,7 @@ on:
       videos:
         description: 'Vidéos à fabriquer'
         type: choice
-        options: ['nouvelles seulement', 'publicité seulement', 'ce soir seulement', 'toutes', 'grande seulement', 'courtes seulement']
+        options: ['nouvelles seulement', 'Teacher Rose seulement', 'publicité seulement', 'ce soir seulement', 'toutes', 'grande seulement', 'courtes seulement']
         default: 'nouvelles seulement'
 
 concurrency:
@@ -40,6 +40,11 @@ jobs:
             keys: questions
           - name: publicite
             keys: pub-marche,pub-marche-court
+          # Versions de Teacher Rose (config videos.presentations.teacher_versions) : la grande, puis les six courtes.
+          - name: rose-grande
+            keys: rose-talkami
+          - name: rose-courtes
+            keys: rose-compte,rose-evaluation,rose-formules,rose-paiement,rose-seance,rose-mes-cours
     name: Vidéos (${{ matrix.part.name }})
     steps:
       - name: Partie demandée ?
@@ -48,7 +53,7 @@ jobs:
           choice='${{ inputs.videos }}'
           part='${{ matrix.part.name }}'
           case "$choice:$part" in
-            toutes:*|'grande seulement:grande'|'courtes seulement:courtes'|'nouvelles seulement:ce-soir'|'nouvelles seulement:questions'|'nouvelles seulement:publicite'|'publicité seulement:publicite'|'ce soir seulement:ce-soir')
+            toutes:*|'grande seulement:grande'|'courtes seulement:courtes'|'Teacher Rose seulement:rose-grande'|'Teacher Rose seulement:rose-courtes'|'nouvelles seulement:ce-soir'|'nouvelles seulement:questions'|'nouvelles seulement:publicite'|'publicité seulement:publicite'|'ce soir seulement:ce-soir')
               echo "Partie demandée : $part." ; echo "run=1" >> "$GITHUB_OUTPUT" ;;
             *)
               # Cette machine ne fait rien (quelques secondes, aucune vidéo touchée) : elle apparaît quand même en vert.

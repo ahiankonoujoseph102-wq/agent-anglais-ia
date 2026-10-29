@@ -204,7 +204,11 @@ class PresentationVideos
             'failed_url' => route('api.presentations.failed', $video),
             // Teacher Joe : mêmes réglages que les vidéos de leçon (salle de classe, caméra, lèvres), à 30 images par seconde.
             'render' => self::render($segments, $video->script['layout'] ?? null),
-            'avatar' => array_intersect_key(Avatar::clientConfig()['model'] ?? [], array_flip(['profile', 'camera', 'desk_height', 'resting_smile', 'voice_hz'])),
+            // Professeur qui dit la vidéo : comptes de démonstration avec lui (PRESENTATION_TEACHER), son modèle 3D.
+            'teacher' => $video->teacher()->key,
+            'avatar' => $video->teacher()->isDefault()
+                ? array_intersect_key(Avatar::clientConfig()['model'] ?? [], array_flip(['profile', 'camera', 'desk_height', 'resting_smile', 'voice_hz']))
+                : LessonVideos::avatar($video->teacher()),
         ];
     }
 
