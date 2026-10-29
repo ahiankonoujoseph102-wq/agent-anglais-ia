@@ -173,7 +173,7 @@ class LiveConnection
 
         $connection = $provider === LiveProviders::OPENAI
             ? [
-                'call_url' => self::callUrl($conversation, OpenAiRealtime::session($setup, self::paceLevel($conversation))),
+                'call_url' => self::callUrl($conversation, OpenAiRealtime::session($setup, self::paceLevel($conversation), $conversation->teacher())),
                 // Un appel OpenAI dure jusqu'à la fin de la séance (le serveur raccroche) : rien à renouveler.
                 'token_expires_in' => max(0, $conversation->remainingSeconds()) + 3600,
             ]

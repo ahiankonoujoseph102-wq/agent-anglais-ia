@@ -8,6 +8,8 @@ use App\Support\Duration;
 use App\Support\PaymentCountry;
 use App\Support\Plan;
 use App\Support\Seo;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 
 /**
  * Fiche de connaissance du site donnée au professeur (resources/teacher/site-guide.md).
@@ -25,9 +27,12 @@ class SiteGuide
      * « <!-- pour : assessment, lesson --> » n'est donnée qu'à ces conversations (assessment, lesson, course,
      * level_test, trial). Les consignes sont refacturées à chaque réponse du professeur : une partie inutile à
      * une conversation (le paiement pendant une séance d'abonné, par exemple) coûte à chaque tour.
+     * Professeur : celui de la conversation (nom du marqueur :teacher), sinon le professeur par défaut.
      */
-    public static function text(?string $kind = null): string
+    public static function text(?string $kind = null, ?Teacher $teacher = null): string
     {
+        $teacher ??= Teachers::default();
+
         $raw = (string) file_get_contents(self::path());
 
         if ($kind !== null) {
@@ -39,7 +44,7 @@ class SiteGuide
 
         return strtr($text, [
             ':platform' => (string) config('platform.name'),
-            ':teacher' => (string) config('avatar.model.name'),
+            ':teacher' => $teacher->name(),
             ':assessment' => Duration::format((int) config('platform.assessment.max_minutes') * 60),
             ':disconnect_rule' => (string) config('platform.live.disconnect_rule'),
             // Après le verdict : mini-leçon découverte, questions et conclusion ; durée totale de l'évaluation.

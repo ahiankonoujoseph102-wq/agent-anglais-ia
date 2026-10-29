@@ -48,6 +48,18 @@ class TeacherJoeUnchangedTest extends TestCase
         }
     }
 
+    public function test_teacher_joe_is_unchanged_when_another_teacher_exists(): void
+    {
+        config([
+            'avatar.second' => ['name' => 'Teacher Test'] + (array) config('avatar.model'),
+            'teachers.list.second' => ['avatar' => 'second', 'gemini_voice' => 'Kore', 'realtime_voice' => 'marin'],
+        ]);
+
+        $expected = json_decode((string) file_get_contents(base_path('tests/'.self::FIXTURE)), true);
+
+        $this->assertSame($expected, $this->cases());
+    }
+
     /**
      * @return array<string, array{length: int, sha256: string}>
      */

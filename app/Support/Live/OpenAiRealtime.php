@@ -3,6 +3,8 @@
 namespace App\Support\Live;
 
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -40,10 +42,12 @@ class OpenAiRealtime
      *
      * @param  array<string, mixed>  $setup  configuration « BidiGenerateContentSetup » (TeacherSetup)
      * @param  string  $paceLevel  niveau qui règle la vitesse de la voix (TeacherSetup::paceLevel)
+     * @param  Teacher|null  $teacher  professeur de la séance (sa voix) ; sinon le professeur par défaut
      * @return array<string, mixed>
      */
-    public static function session(array $setup, string $paceLevel = 'unknown'): array
+    public static function session(array $setup, string $paceLevel = 'unknown', ?Teacher $teacher = null): array
     {
+        $teacher ??= Teachers::default();
         $vad = (array) config('services.openai.realtime_vad');
         $tools = [];
 
@@ -75,7 +79,7 @@ class OpenAiRealtime
                         'interrupt_response' => true,
                     ],
                 ],
-                'output' => ['voice' => (string) config('services.openai.realtime_voice')],
+                'output' => ['voice' => $teacher->realtimeVoice()],
             ],
         ];
 
@@ -198,7 +202,7 @@ class OpenAiRealtime
                     'session' => [
                         'type' => 'realtime',
                         'model' => (string) config('services.openai.realtime_model'),
-                        'audio' => ['output' => ['voice' => (string) config('services.openai.realtime_voice')]],
+                        'audio' => ['output' => ['voice' => Teachers::default()->realtimeVoice()]],
                     ],
                 ]);
         } catch (ConnectionException $e) {
