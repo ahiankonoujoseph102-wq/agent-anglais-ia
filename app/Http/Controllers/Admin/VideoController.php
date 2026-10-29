@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LessonVideo;
 use App\Support\Gemini\SpeechFailed;
 use App\Support\PrivateStorage;
+use App\Support\Videos\ClubVideos;
 use App\Support\Videos\LessonVideos;
 use App\Support\Videos\PresentationVideos;
 use App\Support\Videos\ScreenCatalogue;
@@ -27,11 +28,24 @@ use Throwable;
  */
 class VideoController extends Controller
 {
-    public function index(PresentationVideos $presentations): View
+    public function index(Request $request, PresentationVideos $presentations, ClubVideos $club): View
     {
-        $videos = LessonVideo::query()->orderByDesc('day')->orderBy('slot')->paginate(15);
+        $clubData = [
+            'clubVideos' => $club->recent(7),
+            'clubTheme' => ClubVideos::theme(today()),
+            'clubMembers' => $club->members()->count(),
+            'clubToday' => $club->forDay(today()),
+        ];
 
-        return view('admin.videos.index', [
+        // Un assistant ne voit que le bloc « Club des abonnés » (publier à la place du fondateur).
+        if (! $request->user()->isAdmin()) {
+            return view('admin.videos.index', $clubData + ['onlyClub' => true]);
+        }
+
+        $videos = LessonVideo::query()->promo()->orderByDesc('day')->orderBy('slot')->paginate(15);
+
+        return view('admin.videos.index', $clubData + [
+            'onlyClub' => false,
             'videos' => $videos,
             'remaining' => VideoTopics::remaining(),
             'tokenConfigured' => filled(config('videos.token')),
@@ -80,6 +94,24 @@ class VideoController extends Controller
         return redirect()->to(route('admin.videos.index').'#reglages-videos')->with('status', $site !== null
             ? "Adresse des vidéos enregistrée : {$site}. Les prochaines vidéos la diront et l'afficheront à la fin."
             : 'Adresse des vidéos effacée : la fabrication est bloquée jusqu\'à ce qu\'une adresse soit renseignée.');
+    }
+
+    /** « Préparer la vidéo du Club d'aujourd'hui » (elle est sinon ajoutée toute seule, chaque minute). */
+    public function prepareClub(ClubVideos $club): RedirectResponse
+    {
+        if (blank(config('videos.token'))) {
+            return redirect()->to(route('admin.videos.index').'#club')->with('status', 'Jeton des vidéos non réglé (VIDEO_UPLOAD_TOKEN) : la vidéo du Club ne peut pas être fabriquée.');
+        }
+
+        $video = $club->ensureToday();
+
+        $message = match (true) {
+            $video !== null => 'Vidéo du Club ajoutée pour aujourd\'hui ('.$video->themeLabel().'). Script et voix prêts dans quelques minutes, puis GitHub la fabrique en premier.',
+            $club->forDay(today()) !== null => 'La vidéo du Club d\'aujourd\'hui existe déjà.',
+            default => 'Aucun abonné payant actif : pas de vidéo du Club aujourd\'hui.',
+        };
+
+        return redirect()->to(route('admin.videos.index').'#club')->with('status', $message);
     }
 
     /** Vidéos de promotion préparées chaque matin (1 quand le dépôt GitHub est privé : moins de minutes). */
@@ -141,9 +173,10 @@ class VideoController extends Controller
 
     public function publish(Request $request, LessonVideo $video): RedirectResponse
     {
+        $this->authorizeVideo($request, $video);
         $video->update(['published_at' => $request->boolean('published') ? ($video->published_at ?? now()) : null]);
 
-        return redirect()->to(route('admin.videos.index', ['page' => $request->integer('page') ?: null]).'#video-'.$video->id)
+        return redirect()->to(route('admin.videos.index', ['page' => $request->integer('page') ?: null]).($video->isClub() ? '#club-' : '#video-').$video->id)
             ->with('status', $video->published_at ? 'Vidéo marquée comme publiée.' : 'Vidéo marquée comme non publiée.');
     }
 
@@ -157,6 +190,7 @@ class VideoController extends Controller
     /** Aperçu (dans la page) ou téléchargement (fichier MP4) : adresse signée de courte durée du bucket privé. */
     public function file(Request $request, LessonVideo $video): Response
     {
+        $this->authorizeVideo($request, $video);
         $disk = PrivateStorage::disk();
         abort_if($video->video_path === null || ! $disk->exists($video->video_path), 404);
 
@@ -178,5 +212,11 @@ class VideoController extends Controller
     public function catalogue(string $file, ScreenCatalogue $catalogue): Response
     {
         return $catalogue->download($file);
+    }
+
+    /** Un assistant n'a accès qu'aux vidéos du Club des abonnés. */
+    private function authorizeVideo(Request $request, LessonVideo $video): void
+    {
+        abort_unless($request->user()->isAdmin() || $video->isClub(), 403);
     }
 }

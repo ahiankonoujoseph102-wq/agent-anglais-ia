@@ -61,9 +61,10 @@ class AssistantsTest extends TestCase
         $this->actingAs($this->assistant)->get(route('admin.users.show', $learner))->assertOk();
         $this->actingAs($this->assistant)->get('/admin')->assertRedirect();
 
-        // Coûts, consommation, diagnostics, historique, vidéos, alertes, voix : refusés, même adresse tapée à la main.
+        // Coûts, consommation, diagnostics, historique, alertes, voix : refusés, même adresse tapée à la main. La page
+        // « Vidéos » ne lui montre que le bloc « Club des abonnés » (tests/Feature/Videos/ClubVideoTest.php).
         foreach (['/admin/consommation', '/admin/diagnostic-texte', '/admin/diagnostic-voix', '/admin/paiements/historique',
-            '/admin/videos', '/admin/alertes', '/admin/voix', '/admin/icones'] as $path) {
+            '/admin/alertes', '/admin/voix', '/admin/icones'] as $path) {
             $this->actingAs($this->assistant)->get($path)->assertForbidden();
         }
 

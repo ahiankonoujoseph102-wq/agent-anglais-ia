@@ -19,6 +19,7 @@ final class TextRequest
         'board' => 'Tableaux des séances',
         'review' => 'Documents de révision (Mes cours)',
         'video' => 'Scripts des vidéos de leçon',
+        'club' => 'Scripts des vidéos du Club des abonnés',
         'diagnostic' => 'Essai du diagnostic',
         'rehearsal' => 'Banc d\'essai du professeur',
     ];

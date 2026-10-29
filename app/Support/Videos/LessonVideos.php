@@ -26,11 +26,12 @@ class LessonVideos
     public function plan(CarbonInterface $day, int $count): int
     {
         return DB::transaction(function () use ($day, $count) {
-            $slot = (int) LessonVideo::query()->whereDate('day', $day)->lockForUpdate()->max('slot');
+            $slot = (int) LessonVideo::query()->promo()->whereDate('day', $day)->lockForUpdate()->max('slot');
             $created = 0;
 
             foreach (VideoTopics::next($count) as $topic) {
                 LessonVideo::query()->create([
+                    'kind' => LessonVideo::PROMO,
                     'topic_key' => $topic['key'],
                     'day' => $day->toDateString(),
                     'slot' => ++$slot,
@@ -48,7 +49,7 @@ class LessonVideos
     /** Vidéos du jour (réglage de la page « Vidéos », sinon config videos.per_day), seulement celles qui manquent. */
     public function planToday(): int
     {
-        $missing = VideoSettings::perDay() - LessonVideo::query()->whereDate('day', today())->count();
+        $missing = VideoSettings::perDay() - LessonVideo::query()->promo()->whereDate('day', today())->count();
 
         return $missing > 0 ? $this->plan(today(), $missing) : 0;
     }
@@ -73,7 +74,7 @@ class LessonVideos
         $videos = LessonVideo::query()
             ->whereIn('status', [LessonVideo::PLANNED, LessonVideo::SCRIPTED])
             ->where(fn ($query) => $query->whereNull('next_attempt_at')->orWhere('next_attempt_at', '<=', now()))
-            ->orderBy('day')->orderBy('slot')
+            ->orderByRaw("case when kind = 'club' then 0 else 1 end")->orderBy('day')->orderBy('slot')
             ->get();
 
         foreach ($videos as $video) {
@@ -82,7 +83,17 @@ class LessonVideos
             }
 
             try {
-                if ($video->status === LessonVideo::PLANNED && ! $this->writeScript($video)) {
+                // Vidéo du Club : script écrit pour les abonnés (thème du jour), aucune fin publicitaire.
+                $written = $video->isClub() ? fn () => app(ClubVideos::class)->writeScript($video) : fn () => $this->writeScript($video);
+
+                if ($video->status === LessonVideo::PLANNED && ! $written()) {
+                    continue;
+                }
+
+                if ($video->isClub() && $video->audio_path !== null) {
+                    $video->update(['status' => LessonVideo::VOICED, 'attempts' => 0, 'error' => null, 'next_attempt_at' => null]);
+                    $result['voiced']++;
+
                     continue;
                 }
 
@@ -139,7 +150,8 @@ class LessonVideos
             return true;
         }
 
-        $video->update(['status' => LessonVideo::SCRIPTED, 'attempts' => 0, 'next_attempt_at' => null, 'error' => null, 'render_started_at' => null]);
+        // Vidéo du Club : aucune fin à remettre à jour, elle repart directement en fabrication.
+        $video->update(['status' => $video->isClub() ? LessonVideo::VOICED : LessonVideo::SCRIPTED, 'attempts' => 0, 'next_attempt_at' => null, 'error' => null, 'render_started_at' => null]);
 
         return true;
     }
@@ -210,15 +222,16 @@ class LessonVideos
         }
 
         // Fin dépassée (adresse du site changée, ancienne fin) : la vidéo repart d'abord en préparation.
-        foreach ($this->claimable()->get() as $video) {
+        foreach ($this->claimable()->promo()->get() as $video) {
             if (! VideoEnding::isCurrent($video->script ?? [])) {
                 $video->update(['status' => LessonVideo::SCRIPTED, 'render_started_at' => null]);
             }
         }
 
         $videos = DB::transaction(function () use ($limit) {
+            // La vidéo du Club d'abord : elle est attendue dans le groupe chaque jour.
             $videos = $this->claimable()
-                ->orderBy('day')->orderBy('slot')
+                ->orderByRaw("case when kind = 'club' then 0 else 1 end")->orderBy('day')->orderBy('slot')
                 ->limit(max(1, min(6, $limit)))
                 ->lockForUpdate()
                 ->get();

@@ -3,15 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Vidéo de leçon de Teacher Joe (App\Support\Videos\LessonVideos) : un sujet du programme des vidéos, son script,
  * sa voix (disque privé), puis la vidéo fabriquée par GitHub Actions. Un sujet n'est jamais traité deux fois.
  */
-#[Fillable(['topic_key', 'day', 'slot', 'level', 'title', 'status', 'script', 'caption', 'hashtags', 'text_provider', 'voice_provider', 'voice_name', 'timings', 'audio_path', 'video_path', 'duration_seconds', 'size_bytes', 'lips_correlation', 'lips_open', 'loudness_lufs', 'true_peak_db', 'attempts', 'next_attempt_at', 'error', 'render_started_at', 'ready_at', 'published_at'])]
+#[Fillable(['kind', 'theme', 'items', 'topic_key', 'day', 'slot', 'level', 'title', 'status', 'script', 'caption', 'hashtags', 'text_provider', 'voice_provider', 'voice_name', 'timings', 'audio_path', 'video_path', 'duration_seconds', 'size_bytes', 'lips_correlation', 'lips_open', 'loudness_lufs', 'true_peak_db', 'attempts', 'next_attempt_at', 'error', 'render_started_at', 'ready_at', 'published_at'])]
 class LessonVideo extends Model
 {
+    /** Vidéo de promotion (TikTok, chaîne WhatsApp). */
+    public const PROMO = 'promo';
+
+    /** Vidéo du jour du Club des abonnés (groupe WhatsApp des abonnés payants). */
+    public const CLUB = 'club';
+
     /** Sujet choisi, script à écrire. */
     public const PLANNED = 'planned';
 
@@ -46,6 +53,7 @@ class LessonVideo extends Model
             'day' => 'date',
             'slot' => 'integer',
             'script' => 'array',
+            'items' => 'array',
             'timings' => 'array',
             'duration_seconds' => 'integer',
             'size_bytes' => 'integer',
@@ -59,6 +67,33 @@ class LessonVideo extends Model
             'ready_at' => 'datetime',
             'published_at' => 'datetime',
         ];
+    }
+
+    /** @param Builder<self> $query */
+    public function scopeClub($query): void
+    {
+        $query->where('kind', self::CLUB);
+    }
+
+    /** @param Builder<self> $query */
+    public function scopePromo($query): void
+    {
+        $query->where('kind', self::PROMO);
+    }
+
+    public function isClub(): bool
+    {
+        return $this->kind === self::CLUB;
+    }
+
+    /** Thème du jour d'une vidéo du Club (« Le son difficile »…), repli du lundi compris. */
+    public function themeLabel(): ?string
+    {
+        if ($this->theme === 'pitfall') {
+            return (string) config('videos.club.pitfall_label');
+        }
+
+        return collect(config('videos.club.themes'))->firstWhere('key', $this->theme)['label'] ?? null;
     }
 
     public function statusLabel(): string
@@ -87,12 +122,16 @@ class LessonVideo extends Model
     /** Libellé des synthèses (page « Consommation »). */
     public function voiceLabel(): string
     {
-        return 'Vidéo de leçon';
+        return $this->isClub() ? 'Vidéo du Club des abonnés' : 'Vidéo de leçon';
     }
 
     /** Nom du fichier proposé au téléchargement. */
     public function downloadName(): string
     {
+        if ($this->isClub()) {
+            return 'talkami-club-'.$this->day->format('Y-m-d').'.mp4';
+        }
+
         return 'teacher-joe-'.$this->day->format('Y-m-d').'-'.$this->slot.'-'.$this->topic_key.'.mp4';
     }
 }
