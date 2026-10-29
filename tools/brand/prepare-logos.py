@@ -67,6 +67,15 @@ def on_white(icon, size, ratio):
     return canvas.convert('RGB')
 
 
+def favicons(icon):
+    """Icônes du site (onglet, résultats de Google) : la bulle sur fond blanc UNI, carré, tailles multiples de
+    48 pixels (règles de Google : 48 × 48 au moins, idéalement 192 × 192 ; un fond transparent devient un globe
+    gris ou un fond noir chez certains). favicon.ico garde aussi 16 et 32 pixels pour les anciens navigateurs."""
+    for size in (48, 96, 192):
+        on_white(icon, size, 0.86).save(ICONS / f'favicon-{size}.png', optimize=True)
+    on_white(icon, 48, 0.86).save(ROOT / 'public/favicon.ico', sizes=[(16, 16), (32, 32), (48, 48)])
+
+
 def main():
     BRAND.mkdir(parents=True, exist_ok=True)
     prepared = {}
@@ -91,13 +100,7 @@ def main():
     on_white(icon, 512, 0.78).save(ICONS / 'icon-512.png', optimize=True)
     on_white(icon, 512, 0.62).save(ICONS / 'icon-maskable-512.png', optimize=True)
     on_white(icon, 180, 0.74).save(ICONS / 'apple-touch-icon.png', optimize=True)
-    # Favicon : bulle seule sur fond transparent, plusieurs tailles.
-    square = Image.new('RGBA', (max(icon.size),) * 2, (0, 0, 0, 0))
-    square.alpha_composite(icon, ((square.width - icon.width) // 2, (square.height - icon.height) // 2))
-    square.save(ROOT / 'public/favicon.ico', sizes=[(16, 16), (32, 32), (48, 48)])
-    favicon = square.copy()
-    favicon.thumbnail((96, 96), Image.LANCZOS)
-    favicon.save(ICONS / 'favicon-96.png', optimize=True)
+    favicons(icon)
     print('Icônes et favicon écrits.')
 
 

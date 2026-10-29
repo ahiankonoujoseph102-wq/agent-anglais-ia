@@ -58,9 +58,7 @@
         <meta name="twitter:image" content="{{ Seo::url($shareImage ?? Seo::SHARE_IMAGE) }}">
     @endif
     <link rel="manifest" href="{{ route('manifest') }}">
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
-    <link rel="icon" href="{{ asset('icons/favicon-96.png') }}" type="image/png" sizes="96x96">
-    <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
+    <x-site-icons />
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="{{ config('platform.brand.short_name') ?: config('platform.name') }}">

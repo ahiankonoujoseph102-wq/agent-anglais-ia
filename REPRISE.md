@@ -4,7 +4,11 @@
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
-## Dernier chantier : audit du référencement (29 octobre 2026, branche `claude/referencement-audit`)
+## Dernier chantier : icône du site pour Google (29 octobre 2026, branche `claude/icone-du-site`)
+
+Icônes du site refaites sur fond blanc uni (48, 96, 192 pixels et favicon.ico), déclarées sur toutes les pages par `<x-site-icons>`. Google met à jour l'icône à son propre rythme (plusieurs jours à quelques semaines). Voir CLAUDE.md.
+
+## Chantier précédent : audit du référencement (29 octobre 2026, branche `claude/referencement-audit`)
 
 Partie 3 de 3. Compte rendu : `docs/referencement-audit.md`. À faire par le propriétaire : Search Console (vérification, sitemap, demande d'indexation), fiche d'établissement Google, liens depuis TikTok, WhatsApp, Facebook, YouTube.
 

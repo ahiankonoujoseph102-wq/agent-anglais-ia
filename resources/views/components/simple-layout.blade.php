@@ -12,7 +12,7 @@
     <meta name="theme-color" content="{{ config('platform.brand.theme_color') }}">
     <meta name="robots" content="noindex">
     <title>{{ $title }} · {{ config('platform.name') }}</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
+    <x-site-icons />
     <link rel="stylesheet" href="{{ \App\Support\Asset::url('css/tokens.css') }}">
     <link rel="stylesheet" href="{{ \App\Support\Asset::url('css/app.css') }}">
 </head>
