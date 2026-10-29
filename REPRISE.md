@@ -1,8 +1,17 @@
-# REPRISE — chantier en cours : deuxième professeure, Teacher Rose (étape 2 sur 8)
+# REPRISE — chantier en cours : deuxième professeure, Teacher Rose (étape 3 sur 8)
 
 À lire avec `CLAUDE.md` pour reprendre ce travail dans une autre session. Ce fichier ne contient jamais de clé, ni de conversation réelle, ni de transcription.
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
+
+## Chantier en cours : Teacher Rose, étape 3, visage (29 octobre 2026, branche `claude/festive-keller-2hkpxl`, PAS encore de pull request)
+
+État de la branche (commit « Teacher Rose, étape 3 (en cours) ») :
+- **Fait** : `tools/teacher3d/build-teacher-joe.mjs` a une variante `TEACHER=rose node build-teacher-joe.mjs` (tresses fines auburn, sans barbe ni lunettes, sourcils plus fins, cils plus marqués, lèvres un peu plus pleines, nez et mâchoire plus fins, boucles d'oreilles et foulard orange) → `public/teacher3d/models/teacher-rose.glb` (environ 334 Ko). Sans variable, Teacher Joe est reconstruit IDENTIQUE à l'octet (vérifier avec `cmp` après toute modification du script). `config/avatar.php` → `rose.file` = `teacher3d/models/teacher-rose.glb`. `ready` reste à false.
+- **À faire** : regarder les images du modèle (rendu dans Chromium avec `public/js/teacher-3d.js`, mode `classroom` et gros plan en mode `brand`), l'affiner si besoin pour qu'il paraisse nettement féminin, chaleureux et différent de Teacher Joe ; affiner le visage simple (`resources/views/live/face-rose.blade.php`) ; image fixe éventuelle (comme `public/images/teacher-joe.webp`) ; mettre à jour `tests/Feature/Teachers/TeacherRoseTest.php` (un test attend encore le visage simple sur l'écran de séance de Teacher Rose : il échoue depuis que le fichier 3D existe) et ajouter un test du modèle de Teacher Rose ; Pint, tests, pull request, fusion si tout est vert ; CLAUDE.md (section « Professeurs ») et ce fichier. Envoyer au fondateur des captures du visage 3D et du visage simple, gardées HORS du dépôt. `ready` à true SEULEMENT après sa validation sur images.
+- **Photos d'inspiration** : jamais dans le dépôt (public), ni aucune information personnelle. Ce qui en a été retenu, en mots seulement : longues tresses fines auburn ou cuivrées (parfois noires avec un bandeau), peau brun moyen à foncé, visage ovale aux joues douces, sourire chaleureux et posé.
+- **« Essai des voix », onglet Teacher Rose** : toutes les voix Gemini échouaient (« L'extrait n'a pas pu être créé »), les voix OpenAI marchaient. D'après le code : ni quota (autre message), ni limite de 12 par heure (autre message), ni clé absente. Reste : refus HTTP de Google, délai, réponse sans audio. Corrigé sur cette branche : le message donne la cause (jamais la clé) et nomme la bonne clé absente (`VoiceController::sample`, test `tests/Feature/Admin/VoiceTrialTest.php`). EN ATTENTE du fondateur : la cause lue dans « Diagnostic de la voix » → « Dernières erreurs » ; son accord ou non pour (a) un bouton « Écouter en séance » (vraie voix de séance Gemini Live ou OpenAI Realtime, sans micro, phrase d'essai, raccroché par le serveur, extrait gardé) et (b) la deuxième clé Gemini en secours pour les extraits. Avis donné : voix de secours OpenAI de Teacher Rose = marin.
+- **Vidéo du Club du 29 octobre** : passage GitHub 40851894913 (« Vidéos de Teacher Joe », travail « club ») encore en cours à 11 h 10 UTC (limite 80 minutes) ; vérifier s'il a déposé la vidéo ou l'a rendue pour reprise.
 
 ## Chantier en cours : Teacher Rose, étape 2, séances payantes (29 octobre 2026, branche `claude/festive-keller-2hkpxl`)
 
