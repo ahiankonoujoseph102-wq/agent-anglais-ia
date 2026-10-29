@@ -14,6 +14,10 @@
         </div>
     </div>
 
+    {{-- « Nouveau : Teacher Rose est arrivée ! » : abonné qui ne l'a jamais essayée ; compact, le bouton de la prochaine
+         étape reste visible sans défiler à 360 × 640. --}}
+    <x-teacher-news :user="$user" />
+
     {{-- Prochaine étape : TOUJOURS la première carte, une seule action principale (bouton orange) ; sur téléphone, le
          bouton passe juste sous le titre (CSS), l'explication dessous. --}}
     <section class="card next-card rise" aria-labelledby="next-step-title" style="--i: 1">
@@ -83,6 +87,8 @@
             @if ($canStartToday)
                 <p>{{ \App\Support\DailyTime::remainingSentence((int) $remainingSeconds) }} Ce temps est partagé entre la séance orale et « Mes cours ».</p>
                 <a href="{{ route('lesson.show') }}" class="btn btn-lg btn-block"><x-icon name="mic" /> Parler avec {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }}</a>
+                {{-- Choix du professeur visible avant de commencer (« Changer » mène à la carte « Votre professeur »). --}}
+                <x-teacher-switch :teacher="$myTeacher" back="" />
                 @if (\App\Support\SessionRecording::enabled('lesson'))
                     <x-recording-hint share="partager-ma-video" />
                     @php $recordShare = true; @endphp
