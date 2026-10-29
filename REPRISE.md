@@ -6,6 +6,11 @@
 
 
 
+## Chantier en cours : clarté des voix de Teacher Rose (29 octobre 2026, branche `claude/rose-voix-francais`)
+
+- **Fait** : comparaison Teacher Joe / Teacher Rose (même modèle, aucun réglage de langue chez les fournisseurs, ton déjà au féminin sauf la vidéo « Rendez-vous ce soir », consigne de prononciation française seulement après le choix de la voix, nombres en chiffres dans ses messages) : corrigé ; mesure de clarté dans « Essai des voix ». Aucune vidéo refaite.
+- **Au fondateur** : « Essai des voix » → Teacher Rose → « Préparer les extraits manquants » (plusieurs fois), « Mesurer la clarté des extraits prêts », écouter les meilleures, « Choisir pour les vidéos et les messages ». Ensuite seulement, avec son accord : refaire ses vidéos de présentation.
+
 ## Chantier en cours : voix française de Teacher Rose (29 octobre 2026, branche `claude/amazing-bohr-sizyh1`)
 
 - **Fait** : voir CLAUDE.md, feuille de route, « Voix de Teacher Rose en français ». Aucune vidéo refaite ; exécution n° 5 non touchée.

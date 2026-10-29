@@ -133,6 +133,7 @@ return [
                 'male teacher' => 'female teacher',
                 'un professeur d\'anglais chaleureux et patient' => 'une professeure d\'anglais chaleureuse et patiente',
                 'comme un professeur chaleureux' => 'comme une professeure chaleureuse',
+                'comme un professeur très chaleureux et enthousiaste' => 'comme une professeure très chaleureuse et enthousiaste',
             ],
             // Vidéos de présentation dites par elle (config videos.presentations.teacher_versions).
             'presentation_texts' => [

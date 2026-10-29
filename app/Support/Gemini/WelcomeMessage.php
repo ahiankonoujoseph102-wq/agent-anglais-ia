@@ -14,6 +14,7 @@ use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\VoiceMessage;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
+use App\Support\Videos\PresentationScripts;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 
@@ -123,7 +124,13 @@ class WelcomeMessage
             ':course_minutes' => Duration::format((int) config('platform.courses.max_session_minutes') * 60),
         ];
 
-        return array_map(fn (string $text) => strtr($text, $replace), $paragraphs);
+        $paragraphs = array_map(fn (string $text) => strtr($text, $replace), $paragraphs);
+
+        // Teacher Rose : nombres dits en toutes lettres (« quinze minutes »), comme dans les vidéos de présentation ;
+        // Teacher Joe : textes d'avant, rien n'est refait pour lui.
+        return $teacher->isDefault()
+            ? $paragraphs
+            : array_map(fn (string $text) => (string) preg_replace_callback('/\b\d+\b/', fn (array $m) => PresentationScripts::words((int) $m[0]), $text), $paragraphs);
     }
 
     /**
