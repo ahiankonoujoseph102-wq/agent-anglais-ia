@@ -46,12 +46,13 @@ return [
         'voice_hz' => 130,
     ],
 
-    // Teacher Rose (config/teachers.php) : même personnage animé que Teacher Joe une fois son modèle prêt (étape 3) ;
-    // sans fichier 3D, l'écran de séance montre son visage simple (SVG). Son choix n'est montré aux apprenants que
-    // quand son visage est prêt et validé (teachers.list.rose.ready).
+    // Teacher Rose (config/teachers.php) : personnage original créé par le même script (TEACHER=rose node
+    // tools/teacher3d/build-teacher-joe.mjs), même squelette et mêmes visèmes. Sans fichier, l'écran de séance montre
+    // son visage simple (SVG). Son choix n'est montré aux apprenants que quand son visage est validé
+    // (teachers.list.rose.ready).
     'rose' => [
         'name' => 'Teacher Rose',
-        'file' => null,
+        'file' => 'teacher3d/models/teacher-rose.glb',
         'profile' => 'teacher-joe',
         'camera' => [
             'target' => [0, 0.57, 0],

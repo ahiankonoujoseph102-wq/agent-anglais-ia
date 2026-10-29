@@ -23,7 +23,10 @@ import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const OUTPUT = resolve(dirname(fileURLToPath(import.meta.url)), '../../public/teacher3d/models/teacher-joe.glb');
+// TEACHER=rose : Teacher Rose, deuxième professeure (même squelette, mêmes visèmes, autre apparence).
+// Sans variable : Teacher Joe, fichier identique à l'octet près à celui d'avant.
+const ROSE = process.env.TEACHER === 'rose';
+const OUTPUT = resolve(dirname(fileURLToPath(import.meta.url)), `../../public/teacher3d/models/${ROSE ? 'teacher-rose' : 'teacher-joe'}.glb`);
 
 /* ---------- Outils mathématiques ---------- */
 
@@ -95,6 +98,19 @@ const C = {
     tieDark: color('#D9620F'),
 };
 
+// Teacher Rose : personnage original et stylisé (peau brun chaud, tresses fines auburn, foulard orange).
+if (ROSE) {
+    Object.assign(C, {
+        skin: color('#86523a'),
+        skinShadow: color('#633826'),
+        lips: color('#7d3a3c'),
+        lipsInner: color('#9a5150'),
+        brows: color('#2a1610'),
+        hair: color('#6e2f17'),
+        hairDark: color('#3f190b'),
+    });
+}
+
 /* ---------- Squelette (noms Mixamo) ---------- */
 
 const BONES = [
@@ -118,7 +134,7 @@ function scaleHead(b) {
 }
 const EYE_X = 0.043;
 const EYE_Y = 0.012; // par rapport au centre de la tête
-const EYE_R = 0.0255;
+const EYE_R = ROSE ? 0.0268 : 0.0255;
 const MOUTH_Y = -0.069;
 
 // Bras gauche (+X) ; le bras droit est son symétrique.
@@ -193,7 +209,13 @@ const AX = 0.112;
 const AY = 0.130;
 const AZ = 0.122;
 
-const widthProfile = (dy) => table([[-1, 0.56], [-0.85, 0.72], [-0.55, 0.90], [-0.2, 0.99], [0.1, 1.0], [0.5, 0.98], [1, 0.92]], dy);
+const widthProfile = ROSE
+    ? (dy) => table([[-1, 0.50], [-0.85, 0.66], [-0.55, 0.87], [-0.2, 0.98], [0.1, 1.0], [0.5, 0.98], [1, 0.92]], dy)
+    : (dy) => table([[-1, 0.56], [-0.85, 0.72], [-0.55, 0.90], [-0.2, 0.99], [0.1, 1.0], [0.5, 0.98], [1, 0.92]], dy);
+const NOSE = ROSE ? 0.82 : 1;
+// Teacher Rose : lèvres un peu plus pleines, sourcils plus fins, cils plus marqués.
+const LIPS = ROSE ? 1.18 : 1;
+const BROW = ROSE ? 0.62 : 1;
 const frontDepth = (dy) => table([[-1, 0.8], [-0.6, 0.94], [0, 1.0], [0.6, 0.95], [1, 0.9]], dy);
 const backDepth = (dy) => table([[-1, 0.7], [-0.5, 0.85], [0, 1.05], [0.6, 1.06], [1, 0.95]], dy);
 
@@ -203,9 +225,9 @@ function faceRelief(x, y) {
     let r = 0;
     // Arête du nez, de plus en plus saillante vers le bout.
     const t = clamp((0.024 - y) / 0.062);
-    r += lerp(0.004, 0.020, t * t) * gauss(x, 0, 0.0105) * smooth(0.034, 0.018, y) * smooth(-0.058, -0.044, y);
-    r += 0.019 * gauss(x, y + 0.041, 0.0165);
-    r += 0.012 * gauss(ax - 0.020, y + 0.046, 0.0115);
+    r += NOSE * lerp(0.004, 0.020, t * t) * gauss(x, 0, 0.0105) * smooth(0.034, 0.018, y) * smooth(-0.058, -0.044, y);
+    r += NOSE * 0.019 * gauss(x, y + 0.041, 0.0165);
+    r += NOSE * 0.012 * gauss(ax - 0.020, y + 0.046, 0.0115);
     r -= 0.010 * gauss(ax - EYE_X, y - EYE_Y, 0.022);
     r += 0.006 * gauss(ax - 0.040, y - 0.042, 0.030, 0.012);
     r += 0.007 * gauss(ax - 0.060, y + 0.026, 0.028);
@@ -338,7 +360,7 @@ function buildFace(p) {
             const nostril = gauss(Math.abs(x) - 0.0115, y + 0.0535, 0.0042, 0.0028) * smooth(0.10, 0.12, z);
             c = mix(c, C.nostril, clamp(nostril * 1.3));
             const beard = smooth(-0.02, 0.03, z) * smooth(-0.090, -0.108, y) * (1 - smooth(-0.15, -0.17, y)) * (1 - smooth(0.05, 0.085, Math.abs(x)));
-            c = mix(c, C.beard, clamp(beard) * 0.22);
+            c = ROSE ? c : mix(c, C.beard, clamp(beard) * 0.22);
             row.push(b.vertex(at(q), c, headSkin));
         }
 
@@ -403,7 +425,7 @@ function buildFace(p) {
                 const r = R + (i > UR ? 0.0011 : 0) + 0.0006 * Math.sin(Math.PI * k);
                 const d = [Math.sin(a) * Math.cos(beta), Math.sin(beta), Math.cos(a) * Math.cos(beta)];
                 const q = add(eye, mul([side * d[0], d[1], d[2]], r));
-                const c = i >= UR - 1 ? C.lash : C.skin;
+                const c = i >= UR - (ROSE ? 2 : 1) ? C.lash : C.skin;
                 row.push(b.vertex(q, c, headSkin, 1));
             }
 
@@ -451,7 +473,7 @@ function buildFace(p) {
             let y = 0.046 + 0.009 * Math.sin(Math.PI * Math.min(1, t * 1.15)) - 0.004 * t;
             y += 0.010 * inner * (1 - t) ** 1.2 - (0.003 + 0.004 * (1 - t)) * down + 0.008 * outer * t ** 1.3;
             const z = surfaceZ(x, y) + 0.0024;
-            const halfH = lerp(0.0052, 0.0026, t) * Math.sin(Math.PI * clamp(t * 6, 0.25, 1) / 2) * (i === 0 || i === S ? 0.35 : 1);
+            const halfH = BROW * lerp(0.0052, 0.0026, t) * Math.sin(Math.PI * clamp(t * 6, 0.25, 1) / 2) * (i === 0 || i === S ? 0.35 : 1);
             const halfD = 0.0019;
             const ring = [];
 
@@ -491,8 +513,8 @@ function buildMouth(b, p, at) {
     const jaw = JAW_DROP * p.open;
     const openUp = 0.0035 * p.open + 0.0015 * p.th + 0.0012 * p.ff;
     const press = 1 - 0.40 * p.press;
-    const bu = 0.0078 * press * (1 + 0.15 * p.round);
-    const bl = 0.0098 * press * (1 + 0.15 * p.round) * (1 - 0.25 * p.ff);
+    const bu = LIPS * 0.0078 * press * (1 + 0.15 * p.round);
+    const bl = LIPS * 0.0098 * press * (1 + 0.15 * p.round) * (1 - 0.25 * p.ff);
     const lipOut = 1 + 0.9 * p.round + 0.3 * p.press;
 
     // Position locale (x, y relatifs au centre de la bouche) + hauteur au-dessus de la peau.
@@ -586,7 +608,7 @@ function buildMouth(b, p, at) {
             const e = innerEdge(a);
             const o = outerEdge(a);
             const upper = Math.sin(a) >= 0;
-            const bulge = (upper ? 0.0034 : 0.0044) * lipOut * Math.sin(Math.PI * (0.15 + 0.85 * t)) * (1 - 0.6 * Math.cos(a) ** 8);
+            const bulge = LIPS * (upper ? 0.0034 : 0.0044) * lipOut * Math.sin(Math.PI * (0.15 + 0.85 * t)) * (1 - 0.6 * Math.cos(a) ** 8);
             // Lèvre inférieure rentrée sous les dents du haut (F, V).
             const tuck = !upper ? p.ff * 0.004 * (1 - t) : 0;
             const x = lerp(e.x, o.x, t);
@@ -750,7 +772,7 @@ function buildHairAndGlasses() {
 
         for (let j = 0; j < LON; j++) {
             const phi = -Math.PI + (2 * Math.PI * j) / LON;
-            const dyEdge = hairline(phi);
+            const dyEdge = ROSE ? hairline(phi) + 0.06 * smooth(0.9, 0, Math.abs(phi)) : hairline(phi);
             const k = i / ROWS;
             const dy = lerp(dyEdge, 1, 1 - (1 - k) ** 1.6);
             const c = Math.sqrt(Math.max(0, 1 - dy * dy));
@@ -758,12 +780,18 @@ function buildHairAndGlasses() {
             const dz = c * Math.cos(phi);
             const base = headPoint(dx, dy, dz);
             // Épaisseur : fine au bord, plus de volume sur le dessus.
-            const thick = lerp(0.0018, 0.010 + 0.006 * smooth(0.3, 1, dy), smooth(0, 0.22, k));
+            const thick = ROSE
+                ? lerp(0.0022, 0.016 + 0.010 * smooth(0.3, 1, dy), smooth(0, 0.22, k))
+                : lerp(0.0018, 0.010 + 0.006 * smooth(0.3, 1, dy), smooth(0, 0.22, k));
             // Petites bosses pour l'aspect des cheveux crépus coupés courts.
-            const bump = 0.0009 * Math.sin(dx * 260 + dy * 90) * Math.sin(dz * 240 - dy * 70) * smooth(0, 0.3, k);
+            // Teacher Rose : sillons des tresses, de l'avant vers l'arrière.
+            const bump = ROSE
+                ? 0.0012 * Math.sin(phi * 46) * smooth(0, 0.3, k)
+                : 0.0009 * Math.sin(dx * 260 + dy * 90) * Math.sin(dz * 240 - dy * 70) * smooth(0, 0.3, k);
             const n = norm([dx / AX, dy / AY, dz / AZ]);
             const q = add(base, mul(n, thick + bump));
-            row.push(b.vertex(add(HEAD, q), mix(C.hair, C.skin, (1 - smooth(0, 0.12, k)) * 0.35), headSkin, 30));
+            const hairColor = ROSE ? mix(C.hair, C.hairDark, 0.5 + 0.5 * Math.sin(phi * 46)) : C.hair;
+            row.push(b.vertex(add(HEAD, q), mix(hairColor, C.skin, (1 - smooth(0, 0.12, k)) * 0.35), headSkin, 30));
         }
 
         rows.push(row);
@@ -772,7 +800,7 @@ function buildHairAndGlasses() {
     b.grid(rows, true);
 
     // Lunettes : deux montures arrondies, un pont, deux branches.
-    const tube = (points, radius, sides = 6, closed = false) => {
+    const tube = (points, radius, sides = 6, closed = false, paint = () => C.glasses, group = 31) => {
         const rings = [];
         const n = points.length;
 
@@ -789,7 +817,7 @@ function buildHairAndGlasses() {
             for (let k = 0; k < sides; k++) {
                 const a = (2 * Math.PI * k) / sides;
                 const off = add(mul(u, Math.cos(a) * radius), mul(v, Math.sin(a) * radius));
-                ring.push(b.vertex(add(points[i], off), C.glasses, headSkin, 31));
+                ring.push(b.vertex(add(points[i], off), paint(i, k), headSkin, group));
             }
 
             rings.push(ring);
@@ -801,6 +829,12 @@ function buildHairAndGlasses() {
 
         b.grid(rings, true, true);
     };
+
+    if (ROSE) {
+        buildBraidsAndEarrings(b, tube);
+
+        return scaleHead(b);
+    }
 
     for (const side of [1, -1]) {
         const eye = eyeCenter(side);
@@ -842,6 +876,43 @@ function buildHairAndGlasses() {
     tube(bridge, 0.0018, 6);
 
     return scaleHead(b);
+}
+
+// Teacher Rose : tresses fines qui tombent sur les côtés et dans le dos (au-dessus des épaules), boucles d'oreilles.
+function buildBraidsAndEarrings(b, tube) {
+    const R = 0.0062;
+
+    for (let n = 0; n < 40; n++) {
+        const side = n % 2 ? -1 : 1;
+        const i = Math.floor(n / 2);
+        // Des tempes (1,15) jusqu'à la nuque (π), jamais devant le visage.
+        const phi = side * lerp(1.2, Math.PI - 0.03, i / 19);
+        const back = smooth(1.6, Math.PI, Math.abs(phi));
+        const start = 0.30 - 0.12 * back;
+        const end = -0.95 - 0.55 * back + 0.06 * Math.sin(n * 2.3);
+        const points = [];
+
+        for (let k = 0; k <= 14; k++) {
+            const t = k / 14;
+            const dy = lerp(start, end, t);
+            const along = Math.max(-0.35, dy);
+            const c = Math.sqrt(Math.max(0, 1 - along * along));
+            const base = headPoint(c * Math.sin(phi), along, c * Math.cos(phi));
+            const out = norm([Math.sin(phi), 0, Math.cos(phi)]);
+            // Posée sur les cheveux, puis tombe tout droit en s'écartant un peu.
+            const lift = 0.020 + 0.012 * smooth(-0.35, -0.9, dy);
+            const q = add(base, add(mul(out, lift), [0, dy < -0.35 ? (dy + 0.35) * AY : 0, 0]));
+            points.push(add(HEAD, q));
+        }
+
+        // Bandes claires et foncées alternées : l'aspect tressé.
+        tube(points, R, 6, false, (k) => (k % 2 ? C.hair : C.hairDark), 30);
+    }
+
+    for (const side of [1, -1]) {
+        const lobe = add(HEAD, [side * 0.111, -0.044, -0.004]);
+        ellipsoid(b, lobe, [0.0042, 0.0052, 0.0042], C.tie, headSkin, 32, 10, 6);
+    }
 }
 
 /* ---------- Corps : buste, gilet, chemise, cravate, cou, bras, mains ---------- */
@@ -993,8 +1064,36 @@ function buildBody() {
         }
     }
 
-    // Cravate : nœud et pan.
-    {
+    // Teacher Rose : foulard orange noué au col (deux pans courts).
+    if (ROSE) {
+        const zAt = (y) => torsoPoint(solveS(y), 0)[2] + 0.0035;
+
+        for (const side of [1, -1]) {
+            const rows = [];
+
+            for (let i = 0; i <= 6; i++) {
+                const t = i / 6;
+                const y = lerp(0.462, 0.410, t);
+                const cx = side * lerp(0.006, 0.030, t);
+                const w = lerp(0.010, 0.015, t);
+                const row = [];
+
+                for (let j = 0; j <= 2; j++) {
+                    const x = cx + lerp(-w, w, j / 2);
+                    const q = [x, y, zAt(y) + 0.003 + (j === 1 ? 0.002 : 0)];
+                    row.push(b.vertex(q, j === 1 ? C.tie : mix(C.tie, C.tieDark, 0.5), bodySkin(q), 56));
+                }
+
+                rows.push(row);
+            }
+
+            b.grid(rows, false, side < 0);
+        }
+
+        const knot = [0, 0.468, zAt(0.468) + 0.008];
+        ellipsoid(b, knot, [0.020, 0.013, 0.009], C.tie, bodySkin(knot), 57, 12, 8);
+    } else {
+        // Cravate : nœud et pan.
         const zAt = (y) => torsoPoint(solveS(y), 0)[2] + 0.0035;
         const rows = [];
 
@@ -1391,7 +1490,7 @@ async function main() {
     const doc = new Document();
     doc.getRoot().getAsset().generator = 'build-teacher-joe.mjs';
     const buffer = doc.createBuffer();
-    const scene = doc.createScene('TeacherJoe');
+    const scene = doc.createScene(ROSE ? 'TeacherRose' : 'TeacherJoe');
     doc.getRoot().setDefaultScene(scene);
     const root = doc.createNode('Armature');
     scene.addChild(root);
@@ -1432,7 +1531,7 @@ async function main() {
         ibm.set([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -x, -y, -z, 1], i * 16);
     });
 
-    const skin = doc.createSkin('TeacherJoeSkin')
+    const skin = doc.createSkin(ROSE ? 'TeacherRoseSkin' : 'TeacherJoeSkin')
         .setSkeleton(nodes.Hips)
         .setInverseBindMatrices(doc.createAccessor().setType('MAT4').setArray(ibm).setBuffer(buffer));
     jointNames.forEach((name) => skin.addJoint(nodes[name]));
