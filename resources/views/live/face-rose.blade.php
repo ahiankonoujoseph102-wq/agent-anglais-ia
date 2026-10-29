@@ -1,6 +1,6 @@
 {{--
     Visage simple (SVG) de Teacher Rose, affiché tant qu'elle n'a pas de personnage 3D (config/avatar.php → rose.file)
-    ou en repli : personnage stylisé et original (longues tresses cuivrées, gilet bleu nuit, foulard orange). Mêmes
+    ou en repli : personnage stylisé et original (longues tresses cuivrées, regard ouvert, léger sourire, gilet bleu nuit, foulard orange). Mêmes
     classes que le visage de Teacher Joe (yeux qui clignent, bouche #mouth qui suit la voix).
 --}}
 <svg viewBox="0 0 200 250" class="face face-rose" role="img">
@@ -16,10 +16,19 @@
     <path d="M32 172 L36 210 M44 168 L48 210 M168 172 L164 210 M156 168 L152 210" class="face-loc-lines"/>
     <circle cx="22" cy="128" r="6" class="face-tie"/>
     <circle cx="178" cy="128" r="6" class="face-tie"/>
+    {{-- Joues légèrement rosées. --}}
+    <ellipse cx="54" cy="130" rx="13" ry="7" class="face-blush"/>
+    <ellipse cx="146" cy="130" rx="13" ry="7" class="face-blush"/>
+    {{-- Yeux grands ouverts, avec un reflet (le reflet cligne avec eux). --}}
     <g class="face-eyes">
-        <ellipse cx="72" cy="100" rx="8" ry="10"/>
-        <ellipse cx="128" cy="100" rx="8" ry="10"/>
+        <ellipse cx="72" cy="100" rx="9" ry="12"/>
+        <ellipse cx="128" cy="100" rx="9" ry="12"/>
+        <circle cx="75" cy="95" r="3" class="face-shine"/>
+        <circle cx="131" cy="95" r="3" class="face-shine"/>
     </g>
-    <path d="M58 82 Q72 75 86 82 M114 82 Q128 75 142 82" class="face-brows face-brows-thin"/>
-    <ellipse id="mouth" cx="100" cy="148" rx="20" ry="3" class="face-mouth"/>
+    {{-- Sourcils fins et hauts : regard ouvert. --}}
+    <path d="M60 78 Q72 71 85 76 M115 76 Q128 71 140 78" class="face-brows face-brows-thin"/>
+    {{-- Léger sourire au repos ; la bouche #mouth s'ouvre dedans quand elle parle. --}}
+    <path d="M77 143 Q100 164 123 143" class="face-smile"/>
+    <ellipse id="mouth" cx="100" cy="152" rx="12" ry="3" class="face-mouth"/>
 </svg>

@@ -340,4 +340,15 @@ class TeacherRoseTest extends TestCase
         // Toujours invisible pour les apprenants tant que le fondateur n'a pas validé son visage.
         $this->assertFalse((bool) config('teachers.list.rose.ready'));
     }
+
+    public function test_rose_looks_welcoming_at_rest_on_the_simple_face_and_in_3d(): void
+    {
+        $face = file_get_contents(resource_path('views/live/face-rose.blade.php'));
+
+        // Léger sourire et regard ouvert, même quand elle ne parle pas ; la bouche animée reste là.
+        $this->assertStringContainsString('class="face-smile"', $face);
+        $this->assertStringContainsString('class="face-shine"', $face);
+        $this->assertStringContainsString('id="mouth"', $face);
+        $this->assertGreaterThan(config('avatar.model.resting_smile'), config('avatar.rose.resting_smile'));
+    }
 }
