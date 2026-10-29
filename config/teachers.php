@@ -25,6 +25,8 @@
 |   personality       court bloc de personnalité ajouté après le personnage commun (vide : rien)
 |   sample_style      ton des extraits de « Essai des voix » ; null : teacher.voice_trial.style
 |   face              visage simple (SVG) de l'écran de séance : joe ou rose
+|   portrait          portrait fixe (public/) des pages publiques
+|   public_line       une phrase qui le présente sur les pages publiques (jamais une promesse)
 |   speech_style      remplacements dans le ton des messages vocaux (écrit pour Teacher Joe : « male teacher »)
 |   welcome_paragraphs  paragraphes du message de bienvenue propres au professeur (accords au féminin)
 |
@@ -55,6 +57,8 @@ return [
             'personality' => '',
             'sample_style' => null,
             'face' => 'joe',
+            'portrait' => 'images/teacher-joe.webp',
+            'public_line' => 'Calme et patient, il vous fait parler pas à pas.',
         ],
 
         'rose' => [
@@ -88,6 +92,8 @@ return [
                 TXT,
             'sample_style' => 'a calm, warm and confident female teacher, speaking clearly and a little slowly to a beginner',
             'face' => 'rose',
+            'portrait' => 'images/teacher-rose.webp',
+            'public_line' => 'Chaleureuse et encourageante, elle vous met à l\'aise dès la première phrase.',
             // Messages vocaux (bienvenue, résultat) : voix de femme, accords au féminin.
             'speech_style' => ['male teacher' => 'female teacher'],
             'welcome_paragraphs' => [

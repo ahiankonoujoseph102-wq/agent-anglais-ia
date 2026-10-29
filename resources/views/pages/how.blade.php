@@ -51,7 +51,7 @@
             <li>Créez votre compte avec votre nom et votre numéro de téléphone.</li>
             <li>Passez votre évaluation orale gratuite : {{ $minutes }} minutes à l'oral avec {{ $teacher }} pour trouver votre niveau, de A1 à C2.</li>
             <li>Choisissez une formule et payez par Mobile Money.</li>
-            <li>Parlez avec {{ $teacher }} chaque jour, à votre rythme.</li>
+            <li>Parlez avec {{ \App\Support\Teachers\Teachers::names() }} chaque jour, à votre rythme.</li>
         </ol>
         <div class="cta-actions">
             <a class="btn btn-accent btn-lg" href="{{ Navigation::assessmentUrl() }}"><x-icon name="mic" /> Passer mon évaluation gratuite</a>

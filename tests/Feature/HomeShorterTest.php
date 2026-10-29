@@ -70,7 +70,8 @@ class HomeShorterTest extends TestCase
 
         preg_match('#<script type="application/ld\+json">(\{"@context":"https://schema.org","@type":"FAQPage".*?)</script>#s', $html, $json);
         $data = json_decode($json[1], true);
-        $this->assertCount(15, $data['mainEntity']);
+        // 15 questions, plus « Puis-je choisir mon professeur ? » quand le choix est proposé.
+        $this->assertCount(16, $data['mainEntity']);
         $this->assertNotContains('Voir les autres questions', array_column($data['mainEntity'], 'name'));
     }
 

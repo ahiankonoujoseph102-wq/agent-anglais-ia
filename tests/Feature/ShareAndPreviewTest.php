@@ -125,13 +125,13 @@ class ShareAndPreviewTest extends TestCase
         foreach (CountryPage::slugs() as $slug) {
             $this->assertFileExists(public_path('images/partage/pays-'.$slug.'.jpg'));
             $this->get('/apprendre-anglais/'.$slug)
-                ->assertSee('<meta property="og:image" content="https://talkami.net/images/partage/pays-'.$slug.'.jpg">', false)
-                ->assertSee('<meta name="twitter:image" content="https://talkami.net/images/partage/pays-'.$slug.'.jpg">', false);
+                ->assertSee('<meta property="og:image" content="https://talkami.net/images/partage/pays-'.$slug.'-duo.jpg">', false)
+                ->assertSee('<meta name="twitter:image" content="https://talkami.net/images/partage/pays-'.$slug.'-duo.jpg">', false);
         }
 
         [$width, $height] = getimagesize(public_path('images/partage/pays-togo.jpg'));
         $this->assertSame([1200, 630], [$width, $height]);
-        $this->get('/')->assertSee('content="https://talkami.net/images/partage-talkami.jpg"', false);
+        $this->get('/')->assertSee('content="https://talkami.net/images/partage-talkami-duo.jpg"', false);
     }
 
     public function test_a_head_request_reads_the_same_robots_rule_as_google(): void

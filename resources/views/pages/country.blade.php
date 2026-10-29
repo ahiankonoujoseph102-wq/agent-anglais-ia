@@ -43,6 +43,7 @@
                 </article>
             @endforeach
         </div>
+        <x-teacher-lineup compact class="country-teachers reveal" />
     </section>
 
     <section class="section" aria-labelledby="pays-formules">

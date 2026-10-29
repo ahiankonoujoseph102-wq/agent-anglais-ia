@@ -15,6 +15,9 @@
         <span class="icon-bubble"><x-icon name="shield" /></span>
         <h1>Confidentialité</h1>
         <p>Ce que {{ $platform }} garde sur vous, pourquoi, pendant combien de temps, et comment en demander la suppression.</p>
+        @if (\App\Support\Teachers\Teachers::hasChoice())
+            <p class="muted small">Sur cette page, « {{ $teacher }} » désigne aussi {{ implode(' et ', array_map(fn ($other) => $other->name(), array_filter(\App\Support\Teachers\Teachers::choosable(), fn ($other) => ! $other->isDefault()))) }} : les professeurs fonctionnent de la même façon, avec les mêmes règles.</p>
+        @endif
     </div>
 
     <section class="card privacy rise" aria-labelledby="privacy-collected" style="--i: 1">
@@ -23,6 +26,9 @@
             <li><strong>Votre compte</strong> : votre nom, votre numéro de téléphone (il sert à vous connecter) et, si vous la donnez, votre adresse e-mail (elle sert seulement à vous envoyer vos documents de révision). Votre mot de passe est enregistré sous une forme protégée que personne ne peut relire.</li>
             <li><strong>Votre pays</strong> : celui que vous choisissez à l'inscription (pour les comptes plus anciens, il est déduit de l'indicatif de votre numéro de téléphone) ; il sert à vous proposer les bons moyens de paiement et à vous saluer à l'heure de votre pays.</li>
             <li><strong>Votre apprentissage</strong> : le niveau trouvé lors de l'évaluation, vos réponses au questionnaire (objectif, métier, jours de travail, difficultés), votre programme, les résumés et devoirs de vos séances, vos erreurs à revoir, vos notes et vos attestations de niveau.</li>
+            @if (\App\Support\Teachers\Teachers::hasChoice())
+                <li><strong>Votre professeur</strong> : celui que vous avez choisi ({{ \App\Support\Teachers\Teachers::names() }}) et, pour chaque séance, le professeur avec qui elle a été faite.</li>
+            @endif
             <li><strong>Vos paiements</strong> : la formule choisie, le pays, le moyen de paiement, le montant, et la capture d'écran de confirmation que vous envoyez, avec ce que le site y a lu (montant, date, numéro de transaction, numéro qui a reçu l'argent et numéro qui l'a envoyé).</li>
             <li><strong>« Mes cours »</strong> : les photos ou le PDF des leçons d'anglais que vous envoyez, et ce que {{ $teacher }} en a lu (la leçon entière, ou le sommaire d'un long PDF et les parties que vous choisissez), et, après chaque séance, votre document personnel de révision en PDF (la leçon expliquée, vos erreurs pendant la séance, les phrases à retenir et un exercice).</li>
             <li><strong>Le texte de vos conversations</strong> avec {{ $teacher }} : ce que vous dites et ce qu'il répond, mot à mot, avec l'heure de chaque réplique, pour l'évaluation gratuite, les séances du jour, « Mes cours » et les bilans de niveau.</li>

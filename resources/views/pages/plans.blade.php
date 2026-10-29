@@ -24,6 +24,7 @@
         </div>
         <p class="muted small next-step">Chaque formule donne un temps par jour, à partager entre la séance orale et « Mes cours ». Il revient chaque jour à minuit, heure de Lomé.</p>
         <x-plans-questions />
+        <x-teacher-lineup compact class="plans-teachers reveal" />
         <p class="muted small">Pour les francophones de tous les pays, en anglais américain, compris partout dans le monde.</p>
     </section>
 

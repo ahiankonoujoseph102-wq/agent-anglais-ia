@@ -52,6 +52,23 @@ class Teachers
     }
 
     /**
+     * Noms des professeurs proposés, pour les pages publiques : « Teacher Joe ou Teacher Rose » (un seul professeur
+     * proposé : son nom seul, comme avant).
+     */
+    public static function names(string $last = ' ou '): string
+    {
+        $names = array_values(array_map(fn (Teacher $teacher) => $teacher->name(), self::choosable()));
+
+        if (count($names) < 2) {
+            return self::default()->name();
+        }
+
+        $final = array_pop($names);
+
+        return implode(', ', $names).$last.$final;
+    }
+
+    /**
      * Professeur choisi par l'apprenant s'il peut encore être choisi, sinon le professeur par défaut : retirer un
      * professeur de la liste (ou le marquer pas prêt) ramène ses apprenants vers Teacher Joe.
      */

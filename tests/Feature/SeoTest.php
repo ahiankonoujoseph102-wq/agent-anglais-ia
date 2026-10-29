@@ -73,7 +73,8 @@ class SeoTest extends TestCase
             $this->assertStringContainsString('<link rel="canonical" href="'.$canonical.'">', $html);
             $this->assertSame($canonical, $this->meta($html, 'property', 'og:url'));
             // Les pages pays ont leur propre image (ShareAndPreviewTest) ; les autres, celle de l'accueil.
-            $image = str_starts_with($path, '/apprendre-anglais/') ? 'images/partage/pays-'.basename($path).'.jpg' : 'images/partage-talkami.jpg';
+            // Deux professeurs proposés (Teacher Joe et Teacher Rose) : images « -duo ».
+            $image = str_starts_with($path, '/apprendre-anglais/') ? 'images/partage/pays-'.basename($path).'-duo.jpg' : 'images/partage-talkami-duo.jpg';
             $this->assertSame('https://talkami.net/'.$image, $this->meta($html, 'property', 'og:image'));
             $this->assertSame('https://talkami.net/'.$image, $this->meta($html, 'name', 'twitter:image'));
             $this->assertSame('summary_large_image', $this->meta($html, 'name', 'twitter:card'));
@@ -127,11 +128,13 @@ class SeoTest extends TestCase
 
     public function test_the_share_image_is_a_1200_by_630_jpeg(): void
     {
-        $size = getimagesize(public_path(Seo::SHARE_IMAGE));
+        foreach ([Seo::SHARE_IMAGE, Seo::SHARE_IMAGE_DUO] as $image) {
+            $size = getimagesize(public_path($image));
 
-        $this->assertSame([1200, 630], [$size[0], $size[1]]);
-        $this->assertSame('image/jpeg', $size['mime']);
-        $this->assertLessThan(200 * 1024, filesize(public_path(Seo::SHARE_IMAGE)));
+            $this->assertSame([1200, 630], [$size[0], $size[1]]);
+            $this->assertSame('image/jpeg', $size['mime']);
+            $this->assertLessThan(200 * 1024, filesize(public_path($image)));
+        }
     }
 
     /**

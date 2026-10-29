@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!-- Image de partage (Open Graph) 1200 × 630 : produite par share-image.mjs, EN LOCAL. Textes repris de la page d'accueil.
      WhatsApp montre souvent une petite vignette CARRÉE prise au centre (x 285 à 915) : logo, Teacher Joe et l'évaluation
-     gratuite y tiennent ; le titre et le nom du professeur sont de part et d'autre, visibles dans le grand aperçu. -->
+     gratuite y tiennent ; le titre et le nom du professeur sont de part et d'autre, visibles dans le grand aperçu.
+     ?duo=1 : Teacher Joe et Teacher Rose côte à côte (accueil, pages pays). -->
 <html lang="fr">
 <head>
 <meta charset="utf-8">
@@ -14,6 +15,10 @@
     .logo { height: 64px; width: auto; margin-top: 46px; }
     .teacher { margin-top: 26px; width: 330px; height: 330px; border-radius: 50%; overflow: hidden; background: #FF7A1A; border: 10px solid rgba(255, 255, 255, .18); }
     .teacher img { width: 100%; height: 100%; object-fit: cover; }
+    /* Deux professeurs (?duo=1) : deux portraits côte à côte, dans le carré du centre. */
+    .duo { display: flex; gap: 18px; margin-top: 40px; }
+    .duo .teacher { margin-top: 0; width: 262px; height: 262px; border-width: 8px; }
+    .duo + .pill { margin-top: 44px; }
     .pill { margin-top: 30px; padding: 16px 30px; border-radius: 999px; background: #FF7A1A; color: #0E2A5C; font-size: 30px; font-weight: 700; white-space: nowrap; }
     .left { position: absolute; left: 56px; top: 0; height: 630px; width: 230px; display: flex; align-items: center; }
     h1 { font-size: 46px; line-height: 1.12; font-weight: 700; letter-spacing: -.01em; }
@@ -30,7 +35,7 @@
         <div class="teacher"><img src="../../public/images/teacher-joe.webp" alt=""></div>
         <div class="pill" id="pill">Évaluation orale gratuite</div>
     </div>
-    <div class="right"><p><strong>Teacher Joe</strong><span id="note">Votre professeur d'anglais à l'oral</span></p></div>
+    <div class="right"><p><strong id="name">Teacher Joe</strong><span id="note">Votre professeur d'anglais à l'oral</span></p></div>
     <script>
         // Variantes (share-image.mjs) : ?title=…&accent=…&pill=…&note=… ; sans paramètre, l'image de l'accueil.
         const query = new URLSearchParams(location.search);
@@ -41,7 +46,18 @@
             accent.textContent = query.get('accent') || '';
             title.append(accent);
         }
-        for (const id of ['pill', 'note']) if (query.has(id)) document.getElementById(id).textContent = query.get(id);
+        for (const id of ['pill', 'note', 'name']) if (query.has(id)) document.getElementById(id).textContent = query.get(id);
+        if (query.has('duo')) {
+            const one = document.querySelector('.center .teacher');
+            const duo = document.createElement('div');
+            duo.className = 'duo';
+            for (const file of ['teacher-joe', 'teacher-rose']) {
+                const circle = one.cloneNode(true);
+                circle.querySelector('img').src = `../../public/images/${file}.webp`;
+                duo.append(circle);
+            }
+            one.replaceWith(duo);
+        }
     </script>
 </body>
 </html>

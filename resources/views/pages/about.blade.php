@@ -96,6 +96,10 @@
                 <ul class="check-list">
                     <li><x-icon name="sparkle" /> {{ $teacher }} est un personnage animé en 3D dans votre navigateur ; sa bouche suit sa voix.</li>
                     <li><x-icon name="bubble" /> {{ $teacher }} a été conçu et programmé par {{ $founder['name'] }}, selon la méthode pédagogique de {{ $platform }}.</li>
+                    @foreach (\App\Support\Teachers\Teachers::choosable() as $other)
+                        @continue($other->isDefault())
+                        <li><x-icon name="users" /> <span>{{ $other->name() }}, {{ $other->pronoun() === 'elle' ? 'professeure' : 'professeur' }} de {{ $platform }} {{ $other->pronoun() === 'elle' ? 'elle' : 'lui' }} aussi, a été {{ $other->pronoun() === 'elle' ? 'conçue' : 'conçu' }} de la même façon, avec la même méthode. Vous choisissez votre professeur dans « Mon espace », et vous pouvez en changer chaque jour.</span></li>
+                    @endforeach
                     <li><x-icon name="level" /> L'évaluation orale gratuite donne votre niveau, de A1 à C2, en {{ $minutes }} minutes, puis {{ config('avatar.model.name') }} vous montre comment se passe une leçon et répond à vos questions.</li>
                     <li><x-icon name="check-circle" /> <span>Chaque séance se passe en quatre temps : la leçon au tableau, la pratique guidée, une conversation dans une situation de votre vie, puis le bilan ; il vous corrige aussitôt et garde vos erreurs pour les revoir.</span></li>
                     <li><x-icon name="clock" /> Il annonce la durée, vous prévient avant la fin, et le site arrête la séance à l'heure.</li>

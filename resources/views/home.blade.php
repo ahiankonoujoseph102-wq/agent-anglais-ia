@@ -1,6 +1,7 @@
 @php
     use App\Enums\Level;
     use App\Support\Asset;
+    use App\Support\Teachers\Teachers;
 
     $minutes = config('platform.assessment.max_minutes');
     $teacher = config('avatar.model.name');
@@ -39,6 +40,9 @@
             <div class="hero-more">
                 <p>{{ $teacher }} vous fait progresser à votre rythme. Vous apprenez l'anglais américain, compris partout dans le monde.</p>
                 <p class="hero-also">Élève ou étudiant ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école ou de l'université.</p>
+                @if (Teachers::hasChoice())
+                    <p class="hero-also">Vous préférez une autre voix ? Choisissez votre professeur : <a href="#professeurs">{{ Teachers::names() }}</a>.</p>
+                @endif
             </div>
         </div>
 
@@ -153,6 +157,9 @@
         </ul>
         <p class="muted small reveal next-step">Un programme construit pour vous, vos erreurs revues aux séances suivantes, un bilan oral et une attestation à la fin de chaque niveau.</p>
     </section>
+
+    {{-- Les professeurs proposés (rien avec un seul professeur : retour à Teacher Joe seul). --}}
+    <x-teacher-lineup />
 
     <section class="section band" aria-labelledby="plans">
         <div class="section-head reveal">
@@ -323,6 +330,12 @@
                         <summary><x-icon name="languages" /><span>Quel anglais vais-je apprendre ?</span></summary>
                         <p>L'anglais américain, compris partout dans le monde : sa prononciation, son vocabulaire et son orthographe. Si vous avez appris des mots britanniques à l'école, ils ne sont jamais comptés comme des fautes : {{ $teacher }} vous donne simplement l'équivalent américain quand c'est utile.</p>
                     </details>
+                    @if (Teachers::hasChoice())
+                        <details>
+                            <summary><x-icon name="users" /><span>Puis-je choisir mon professeur ?</span></summary>
+                            <p>Oui : {{ Teachers::names(' et ') }}. Même méthode, même programme, mêmes formules : seuls la voix et le visage changent. Vous choisissez votre professeur à l'ouverture de votre accès, puis dans « Mon espace », et vous pouvez en changer chaque jour : le changement compte dès la séance suivante. Votre niveau, votre programme et vos erreurs à revoir restent les mêmes. L'évaluation gratuite se passe avec {{ Teachers::default()->name() }}.</p>
+                        </details>
+                    @endif
                     <details>
                         <summary><x-icon name="book" /><span>Puis-je travailler mes cours d'anglais, même en PDF ?</span></summary>
                         <p>Oui, avec « Mes cours », pour les élèves et les étudiants (lycée, université, formation) qui ont une formule active. {{ \App\Support\CourseFiles::offer() }}. Pour un long PDF, vous choisissez avant la séance les pages ({{ \App\Support\CourseFiles::partPages() }} au plus à la fois) ou le passage à travailler, et vous revenez un autre jour pour la suite, sans renvoyer le fichier. {{ $teacher }} vous explique la leçon, répond à vos questions et vous guide pour faire l'exercice vous-même. C'est uniquement pour les cours d'anglais, et le temps se prend sur votre temps du jour, partagé avec la séance orale.</p>
