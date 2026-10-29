@@ -39,7 +39,7 @@ class ClubVideoTest extends TestCase
     /** Réponse du regroupement des erreurs. */
     private array $groups = ['groups' => []];
 
-    /** Durée de chaque partie de la voix simulée, en secondes. */
+    /** Durée de chaque partie de la voix simulée, en secondes (une demande regroupe plusieurs parties). */
     private int $pieceSeconds = 16;
 
     protected function setUp(): void
@@ -62,7 +62,7 @@ class ClubVideoTest extends TestCase
         Http::fake([
             '*/interactions' => function (Request $request) {
                 if (($request['response_format']['type'] ?? null) === 'audio') {
-                    return Http::response(['steps' => [['type' => 'model_output', 'content' => [['type' => 'audio', 'mime_type' => 'audio/l16;codec=pcm;rate=24000', 'data' => base64_encode(str_repeat("\x10\x00", 24000 * $this->pieceSeconds))]]]]]);
+                    return Http::response(['steps' => [['type' => 'model_output', 'content' => [['type' => 'audio', 'mime_type' => 'audio/l16;codec=pcm;rate=24000', 'data' => base64_encode(str_repeat("\x10\x00", 24000 * $this->pieceSeconds * (substr_count((string) ($request['input'][0]['content'][0]['text'] ?? ''), "\n\n") + 1)))]]]]]);
                 }
 
                 $answer = str_contains(json_encode($request->data()), 'You group the English mistakes') ? $this->groups : $this->script;

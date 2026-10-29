@@ -3,6 +3,7 @@
 namespace App\Support\Videos;
 
 use App\Models\LessonVideo;
+use App\Models\PresentationVideo;
 use App\Support\Gemini\SpeechFailed;
 use App\Support\Gemini\TeacherVoice;
 use App\Support\Gemini\VoiceSampler;
@@ -14,7 +15,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Sleep;
 
 /**
- * Voix d'une vidéo de leçon : une demande de synthèse vocale par partie du script, TOUTES chez le même fournisseur
+ * Voix d'une vidéo de leçon : quelques demandes de synthèse vocale (plusieurs parties du script par demande,
+ * recoupées ensuite par VoiceSplitter ; une par phrase pour les vidéos de présentation), TOUTES chez le même fournisseur
  * et avec la même voix (jamais deux voix dans une vidéo). Si ce fournisseur ne peut pas finir (limite du jour,
  * clé refusée), la vidéo ENTIÈRE est refaite chez le suivant. Les parties sont ensuite assemblées en un seul
  * fichier WAV, avec un court silence entre elles, et leurs heures de début et de fin (sous-titres) sont gardées.
@@ -101,10 +103,15 @@ class VideoVoice
         $timeout = (int) config('videos.voice.timeout');
         $requested = false;
 
-        foreach ($segments as $index => $segment) {
-            $path = $this->piecePath($video, $provider, $index);
+        $texts = array_map(fn (array $segment) => (string) $segment['spoken'], array_values($segments));
+        // Vidéos de leçon et du Club : plusieurs parties par demande (10 demandes par jour chez Gemini en offre
+        // gratuite), recoupées ensuite ; vidéos de présentation : une demande par phrase (leurs écrans en dépendent).
+        $groups = $video instanceof PresentationVideo
+            ? array_map(fn (int $index) => [$index], array_keys($texts))
+            : VoiceSplitter::groups($texts, (int) config('videos.voice.group_characters'));
 
-            if ($disk->exists($path)) {
+        foreach ($groups as $group) {
+            if (collect($group)->every(fn (int $index) => $disk->exists($this->piecePath($video, $provider, $index)))) {
                 continue;
             }
 
@@ -120,9 +127,10 @@ class VideoVoice
             }
 
             $requested = true;
+            $groupTexts = array_map(fn (int $index) => $texts[$index], $group);
 
             try {
-                $wav = $this->synthesize($provider, (string) ($video->voice_name ?: self::voiceFor($provider)), (string) $segment['spoken'], $video->voiceLabel(), $video->voiceStyle());
+                $wav = $this->synthesize($provider, (string) ($video->voice_name ?: self::voiceFor($provider)), VoiceSplitter::join($groupTexts), $video->voiceLabel(), $video->voiceStyle());
             } catch (SpeechFailed $e) {
                 if ($e->exhaustsProvider() || $e->isRetryable()) {
                     // Limite : ce fournisseur est mis de côté ; la vidéo entière passera au suivant.
@@ -135,11 +143,13 @@ class VideoVoice
                 return $this->failure($video, $provider->label().' : '.$e->reason().'.');
             }
 
-            if (self::parse($wav) === null) {
+            if (($parsed = self::parse($wav)) === null) {
                 return $this->failure($video, $provider->label().' : audio illisible.');
             }
 
-            $disk->put($path, $wav);
+            foreach (VoiceSplitter::split($parsed, $groupTexts) as $position => $data) {
+                $disk->put($this->piecePath($video, $provider, $group[$position]), self::wav($data, $parsed['rate'], $parsed['channels']));
+            }
         }
 
         return $this->assemble($video, $provider, count($segments));

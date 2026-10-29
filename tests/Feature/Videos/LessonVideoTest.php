@@ -160,11 +160,15 @@ class LessonVideoTest extends TestCase
         $this->assertSame('#anglais #apprendrelanglais #englishlesson', $video->hashtags);
         $this->assertStringContainsString('évaluez gratuitement votre niveau d\'anglais sur talkami.laravel.cloud', $video->caption);
 
-        // Une voix assemblée : 11 parties d'une demi-seconde (8 de leçon, question, abonnement, adresse) et 10 silences.
+        // Une voix assemblée : 11 parties (8 de leçon, question, abonnement, adresse), dites en PEU de demandes
+        // (plusieurs parties par demande, puis recoupées : limite de 10 demandes par jour chez Gemini), et 10 silences.
+        $requests = Http::recorded(fn (Request $request) => str_ends_with($request->url(), '/interactions') && ($request['response_format']['type'] ?? null) === 'audio')->count();
         $this->assertTrue(Storage::disk('local')->exists($video->audio_path));
         $this->assertCount(11, $video->timings['segments']);
-        $this->assertEqualsWithDelta(11 * 0.5 + 10 * 0.45, $video->timings['duration'], 0.01);
-        $this->assertSame(0.95, $video->timings['segments'][1]['start']);
+        $this->assertLessThanOrEqual(3, $requests);
+        $this->assertEqualsWithDelta($requests * 0.5 + 10 * 0.45, $video->timings['duration'], 0.02);
+        $starts = array_column($video->timings['segments'], 'start');
+        $this->assertSame($starts, collect($starts)->sort()->values()->all());
         $this->assertFalse(Storage::disk('local')->exists($video->folder().'/voice'));
     }
 

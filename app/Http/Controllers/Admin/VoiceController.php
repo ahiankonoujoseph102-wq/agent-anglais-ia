@@ -68,10 +68,13 @@ class VoiceController extends Controller
                 $wav = $provider === 'openai' ? $sampler->generateOpenAi($voice, $teacher) : $sampler->generate($voice, $teacher);
             } catch (GeminiUnavailable $e) {
                 // Cause déjà journalisée par la synthèse vocale (SpeechLog).
+                // Cause courte (jamais la clé) : la même que dans « Diagnostic de la voix », dernières erreurs.
+                $cause = $e instanceof SpeechFailed ? ' Cause : '.$e->reason().($e->status ? ' (code '.$e->status.')' : '').'.' : '';
+
                 return response()->json(['message' => match (true) {
-                    $e instanceof SpeechFailed && $e->kind === SpeechFailed::MISSING_KEY => 'Clé OPENAI_API_KEY absente dans les variables de Laravel Cloud : les voix OpenAI ne peuvent pas être essayées.',
-                    $e->quotaExceeded => 'La limite du fournisseur est atteinte pour le moment. Réessayez plus tard.',
-                    default => 'L\'extrait n\'a pas pu être créé. Réessayez dans quelques instants.',
+                    $e instanceof SpeechFailed && $e->kind === SpeechFailed::MISSING_KEY => 'Clé '.($provider === 'openai' ? 'OPENAI_API_KEY' : 'GEMINI_API_KEY').' absente dans les variables de Laravel Cloud : ces voix ne peuvent pas être essayées.',
+                    $e->quotaExceeded => 'La limite du fournisseur est atteinte pour le moment. Réessayez plus tard.'.$cause,
+                    default => 'L\'extrait n\'a pas pu être créé. Réessayez dans quelques instants.'.$cause,
                 }], 503);
             }
         }

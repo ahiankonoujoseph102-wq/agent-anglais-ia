@@ -58,7 +58,10 @@ return [
         // Silence ajouté entre deux parties du script, en millisecondes.
         'gap_ms' => 450,
         // Délai d'une demande, en secondes.
-        'timeout' => 60,
+        'timeout' => 90,
+        // Parties du script dites dans UNE demande (au plus tant de caractères, environ 1 minute 30 de voix), puis
+        // recoupées : 2 demandes environ par vidéo au lieu d'une par partie (limite gratuite de Gemini : 10 par jour).
+        'group_characters' => 1500,
     ],
 
     // Essai comparatif des voix (page « Vidéos ») : le même passage, en français avec des phrases en anglais, dit par

@@ -31,7 +31,7 @@ class GeminiSpeech extends SpeechProvider
 
     public function hasKey(): bool
     {
-        return filled(config('services.gemini.key'));
+        return VoiceSampler::keys() !== [];
     }
 
     public function model(): string
