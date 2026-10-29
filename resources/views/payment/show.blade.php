@@ -19,7 +19,7 @@
                     Une fois vérifié, il reste valable jusqu'au {{ $provisional->ends_at->translatedFormat('j F Y') }}.
                 </div>
             </div>
-            <a class="btn btn-accent btn-block btn-lg btn-next" href="{{ route('lesson.show') }}"><x-icon name="mic" /> Parler avec {{ config('avatar.model.name') }}</a>
+            <a class="btn btn-accent btn-block btn-lg btn-next" href="{{ route('lesson.show') }}"><x-icon name="mic" /> Parler avec {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }}</a>
             <a class="btn btn-light btn-block next-step" href="{{ route('dashboard') }}">Aller à mon espace</a>
         @elseif ($payment->status === PaymentStatus::Pending)
             <div class="status-head">

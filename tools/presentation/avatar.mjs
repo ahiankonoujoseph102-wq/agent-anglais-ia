@@ -34,7 +34,7 @@ export async function renderAvatar(browser, job, audioFile, out, log = console.l
             }
 
             if (++count % 300 === 0) {
-                log(`Teacher Joe : ${count} images (${((Date.now() - started) / count).toFixed(0)} millisecondes par image)`);
+                log(`${job.teacher ?? 'joe'} : ${count} images (${((Date.now() - started) / count).toFixed(0)} millisecondes par image)`);
             }
         });
 
@@ -45,7 +45,7 @@ export async function renderAvatar(browser, job, audioFile, out, log = console.l
         await page.close();
 
         const lips = lipCheck(result.rms, result.open, r.lips);
-        log(`Teacher Joe : ${result.frames} images en ${((Date.now() - started) / 1000).toFixed(0)} secondes ; lèvres ${result.lipSync ? 'HeadAudio' : 'selon le volume'}, accord ${lips.correlation}, ouverture ${lips.open_speech}.`);
+        log(`${job.teacher ?? 'joe'} : ${result.frames} images en ${((Date.now() - started) / 1000).toFixed(0)} secondes ; lèvres ${result.lipSync ? 'HeadAudio' : 'selon le volume'}, accord ${lips.correlation}, ouverture ${lips.open_speech}.`);
 
         return { total: result.total, frames: result.frames, lips };
     } finally {

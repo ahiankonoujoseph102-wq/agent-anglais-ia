@@ -50,6 +50,16 @@ final class Teacher
         return (string) ($this->config['portrait'] ?? 'images/teacher-joe.webp');
     }
 
+    /**
+     * Remplacements dans les scripts des vidéos de présentation, quand ce professeur les dit (accords au féminin).
+     *
+     * @return array<string, string>
+     */
+    public function presentationTexts(): array
+    {
+        return (array) ($this->config['presentation_texts'] ?? []);
+    }
+
     /** Une phrase qui présente le professeur sur les pages publiques (jamais une promesse). */
     public function publicLine(): string
     {

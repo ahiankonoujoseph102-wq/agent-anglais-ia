@@ -83,7 +83,8 @@ async function makeOne(context, job, audioFile, workdir, outDir) {
 
     const audioSeconds = await audioDuration(audioFile);
     const total = Math.max(job.duration, audioSeconds) + 1.2;
-    resetDemo(context.env);
+    // Comptes de démonstration avec le professeur de la vidéo (Teacher Rose : séance du jour et « Mes cours » avec elle).
+    resetDemo({ ...context.env, PRESENTATION_TEACHER: job.teacher ?? '' });
     const demo = await openDemo(context.browser, { site: SITE, fakePort: FAKE_PORT, viewport: job.render.viewport, scale: 2, effects: context.effects, proofImage: context.proof });
 
     // 1. L'écran, prise par prise.
@@ -97,8 +98,8 @@ async function makeOne(context, job, audioFile, workdir, outDir) {
 
     await demo.context.close();
 
-    // 2. Teacher Joe.
-    log(`${job.key} : Teacher Joe image par image`);
+    // 2. Le professeur (Teacher Joe, ou Teacher Rose pour ses versions).
+    log(`${job.key} : ${job.teacher ?? 'joe'} image par image`);
     let avatarFile = join(workdir, 'avatar.mp4');
     // Répétition locale : Teacher Joe déjà filmé pour cette voix (--avatar=…), lèvres vérifiées à ce moment-là.
     const avatar = context.avatar
