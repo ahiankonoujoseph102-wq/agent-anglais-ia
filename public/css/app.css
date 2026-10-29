@@ -713,7 +713,12 @@ main { overflow-x: clip; }
 /* Teacher Rose (visage simple) : tresses cuivrées, sourcils plus fins. */
 .face-rose .face-locs { fill: #7a3418; }
 .face-rose .face-loc-lines { fill: none; stroke: #5a2410; stroke-width: 3; stroke-linecap: round; }
-.face-rose .face-brows-thin { stroke-width: 3; }
+.face-rose .face-brows { stroke: #4a2618; }
+.face-rose .face-brows-thin { stroke-width: 2.5; }
+.face-rose .face-shine { fill: #ffffff; }
+.face-rose .face-blush { fill: #b0614f; opacity: .35; }
+.face-rose .face-smile { fill: none; stroke: #6e2a30; stroke-width: 4; stroke-linecap: round; }
+.face-rose .face-mouth { fill: #6e2a30; }
 /* Attente de la réponse (« Un instant… ») : petit hochement du visage simple. */
 [data-waiting] .face { animation: nod 1.2s ease-in-out 2; transform-origin: 50% 80%; }
 @keyframes nod { 0%, 100% { transform: none; } 40% { transform: translateY(3px) rotate(1deg); } }

@@ -108,7 +108,7 @@ if (ROSE) {
         // Joues légèrement rosées, bas du visage un peu plus clair (aucune ombre de barbe).
         blush: color('#a35a4c'),
         skinLight: color('#9a6146'),
-        brows: color('#2a1610'),
+        brows: color('#4a2618'),
         hair: color('#6e2f17'),
         hairDark: color('#3f190b'),
     });
@@ -218,7 +218,9 @@ const widthProfile = ROSE
 const NOSE = ROSE ? 0.82 : 1;
 // Teacher Rose : lèvres un peu plus pleines, sourcils plus fins, cils plus marqués.
 const LIPS = ROSE ? 1.18 : 1;
-const BROW = ROSE ? 0.62 : 1;
+const BROW = ROSE ? 0.46 : 1;
+// Léger sourire dessiné au repos (Teacher Rose seulement).
+const REST_SMILE = ROSE ? 0.7 : 0;
 const frontDepth = (dy) => table([[-1, 0.8], [-0.6, 0.94], [0, 1.0], [0.6, 0.95], [1, 0.9]], dy);
 const backDepth = (dy) => table([[-1, 0.7], [-0.5, 0.85], [0, 1.05], [0.6, 1.06], [1, 0.95]], dy);
 
@@ -425,7 +427,7 @@ function buildFace(p) {
             for (let j = 0; j <= N; j++) {
                 const a = (-105 + (210 * j) / N) * deg;
                 const ca = Math.cos(a);
-                const openEdge = (33 + 9 * wide - 13 * squint) * Math.max(0, ca) ** 0.6 - 3;
+                const openEdge = ((ROSE ? 38 : 33) + 9 * wide - 13 * squint) * Math.max(0, ca) ** 0.6 - 3;
                 const closedEdge = -14 * Math.max(0, ca) ** 0.5 - 4;
                 const edge = lerp(openEdge, closedEdge, blink) * deg;
                 const top = 82 * deg;
@@ -453,7 +455,7 @@ function buildFace(p) {
             for (let j = 0; j <= N; j++) {
                 const a = (-105 + (210 * j) / N) * deg;
                 const ca = Math.max(0, Math.cos(a));
-                const edge = (-30 * ca ** 0.5 + 15 * squint * ca) * deg - 6 * deg;
+                const edge = (-(ROSE ? 31 : 30) * ca ** 0.5 + 15 * squint * ca) * deg - 6 * deg;
                 const beta = lerp(-80 * deg, edge, i / LR);
                 const d = [Math.sin(a) * Math.cos(beta), Math.sin(beta), Math.cos(a) * Math.cos(beta)];
                 const q = add(eye, mul([side * d[0], d[1], d[2]], R - 0.0002));
@@ -479,7 +481,7 @@ function buildFace(p) {
         for (let i = 0; i <= S; i++) {
             const t = i / S;
             const x = 0.019 + 0.052 * t;
-            let y = 0.046 + 0.009 * Math.sin(Math.PI * Math.min(1, t * 1.15)) - 0.004 * t;
+            let y = (ROSE ? 0.0485 : 0.046) + (ROSE ? 0.007 : 0.009) * Math.sin(Math.PI * Math.min(1, t * 1.15)) - 0.004 * t;
             y += 0.010 * inner * (1 - t) ** 1.2 - (0.003 + 0.004 * (1 - t)) * down + 0.008 * outer * t ** 1.3;
             const z = surfaceZ(x, y) + 0.0024;
             const halfH = BROW * lerp(0.0052, 0.0026, t) * Math.sin(Math.PI * clamp(t * 6, 0.25, 1) / 2) * (i === 0 || i === S ? 0.35 : 1);
@@ -540,7 +542,7 @@ function buildMouth(b, p, at) {
 
     // Coins de la bouche : sourire (haut et dehors) ou moue (bas).
     const corner = (cos) => {
-        const s = smileAt(cos);
+        const s = smileAt(cos) + REST_SMILE;
         const c2 = cos * cos;
 
         return { dx: Math.sign(cos) * (0.0045 * Math.max(0, s) - 0.001 * Math.max(0, -s)) * c2, dy: (0.0055 * s) * c2 * c2 };

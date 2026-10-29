@@ -61,7 +61,7 @@ return [
             'eye_height' => 0.68,
         ],
         'desk_height' => 0.175,
-        'resting_smile' => 0.3,
+        'resting_smile' => 0.45,
         // Voix plus aiguë que celle de Teacher Joe (lecture labiale).
         'voice_hz' => 210,
     ],
