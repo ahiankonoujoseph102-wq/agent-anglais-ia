@@ -168,7 +168,6 @@ class TeacherSetup
             self::instructions('course', $user, $minutes, [
                 'working_together' => WorkingTogether::course($session),
                 'lesson' => $lesson,
-                'warning_seconds' => (int) config('platform.courses.warning_seconds'),
             ]),
             [],
             $resumeHandle,
@@ -230,7 +229,21 @@ class TeacherSetup
      */
     public static function cue(string $key, array $replace = []): string
     {
-        return self::fill((string) config("teacher.cues.{$key}"), $replace + ['closing' => (string) config('platform.assessment.closing_phrase'), 'duration_note' => ''] + self::phasePhrases());
+        return self::fill((string) config("teacher.cues.{$key}"), $replace + ['closing' => (string) config('platform.assessment.closing_phrase'), 'duration_note' => ''] + self::phasePhrases() + self::sessionEndPhrases());
+    }
+
+    /**
+     * Phrases de la fin de séance (platform.live.session_end), comme marqueurs :announce_phrase, :stop_phrase, :closing_phrase.
+     *
+     * @return array<string, string>
+     */
+    private static function sessionEndPhrases(): array
+    {
+        return [
+            'announce_phrase' => (string) config('platform.live.session_end.announce_phrase'),
+            'stop_phrase' => (string) config('platform.live.session_end.stop_phrase'),
+            'closing_phrase' => (string) config('platform.live.session_end.closing_phrase'),
+        ];
     }
 
     /**
@@ -296,6 +309,8 @@ class TeacherSetup
             trim((string) config('teacher.american_english')),
             // Évaluation : nouvelle version pour les apprenants désignés par l'interrupteur des Réglages.
             trim((string) config('teacher.'.($kind === 'assessment' && AssessmentVersion::isNewFor($user) ? 'assessment_new' : $kind))),
+            // Fin de la séance du jour et de « Mes cours » : annonce d'une minute, puis UNE conclusion (session-closing.js).
+            in_array($kind, ['lesson', 'course'], true) ? trim((string) config('teacher.session_end')) : '',
             trim((string) config('teacher.site_help')),
             // Conseiller honnête : prix réels, objections, WhatsApp seulement pour un vrai problème (pas l'essai du diagnostic).
             $kind === 'trial' ? '' : trim((string) config('teacher.advisor')),
@@ -318,7 +333,7 @@ class TeacherSetup
             'closing' => (string) config('platform.assessment.closing_phrase'),
             // Séance du jour : langue d'enseignement selon le niveau et phrases de passage d'un temps à l'autre.
             'language' => trim(config('teacher.lesson_language.common')."\n".config("teacher.lesson_language.{$level}", '')),
-        ] + self::phasePhrases() + PlanFacts::replacements($kind));
+        ] + self::phasePhrases() + self::sessionEndPhrases() + PlanFacts::replacements($kind));
 
         // Ajoutés APRÈS le remplacement des marqueurs : le nom de l'apprenant n'est jamais relu comme un marqueur.
         return implode("\n\n", [

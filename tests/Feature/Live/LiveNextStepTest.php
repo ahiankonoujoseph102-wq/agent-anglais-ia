@@ -63,10 +63,12 @@ class LiveNextStepTest extends TestCase
         $html = $this->actingAs($user)->get('/seance')->assertOk()->getContent();
         $card = $this->nextCard($html);
 
-        $this->assertStringContainsString('Bravo, séance terminée !', $card);
+        // Fin claire : retour à « Mon espace » en bouton, la prochaine leçon en lien discret.
+        $this->assertStringContainsString('Séance terminée. À demain !', $card);
+        $this->assertStringContainsString('href="'.route('dashboard').'"', $card);
+        $this->assertStringContainsString('Revenir à mon espace', $card);
         $this->assertStringContainsString('href="'.route('program.show').'#suite"', $card);
         $this->assertStringContainsString('Voir ma prochaine leçon', $card);
-        $this->assertStringContainsString('Retour à mon espace', $card);
 
         // Annonce des temps : sous le professeur, annoncée aux lecteurs d'écran, sans bouton.
         $this->assertMatchesRegularExpression('/<p id="phase-note" class="phase-note" role="status" hidden>/', $html);
@@ -82,6 +84,7 @@ class LiveNextStepTest extends TestCase
 
         $card = $this->nextCard($this->actingAs($user)->get(route('courses.session', $lesson))->assertOk()->getContent());
 
+        $this->assertStringContainsString('Revenir à mon espace', $card);
         $this->assertStringContainsString('href="'.route('courses.show', $lesson).'#documents"', $card);
         $this->assertStringContainsString('Voir mon document de révision', $card);
         $this->assertStringContainsString('Votre document de révision se prépare', $card);

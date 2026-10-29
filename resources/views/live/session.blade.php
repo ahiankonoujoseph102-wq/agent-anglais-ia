@@ -24,15 +24,17 @@
         'assessment' => auth()->user()?->activeSubscription
             ? ['title' => 'Évaluation terminée', 'text' => 'Votre niveau est enregistré : retrouvez votre programme dans votre espace.', 'href' => route('dashboard'), 'label' => 'Aller à mon espace', 'icon' => null]
             : ['title' => 'Évaluation terminée', 'text' => 'Choisissez votre formule pour commencer votre programme avec '.$teacherName.'.', 'href' => route('payment.plans'), 'label' => 'Choisir ma formule', 'icon' => null],
-        'lesson' => ['title' => 'Bravo, séance terminée !', 'text' => 'Votre résumé est juste en dessous. Votre prochaine leçon vous attend dans votre programme.', 'href' => route('program.show').'#suite', 'label' => 'Voir ma prochaine leçon', 'icon' => null],
-        'course' => ['title' => 'Séance terminée', 'text' => 'Votre document de révision se prépare : vous le trouverez sur la page de la leçon dans quelques minutes.', 'href' => $urls['done'].'#documents', 'label' => 'Voir mon document de révision', 'icon' => 'file-text'],
+        // Séance du jour et « Mes cours » : fin claire, retour à « Mon espace » ; le reste en lien discret.
+        'lesson' => ['title' => 'Séance terminée. À demain !', 'text' => 'Bravo pour cette séance. Votre résumé est juste en dessous ; votre prochaine leçon vous attend dans votre programme.', 'href' => route('dashboard'), 'label' => 'Revenir à mon espace', 'icon' => null],
+        'course' => ['title' => 'Séance terminée. À demain !', 'text' => 'Votre document de révision se prépare : vous le trouverez sur la page de la leçon dans quelques minutes.', 'href' => route('dashboard'), 'label' => 'Revenir à mon espace', 'icon' => null],
         'level_test' => ['title' => 'Bilan terminé', 'text' => 'Votre résultat est enregistré : la suite vous attend dans votre programme.', 'href' => route('program.show').'#suite', 'label' => 'Voir mon programme', 'icon' => null],
         default => null,
     };
     $nextBack = match ($mode) {
         'assessment' => ['href' => $urls['done'], 'label' => 'Voir mon résultat complet'],
-        'course' => ['href' => route('dashboard'), 'label' => 'Aller à mon espace'],
-        'lesson', 'level_test' => ['href' => route('dashboard'), 'label' => 'Retour à mon espace'],
+        'course' => ['href' => $urls['done'].'#documents', 'label' => 'Voir mon document de révision'],
+        'lesson' => ['href' => route('program.show').'#suite', 'label' => 'Voir ma prochaine leçon'],
+        'level_test' => ['href' => route('dashboard'), 'label' => 'Retour à mon espace'],
         default => null,
     };
     // Invitation à installer l'application : à la fin de l'évaluation et de la toute première séance.

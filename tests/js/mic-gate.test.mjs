@@ -122,5 +122,5 @@ test('la fin de tour de Gemini envoie des zéros au lieu de fermer le flux (live
     // Aucune indication ni relance n'est envoyée au professeur pendant ce temps.
     assert.doesNotMatch(send, /cue\(|sendText\(/);
     // La voix de l'apprenant n'est mesurée ni pendant la voix du professeur, ni juste après (écho).
-    assert.match(session, /state\.end\.micOpen && !teacherAudible\(\)/);
+    assert.match(session, /micOpen\(\) && !teacherAudible\(\)/);
 });

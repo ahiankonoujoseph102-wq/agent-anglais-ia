@@ -271,3 +271,159 @@ export class ConversationEnd {
         return !speaking || now - this.limitAt >= this.grace;
     }
 }
+
+/**
+ * Fin de la séance du jour et de « Mes cours » (SessionClosing). Testé par tests/js/session-closing.test.mjs.
+ *
+ * Tout part du TEMPS RESTANT calculé par le site (minuteur synchronisé avec le serveur) et de ce que fait la voix
+ * du professeur (il parle ou non) : jamais du volume du micro de l'apprenant.
+ *
+ * - Vers announceSeconds de la fin : UNE indication « il reste environ une minute » (quand il ne parle pas).
+ * - Vers concludeSeconds (quand il ne parle pas, au plus tard latestSeconds) : UNE indication de conclusion.
+ * - La conclusion finit par une phrase fixe (« À demain ! ») : repérée dans sa transcription, micro fermé, puis
+ *   fermeture une fois sa voix terminée. Plus un mot pendant silentEnd après l'indication : fermeture aussi.
+ * - Minuteur à zéro : la phrase en cours finit (grace) ; conclusion jamais demandée : elle l'est alors ; la
+ *   conclusion a au plus overtime secondes. Jamais de Teacher Joe à l'écran qui ne réagit plus.
+ */
+export class SessionClosing {
+    constructor({
+        total = 0, announceSeconds = 60, concludeSeconds = 40, latestSeconds = 25,
+        grace = 8, overtime = 30, silentEnd = 10, settle = 1, closingWait = 30, closingPhrase = 'À demain !',
+    } = {}) {
+        this.announceSeconds = announceSeconds;
+        this.concludeSeconds = concludeSeconds;
+        this.latestSeconds = latestSeconds;
+        this.grace = grace;
+        this.overtime = overtime;
+        this.silentEnd = silentEnd;
+        this.settle = settle;
+        this.closingWait = closingWait;
+        this.closingKey = normalizeSpeech(closingPhrase);
+        // Séance trop courte (moins de deux fois l'annonce) : pas d'annonce, seulement la conclusion.
+        this.announced = total > 0 && total < announceSeconds * 2;
+        this.concludedAt = null;
+        this.closingHeardAt = null;
+        this.turnDoneAt = null;
+        this.teacherAt = null;
+        this.limitAt = null;
+        this.spoken = '';
+    }
+
+    /** L'indication de conclusion est partie (ou le bilan est enregistré) : la séance se termine. */
+    get concluding() {
+        return this.concludedAt !== null;
+    }
+
+    /** Micro fermé dès la phrase de fin dite. */
+    get micOpen() {
+        return this.closingHeardAt === null;
+    }
+
+    /**
+     * Indication à envoyer maintenant, une seule fois chacune : 'announce', 'conclude' ou null.
+     *
+     * @param {number} remaining  secondes restantes (minuteur du site)
+     * @param {boolean} busy      le professeur parle ou prépare sa réponse : il finit d'abord sa phrase
+     */
+    next(remaining, busy, now) {
+        if (this.concluding || remaining <= 0) {
+            return null;
+        }
+
+        if (remaining <= this.concludeSeconds && (!busy || remaining <= this.latestSeconds)) {
+            this.startConclusion(now);
+
+            return 'conclude';
+        }
+
+        if (!this.announced && remaining <= this.announceSeconds && (!busy || remaining <= this.announceSeconds - 15)) {
+            this.announced = true;
+
+            return 'announce';
+        }
+
+        return null;
+    }
+
+    /** Conclusion commencée : par l'indication, ou parce que le bilan de la séance vient d'être enregistré. */
+    startConclusion(now) {
+        this.announced = true;
+        this.concludedAt ??= now;
+    }
+
+    /** Le professeur se manifeste (voix reçue, appel de fonction) : la fin sur silence attend. */
+    heard(now) {
+        this.teacherAt = now;
+    }
+
+    /** Sous-titre du professeur. Renvoie true quand la phrase de fin vient d'être dite (après l'indication). */
+    teacherSaid(text, now) {
+        this.teacherAt = now;
+
+        if (!this.concluding || this.closingHeardAt !== null) {
+            return false;
+        }
+
+        this.spoken = (this.spoken + text).slice(-300);
+
+        if (this.closingKey !== '' && normalizeSpeech(this.spoken).includes(this.closingKey)) {
+            this.closingHeardAt = now;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    turnComplete(now) {
+        if (this.closingHeardAt !== null) {
+            this.turnDoneAt = now;
+        }
+    }
+
+    /**
+     * La séance peut-elle se fermer ? Phrase de fin dite et voix terminée ; ou silence après l'indication.
+     *
+     * @param {boolean} speaking  la voix du professeur sort encore du haut-parleur (ou sa réponse se prépare)
+     */
+    shouldFinish(now, speaking) {
+        if (!this.concluding) {
+            return false;
+        }
+
+        if (this.closingHeardAt !== null) {
+            if (now - this.closingHeardAt >= this.closingWait) {
+                return true;
+            }
+
+            if (speaking) {
+                return false;
+            }
+
+            return this.turnDoneAt !== null ? now - this.turnDoneAt >= this.settle : now - this.closingHeardAt >= this.settle * 4;
+        }
+
+        return !speaking && now - Math.max(this.concludedAt, this.teacherAt ?? 0) >= this.silentEnd;
+    }
+
+    /**
+     * Minuteur à zéro : 'wait' (sa phrase ou sa conclusion continue), 'conclude' (demander la conclusion
+     * maintenant) ou 'finish'.
+     */
+    timeUp(now, speaking) {
+        this.limitAt ??= now;
+        const over = now - this.limitAt;
+
+        if (!this.concluding) {
+            if (speaking && over < this.grace) {
+                return 'wait';
+            }
+
+            this.startConclusion(now);
+
+            return 'conclude';
+        }
+
+        return over >= this.overtime ? 'finish' : 'wait';
+    }
+}

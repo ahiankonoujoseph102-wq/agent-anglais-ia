@@ -23,6 +23,7 @@ use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
 use App\Support\Live\LiveEarlyEnd;
 use App\Support\Live\LivePage;
+use App\Support\Live\SessionEnd;
 use App\Support\Live\WorkingTogether;
 use App\Support\Text\TextProviders;
 use Illuminate\Http\JsonResponse;
@@ -188,6 +189,8 @@ class LessonController extends Controller
                 // Durée accordée à la séance : temps écoulé = durée − temps restant.
                 'total' => $lesson->allowed_seconds,
             ],
+            // Fin de séance : annonce d'une minute, puis UNE conclusion, d'après le temps restant.
+            'session_end' => SessionEnd::client('lesson', (int) $lesson->allowed_seconds),
         ]);
     }
 

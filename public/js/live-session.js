@@ -36,7 +36,7 @@ const { listMicrophones, rms, meterLevel, SilenceWatch } = await import(root.dat
 // Réglages audio de la page (config/platform.php → live).
 const audioConfig = JSON.parse(root.dataset.audio);
 // Fin automatique après le verdict ; expressions du professeur 3D d'après ses paroles.
-const { ConversationEnd, mentionsLevel, levelRevealDue } = await import(root.dataset.conversationEnd);
+const { ConversationEnd, SessionClosing, mentionsLevel, levelRevealDue } = await import(root.dataset.conversationEnd);
 const { CueTracker } = await import(root.dataset.teacherCues);
 // Adaptateurs des fournisseurs (même langage d'événements pour l'écran).
 const { GeminiTransport } = await import(root.dataset.liveGemini);
@@ -520,6 +520,8 @@ const state = {
     learnerHeardAt: 0,
     // Fin d'évaluation (questions et phrase fixe) : réglée à la première réponse du serveur.
     end: new ConversationEnd(),
+    // Séance du jour et « Mes cours » : annonce d'une minute, conclusion, fermeture (d'après le temps restant).
+    closing: null,
     tokenExpiresAt: 0,
     cues: new CueTracker(),
     // Sous-titres de l'évaluation pas encore envoyés au serveur (repli si le temps finit sans verdict).
@@ -633,7 +635,7 @@ async function heartbeat() {
 
     if (!result.data.active) {
         // Pendant les questions ou la conclusion, la phrase en cours peut finir (tick → timeUp).
-        if (state.end.questions) {
+        if (state.end.questions || state.closing) {
             setRemaining(0);
         } else {
             finish('time');
@@ -1273,7 +1275,7 @@ function sendAudio(buffer) {
 
     // Gemini : la fin de tour signalée par le navigateur part en vrai silence (mic-gate.js, sendsTurnSilence), puis
     // audioStreamEnd. Rien d'autre n'est envoyé au professeur : aucune indication, aucune relance.
-    if (endingTurn && !transport.streamsAudio && !state.paused && !state.muted && state.end.micOpen
+    if (endingTurn && !transport.streamsAudio && !state.paused && !state.muted && micOpen()
         && sendsTurnSilence({ now: Date.now(), forcedAt: state.turns.turn?.forcedAt ?? null, seconds: audioConfig.end_of_turn_silence_seconds ?? 3 })) {
         noteGate(false, true);
 
@@ -1284,7 +1286,7 @@ function sendAudio(buffer) {
         return;
     }
 
-    const action = state.gate.decide(state.audio.context.currentTime, voiceEnd(), state.paused || state.muted || !state.end.micOpen || endingTurn);
+    const action = state.gate.decide(state.audio.context.currentTime, voiceEnd(), state.paused || state.muted || !micOpen() || endingTurn);
     noteGate(action === 'send', endingTurn);
 
     // OpenAI : le son part par la piste WebRTC ; la même porte l'ouvre ou la ferme.
@@ -1319,13 +1321,18 @@ function noteGate(open, endingTurn) {
     }
 
     const reason = state.paused ? 'pause' : state.muted ? 'micro coupé'
-        : !state.end.micOpen ? 'fin de la conversation' : endingTurn ? 'fin de tour' : 'voix du professeur';
+        : !micOpen() ? 'fin de la conversation' : endingTurn ? 'fin de tour' : 'voix du professeur';
     logEvent('gate_closed', reason);
 }
 
 /**
  * Pause ou micro coupé : fermeture immédiate du flux, sans attendre le prochain paquet.
  */
+/** Micro ouvert : avant le verdict (ou pendant les questions), et jusqu'à la phrase de fin d'une séance. */
+function micOpen() {
+    return state.end.micOpen && (state.closing?.micOpen ?? true);
+}
+
 function endMicStream() {
     sendAudio(null);
 }
@@ -1338,6 +1345,7 @@ function playAudio(base64) {
 
     state.awaitingSince = 0;
     state.learnerHeardAt = 0;
+    state.closing?.heard(clock());
     const { context, voice, sources, scheduler, resampler } = state.audio;
     // Réponse en cours : la porte du micro reste fermée jusqu'à sa fin, même si le son reçu s'épuise un instant.
     state.voicePending = true;
@@ -1529,7 +1537,7 @@ function trackLearnerVoice(level) {
     const now = Date.now();
     // Ni pendant sa voix, ni juste après (echo_guard_ms, comme la porte du micro) : la fin de sa voix qui revient
     // par le haut-parleur n'est jamais prise pour une parole de l'apprenant (fin de tour signalée à tort).
-    const canSpeak = state.connected && !state.ending && !state.paused && !state.muted && state.end.micOpen && !teacherAudible();
+    const canSpeak = state.connected && !state.ending && !state.paused && !state.muted && micOpen() && !teacherAudible();
     const change = canSpeak ? state.vad.update(now, level) : state.vad.reset(now);
 
     if (!change) {
@@ -1656,6 +1664,20 @@ async function connect({ planned = false, failed = null } = {}) {
             cueSeconds: state.config.conclusion_cue_seconds,
             grace: state.config.closing_grace_seconds,
             silentEnd: state.config.silent_end_seconds ?? 0,
+        });
+    }
+
+    if (!isResume && state.config.session_end) {
+        const end = state.config.session_end;
+        state.closing = new SessionClosing({
+            total: end.total,
+            announceSeconds: end.announce_seconds,
+            concludeSeconds: end.conclude_seconds,
+            latestSeconds: end.latest_seconds,
+            grace: end.grace_seconds,
+            overtime: end.overtime_seconds,
+            silentEnd: end.silent_end_seconds,
+            closingPhrase: end.closing_phrase,
         });
     }
 
@@ -1899,7 +1921,7 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             }
 
             // Phrase fixe de la conclusion : micro fermé, coupure une fois la voix terminée.
-            if (state.end.teacherSaid(text, clock())) {
+            if (state.end.teacherSaid(text, clock()) || state.closing?.teacherSaid(text, clock())) {
                 endMicStream();
             }
 
@@ -1923,6 +1945,7 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             }
 
             state.end.turnComplete(clock());
+            state.closing?.turnComplete(clock());
             state.voicePending = false;
             state.cues.reset();
             state.teacherLine = null;
@@ -1936,6 +1959,8 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
 
         onFunctionCall(call) {
             if (current()) {
+                // Le professeur agit (bilan de la séance) : ce n'est pas un silence de fin.
+                state.closing?.heard(clock());
                 handleFunctionCall(call);
                 state.awaitingSince = Date.now();
             }
@@ -2037,7 +2062,8 @@ function renew() {
 const AFTER_VERDICT = {
     // Sans mini-leçon (le serveur envoie la sienne, avec la phrase à enseigner, quand il en accorde le temps).
     record_assessment_result: 'Saved. Now, if you have not announced it yet, make the ONE announcement of the level, then skip the mini-lesson and invite questions in French: « Avez-vous des questions avant de terminer ? Vous pouvez me les poser en français. » and wait. Then follow steps 6 and 7 (end every answer with « Avez-vous une autre question ? »; the conclusion does not repeat the level) of your instructions (questions in French, then ONE conclusion ending with the exact closing sentence). Never announce the level again and never call this function again.',
-    end_lesson: 'Saved. Now say goodbye warmly in one or two short sentences. Do not start anything new: the lesson ends after this turn.',
+    // Conclusion unique (END OF THE SESSION des consignes) : elle finit par la phrase de fin, puis la séance se ferme.
+    end_lesson: 'Saved. Now give your CONCLUSION once (END OF THE SESSION), ending with the closing sentence. Nothing else: the lesson ends after this turn.',
     record_level_test_result: 'Saved. Now, if you have not announced it yet, announce the result once, kindly, then say goodbye. Do not ask another question: the test ends after this turn.',
 };
 
@@ -2225,6 +2251,8 @@ async function handleFunctionCall(call) {
         // Sans questions : le professeur termine sa phrase, puis la conversation se coupe toute seule.
         // Avec questions (évaluation) : micro ouvert jusqu'à la conclusion, coupure après la phrase fixe.
         state.end.recordVerdict(clock(), { questions });
+        // Bilan de la séance enregistré : sa conclusion commence (jamais coupée au milieu par le minuteur).
+        state.closing?.startConclusion(clock());
         state.learnerHeardAt = 0;
 
         if (questions) {
@@ -2247,7 +2275,7 @@ function onClose(event) {
     if (remainingSeconds() <= 2) {
         // Google ferme la connexion à la limite : pendant la conclusion, la voix déjà reçue
         // finit de sortir du haut-parleur (tick → timeUp coupe ensuite).
-        if (!state.end.questions) {
+        if (!state.end.questions && !state.closing?.concluding) {
             finish('time');
         }
 
@@ -2335,9 +2363,25 @@ function tick() {
 
     const seconds = remainingSeconds();
 
-    if (!state.warningSent && state.connected && seconds <= state.config.warning_seconds) {
+    const busy = teacherSpeaking() || state.generating;
+
+    // Préavis : envoyé quand il ne parle pas (il finit sa phrase), au plus tard 20 secondes après.
+    if (!state.warningSent && state.connected && seconds <= state.config.warning_seconds
+        && (!busy || seconds <= state.config.warning_seconds - 20)) {
         state.warningSent = true;
-        cue(state.config.cues.warning);
+
+        if (state.config.cues.warning) {
+            cue(state.config.cues.warning);
+        }
+    }
+
+    // Fin de la séance du jour et de « Mes cours » : d'après le temps restant, jamais d'après le micro.
+    if (state.closing && state.connected && !state.paused && !state.end.hasVerdict) {
+        const step = state.closing.next(seconds, busy, clock());
+
+        if (step) {
+            closingCue(step);
+        }
     }
 
     // Séance du jour : étape affichée sur le tableau, et UNE relance douce vers la conversation si elle tarde.
@@ -2363,12 +2407,31 @@ function tick() {
         state.awaitingSince = Date.now();
     }
 
+    if (state.closing?.shouldFinish(clock(), busy)) {
+        finish('done');
+
+        return;
+    }
+
     if (seconds <= 0) {
-        if (state.end.timeUp(clock(), teacherSpeaking())) {
+        if (state.closing) {
+            // Sa phrase finit, puis la conclusion (si elle n'a pas encore été demandée), puis on ferme.
+            const action = state.closing.timeUp(clock(), busy);
+
+            if (action === 'conclude' && state.connected && !state.paused) {
+                closingCue('conclude');
+            } else if (action !== 'wait') {
+                finish('time');
+
+                return;
+            }
+        } else if (state.end.timeUp(clock(), teacherSpeaking())) {
             finish('time');
         }
 
-        return;
+        if (!state.closing) {
+            return;
+        }
     }
 
     // Verdict donné et annonce terminée : fin de la conversation, sans attendre le minuteur.
@@ -2382,6 +2445,20 @@ function tick() {
     if (state.paused && Date.now() - state.pausedAt > state.config.pause_max_seconds * 1000) {
         finish('pause', MESSAGES.pauseTooLong);
     }
+}
+
+/** Indication de fin de séance ('announce' ou 'conclude'), envoyée même après les autres indications. */
+function closingCue(step) {
+    const text = state.config.session_end?.[step];
+
+    if (!text) {
+        return;
+    }
+
+    logEvent('session_end', step === 'announce' ? 'fin : une minute' : 'fin : conclusion');
+    sendText(text);
+    state.awaitingSince = Date.now();
+    renderTurn();
 }
 
 /* ---------- Tour de parole, interruption, pause et micro ---------- */
@@ -2398,7 +2475,7 @@ function currentTurn() {
     }
 
     // Verdict donné (sans questions), conclusion en cours ou faite : micro fermé, fin proche.
-    if (!state.end.micOpen) {
+    if (!micOpen()) {
         return 'ending';
     }
 
