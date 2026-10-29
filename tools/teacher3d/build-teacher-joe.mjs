@@ -109,6 +109,8 @@ if (ROSE) {
         blush: color('#a35a4c'),
         skinLight: color('#9a6146'),
         brows: color('#4a2618'),
+        // Bord de la paupière plus fin et moins sombre : regard doux.
+        lashSoft: color('#3a2219'),
         hair: color('#6e2f17'),
         hairDark: color('#3f190b'),
     });
@@ -137,7 +139,7 @@ function scaleHead(b) {
 }
 const EYE_X = 0.043;
 const EYE_Y = 0.012; // par rapport au centre de la tête
-const EYE_R = ROSE ? 0.0268 : 0.0255;
+const EYE_R = ROSE ? 0.0258 : 0.0255;
 const MOUTH_Y = -0.069;
 
 // Bras gauche (+X) ; le bras droit est son symétrique.
@@ -216,11 +218,16 @@ const widthProfile = ROSE
     ? (dy) => table([[-1, 0.50], [-0.85, 0.66], [-0.55, 0.87], [-0.2, 0.98], [0.1, 1.0], [0.5, 0.98], [1, 0.92]], dy)
     : (dy) => table([[-1, 0.56], [-0.85, 0.72], [-0.55, 0.90], [-0.2, 0.99], [0.1, 1.0], [0.5, 0.98], [1, 0.92]], dy);
 const NOSE = ROSE ? 0.82 : 1;
+// Teacher Rose : nez plus court (bout et narines plus hauts), arête plus douce.
+const NOSE_TIP = ROSE ? 0.032 : 0.041;
+const NOSE_RIDGE = ROSE ? 0.35 : 1;
 // Teacher Rose : lèvres un peu plus pleines, sourcils plus fins, cils plus marqués.
 const LIPS = ROSE ? 1.18 : 1;
 const BROW = ROSE ? 0.46 : 1;
 // Léger sourire dessiné au repos (Teacher Rose seulement).
-const REST_SMILE = ROSE ? 0.7 : 0;
+const REST_SMILE = ROSE ? 0.8 : 0;
+// Teacher Rose : coins de la bouche plus relevés quand elle sourit.
+const SMILE_LIFT = ROSE ? 2 : 1;
 const frontDepth = (dy) => table([[-1, 0.8], [-0.6, 0.94], [0, 1.0], [0.6, 0.95], [1, 0.9]], dy);
 const backDepth = (dy) => table([[-1, 0.7], [-0.5, 0.85], [0, 1.05], [0.6, 1.06], [1, 0.95]], dy);
 
@@ -230,9 +237,9 @@ function faceRelief(x, y) {
     let r = 0;
     // Arête du nez, de plus en plus saillante vers le bout.
     const t = clamp((0.024 - y) / 0.062);
-    r += NOSE * lerp(0.004, 0.020, t * t) * gauss(x, 0, 0.0105) * smooth(0.034, 0.018, y) * smooth(-0.058, -0.044, y);
-    r += NOSE * 0.019 * gauss(x, y + 0.041, 0.0165);
-    r += NOSE * 0.012 * gauss(ax - 0.020, y + 0.046, 0.0115);
+    r += NOSE * NOSE_RIDGE * lerp(0.004, 0.020, t * t) * gauss(x, 0, 0.0105) * smooth(0.034, 0.018, y) * smooth(-0.058, -0.044, y);
+    r += NOSE * 0.019 * gauss(x, y + NOSE_TIP, 0.0165);
+    r += NOSE * 0.012 * gauss(ax - 0.020, y + NOSE_TIP + 0.005, 0.0115);
     r -= 0.010 * gauss(ax - EYE_X, y - EYE_Y, 0.022);
     r += 0.006 * gauss(ax - 0.040, y - 0.042, 0.030, 0.012);
     r += 0.007 * gauss(ax - 0.060, y + 0.026, 0.028);
@@ -427,7 +434,7 @@ function buildFace(p) {
             for (let j = 0; j <= N; j++) {
                 const a = (-105 + (210 * j) / N) * deg;
                 const ca = Math.cos(a);
-                const openEdge = ((ROSE ? 38 : 33) + 9 * wide - 13 * squint) * Math.max(0, ca) ** 0.6 - 3;
+                const openEdge = ((ROSE ? 34 : 33) + 9 * wide - 13 * squint) * Math.max(0, ca) ** 0.6 - 3;
                 const closedEdge = -14 * Math.max(0, ca) ** 0.5 - 4;
                 const edge = lerp(openEdge, closedEdge, blink) * deg;
                 const top = 82 * deg;
@@ -436,7 +443,7 @@ function buildFace(p) {
                 const r = R + (i > UR ? 0.0011 : 0) + 0.0006 * Math.sin(Math.PI * k);
                 const d = [Math.sin(a) * Math.cos(beta), Math.sin(beta), Math.cos(a) * Math.cos(beta)];
                 const q = add(eye, mul([side * d[0], d[1], d[2]], r));
-                const c = i >= UR - (ROSE ? 2 : 1) ? C.lash : C.skin;
+                const c = i >= UR - 1 ? (ROSE ? C.lashSoft : C.lash) : C.skin;
                 row.push(b.vertex(q, c, headSkin, 1));
             }
 
@@ -455,7 +462,7 @@ function buildFace(p) {
             for (let j = 0; j <= N; j++) {
                 const a = (-105 + (210 * j) / N) * deg;
                 const ca = Math.max(0, Math.cos(a));
-                const edge = (-(ROSE ? 31 : 30) * ca ** 0.5 + 15 * squint * ca) * deg - 6 * deg;
+                const edge = (-(ROSE ? 27 : 30) * ca ** 0.5 + 15 * squint * ca) * deg - 6 * deg;
                 const beta = lerp(-80 * deg, edge, i / LR);
                 const d = [Math.sin(a) * Math.cos(beta), Math.sin(beta), Math.cos(a) * Math.cos(beta)];
                 const q = add(eye, mul([side * d[0], d[1], d[2]], R - 0.0002));
@@ -545,7 +552,7 @@ function buildMouth(b, p, at) {
         const s = smileAt(cos) + REST_SMILE;
         const c2 = cos * cos;
 
-        return { dx: Math.sign(cos) * (0.0045 * Math.max(0, s) - 0.001 * Math.max(0, -s)) * c2, dy: (0.0055 * s) * c2 * c2 };
+        return { dx: Math.sign(cos) * (0.0045 * SMILE_LIFT * Math.max(0, s) - 0.001 * Math.max(0, -s)) * c2, dy: (0.0055 * SMILE_LIFT * s) * c2 * c2 };
     };
 
     // Bord intérieur des lèvres pour l'angle a.
@@ -783,7 +790,10 @@ function buildHairAndGlasses() {
 
         for (let j = 0; j < LON; j++) {
             const phi = -Math.PI + (2 * Math.PI * j) / LON;
-            const dyEdge = ROSE ? hairline(phi) + 0.06 * smooth(0.9, 0, Math.abs(phi)) : hairline(phi);
+            // Teacher Rose : frange de côté, plus haute d'un côté, bord légèrement ondulé.
+            const dyEdge = ROSE
+                ? hairline(phi) + 0.06 * smooth(0.9, 0, Math.abs(phi)) + 0.17 * smooth(-0.35, 0.8, phi) * smooth(1.35, 0.8, phi) - 0.03 * smooth(0.1, -0.6, phi) * smooth(-1.2, -0.6, phi) + 0.018 * Math.sin(phi * 11) * smooth(1.1, 0, Math.abs(phi))
+                : hairline(phi);
             const k = i / ROWS;
             const dy = lerp(dyEdge, 1, 1 - (1 - k) ** 1.6);
             const c = Math.sqrt(Math.max(0, 1 - dy * dy));
@@ -792,16 +802,18 @@ function buildHairAndGlasses() {
             const base = headPoint(dx, dy, dz);
             // Épaisseur : fine au bord, plus de volume sur le dessus.
             const thick = ROSE
-                ? lerp(0.0022, 0.016 + 0.010 * smooth(0.3, 1, dy), smooth(0, 0.22, k))
+                ? lerp(0.0022, 0.012 + 0.008 * smooth(0.3, 1, dy), smooth(0, 0.30, k))
                 : lerp(0.0018, 0.010 + 0.006 * smooth(0.3, 1, dy), smooth(0, 0.22, k));
             // Petites bosses pour l'aspect des cheveux crépus coupés courts.
             // Teacher Rose : sillons des tresses, de l'avant vers l'arrière.
             const bump = ROSE
-                ? 0.0012 * Math.sin(phi * 46) * smooth(0, 0.3, k)
+                ? 0.0012 * Math.sin(phi * 46 + 9 * (1 - dy) * smooth(1.2, 0, Math.abs(phi))) * smooth(0, 0.3, k)
                 : 0.0009 * Math.sin(dx * 260 + dy * 90) * Math.sin(dz * 240 - dy * 70) * smooth(0, 0.3, k);
             const n = norm([dx / AX, dy / AY, dz / AZ]);
             const q = add(base, mul(n, thick + bump));
-            const hairColor = ROSE ? mix(C.hair, C.hairDark, 0.5 + 0.5 * Math.sin(phi * 46)) : C.hair;
+            // Teacher Rose : mèches en biais sur le devant (frange de côté).
+            const strand = ROSE ? phi * 46 + 9 * (1 - dy) * smooth(1.2, 0, Math.abs(phi)) : 0;
+            const hairColor = ROSE ? mix(C.hair, C.hairDark, 0.5 + 0.5 * Math.sin(strand)) : C.hair;
             row.push(b.vertex(add(HEAD, q), mix(hairColor, C.skin, (1 - smooth(0, 0.12, k)) * 0.35), headSkin, 30));
         }
 
