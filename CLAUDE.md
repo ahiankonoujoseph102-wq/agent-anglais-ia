@@ -187,6 +187,8 @@ Formules et **prix définitifs** (dans `config/platform.php`), affichés sur les
 
 - **Accueil de la première séance d'une formule (faite)** : déjà couverts avant : page de bienvenue et message vocal à l'ouverture d'un accès (`WelcomeFlow`), « comment travailler avec moi » aux deux premières séances (`WorkingTogether`). Ajouté, version légère (aucun nouveau bloc de consignes) : à la PREMIÈRE séance du jour d'une formule PAYÉE (`LessonController::isFirstPaidLesson` : ni accès offert, ni mois d'ambassadeur ; aucune séance d'au moins `held_seconds` déjà tenue sur cette formule ; un renouvellement est une nouvelle formule), l'indication de début (`cues.lesson_start`, marqueur `:welcome_note` = `cues.first_paid_lesson`) demande UNE phrase de félicitations et de remerciement au prénom, puis DEUX phrases sur le déroulé (leçon, pratique, conversation, résumé), puis la séance. Le prénom n'est jamais écrit dans l'indication (il vient de la situation de l'apprenant). `tests/Feature/Live/FirstPaidLessonTest.php`.
 
+- **Audit du référencement (29 octobre 2026)** : `docs/referencement-audit.md` (site en ligne vérifié : robots.txt, sitemap de 25 adresses, toutes indexables, canoniques justes, texte rendu par le serveur, 301 depuis l'ancienne adresse et www, accueil de 17 Ko compressé ; aucun blocage trouvé ; cause probable : domaine de deux jours, aucune balise Search Console, peu de liens extérieurs). Code : WebSite avec `@id` et `alternateName` (nom de domaine). Le reste est proposé ou à faire hors du site (Search Console, fiche d'établissement Google, liens des réseaux, annuaires).
+
 (L'ordre 2/3/4/5 est indicatif ; voir le compte rendu de chaque phase.)
 
 ## Architecture

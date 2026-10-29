@@ -218,6 +218,10 @@ class SeoTest extends TestCase
         $this->assertSame('Joseph Ahiankonou', $organization['founder']['name']);
         $this->assertSame('https://talkami.net/', $website['url']);
         $this->assertSame('fr', $website['inLanguage']);
+        // Nom du site pour Google : le nom de la plateforme, le nom de domaine comme autre nom.
+        $this->assertSame(config('platform.name'), $website['name']);
+        $this->assertSame('talkami.net', $website['alternateName']);
+        $this->assertSame('https://talkami.net/#site', $website['@id']);
 
         // Les vrais prix de la configuration, en francs CFA (XOF), une offre par formule.
         $expected = array_values(array_map(fn ($plan) => [$plan->name, (string) $plan->price], Plan::all()));
