@@ -320,7 +320,6 @@ final class Seo
     public static function currentBreadcrumbs(?Request $request = null): ?array
     {
         $request ??= request();
-<<<<<<< HEAD
         $crumb = self::currentCrumb($request);
 
         return $crumb !== null ? self::breadcrumbs([$crumb => '/'.ltrim($request->path(), '/')]) : null;
@@ -340,17 +339,6 @@ final class Seo
         }
 
         return self::CRUMBS[$route] ?? null;
-=======
-        $route = $request->route()?->getName();
-
-        if ($route === 'country') {
-            $page = CountryPage::find((string) $request->route('country'));
-
-            return $page !== null ? self::breadcrumbs([$page->heading => '/'.ltrim($request->path(), '/')]) : null;
-        }
-
-        return isset(self::CRUMBS[$route]) ? self::breadcrumbs([self::CRUMBS[$route] => '/'.ltrim($request->path(), '/')]) : null;
->>>>>>> origin/main
     }
 
     /**
