@@ -60,7 +60,7 @@ class OldAddressTest extends TestCase
         $this->assertSame('Évaluez votre niveau sur talkami.net #anglais', $presentation->fresh()->caption);
         $this->assertSame('Sur https://talkami.net', $lesson->fresh()->caption);
         // Sous-titres et voix gardés : la vidéo n'est pas refaite, elle est signalée.
-        $this->assertSame($script, $presentation->fresh()->script);
+        $this->assertEquals($script, $presentation->fresh()->script); // même contenu (MySQL range les clés JSON)
         $this->assertTrue($presentation->fresh()->showsOldAddress());
         $this->assertTrue($lesson->fresh()->showsOldAddress());
     }
