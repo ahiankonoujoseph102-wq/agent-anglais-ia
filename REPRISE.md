@@ -4,7 +4,11 @@
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
-## Dernier chantier : accueil de la première séance d'une formule (29 octobre 2026, branche `claude/accueil-premiere-seance`)
+## Dernier chantier : audit du référencement (29 octobre 2026, branche `claude/referencement-audit`)
+
+Partie 3 de 3. Compte rendu : `docs/referencement-audit.md`. À faire par le propriétaire : Search Console (vérification, sitemap, demande d'indexation), fiche d'établissement Google, liens depuis TikTok, WhatsApp, Facebook, YouTube.
+
+## Chantier précédent : accueil de la première séance d'une formule (#128, fusionnée) (29 octobre 2026, branche `claude/accueil-premiere-seance`)
 
 Partie 2 de 3. Version légère : une phrase de félicitations et deux phrases sur le déroulé, ajoutées à l'indication de début de la première séance d'une formule payée. Voir CLAUDE.md.
 

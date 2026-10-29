@@ -142,7 +142,10 @@ final class Seo
         return [
             '@context' => 'https://schema.org',
             '@type' => 'WebSite',
+            '@id' => self::url().'#site',
+            // Nom du site affiché par Google : le nom de la plateforme, et son nom de domaine comme autre nom.
             'name' => config('platform.name'),
+            'alternateName' => (string) parse_url(self::url(), PHP_URL_HOST),
             'url' => self::url(),
             'inLanguage' => 'fr',
             'publisher' => ['@id' => self::url().'#organisation'],
