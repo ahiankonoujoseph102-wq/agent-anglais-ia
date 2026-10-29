@@ -138,6 +138,7 @@
                     <span @class(['badge', 'badge-accent' => $video->status === \App\Models\LessonVideo::READY, 'badge-alert' => $video->status === \App\Models\LessonVideo::FAILED])>{{ $video->statusLabel() }}</span>
                     @if ($video->published_at)<span class="badge">Publiée</span>@endif
                 </p>
+                @include('admin.videos.old-address', ['video' => $video])
                 @if ($video->lips_correlation !== null || $video->loudness_lufs !== null)
                     <p class="small video-measures">
                         @if ($video->lips_correlation !== null)Lèvres : accord {{ number_format($video->lips_correlation, 2, ',', ' ') }}@endif
@@ -251,6 +252,7 @@
             <article class="card video-card" id="presentation-{{ $presentation->key }}">
                 <div class="card-title">
                     <h3>{{ $presentation->title }}</h3>
+                    <span class="badge">{{ $presentation->teacher()->name() }}</span>
                 </div>
                 <p class="muted small">
                     @if ($presentation->duration_seconds){{ \App\Support\Duration::formatPrecise($presentation->duration_seconds) }}@endif
@@ -270,6 +272,7 @@
                 <p>
                     <span @class(['badge', 'badge-accent' => $presentation->status === \App\Models\LessonVideo::READY, 'badge-alert' => $presentation->status === \App\Models\LessonVideo::FAILED])>{{ $presentation->statusLabel() }}</span>
                 </p>
+                @include('admin.videos.old-address', ['video' => $presentation])
                 @if ($presentation->lips_correlation !== null || $presentation->loudness_lufs !== null)
                     <p class="small video-measures">
                         @if ($presentation->lips_correlation !== null)Lèvres : accord {{ number_format($presentation->lips_correlation, 2, ',', ' ') }}@endif

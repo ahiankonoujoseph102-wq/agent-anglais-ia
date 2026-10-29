@@ -9,6 +9,7 @@ use App\Support\PrivateStorage;
 use App\Support\Teachers\Teachers;
 use App\Support\Videos\ClubVideos;
 use App\Support\Videos\LessonVideos;
+use App\Support\Videos\OldAddress;
 use App\Support\Videos\PresentationVideos;
 use App\Support\Videos\ScreenCatalogue;
 use App\Support\Videos\VideoEnding;
@@ -86,6 +87,11 @@ class VideoController extends Controller
     {
         $value = trim((string) $request->input('site'));
         $site = VideoSettings::normalizeSite($value);
+
+        if (OldAddress::isOld($site)) {
+            return redirect()->to(route('admin.videos.index').'#reglages-videos')
+                ->withErrors(['site' => 'C\'est l\'ancienne adresse du site. Utilisez l\'adresse officielle : '.OldAddress::primary()])->withInput();
+        }
 
         if ($value !== '' && $site === null) {
             return redirect()->to(route('admin.videos.index').'#reglages-videos')

@@ -41,7 +41,7 @@ class PresentationVideoTest extends TestCase
             'videos.voice.providers' => ['gemini', 'openai'],
             'videos.token' => self::TOKEN,
         ]);
-        VideoSettings::saveSite('talkami.laravel.cloud');
+        VideoSettings::saveSite('talkami.net');
 
         Http::fake([
             '*/interactions' => fn (Request $request) => Http::response(['steps' => [['type' => 'model_output', 'content' => [['type' => 'audio', 'mime_type' => 'audio/l16;codec=pcm;rate=24000', 'data' => base64_encode(str_repeat("\x10\x00", 12000))]]]]]),
@@ -54,7 +54,7 @@ class PresentationVideoTest extends TestCase
         $texts = [];
 
         foreach (PresentationScripts::keys() as $key) {
-            $script = PresentationScripts::script($key, 'talkami.laravel.cloud');
+            $script = PresentationScripts::script($key, 'talkami.net');
             $texts[] = $script['title'];
             $texts[] = $script['caption'];
             $texts[] = implode(' ', $script['hashtags']);
@@ -78,7 +78,7 @@ class PresentationVideoTest extends TestCase
         }
 
         foreach (PresentationScripts::keys() as $key) {
-            $script = PresentationScripts::script($key, 'talkami.laravel.cloud');
+            $script = PresentationScripts::script($key, 'talkami.net');
             $this->assertSame('full', $script['segments'][0]['shot'], "{$key} commence en plein écran");
             $this->assertSame('full', end($script['segments'])['shot'], "{$key} finit en plein écran");
 
@@ -97,7 +97,7 @@ class PresentationVideoTest extends TestCase
     public function test_the_evening_video_and_the_questions_never_speak_of_artificial_intelligence(): void
     {
         foreach (['ce-soir', 'questions'] as $key) {
-            $script = PresentationScripts::script($key, 'talkami.laravel.cloud');
+            $script = PresentationScripts::script($key, 'talkami.net');
             $text = implode("\n", array_merge(
                 array_column($script['segments'], 'spoken'),
                 array_column($script['segments'], 'subtitle'),
@@ -109,20 +109,20 @@ class PresentationVideoTest extends TestCase
             $this->assertDoesNotMatchRegularExpression('/gagner plus|garanti|emploi assuré|places limitées|dernière chance/iu', $text, $key);
         }
 
-        $evening = PresentationScripts::script('ce-soir', 'talkami.laravel.cloud');
+        $evening = PresentationScripts::script('ce-soir', 'talkami.net');
         $this->assertSame(['CE SOIR · 19 HEURES'], $evening['segments'][0]['card']);
         $this->assertSame(['CE SOIR · 19 HEURES', 'Groupe WhatsApp Talkami'], $evening['segments'][1]['card']);
         // Dit en lettres, écrit en chiffres ; aucune adresse de site dans la vidéo, le lien du groupe dans la publication.
         $this->assertStringContainsString('dix-neuf heures', $evening['segments'][1]['spoken']);
         $this->assertStringContainsString('[en]19 heures[/en]', $evening['segments'][1]['subtitle']);
-        $this->assertStringNotContainsString('talkami.laravel.cloud', implode(' ', array_column($evening['segments'], 'subtitle')));
+        $this->assertStringNotContainsString('talkami.net', implode(' ', array_column($evening['segments'], 'subtitle')));
         $this->assertStringContainsString('[collez ici le lien du groupe]', $evening['caption']);
         config(['platform.contact.whatsapp_group' => 'https://chat.whatsapp.com/exemple']);
-        $this->assertStringContainsString('https://chat.whatsapp.com/exemple', PresentationScripts::script('ce-soir', 'talkami.laravel.cloud')['caption']);
+        $this->assertStringContainsString('https://chat.whatsapp.com/exemple', PresentationScripts::script('ce-soir', 'talkami.net')['caption']);
         $this->assertStringContainsString('chaleureux et enthousiaste', $evening['voice_style']);
 
         // Pays et bureau lus dans la configuration.
-        $questions = implode(' ', array_column(PresentationScripts::script('questions', 'talkami.laravel.cloud')['segments'], 'spoken'));
+        $questions = implode(' ', array_column(PresentationScripts::script('questions', 'talkami.net')['segments'], 'spoken'));
         $this->assertStringContainsString('au Togo, au Burkina Faso, au Bénin et en Côte d\'Ivoire', $questions);
         $this->assertStringContainsString((string) config('platform.contact.address'), $questions);
         $this->assertStringContainsString('Rien n\'est prélevé automatiquement', $questions);
@@ -131,7 +131,7 @@ class PresentationVideoTest extends TestCase
     public function test_the_market_ad_exists_in_20_and_10_seconds_without_ai_levels_or_urgency(): void
     {
         foreach (['pub-marche', 'pub-marche-court'] as $key) {
-            $script = PresentationScripts::script($key, 'talkami.laravel.cloud');
+            $script = PresentationScripts::script($key, 'talkami.net');
             $this->assertSame('ad', $script['layout'], $key);
             $text = implode("\n", array_merge(
                 array_column($script['segments'], 'spoken'),
@@ -152,14 +152,14 @@ class PresentationVideoTest extends TestCase
         }
 
         $this->assertStringContainsString("It's two thousand francs.", (string) file_get_contents(resource_path('curriculum/a1.php')));
-        $long = PresentationScripts::script('pub-marche', 'talkami.laravel.cloud');
+        $long = PresentationScripts::script('pub-marche', 'talkami.net');
         $this->assertSame('Réfléchissez…', $long['segments'][1]['spoken']);
         $this->assertSame(2000, $long['segments'][1]['pause_after']);
         $this->assertSame('ÉVALUATION GRATUITE', end($long['segments'])['card'][0]);
         $this->assertStringContainsString('cinq minutes', end($long['segments'])['spoken']);
 
         // Les autres vidéos ne changent ni de mise en page ni d'empreinte de voix.
-        $payment = PresentationScripts::script('paiement', 'talkami.laravel.cloud');
+        $payment = PresentationScripts::script('paiement', 'talkami.net');
         $this->assertNull($payment['layout']);
         $this->assertSame(hash('sha256', json_encode(array_column($payment['segments'], 'spoken'))), PresentationScripts::hash($payment));
         $this->assertNotSame(hash('sha256', json_encode(array_column($long['segments'], 'spoken'))), PresentationScripts::hash($long));
@@ -204,7 +204,7 @@ class PresentationVideoTest extends TestCase
         $this->assertContains('pay.step3', $known);
 
         foreach (PresentationScripts::keys() as $key) {
-            foreach (PresentationScripts::script($key, 'talkami.laravel.cloud')['segments'] as $segment) {
+            foreach (PresentationScripts::script($key, 'talkami.net')['segments'] as $segment) {
                 $this->assertContains($segment['scene'], $known, "{$key} : scène {$segment['scene']}");
             }
         }
@@ -215,7 +215,7 @@ class PresentationVideoTest extends TestCase
 
     public function test_prices_and_durations_come_from_the_configuration(): void
     {
-        $formules = PresentationScripts::script('formules', 'talkami.laravel.cloud');
+        $formules = PresentationScripts::script('formules', 'talkami.net');
         $subtitles = implode(' ', array_column($formules['segments'], 'subtitle'));
         $spoken = implode(' ', array_column($formules['segments'], 'spoken'));
 
@@ -231,8 +231,8 @@ class PresentationVideoTest extends TestCase
         $this->assertSame('deux mille', PresentationScripts::words(2000));
 
         // Adresse dite « point », affichée telle quelle.
-        $closing = end(PresentationScripts::script('paiement', 'talkami.laravel.cloud')['segments']);
-        $this->assertTrue(collect(PresentationScripts::script('talkami', 'talkami.laravel.cloud')['segments'])->contains(fn ($s) => str_contains($s['spoken'], 'talkami point laravel point cloud')));
+        $closing = end(PresentationScripts::script('paiement', 'talkami.net')['segments']);
+        $this->assertTrue(collect(PresentationScripts::script('talkami', 'talkami.net')['segments'])->contains(fn ($s) => str_contains($s['spoken'], 'talkami point net')));
         $this->assertIsArray($closing);
     }
 
@@ -245,7 +245,7 @@ class PresentationVideoTest extends TestCase
         }
 
         // Le paiement dit honnêtement ce qui se passe après la capture.
-        $payment = mb_strtolower(implode(' ', array_column(PresentationScripts::script('paiement', 'talkami.laravel.cloud')['segments'], 'spoken')));
+        $payment = mb_strtolower(implode(' ', array_column(PresentationScripts::script('paiement', 'talkami.net')['segments'], 'spoken')));
         $this->assertStringContainsString('si votre capture est bien lue', $payment);
         $this->assertStringContainsString('notre équipe vérifie', $payment);
     }
@@ -280,7 +280,7 @@ class PresentationVideoTest extends TestCase
 
         $job = $this->getJson(route('api.presentations.jobs', ['cles' => 'paiement']), $headers)->assertOk()->json('jobs.0');
         $this->assertSame('paiement', $job['key']);
-        $this->assertSame('talkami.laravel.cloud', $job['site']);
+        $this->assertSame('talkami.net', $job['site']);
         $this->assertSame(30, $job['render']['fps']);
         $this->assertSame(16 * 1024 * 1024, $job['light_limit_bytes']);
         $this->assertSame('screen', $job['segments'][1]['shot']);
