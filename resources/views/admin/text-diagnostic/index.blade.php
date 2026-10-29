@@ -62,7 +62,7 @@
                 <h3>{{ \App\Support\Live\LiveProviders::label($name) }}</h3>
                 <ul>
                     <li>Place dans l'ordre : <strong>{{ $position === false ? 'non utilisé (absent de LIVE_PROVIDERS)' : ($position === 0 ? 'premier' : 'secours n° '.$position) }}</strong></li>
-                    <li>Clé {{ $name === 'openai' ? 'OPENAI_API_KEY' : 'GEMINI_API_KEY' }} : <strong>{{ \App\Support\Live\LiveProviders::hasKey($name) ? 'présente' : 'absente' }}</strong> <span class="muted">(jamais affichée)</span></li>
+                    <li>Clé {{ \App\Support\Live\LiveProviders::keyVariable($name) }} : <strong>{{ \App\Support\Live\LiveProviders::hasKey($name) ? 'présente' : 'absente' }}</strong> <span class="muted">(jamais affichée)</span></li>
                     <li>Modèle : <strong>{{ \App\Support\Live\LiveProviders::model($name) }}</strong></li>
                     <li>Voix : <strong>{{ \App\Support\Live\LiveProviders::voice($name) }}</strong></li>
                     @if (\App\Support\Live\LiveProviders::isPaused($name))

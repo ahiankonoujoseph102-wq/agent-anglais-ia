@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Live;
 
+use App\Support\Live\LiveProviders;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ConnectRequest extends FormRequest
@@ -15,7 +16,7 @@ class ConnectRequest extends FormRequest
             // Identifiant de reprise fourni par Gemini, pour continuer la même conversation.
             'handle' => ['nullable', 'string', 'max:2048'],
             // Fournisseur auquel le navigateur n'a pas pu se connecter avant la première parole.
-            'failed' => ['nullable', 'string', 'in:gemini,openai'],
+            'failed' => ['nullable', 'string', 'in:'.implode(',', LiveProviders::all())],
         ];
     }
 

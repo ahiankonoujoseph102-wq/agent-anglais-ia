@@ -138,7 +138,8 @@ class LiveConnection
 
         $validUntil = self::tokenExpiry($deadline, $mayExtendBy);
 
-        return ['provider' => LiveProviders::GEMINI] + $this->client->createToken($setup, $validUntil)
+        // Gemini, clé principale ou deuxième clé : même jeton, même navigateur ; seule la clé change.
+        return ['provider' => $provider] + $this->client->createToken($setup, $validUntil, LiveProviders::geminiKey($provider))
             + ['expires_at' => self::accountingExpiry($deadline), 'valid_until' => $validUntil];
     }
 

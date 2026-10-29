@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * Fournisseurs des séances orales en direct, dans l'ordre de config/services.php → live.providers
- * (LIVE_PROVIDERS, « gemini,openai » par défaut). Un nom inconnu est ignoré ; un fournisseur sans clé n'est
+ * (LIVE_PROVIDERS, « gemini,openai,gemini2 » par défaut : « gemini2 » = Gemini avec la deuxième clé, GEMINI_API_KEY_2,
+ * même modèle et même voix). Un nom inconnu est ignoré ; un fournisseur sans clé n'est
  * jamais utilisé (OpenAI sans OPENAI_API_KEY : simplement ignoré). Après une limite ou une clé refusée, un
  * fournisseur est mis de côté quelques minutes (live.pause_seconds) : les séances suivantes commencent
  * directement chez le suivant, sans attendre un nouveau refus.
@@ -18,7 +19,10 @@ final class LiveProviders
 
     public const OPENAI = 'openai';
 
-    public const LABELS = [self::GEMINI => 'Gemini', self::OPENAI => 'OpenAI'];
+    /** Gemini avec la deuxième clé (autre compte Google, donc autre limite). */
+    public const GEMINI2 = 'gemini2';
+
+    public const LABELS = [self::GEMINI => 'Gemini', self::OPENAI => 'OpenAI', self::GEMINI2 => 'Gemini (deuxième clé)'];
 
     /**
      * @return list<string>
@@ -38,7 +42,36 @@ final class LiveProviders
         return match ($name) {
             self::GEMINI => filled(config('services.gemini.key')),
             self::OPENAI => filled(config('services.openai.key')),
+            self::GEMINI2 => filled(config('services.gemini.key_2')),
             default => false,
+        };
+    }
+
+    /** Gemini Live, quelle que soit la clé (même modèle, même voix, même chemin dans le navigateur). */
+    public static function isGemini(string $name): bool
+    {
+        return in_array($name, [self::GEMINI, self::GEMINI2], true);
+    }
+
+    /** Clé Gemini de ce fournisseur (jamais affichée), ou null. */
+    public static function geminiKey(string $name): ?string
+    {
+        $key = match ($name) {
+            self::GEMINI => config('services.gemini.key'),
+            self::GEMINI2 => config('services.gemini.key_2'),
+            default => null,
+        };
+
+        return filled($key) ? (string) $key : null;
+    }
+
+    /** Nom de la variable de la clé, pour l'administration. */
+    public static function keyVariable(string $name): string
+    {
+        return match ($name) {
+            self::OPENAI => 'OPENAI_API_KEY',
+            self::GEMINI2 => 'GEMINI_API_KEY_2',
+            default => 'GEMINI_API_KEY',
         };
     }
 

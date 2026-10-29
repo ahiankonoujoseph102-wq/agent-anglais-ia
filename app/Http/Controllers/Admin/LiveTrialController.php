@@ -42,7 +42,7 @@ class LiveTrialController extends Controller
             if ($provider === LiveProviders::OPENAI) {
                 $openai->testToken();
             } else {
-                $gemini->createToken(['model' => 'models/'.config('services.gemini.live_model'), 'generationConfig' => ['responseModalities' => ['AUDIO']]], now()->addMinute());
+                $gemini->createToken(['model' => 'models/'.config('services.gemini.live_model'), 'generationConfig' => ['responseModalities' => ['AUDIO']]], now()->addMinute(), LiveProviders::geminiKey($provider));
             }
         } catch (GeminiUnavailable $e) {
             LiveLog::failure($provider, 'Diagnostic : jeton', $e->getMessage(), $e->httpStatus, $e->quotaExceeded);
@@ -105,7 +105,7 @@ class LiveTrialController extends Controller
                     'token_expires_in' => $remaining + 3600,
                 ]
                 : [
-                    'websocket_url' => $gemini->createToken($setup, now()->addSeconds($remaining))['websocket_url'],
+                    'websocket_url' => $gemini->createToken($setup, now()->addSeconds($remaining), LiveProviders::geminiKey($provider))['websocket_url'],
                     'setup' => $setup,
                     'token_expires_in' => $remaining,
                 ];

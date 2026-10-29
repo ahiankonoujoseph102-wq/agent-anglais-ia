@@ -9,7 +9,7 @@ use RuntimeException;
  */
 class GeminiUnavailable extends RuntimeException
 {
-    public function __construct(string $message, public readonly bool $quotaExceeded = false, public readonly ?int $httpStatus = null)
+    public function __construct(string $message, public readonly bool $quotaExceeded = false, public readonly ?int $httpStatus = null, public readonly bool $invalidKey = false)
     {
         parent::__construct($message);
     }
@@ -20,7 +20,7 @@ class GeminiUnavailable extends RuntimeException
      */
     public function pausesProvider(): bool
     {
-        return $this->quotaExceeded || in_array($this->httpStatus, [401, 403], true);
+        return $this->quotaExceeded || $this->invalidKey || in_array($this->httpStatus, [401, 403], true);
     }
 
     /**

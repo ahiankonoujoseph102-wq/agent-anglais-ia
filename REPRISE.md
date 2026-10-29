@@ -1,10 +1,14 @@
-# REPRISE — chantier en cours : minutes GitHub Actions, vidéo du Club des abonnés
+# REPRISE — chantier en cours : deuxième clé Gemini (après minutes GitHub Actions et vidéo du Club)
 
 À lire avec `CLAUDE.md` pour reprendre ce travail dans une autre session. Ce fichier ne contient jamais de clé, ni de conversation réelle, ni de transcription.
 
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
-## Dernier chantier : minutes GitHub Actions et vidéo du Club des abonnés (29 octobre 2026)
+## Dernier chantier : deuxième clé Gemini (29 octobre 2026, branche `claude/deuxieme-cle-gemini`)
+
+Fournisseur `gemini2` des séances en direct, variable `GEMINI_API_KEY_2`, ordre par défaut `gemini,openai,gemini2` ; clé absente : ignorée ; invalide : mise de côté 5 minutes. Offre payante de Google écartée (décision du fondateur). Voir CLAUDE.md. Gestes du propriétaire : créer la clé dans Google AI Studio avec le deuxième compte (nouveau projet, aucun moyen de paiement), la coller dans Laravel Cloud (`GEMINI_API_KEY_2`), mettre `LIVE_PROVIDERS` à `gemini,openai,gemini2` si la variable existe, Deploy, puis « Diagnostic des fournisseurs » → « Tester Gemini (deuxième clé) ».
+
+## Chantier précédent : minutes GitHub Actions et vidéo du Club des abonnés (29 octobre 2026)
 
 Dépôt PUBLIC jusqu'au début du mois (minutes gratuites), puis de nouveau privé. Nouveau jeton des vidéos en place (workflow n° 16 réussi : vidéo 19 en 473 secondes de rendu, 155 millisecondes par image).
 

@@ -20,19 +20,19 @@ use Illuminate\Support\Facades\Log;
 class LiveClient
 {
     /**
-     * Crée un jeton à usage unique, valable jusqu'à $expiresAt.
+     * Crée un jeton à usage unique, valable jusqu'à $expiresAt, avec la clé donnée (sinon la clé principale).
      *
      * @param  array<string, mixed>  $setup  configuration « BidiGenerateContentSetup »
      * @return array{token: string, websocket_url: string}
      *
      * @throws GeminiUnavailable
      */
-    public function createToken(array $setup, Carbon $expiresAt): array
+    public function createToken(array $setup, Carbon $expiresAt, ?string $key = null): array
     {
-        $key = config('services.gemini.key');
+        $key ??= config('services.gemini.key');
 
         if (blank($key)) {
-            throw new GeminiUnavailable('GEMINI_API_KEY manquante dans .env.');
+            throw new GeminiUnavailable('Clé Gemini manquante dans les variables d\'environnement.');
         }
 
         $version = config('services.gemini.api_version');
@@ -65,7 +65,10 @@ class LiveClient
         if ($response->failed() || ! is_string($token) || $token === '') {
             Log::error('Gemini : création de jeton refusée.', ['status' => $response->status(), 'body' => $response->json()]);
 
-            throw new GeminiUnavailable('Création du jeton refusée (HTTP '.$response->status().')'.self::detail($response->json('error.message')).'.', httpStatus: $response->status());
+            // Clé invalide (Google répond 400 « API key not valid ») : traitée comme une clé refusée.
+            $invalidKey = $response->status() === 400 && (str_contains(json_encode($response->json()) ?: '', 'API_KEY_INVALID') || stripos((string) $response->json('error.message'), 'API key not valid') !== false);
+
+            throw new GeminiUnavailable('Création du jeton refusée (HTTP '.$response->status().')'.self::detail($response->json('error.message')).'.', httpStatus: $response->status(), invalidKey: $invalidKey);
         }
 
         return [
