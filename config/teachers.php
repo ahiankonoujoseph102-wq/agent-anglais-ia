@@ -95,7 +95,8 @@ return [
             'portrait' => 'images/teacher-rose.webp',
             'public_line' => 'Chaleureuse et encourageante, elle vous met à l\'aise dès la première phrase.',
             // Messages vocaux (bienvenue, résultat) : voix de femme, accords au féminin.
-            'speech_style' => ['male teacher' => 'female teacher'],
+            // Vidéos de leçon et du Club (config videos.voice.style, en français) : au féminin aussi.
+            'speech_style' => ['male teacher' => 'female teacher', 'un professeur d\'anglais chaleureux et patient' => 'une professeure d\'anglais chaleureuse et patiente'],
             'welcome_paragraphs' => [
                 'teacher' => "Je suis :teacher, votre professeure d'anglais. Vous avez fait un très bon choix pour parler anglais avec confiance, et je suis heureuse de vous accompagner, jour après jour.",
             ],

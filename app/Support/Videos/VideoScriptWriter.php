@@ -62,15 +62,16 @@ class VideoScriptWriter
         $seconds = (int) config('videos.duration_seconds');
         $words = (int) round($seconds * (float) config('videos.words_per_second'));
 
-        $instructions = strtr(self::INSTRUCTIONS, [
-            ':teacher' => (string) config('avatar.model.name'),
+        $teacher = $video->teacher();
+        $instructions = VideoTeachers::instructions(strtr(self::INSTRUCTIONS, [
+            ':teacher' => $teacher->name(),
             ':platform' => (string) config('platform.name'),
             ':level' => $topic['level'],
             ':title' => $topic['title'],
             ':angle' => $topic['angle'],
             ':words' => (string) $words,
             ':seconds' => (string) $seconds,
-        ]);
+        ]), $teacher);
 
         $result = TextProviders::generate(new TextRequest(
             kind: 'video',

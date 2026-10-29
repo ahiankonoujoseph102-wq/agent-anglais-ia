@@ -4,7 +4,7 @@
     <h2 id="club-titre">Club des abonnés</h2>
     <p class="muted small">
         Une vidéo par jour pour le groupe WhatsApp des abonnés payants, dite par {{ config('avatar.model.name') }}.
-        Thème d'aujourd'hui : <strong>{{ $clubTheme['label'] }}</strong>. Abonnés payants actifs : {{ $clubMembers }}.
+        Thème d'aujourd'hui : <strong>{{ $clubTheme['label'] }}</strong>. Professeur d'aujourd'hui : <strong>{{ \App\Support\Videos\VideoTeachers::forDay(today())->name() }}</strong> (un jour chacun). Abonnés payants actifs : {{ $clubMembers }}.
         Le site ne publie rien : téléchargez la vidéo, publiez-la dans le groupe avec le texte ci-dessous, puis cochez « Publiée ».
     </p>
 
@@ -21,7 +21,7 @@
 
     @foreach ($clubVideos as $video)
         <article class="video-card club-video" id="club-{{ $video->id }}">
-            <h3>{{ $video->themeLabel() }} · {{ $video->day->translatedFormat('l j F Y') }}</h3>
+            <h3>{{ $video->themeLabel() }} · {{ $video->day->translatedFormat('l j F Y') }} · {{ $video->teacher()->name() }}</h3>
             <p class="muted small">
                 {{ $video->title }}
                 @if ($video->duration_seconds) · {{ \App\Support\Duration::formatPrecise($video->duration_seconds) }} @endif

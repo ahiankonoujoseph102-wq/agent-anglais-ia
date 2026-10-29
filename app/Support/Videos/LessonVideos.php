@@ -5,6 +5,8 @@ namespace App\Support\Videos;
 use App\Models\LessonVideo;
 use App\Support\Avatar;
 use App\Support\PrivateStorage;
+use App\Support\Teachers\Teacher;
+use App\Support\Teachers\Teachers;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +34,7 @@ class LessonVideos
             foreach (VideoTopics::next($count) as $topic) {
                 LessonVideo::query()->create([
                     'kind' => LessonVideo::PROMO,
+                    'teacher' => VideoTeachers::forDay($day)->key,
                     'topic_key' => $topic['key'],
                     'day' => $day->toDateString(),
                     'slot' => ++$slot,
@@ -283,9 +286,26 @@ class LessonVideos
             'failed_url' => route('api.videos.failed', $video),
             'release_url' => route('api.videos.release', $video),
             // Club : fabrication plus légère (config videos.club.render).
-            'render' => ['watermark' => VideoSettings::watermark()] + ($video->isClub() ? array_replace(config('videos.render'), (array) config('videos.club.render')) : config('videos.render')),
-            'avatar' => array_intersect_key(Avatar::clientConfig()['model'] ?? [], array_flip(['profile', 'camera', 'desk_height', 'resting_smile', 'voice_hz'])),
+            'render' => ['watermark' => VideoSettings::watermark($video->teacher())] + ($video->isClub() ? array_replace(config('videos.render'), (array) config('videos.club.render')) : config('videos.render')),
+            // Professeur de la vidéo (Teacher Joe un jour, Teacher Rose le lendemain) : son modèle 3D, son cadrage, sa voix.
+            'teacher' => $video->teacher()->key,
+            'avatar' => self::avatar($video->teacher()),
         ];
+    }
+
+    /**
+     * Réglages du professeur 3D pour la page de fabrication (tools/video/render.html) : modèle servi depuis public/,
+     * profil, cadrage, bureau, sourire, hauteur de la voix (lecture labiale).
+     *
+     * @return array<string, mixed>
+     */
+    public static function avatar(?Teacher $teacher = null): array
+    {
+        $teacher ??= Teachers::default();
+        $model = $teacher->avatar();
+
+        return ['url' => '/'.ltrim((string) ($model['file'] ?? 'teacher3d/models/teacher-joe.glb'), '/')]
+            + array_intersect_key(Avatar::clientConfig($teacher)['model'] ?? [], array_flip(['profile', 'camera', 'desk_height', 'resting_smile', 'voice_hz']));
     }
 
     /** Chemin de la vidéo sur le disque privé. */
