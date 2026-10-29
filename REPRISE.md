@@ -5,6 +5,10 @@
 #119 et #120 ont été annulées (#121) ; #122 (nouvelle évaluation derrière l'interrupteur, formules seulement à la fin) est fusionnée et en ligne, interrupteur sur « Tout le monde ».
 
 
+
+## Teacher Rose, étape 3, visage (29 octobre 2026, branche `claude/rose-visage`)
+
+Modèle 3D repris de `claude/festive-keller-2hkpxl` et retouché (joues légèrement rosées, bas du visage plus clair, lèvres plus colorées) ; Teacher Joe reconstruit identique à l'octet (vérifié avec `cmp`). Captures (3D et visage simple) envoyées au fondateur, gardées HORS du dépôt. `ready` reste à false : à passer à true SEULEMENT après sa validation. Photos d'inspiration : jamais dans le dépôt.
 ## Vidéo du Club fiable (29 octobre 2026, nouveau compte Claude Code)
 
 - **#137 (fusionnée)** : `tools/video/render.html` ne bloque plus quand une machine trop lente est refusée (passages n° 10, 14 et 18 annulés à 80 minutes).
