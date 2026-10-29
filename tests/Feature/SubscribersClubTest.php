@@ -47,7 +47,7 @@ class SubscribersClubTest extends TestCase
             ->assertSee('Merci d\'avoir choisi '.config('platform.name').' pour apprendre l\'anglais 🙏🇺🇸', false)
             ->assertSee('J\'ai créé un groupe WhatsApp réservé uniquement à nos abonnés : le Club des abonnés '.config('platform.name').'.', false)
             ->assertSee('✅ on pratique l\'anglais ensemble ;', false)
-            ->assertSee('✅ on partage nos progrès avec '.config('avatar.model.name').' ;')
+            ->assertSee('✅ on partage nos progrès avec '.\App\Support\Teachers\Teachers::names(' et ').' ;')
             ->assertSee('✅ vous recevez en premier les nouveautés et les astuces pour progresser plus vite.')
             ->assertSee('Rejoindre le Club des abonnés')
             ->assertSee('href="'.self::LINK.'"', false)
