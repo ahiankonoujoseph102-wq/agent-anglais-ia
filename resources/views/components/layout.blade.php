@@ -176,7 +176,25 @@
                 </div>
             @endif
 
+            @php
+                // Repères des pages publiques (refonte, point 4) : « Vous êtes ici » en haut, retour en haut en bas. Pas
+                // sur l'inscription (formulaire court, bouton visible sans défiler) ni sur Contact (page courte).
+                $routeName = request()->route()?->getName();
+                $crumb = in_array($routeName, ['register', 'contact'], true) ? null : Seo::currentCrumb();
+                $backToTop = $crumb !== null || $routeName === 'guides.show';
+            @endphp
+            @if ($crumb !== null)
+                <nav class="breadcrumb page-crumb small" aria-label="Fil d'Ariane">
+                    <span class="sr-only">Vous êtes ici :</span>
+                    <a href="{{ route('home') }}">Accueil</a> › <span aria-current="page">{{ $crumb }}</span>
+                </nav>
+            @endif
+
             {{ $slot }}
+
+            @if ($backToTop)
+                <p class="back-top"><a href="#contenu"><x-icon name="chevron-right" /> Revenir en haut de la page</a></p>
+            @endif
 
             @if ($installBar)
                 {{-- Installation de l'application : affiché par public/js/app.js quand c'est le moment. --}}
