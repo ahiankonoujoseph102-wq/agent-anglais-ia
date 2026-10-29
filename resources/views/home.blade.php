@@ -49,6 +49,16 @@
         <figure class="hero-media rise" style="--i: 2">
             <img src="{{ Asset::url('images/teacher-joe.webp') }}" width="560" height="560" alt="{{ $teacher }}, le professeur d'anglais de {{ $platform }}" fetchpriority="high">
             <figcaption class="hero-caption"><strong>{{ $teacher }}</strong> {{ config('platform.brand.tagline') }}</figcaption>
+            {{-- Autre professeur proposé : petite pastille dans le coin de l'image, vers la section des professeurs.
+                 Aucune hauteur ajoutée : le bouton « Passer mon évaluation gratuite » reste à sa place. --}}
+            @foreach (array_filter(Teachers::choosable(), fn ($other) => ! $other->isDefault()) as $other)
+                @if ($loop->first)
+                    <a class="hero-alt" href="#professeurs">
+                        <span class="hero-alt-face"><img src="{{ Asset::url($other->portrait()) }}" width="96" height="96" alt="" loading="lazy" decoding="async"></span>
+                        <span class="hero-alt-text">ou {{ $other->name() }},<br>au choix</span>
+                    </a>
+                @endif
+            @endforeach
             <span class="hero-bubble right" lang="en" aria-hidden="true">Hello!</span>
             <span class="hero-bubble" lang="en" aria-hidden="true">Let's talk!</span>
             <span class="hero-bubble third" lang="en" aria-hidden="true">How are you?</span>
