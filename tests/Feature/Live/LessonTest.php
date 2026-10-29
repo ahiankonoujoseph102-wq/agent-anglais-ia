@@ -8,6 +8,7 @@ use App\Models\Lesson;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\DailyTime;
+use App\Support\Gemini\TeacherSetup;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -64,7 +65,8 @@ class LessonTest extends TestCase
             // Le jeton vaut pour toute la séance (30 minutes) et une marge d'une minute : aucun renouvellement en route.
             ->assertJsonPath('token_expires_in', 1800 + 60)
             ->assertJsonPath('warning_seconds', 120)
-            ->assertJsonPath('cues.start', '[System] The learner is connected and ready. Start STEP 1 now: greet the learner, announce that the lesson lasts 30 minutes (exactly this number, never another one), follow HOW TO WORK WITH ME, do the WARM-UP (an open question, then the recall if there was a previous lesson), announce today\'s topic, then teach the first item of the board.');
+            // Première séance de cette formule payée : félicitations et déroulé en deux phrases (FirstPaidLessonTest).
+            ->assertJsonPath('cues.start', '[System] The learner is connected and ready. Start STEP 1 now: greet the learner, announce that the lesson lasts 30 minutes (exactly this number, never another one),'.TeacherSetup::cue('first_paid_lesson').' follow HOW TO WORK WITH ME, do the WARM-UP (an open question, then the recall if there was a previous lesson), announce today\'s topic, then teach the first item of the board.');
 
         Http::assertSent(function (Request $request) {
             $instructions = $request['bidiGenerateContentSetup']['systemInstruction']['parts'][0]['text'];
