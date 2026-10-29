@@ -261,11 +261,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/diagnostic-texte/envoi', [UploadCheckController::class, 'size'])->middleware('throttle:4,1')->name('upload-check.size');
     Route::post('/diagnostic-texte/attente', [UploadCheckController::class, 'wait'])->middleware('throttle:4,1')->name('upload-check.wait');
     Route::post('/diagnostic-texte/essai/{provider}', [TextDiagnosticController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('text-diagnostic.test');
-    Route::post('/diagnostic-texte/direct/{provider}/essai', [LiveTrialController::class, 'test'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.test');
-    Route::get('/diagnostic-texte/direct/{provider}/conversation', [LiveTrialController::class, 'show'])->whereIn('provider', ['gemini', 'openai'])->name('live-trial.show');
-    Route::post('/diagnostic-texte/direct/{provider}/conversation/connexion', [LiveTrialController::class, 'connect'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.connect');
-    Route::post('/diagnostic-texte/direct/{provider}/conversation/signal', [LiveTrialController::class, 'signal'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:30,1')->name('live-trial.signal');
-    Route::post('/diagnostic-texte/direct/{provider}/conversation/fin', [LiveTrialController::class, 'finish'])->whereIn('provider', ['gemini', 'openai'])->middleware('throttle:10,1')->name('live-trial.finish');
+    Route::post('/diagnostic-texte/direct/{provider}/essai', [LiveTrialController::class, 'test'])->whereIn('provider', ['gemini', 'openai', 'gemini2'])->middleware('throttle:10,1')->name('live-trial.test');
+    Route::get('/diagnostic-texte/direct/{provider}/conversation', [LiveTrialController::class, 'show'])->whereIn('provider', ['gemini', 'openai', 'gemini2'])->name('live-trial.show');
+    Route::post('/diagnostic-texte/direct/{provider}/conversation/connexion', [LiveTrialController::class, 'connect'])->whereIn('provider', ['gemini', 'openai', 'gemini2'])->middleware('throttle:10,1')->name('live-trial.connect');
+    Route::post('/diagnostic-texte/direct/{provider}/conversation/signal', [LiveTrialController::class, 'signal'])->whereIn('provider', ['gemini', 'openai', 'gemini2'])->middleware('throttle:30,1')->name('live-trial.signal');
+    Route::post('/diagnostic-texte/direct/{provider}/conversation/fin', [LiveTrialController::class, 'finish'])->whereIn('provider', ['gemini', 'openai', 'gemini2'])->middleware('throttle:10,1')->name('live-trial.finish');
     Route::get('/alertes', [AlertController::class, 'index'])->name('alerts.index');
     Route::post('/alertes/abonnement', [AlertController::class, 'subscribe'])->middleware('throttle:20,1')->name('alerts.subscribe');
     Route::delete('/alertes/abonnement', [AlertController::class, 'unsubscribe'])->middleware('throttle:20,1')->name('alerts.unsubscribe');
