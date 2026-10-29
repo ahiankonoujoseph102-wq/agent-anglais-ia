@@ -49,7 +49,7 @@ class OldAddressTest extends TestCase
 
     public function test_the_migration_fixes_the_setting_and_the_captions_but_never_the_scripts(): void
     {
-        Setting::put(VideoSettings::SITE, 'talkami.laravel.cloud');
+        Setting::put(VideoSettings::SITE, 'https://Talkami.Laravel.Cloud/');
         $script = ['segments' => [['subtitle' => 'Rendez-vous sur talkami.laravel.cloud', 'spoken' => 'sur talkami point laravel point cloud']]];
         $presentation = PresentationVideo::create(['key' => 'rose-talkami', 'title' => 'Essai', 'status' => LessonVideo::READY, 'script' => $script, 'caption' => 'Évaluez votre niveau sur talkami.laravel.cloud #anglais']);
         $lesson = LessonVideo::create(['kind' => LessonVideo::PROMO, 'topic_key' => 'essai', 'day' => today(), 'slot' => 1, 'level' => 'A1', 'title' => 'Leçon', 'status' => LessonVideo::READY, 'script' => $script, 'caption' => 'Sur https://talkami.laravel.cloud']);

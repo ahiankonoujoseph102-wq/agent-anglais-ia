@@ -25,7 +25,7 @@ class VideoSettings
         $site = self::read(self::SITE);
 
         // Ancienne adresse (talkami.laravel.cloud) encore enregistrée : l'adresse officielle à la place.
-        return OldAddress::isOld($site) ? OldAddress::primary() : $site;
+        return OldAddress::isOld(self::normalizeSite($site)) ? OldAddress::primary() : $site;
     }
 
     /** Message de blocage quand l'adresse du site manque, sinon null. */

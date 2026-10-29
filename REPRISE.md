@@ -6,6 +6,12 @@
 
 
 
+## Chantier en cours : ancienne adresse dans les vidéos, professeur des présentations (29 octobre 2026, branche `claude/amazing-bohr-sizyh1`)
+
+- **Fait** : voir CLAUDE.md, feuille de route, « Ancienne adresse dans les vidéos et professeur des présentations ». Aucune vidéo refaite (décision du fondateur : seulement avec son accord) ; exécution n° 5 de « Vidéos de présentation » (rose-grande, rose-courtes) non touchée : ses travaux étaient déjà chargés, ses vidéos diront et afficheront l'ancienne adresse.
+- **À faire par le fondateur après la mise en ligne** : onglet « Commands » de Laravel Cloud, `php artisan videos:old-address` (lecture seule) pour la liste des vidéos à refaire ; ou page « Vidéos », repère « Ancienne adresse » sur chaque carte. Vérifier dans la page « Vidéos », « Adresse du site », que talkami.net est affiché.
+- **Ensuite, seulement avec son accord** : refaire les vidéos listées (« Refaire cette vidéo » pour une présentation : nouveau script et nouvelle voix, puis GitHub ; vidéos de promotion : « Refaire la vidéo »). Coût : une nouvelle voix par vidéo (limite gratuite de Gemini).
+
 ## État au 29 octobre 2026, midi (nouveau compte Claude Code) : tout est fusionné
 
 - **#137** : `tools/video/render.html` ne bloque plus quand une machine trop lente est refusée (passages n° 10, 14 et 18 annulés à 80 minutes).

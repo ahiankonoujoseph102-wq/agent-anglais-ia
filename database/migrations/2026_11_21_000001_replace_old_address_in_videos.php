@@ -1,6 +1,7 @@
 <?php
 
 use App\Support\Videos\OldAddress;
+use App\Support\Videos\VideoSettings;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
@@ -22,7 +23,7 @@ return new class extends Migration
 
         $site = DB::table('settings')->where('key', 'videos.site')->value('value');
 
-        if (OldAddress::isOld(is_string($site) ? trim($site) : null)) {
+        if (OldAddress::isOld(VideoSettings::normalizeSite(is_string($site) ? $site : null))) {
             DB::table('settings')->where('key', 'videos.site')->update(['value' => $primary]);
         }
 
