@@ -24,7 +24,7 @@ class CreateAdmin extends Command
     public const MIN_PASSWORD_LENGTH = 10;
 
     protected $signature = 'app:create-admin
-        {--name= : Nom de l\'administrateur (« Administrateur » par défaut)}';
+        {--name= : Nom de l\'administrateur (« Administrateur » par défaut ; sur un compte existant, le remplace)}';
 
     protected $description = 'Crée un compte administrateur ou promeut un compte existant (numéro et mot de passe demandés)';
 
@@ -62,6 +62,9 @@ class CreateAdmin extends Command
         if ($user === null) {
             $user = new User(['phone' => $phone]);
             $user->name = $this->option('name') ?: 'Administrateur';
+        } elseif (filled($this->option('name'))) {
+            // Compte existant : --name change seulement le nom (le professeur salue par ce prénom).
+            $user->name = (string) $this->option('name');
         }
 
         if (filled($password)) {

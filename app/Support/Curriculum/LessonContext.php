@@ -8,6 +8,7 @@ use App\Models\Lesson;
 use App\Models\Program;
 use App\Models\ProgramLesson;
 use App\Models\User;
+use App\Support\LearnerName;
 use Illuminate\Support\Collection;
 
 /**
@@ -31,7 +32,7 @@ class LessonContext
         $lines = [];
 
         $lines[] = 'LEARNER PROFILE';
-        $lines[] = '- First name: '.$user->name;
+        $lines[] = '- First name: '.(LearnerName::first($user) ?? 'unknown (greet without a name)');
         $lines[] = '- Level: '.$program->level->value.' ('.$program->level->label().')';
         $lines[] = '- Main goal: '.$program->goal->value.' ('.$program->goal->label().')';
 
@@ -130,7 +131,7 @@ class LessonContext
         if ($previous?->summary) {
             $lines[] = '- Summary: '.$previous->summary;
             $lines[] = '- Homework given: '.($previous->homework ?: 'none');
-            $lines[] = '- Use them for the WARM-UP, after the open question: the learner recalls the sentence to remember, then tells you about the homework.';
+            $lines[] = '- Use them for the CONTINUITY part of the WARM-UP, after the greeting exchange: the learner recalls the sentence to remember (one question per turn), then tells you about the homework.';
         } else {
             $lines[] = '- None: this is the first lesson of the programme (no warm-up today).';
         }

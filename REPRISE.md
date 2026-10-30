@@ -6,6 +6,11 @@
 
 
 
+## Une question à la fois au début des séances (30 octobre 2026, branche `claude/une-question-a-la-fois`)
+
+- **Fait** : voir CLAUDE.md, feuille de route, « Une question à la fois et vrai début de séance ». Cause : l'indication de début et la règle du premier tour demandaient tout en un seul tour ; le prénom était le nom du compte (« Administrateur »).
+- **À vérifier par le fondateur sur son téléphone** (aucun banc d'essai réel possible d'ici, le modèle réel ne se teste qu'en vraie séance) : séance du jour (salut puis « how are you? », il attend ; une ou deux petites questions ; rappel de la séance d'avant ; puis la leçon) ; évaluation avec un compte neuf (salut, prénom, « how are you? », « Avez-vous des questions avant de commencer ? », consignes, puis les questions). Son compte s'appelle « Administrateur » : le professeur le salue désormais sans nom ; pour être appelé « Joseph » : variable temporaire `ADMIN_PHONE` (son numéro), puis `php artisan app:create-admin --name="Joseph Ahiankonou" --no-interaction` (le mot de passe ne change pas), puis supprimer la variable (`--name` renomme désormais un compte existant).
+
 ## Vidéos : une de promotion par jour (A2) et le Club ; coût de Laravel Cloud (30 octobre 2026, branche `claude/une-video-promotion-a2`)
 
 - **Décision du fondateur (message corrigé)** : GARDER l'envoi des vidéos (promotion et Club) par e-mail à amitalk62@gmail.com, puis leur effacement du stockage une fois l'e-mail parti ; UNE vidéo de promotion par jour au niveau A2, plus la vidéo du Club ; alternance Teacher Joe / Teacher Rose inchangée. Voir CLAUDE.md, feuille de route (« Vidéos envoyées par e-mail » et « Une vidéo de promotion par jour »).

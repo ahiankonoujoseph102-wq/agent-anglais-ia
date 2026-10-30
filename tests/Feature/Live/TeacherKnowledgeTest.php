@@ -149,7 +149,9 @@ class TeacherKnowledgeTest extends TestCase
     {
         $this->actingAs(User::factory()->create(['name' => ':minutes :platform']))->postJson('/evaluation/connexion')->assertOk();
 
-        $this->assertStringContainsString('Prénom : :minutes :platform', $this->sentInstructions());
+        // Le prénom est nettoyé (lettres seulement) : aucun marqueur ne peut y entrer.
+        $this->assertStringContainsString('Prénom : Minutes', $this->sentInstructions());
+        $this->assertStringNotContainsString(':platform', explode('LEARNER STATUS', $this->sentInstructions())[1] ?? '');
     }
 
     public function test_learner_status_follows_the_journey(): void

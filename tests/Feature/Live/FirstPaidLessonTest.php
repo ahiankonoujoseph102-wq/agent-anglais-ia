@@ -56,7 +56,7 @@ class FirstPaidLessonTest extends TestCase
         $user = $this->learner();
         $cue = $this->startCue($user);
 
-        $this->assertStringContainsString('ONE sentence to congratulate and thank them by first name for choosing '.config('platform.name'), $cue);
+        $this->assertStringContainsString('ONE sentence to congratulate and thank them for choosing '.config('platform.name'), $cue);
         $this->assertStringContainsString('TWO short sentences on how the lesson goes', $cue);
         // Le prénom n'est jamais écrit dans l'indication (il vient de la situation de l'apprenant).
         $this->assertStringNotContainsString('Afi', $cue);
