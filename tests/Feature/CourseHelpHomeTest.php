@@ -194,10 +194,10 @@ class CourseHelpHomeTest extends TestCase
         $course = TeacherSetup::instructions('course', $user, 10, ['lesson' => 'x', 'warning_seconds' => 90]);
 
         foreach ([$daily, $course] as $text) {
-            // Mal compris : français, rassurer, autre explication, astuce, retour à l'anglais.
+            // Mal compris : le remarquer, anglais très simple, puis français, rassurer, et la phrase redonnée en anglais.
             $this->assertStringContainsString('« je ne comprends pas », « hein ? »', $text);
-            $this->assertStringContainsString('ANOTHER way', $text);
-            $this->assertStringContainsString('Switch to clear, calm French and reassure', $text);
+            $this->assertStringContainsString('say the same idea again in VERY simple English', $text);
+            $this->assertStringContainsString('explain it in clear, calm French and reassure', $text);
             // N'entend pas / ne suit pas : ralentir nettement, et garder ce débit.
             $this->assertStringContainsString('slow down clearly', $text);
             $this->assertStringContainsString('KEEP this slower pace until the end', $text);

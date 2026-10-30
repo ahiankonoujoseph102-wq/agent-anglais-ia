@@ -6,6 +6,7 @@ use App\Enums\AssessmentStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\User;
+use App\Support\LearnerName;
 use Illuminate\Support\Str;
 
 /**
@@ -25,7 +26,7 @@ class LearnerSituation
     public static function describe(User $user, string $kind): string
     {
         $lines = [
-            'Prénom : '.$user->name,
+            'Prénom : '.(LearnerName::first($user) ?? 'inconnu (saluer sans nom, jamais « Administrateur » ni un autre nom de rôle)'),
             'Page actuelle : '.(self::PAGES[$kind] ?? 'une conversation vocale avec toi'),
             'Étape actuelle : '.self::step($user, $kind),
         ];

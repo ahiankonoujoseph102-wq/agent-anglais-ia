@@ -123,7 +123,7 @@ class TeacherAdvisorTest extends TestCase
         foreach (['lesson', 'course'] as $kind) {
             $text = $this->instructions($kind, Level::A2);
 
-            $this->assertStringContainsString('WHEN THE LEARNER STRUGGLES', $text, $kind);
+            $this->assertStringContainsString('WHEN THE LEARNER DOES NOT UNDERSTAND', $text, $kind);
             $this->assertStringContainsString('REPETITION WITH A PURPOSE', $text, $kind);
             $this->assertStringContainsString('never more than twice in a row for the same item', $text, $kind);
             $this->assertStringContainsString('PRAISE REAL PROGRESS', $text, $kind);

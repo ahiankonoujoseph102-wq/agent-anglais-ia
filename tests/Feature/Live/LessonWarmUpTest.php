@@ -55,19 +55,25 @@ class LessonWarmUpTest extends TestCase
 
         $text = $this->systemText($user);
 
-        $this->assertStringContainsString('WARM-UP (one minute at most', $text);
-        // D'abord une vraie question ouverte sur sa vie, à son niveau, puis le rappel de la veille.
-        $this->assertStringContainsString('(1) ONE real open question about their life, at their level', $text);
+        $this->assertStringContainsString('WARM-UP (about two minutes at most), a real conversation, ONE question per turn', $text);
+        // D'abord comment il va (réponse attendue), une ou deux petites questions, puis ce qu'il a retenu de la veille.
+        $this->assertStringContainsString('react naturally ("I\'m fine too, thank you!"', $text);
+        $this->assertStringContainsString('ONE or TWO more small, easy questions about their life to put them at ease, one per turn', $text);
         $this->assertStringContainsString('A2: "What did you do today?"', $text);
-        $this->assertStringContainsString('make them RECALL the sentence to remember from its meaning', $text);
+        $this->assertStringContainsString('(2) CONTINUITY, only if PREVIOUS LESSON below gives a summary (even if it was with another teacher)', $text);
+        $this->assertStringContainsString('then a SHORT reminder (one or two sentences) of the key point', $text);
+        $this->assertStringContainsString('(3) Only then, in a new turn: today\'s topic', $text);
         $this->assertStringContainsString('the first word as a clue if needed', $text);
         $this->assertStringContainsString('ONE question on the homework (no reproach if not done)', $text);
         $this->assertStringContainsString('- Summary: "I am from Lomé." = Je viens de Lomé.', $text);
         $this->assertStringContainsString('- Homework given: Dites trois phrases sur votre ville.', $text);
-        $this->assertStringContainsString('Use them for the WARM-UP, after the open question', $text);
+        $this->assertStringContainsString('Use them for the CONTINUITY part of the WARM-UP, after the greeting exchange', $text);
         // Ordre du premier tour : accueil, comment travailler, rappel, sujet du jour.
-        $this->assertStringContainsString('then HOW TO WORK WITH ME, then the WARM-UP, then today\'s topic', $text);
-        $this->assertStringContainsString('do the WARM-UP (an open question, then the recall if there was a previous lesson)', TeacherSetup::cue('lesson_start', ['minutes' => 15]));
+        // Premier tour : salut, durée, « comment travailler avec moi », UNE question, puis on attend.
+        $this->assertStringContainsString('then HOW TO WORK WITH ME, then ONE question: how they are today. STOP there and WAIT for the answer. Never present the topic or the board in this first turn.', $text);
+        $cue = TeacherSetup::cue('lesson_start', ['minutes' => 15, 'handoff_note' => '.']);
+        $this->assertStringContainsString('then ask how they are today and STOP: wait for their answer. Do not announce the topic and do not teach anything in this turn.', $cue);
+        $this->assertStringEndsWith('Then follow the WARM-UP, one question per turn.', $cue);
     }
 
     public function test_the_first_lesson_has_no_warm_up_and_the_summary_says_what_the_learner_can_do(): void

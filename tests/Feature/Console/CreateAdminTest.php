@@ -108,6 +108,19 @@ class CreateAdminTest extends TestCase
         $this->assertTrue(Hash::check('secret-12345', $admin->password));
     }
 
+    public function test_the_name_option_renames_an_existing_administrator_without_touching_the_password(): void
+    {
+        $admin = User::factory()->admin()->create(['name' => 'Administrateur', 'phone' => '+22890000009', 'password' => 'ancien-mot-de-passe']);
+        config(['admin.bootstrap.phone' => '90 00 00 09', 'admin.bootstrap.password' => null]);
+
+        $this->artisan('app:create-admin', ['--no-interaction' => true, '--name' => 'Joseph Ahiankonou'])->assertSuccessful();
+
+        $admin->refresh();
+        $this->assertSame('Joseph Ahiankonou', $admin->name);
+        $this->assertTrue(Hash::check('ancien-mot-de-passe', $admin->password));
+        $this->assertTrue($admin->isAdmin());
+    }
+
     public function test_without_a_terminal_and_without_variables_it_fails_with_an_explanation(): void
     {
         config(['admin.bootstrap.phone' => null, 'admin.bootstrap.password' => null]);

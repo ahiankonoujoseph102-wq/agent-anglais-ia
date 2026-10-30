@@ -186,7 +186,9 @@ class LessonController extends Controller
             'start' => TeacherSetup::cue('lesson_start', [
                 'minutes' => $minutes,
                 'duration_note' => self::durationNote($minutes, $subscription?->daily_minutes ?? $minutes),
-                'welcome_note' => (self::isFirstPaidLesson($lesson) ? TeacherSetup::cue('first_paid_lesson') : '').self::handoffNote($user, $lesson, $teacher),
+                'welcome_note' => self::isFirstPaidLesson($lesson) ? TeacherSetup::cue('first_paid_lesson') : '',
+                // Passage de relais : APRÈS l'échange de salutations (partie « continuité » de l'échauffement).
+                'handoff_note' => self::handoffNote($user, $lesson, $teacher).'.',
             ]),
             'resume' => TeacherSetup::cue('resume'),
             'warning' => TeacherSetup::cue('lesson_warning', ['remaining' => $warningMinutes]),
@@ -295,8 +297,8 @@ class LessonController extends Controller
      */
     /**
      * Passage de relais : la dernière séance tenue l'a été avec l'autre professeur (Teacher Joe ↔ Teacher Rose). Le
-     * nouveau professeur commence par un court rapport de cette séance (résumé, erreurs à revoir) et une ou deux
-     * questions. Rien sans séance précédente, avec le même professeur, ou sans rien à rapporter.
+     * nouveau professeur, après l'échange de salutations, fait un court rapport de cette séance (résumé, erreurs à
+     * revoir) et pose une ou deux questions, une à la fois. Rien sans séance précédente, avec le même professeur, ou sans rien à rapporter.
      */
     private static function handoffNote(User $user, Lesson $lesson, Teacher $teacher): string
     {

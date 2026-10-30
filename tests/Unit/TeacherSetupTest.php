@@ -49,7 +49,7 @@ class TeacherSetupTest extends TestCase
 
         $user = new User(['name' => ':minutes']);
 
-        $this->assertStringStartsWith('Hello :minutes, 10 min.', TeacherSetup::instructions('lesson', $user, 10));
+        $this->assertStringStartsWith('Hello Minutes, 10 min.', TeacherSetup::instructions('lesson', $user, 10));
     }
 
     public function test_lessons_from_a2_do_not_switch_to_french_too_easily(): void
@@ -103,10 +103,12 @@ class TeacherSetupTest extends TestCase
             $this->assertStringContainsString('ONE gentle funny remark OR a tiny invented story', $text);
             $this->assertStringContainsString('never about politics, religion or real people', $text);
             $this->assertStringContainsString('softer and simpler with a young pupil', $text);
-            // Élève en difficulté : français, rassurer, expliquer autrement, astuce, retour à l'anglais.
-            $this->assertStringContainsString('1. Switch to clear, calm French and reassure in one sentence', $text);
-            $this->assertStringContainsString('3. Give ONE tip that makes it easy to remember (« Astuce :', $text);
-            $this->assertStringContainsString('4. Back to English at once with ONE short, easy question the learner will succeed.', $text);
+            // Élève qui ne comprend pas : le remarquer, anglais très simple, puis français et la phrase redonnée en anglais.
+            $this->assertStringContainsString('1. NOTICE IT, kindly, and say the same idea again in VERY simple English', $text);
+            $this->assertStringContainsString('"I see this is not clear. Let me say it more simply: …"', $text);
+            $this->assertStringContainsString('2. Still not understood: explain it in clear, calm French', $text);
+            $this->assertStringContainsString('then give the sentence in English again and invite them to say it', $text);
+            $this->assertStringContainsString('3. Back to English at once with ONE short, easy question the learner will succeed.', $text);
             $this->assertStringContainsString('« Essayez en anglais : … »', $text);
             $this->assertStringContainsString('in « Mes cours », French is the main language of explanation', $text);
         }
@@ -182,7 +184,8 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('ask ONE question at a time, then STOP and WAIT', $text);
         $this->assertStringContainsString('rephrase ONCE, more simply; still not: an easier question.', $text);
         $this->assertStringContainsString('never cut the learner off', $text);
-        $this->assertStringContainsString('Then your first very easy question, and WAIT.', $text);
+        $this->assertStringContainsString('Then your first very easy question, and STOP: wait.', $text);
+        $this->assertStringContainsString('A QUESTION ENDS YOUR TURN', $text);
         // Aucune question donnée mot pour mot : chacun a ses propres questions.
         $this->assertStringNotContainsString('What is your name?', $text);
     }
@@ -264,7 +267,7 @@ class TeacherSetupTest extends TestCase
 
     public function test_pace_follows_the_level_and_lessons_take_more_time_to_correct(): void
     {
-        $this->assertStringContainsString('every word clearly articulated, short sentences, one idea per sentence', config('teacher.pace.rules'));
+        $this->assertStringContainsString('every word articulated, short sentences, one idea per sentence', config('teacher.pace.rules'));
 
         $user = new User(['name' => 'Afi']);
         $user->level = Level::A2;

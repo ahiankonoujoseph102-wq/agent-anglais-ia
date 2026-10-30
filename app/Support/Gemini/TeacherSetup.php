@@ -8,6 +8,7 @@ use App\Models\Assessment;
 use App\Models\User;
 use App\Support\Curriculum\Curriculum;
 use App\Support\Curriculum\Unit;
+use App\Support\LearnerName;
 use App\Support\Live\AssessmentVersion;
 use App\Support\Live\WorkingTogether;
 use App\Support\Teachers\Teacher;
@@ -339,7 +340,11 @@ class TeacherSetup
             'teacher' => $teacher->name(),
             'virtual_teacher' => $teacher->virtualTeacher(),
             'founder' => (string) config('platform.founder.name'),
-            'name' => $user->name,
+            // Prénom seulement, jamais un nom de rôle (« Administrateur ») : sinon le professeur salue sans nom.
+            'name' => LearnerName::first($user) ?? 'The learner',
+            'name_line' => ($first = LearnerName::first($user)) !== null
+                ? 'The learner\'s first name is "'.$first.'": use it to greet them (never a family name, never another name).'
+                : 'You do not know the learner\'s first name: greet them warmly WITHOUT a name, and never call them by a role or account word ("Administrateur", "Admin", "Assistant", "Élève", "User").',
             'level' => $level,
             'minutes' => $minutes,
             'warning' => (int) config('platform.lessons.warning_minutes_before_end'),

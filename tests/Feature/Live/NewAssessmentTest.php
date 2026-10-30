@@ -61,9 +61,11 @@ class NewAssessmentTest extends TestCase
         $this->assertStringNotContainsString('YOU NOTICE HESITATION', $old);
 
         // Nouvelle évaluation : accueil humain, hésitation remarquée, français, traduction apprise, vrai niveau.
-        $this->assertStringContainsString('"Hello! Welcome to your free English assessment. I\'m Teacher Joe."', $new);
-        $this->assertStringContainsString('ask the learner\'s name ("What\'s your name?") and WAIT, before any other question', $new);
-        $this->assertStringContainsString('Then ask "How are you today?" and WAIT', $new);
+        $this->assertStringContainsString('"Hello! Welcome to your free English assessment. I\'m Teacher Joe, your English teacher at Talkami."', $new);
+        $this->assertStringContainsString('ask the learner\'s name ("What\'s your name?") and STOP: wait', $new);
+        $this->assertStringContainsString('(b) Ask "How are you today?" and STOP: wait', $new);
+        $this->assertStringContainsString('(c) Ask in French: « Avez-vous des questions avant de commencer ? » and STOP: wait', $new);
+        $this->assertStringContainsString('(d) Only then give the instructions', $new);
         $this->assertStringContainsString('YOU NOTICE HESITATION YOURSELF, without waiting to be asked', $new);
         $this->assertStringContainsString('"I see the question is not clear. Let me say it more simply: …"', $new);
         $this->assertStringContainsString('translate the question into French in one sentence, ask it again in simple English', $new);

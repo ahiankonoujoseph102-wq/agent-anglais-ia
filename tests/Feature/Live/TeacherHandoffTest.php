@@ -64,7 +64,10 @@ class TeacherHandoffTest extends TestCase
 
         $this->assertStringContainsString('« Teacher Joe m\'a fait un rapport sur ce que vous avez appris la dernière fois : »', $cue);
         $this->assertStringContainsString('taken ONLY from PREVIOUS LESSON and ERRORS TO REVIEW', $cue);
-        $this->assertStringContainsString('ONE or TWO short questions, one at a time', $cue);
+        $this->assertStringContainsString('ONE or TWO short questions, one per turn, waiting for each answer', $cue);
+        // Jamais dans le premier tour : après l'échange de salutations, une question à la fois.
+        $this->assertLessThan(strpos($cue, 'HANDOVER'), strpos($cue, 'ask how they are today and STOP'));
+        $this->assertStringContainsString('after the greeting exchange, never in the first turn', $cue);
         // Le contexte de la séance donne bien le résumé de la séance précédente.
         $this->assertStringContainsString('Nice to meet you.', $this->actingAs($user)->postJson('/seance/connexion')->json('setup.systemInstruction.parts.0.text'));
     }
