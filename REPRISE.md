@@ -6,6 +6,12 @@
 
 
 
+## Vidéos : une de promotion par jour (A2) et le Club ; coût de Laravel Cloud (30 octobre 2026, branche `claude/une-video-promotion-a2`)
+
+- **Décision du fondateur** : envoi des vidéos par e-mail et suppression ABANDONNÉS (le stockage coûte moins de 0,10 $ par mois) ; RIEN n'est supprimé. Gardé : UNE vidéo de promotion par jour au niveau A2, plus la vidéo du Club ; alternance Teacher Joe / Teacher Rose inchangée. Voir CLAUDE.md, feuille de route.
+- **Sujets A2** : 28 dans `resources/videos/topics.php` (environ un mois à une vidéo par jour, moins ceux déjà faits). Quand la page « Vidéos » affiche 0 sujet A2 restant, plus aucune vidéo de promotion n'est préparée : ajouter des sujets A2 à la fin du fichier (avec l'accord du fondateur).
+- **Facture de Laravel Cloud (septembre-octobre 2026)** : serveur principal à Londres (7 $), base MySQL à Londres (7,70 $ + 0,58 $ de stockage), un DEUXIÈME environnement à Londres créé le 17 octobre 2026 vers 6 heures 25 (heure de Lomé), allumé sans interruption depuis (2,50 $ pour 10 jours, environ 7 $ par mois ensuite), un environnement à Francfort créé le même matin vers 5 heures 56 et allumé environ 9 heures (0,09 $). Dates tirées des identifiants (préfixe horodaté). Le site (talkami.net) utilise le bucket `fls-a3005874…`, créé le 17 octobre vers 6 heures 33 ; l'ancien bucket `fls-a2db673a…` (28 septembre) reçoit encore des écritures (2 094 sur la période) : un environnement s'en sert encore. On ne sait pas d'ici lequel des deux environnements de Londres porte talkami.net : à vérifier par le fondateur (gestes dans le compte rendu) AVANT d'arrêter quoi que ce soit ; toujours « Stop » (réversible), jamais supprimer d'abord ; ne supprimer aucun bucket.
+
 ## Bienvenue professionnelle et rapide (30 octobre 2026, branche `claude/bienvenue-pro`)
 
 - **Fait** : voir CLAUDE.md, feuille de route, « Bienvenue professionnelle, chaleureuse et rapide ». Félicitations au prénom, fête de deux secondes, cartes des professeurs (nom jamais remplacé, « Teacher Rose arrive… » partout où l'on choisit un professeur), préchargement léger, salutation préparée après la réponse de la page, ton enjoué, −14 LUFS.

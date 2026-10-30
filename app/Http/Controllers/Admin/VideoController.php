@@ -50,6 +50,7 @@ class VideoController extends Controller
             'onlyClub' => false,
             'videos' => $videos,
             'remaining' => VideoTopics::remaining(),
+            'promoLevel' => VideoTopics::level(),
             'tokenConfigured' => filled(config('videos.token')),
             'voices' => collect(VideoVoice::providers())->map(fn ($provider) => $provider->label().' (voix « '.VideoVoice::voiceFor($provider).' »)')->all(),
             // Autres professeurs (un jour chacun) : leur propre voix, celle de leurs séances.

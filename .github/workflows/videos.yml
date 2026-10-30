@@ -14,8 +14,8 @@ on:
       count:
         description: 'Nombre de vidéos de promotion à fabriquer (la vidéo du Club a son propre travail)'
         type: choice
-        options: ['3', '2', '1']
-        default: '3'
+        options: ['1', '2', '3']
+        default: '1'
       partie:
         description: 'Ce qu''il faut fabriquer'
         type: choice
@@ -140,7 +140,7 @@ jobs:
           TALKAMI_URL: ${{ vars.TALKAMI_URL }}
           TALKAMI_VIDEO_TOKEN: ${{ secrets.TALKAMI_VIDEO_TOKEN }}
           VIDEO_KIND: promo
-          VIDEO_COUNT: ${{ inputs.count || '3' }}
+          VIDEO_COUNT: ${{ inputs.count || '1' }}
           VIDEO_BUDGET_MINUTES: '42'
           CHROME_PATH: /usr/bin/google-chrome
         run: node render.mjs

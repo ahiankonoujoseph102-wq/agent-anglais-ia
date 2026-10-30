@@ -57,7 +57,7 @@
             @foreach ($teacherVoices ?? [] as $line)
                 <li>Les jours de {{ $line }} (un jour chacun, voix de ses séances)</li>
             @endforeach
-            <li>Sujets encore jamais traités : <strong>{{ $remaining }}</strong></li>
+            <li>Sujets encore jamais traités{{ $promoLevel ? ' (niveau '.$promoLevel.')' : '' }} : <strong>{{ $remaining }}</strong>@if ($remaining === 0) : plus aucune vidéo de promotion ne sera préparée tant que des sujets ne sont pas ajoutés.@endif</li>
         </ul>
 
         <form method="POST" action="{{ route('admin.videos.prepare') }}" class="video-prepare">

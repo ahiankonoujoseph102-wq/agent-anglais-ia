@@ -52,7 +52,7 @@ class PrepareVideos extends Command
                 $this->line('Jeton des vidéos non réglé (VIDEO_UPLOAD_TOKEN) : aucune vidéo ajoutée automatiquement.');
             } else {
                 $created = $videos->planToday();
-                $this->line("Vidéos ajoutées pour aujourd'hui : {$created}. Sujets encore jamais traités : ".VideoTopics::remaining().'.');
+                $this->line("Vidéos ajoutées pour aujourd'hui : {$created}. Sujets encore jamais traités".(VideoTopics::level() ? ' (niveau '.VideoTopics::level().')' : '').' : '.VideoTopics::remaining().'.');
             }
         }
 

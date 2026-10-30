@@ -134,9 +134,43 @@ class LessonVideoTest extends TestCase
 
         $keys = LessonVideo::query()->pluck('topic_key');
         $this->assertCount(5, $keys->unique());
-        $this->assertSame(array_column(VideoTopics::all(), 'key')[0], LessonVideo::query()->orderBy('id')->value('topic_key'));
+        // Niveau A2 seulement (config videos.promo_level) : le premier sujet A2 du programme.
+        $this->assertSame(collect(VideoTopics::all())->firstWhere('level', 'A2')['key'], LessonVideo::query()->orderBy('id')->value('topic_key'));
+        $this->assertSame(['A2'], LessonVideo::query()->pluck('level')->unique()->values()->all());
         $this->assertSame([1, 2, 3], LessonVideo::query()->whereDate('day', today())->orderBy('slot')->pluck('slot')->all());
-        $this->assertSame(count(VideoTopics::all()) - 5, VideoTopics::remaining());
+        $this->assertSame(collect(VideoTopics::all())->where('level', 'A2')->count() - 5, VideoTopics::remaining());
+    }
+
+    public function test_promotion_videos_take_only_a2_topics_and_stop_when_none_is_left(): void
+    {
+        $a2 = collect(VideoTopics::all())->where('level', 'A2')->count();
+        $videos = app(LessonVideos::class);
+
+        $this->assertSame($a2, $videos->plan(today(), $a2 + 5));
+        $this->assertSame(0, VideoTopics::remaining());
+        $this->assertSame(0, $videos->plan(today()->addDay(), 1));
+        $this->assertSame(0, LessonVideo::query()->where('level', '!=', 'A2')->count());
+
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)->get(route('admin.videos.index'))->assertOk()
+            ->assertSee('Sujets encore jamais traités (niveau A2)')
+            ->assertSee('plus aucune vidéo de promotion ne sera préparée');
+
+        // Sans niveau réglé : tous les niveaux, dans l'ordre du programme.
+        config(['videos.promo_level' => null]);
+        $this->assertSame(count(VideoTopics::all()) - $a2, VideoTopics::remaining());
+        $this->assertSame('saluer', VideoTopics::next(1)[0]['key']);
+    }
+
+    public function test_the_setting_of_promotion_videos_per_day_is_brought_back_to_one(): void
+    {
+        VideoSettings::savePerDay(3);
+        $this->assertSame(3, VideoSettings::perDay());
+
+        $migration = require database_path('migrations/2026_11_23_000001_one_promotion_video_per_day.php');
+        $migration->up();
+        $this->assertSame(1, VideoSettings::perDay());
+        $this->assertSame(1, config('videos.per_day'));
     }
 
     public function test_the_script_then_the_voice_are_prepared_with_the_fixed_closing_sentence(): void
@@ -320,19 +354,20 @@ class LessonVideoTest extends TestCase
 
         config(['videos.token' => self::TOKEN]);
         $this->artisan('videos:prepare --plan --budget=1')->assertSuccessful();
-        $this->assertSame(2, LessonVideo::query()->count());
+        $this->assertSame(1, LessonVideo::query()->count());
     }
 
     public function test_the_number_of_promotion_videos_per_day_is_a_setting_of_the_videos_page(): void
     {
-        $this->assertSame(2, VideoSettings::perDay());
+        $this->assertSame(1, VideoSettings::perDay());
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)->get(route('admin.videos.index'))->assertOk()->assertSee('Vidéos de promotion par jour')->assertSee('videos-par-jour', false);
-        $this->actingAs($admin)->put(route('admin.videos.per-day'), ['per_day' => 1])->assertRedirect(route('admin.videos.index').'#videos-par-jour');
-        $this->assertSame(1, VideoSettings::perDay());
-        $this->assertSame(1, app(LessonVideos::class)->planToday());
+        $this->actingAs($admin)->put(route('admin.videos.per-day'), ['per_day' => 2])->assertRedirect(route('admin.videos.index').'#videos-par-jour');
+        $this->assertSame(2, VideoSettings::perDay());
+        $this->assertSame(2, app(LessonVideos::class)->planToday());
         $this->assertSame(0, app(LessonVideos::class)->planToday());
+        $this->actingAs($admin)->put(route('admin.videos.per-day'), ['per_day' => 1]);
 
         $this->actingAs($admin)->put(route('admin.videos.per-day'), ['per_day' => 9])->assertSessionHasErrors('per_day');
         $this->assertSame(1, VideoSettings::perDay());
