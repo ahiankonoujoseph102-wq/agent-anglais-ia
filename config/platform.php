@@ -123,6 +123,36 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Suivi des élèves payants : rappels et séances manquées
+    |--------------------------------------------------------------------------
+    |
+    | App\Support\Reminders\LessonReminders, commande learners:remind (chaque minute, le serveur est déjà
+    | allumé). Seulement les abonnés PAYANTS (ni accès offert, ni mois d'ambassadeur) qui ont un programme avec
+    | une heure de séance, les jours de travail choisis, à l'heure de leur pays. Notifications gratuites ;
+    | e-mails dans la limite gratuite de Brevo, avec une réserve pour le reste.
+    |
+    */
+    'reminders' => [
+        'enabled' => (bool) env('LEARNER_REMINDERS', true),
+        // Premier rappel : e-mail et notification.
+        'soon_minutes' => 30,
+        // Dernier rappel : notification seulement.
+        'now_minutes' => 1,
+        // Séance pas faite ce temps après l'heure prévue : relance (e-mail et notification), une fois par jour.
+        'missed_after_minutes' => 120,
+        // « Manque souvent » : au moins missed_threshold jours de travail manqués sur les missed_days derniers jours.
+        'missed_days' => 7,
+        'missed_threshold' => 3,
+        // E-mails de rappel par jour au plus, et seulement tant que mail_reserve e-mails restent libres dans la
+        // limite du jour (documents de révision, alertes, vidéos envoyées au fondateur).
+        'daily_emails' => 150,
+        'mail_reserve' => 100,
+        // Un rappel en retard de plus de ce temps n'est plus envoyé (serveur arrêté, déploiement).
+        'late_minutes' => 10,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Temps du jour, partagé entre la séance quotidienne et « Mes cours »
     |--------------------------------------------------------------------------
     |

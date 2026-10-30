@@ -6,6 +6,12 @@
 
 
 
+## Suivi des élèves payants : rappels, séances manquées, e-mail (30 octobre 2026, branche `claude/suivi-eleves`)
+
+- **Accord du fondateur** (plan accepté) : rappel 30 minutes avant (e-mail et notification), 1 minute avant (notification), relance 2 heures après une séance manquée (une fois par jour) ; « manque souvent » = 3 jours de travail manqués sur les 7 derniers ; « vous » toujours (« J'ai constaté que vous ne suivez pas souvent votre programme. ») ; AUCUN SMS ni appel (payants : solutions et prix donnés au fondateur, à vérifier sur les sites avant tout accord) ; réserve d'e-mails Brevo pour les documents de révision, les alertes et les vidéos envoyées à amitalk62@gmail.com.
+- **Fait** : voir CLAUDE.md, feuille de route, « Suivi des élèves payants ». Coût : 0 (planificateur déjà allumé, notifications gratuites, e-mails dans la limite gratuite).
+- **À vérifier par le fondateur sur son téléphone** : il faut un compte d'élève PAYANT (pas l'administrateur, pas un accès offert) avec un programme. Les rappels ne partent pas sans programme ni sans heure.
+
 ## Une question à la fois au début des séances (30 octobre 2026, branche `claude/une-question-a-la-fois`)
 
 - **Fait** : voir CLAUDE.md, feuille de route, « Une question à la fois et vrai début de séance ». Cause : l'indication de début et la règle du premier tour demandaient tout en un seul tour ; le prénom était le nom du compte (« Administrateur »).

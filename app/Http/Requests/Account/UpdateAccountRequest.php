@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Account;
 
 use App\Support\EmailAddress;
+use App\Support\Reminders\LessonReminders;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateAccountRequest extends FormRequest
@@ -17,9 +18,14 @@ class UpdateAccountRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'email' => EmailAddress::rules($this->user()->id),
-        ];
+        $rules = EmailAddress::rules($this->user()->id);
+
+        // Abonné payant : l'adresse est obligatoire (rappels de séance), elle ne peut plus être retirée.
+        if (LessonReminders::follows($this->user())) {
+            $rules[0] = 'required';
+        }
+
+        return ['email' => $rules];
     }
 
     /**
@@ -27,6 +33,8 @@ class UpdateAccountRequest extends FormRequest
      */
     public function messages(): array
     {
-        return EmailAddress::messages();
+        return EmailAddress::messages() + [
+            'email.required' => 'Ajoutez votre adresse e-mail : elle est nécessaire pour recevoir vos rappels de séance.',
+        ];
     }
 }

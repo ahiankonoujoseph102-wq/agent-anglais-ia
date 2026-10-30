@@ -2716,6 +2716,50 @@ ui.interrupt.addEventListener('click', interruptTeacher);
 ui.pause.addEventListener('click', togglePause);
 ui.mute.addEventListener('click', toggleMute);
 ui.nudge.addEventListener('click', nudgeTeacher);
+
+/*
+ * Abonné payant sans adresse e-mail : il l'écrit sur l'écran de la séance, sans la quitter. Une fois enregistrée,
+ * le professeur est prévenu (il remercie en une phrase, puis continue). Sans JavaScript : envoi normal du formulaire.
+ */
+const emailForm = document.getElementById('email-ask-form');
+
+if (emailForm) {
+    emailForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = emailForm.querySelector('button[type="submit"]');
+        const error = document.getElementById('email-ask-error');
+        const input = emailForm.querySelector('input[name="email"]');
+        error.hidden = true;
+        button.disabled = true;
+
+        try {
+            const response = await fetch(emailForm.action, {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': emailForm.querySelector('input[name="_token"]')?.value ?? '' },
+                body: new FormData(emailForm),
+                credentials: 'same-origin',
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                error.textContent = data.errors?.email?.[0] ?? 'Enregistrement impossible pour le moment. Réessayez dans un instant.';
+                error.hidden = false;
+                input?.focus();
+
+                return;
+            }
+
+            emailForm.hidden = true;
+            document.getElementById('email-ask-done').hidden = false;
+            sendText(state.config?.cues?.email_saved);
+        } catch {
+            error.textContent = 'Connexion impossible. Vérifiez votre connexion internet, puis réessayez.';
+            error.hidden = false;
+        } finally {
+            button.disabled = false;
+        }
+    });
+}
 ui.micSelect.addEventListener('change', () => switchMicrophone(ui.micSelect.value));
 // « Terminer » avant la fin : fenêtre de confirmation intégrée (public/js/app.js), jamais de fenêtre du navigateur.
 ui.stop.addEventListener('click', async () => {

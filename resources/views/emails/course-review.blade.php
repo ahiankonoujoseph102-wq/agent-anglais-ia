@@ -25,7 +25,7 @@
                 <p style="margin:0 0 12px;font-size:16px;line-height:1.5;">Votre document de révision de la séance du {{ $date }}, sur « {{ $lessonTitle }} », est prêt : vous le trouverez en pièce jointe.</p>
                 <p style="margin:0 0 20px;font-size:16px;line-height:1.5;">Relisez-le, dites les exemples à voix haute, puis refaites l'exercice de la fin seul, avant de regarder les solutions.</p>
                 <a href="{{ $url }}" style="display:block;text-align:center;background:#FF7A1A;color:#0E2A5C;text-decoration:none;font-weight:bold;font-size:17px;padding:14px 18px;border-radius:12px;">Ouvrir Mes cours</a>
-                <p style="margin:20px 0 0;font-size:13px;line-height:1.5;color:#51607F;">Document personnel de révision, préparé par {{ $teacher }}. Vous recevez cet e-mail parce que votre adresse est enregistrée dans « Mon compte » ; vous pouvez l'y retirer à tout moment.@if (filled($whatsapp)) Une question : WhatsApp {{ $whatsapp }}.@endif</p>
+                <p style="margin:20px 0 0;font-size:13px;line-height:1.5;color:#51607F;">Document personnel de révision, préparé par {{ $teacher }}. Vous recevez cet e-mail parce que votre adresse est enregistrée dans « Mon compte » ; vous pouvez l'y changer à tout moment.@if (filled($whatsapp)) Une question : WhatsApp {{ $whatsapp }}.@endif</p>
             </td></tr>
         </table>
     </td></tr>
