@@ -37,7 +37,7 @@ class SpeechPaceTest extends TestCase
 
         Http::assertSent(fn (Request $request) => str_ends_with($request->url(), '/audio/speech')
             && $request['speed'] === 0.95
-            && str_contains($request['instructions'], 'speaking French clearly and calmly, never fast')
+            && str_contains($request['instructions'], 'clearly and naturally, never fast')
             && str_contains($request['instructions'], 'the few English words are pronounced slowly and clearly'));
     }
 
@@ -52,10 +52,10 @@ class SpeechPaceTest extends TestCase
         $this->assertSame('', (new OpenAiSpeech)->settings());
     }
 
-    public function test_both_message_styles_are_calm_and_never_fast(): void
+    public function test_both_message_styles_are_never_fast(): void
     {
         foreach (['teacher.welcome.style', 'teacher.level_messages.style'] as $key) {
-            $this->assertStringContainsString('clearly and calmly, never fast', (string) config($key), $key);
+            $this->assertStringContainsString('never fast', (string) config($key), $key);
             $this->assertStringNotContainsString('natural pace', (string) config($key), $key);
         }
     }

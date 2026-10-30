@@ -33,7 +33,7 @@ class TeacherRoseAssessmentTest extends TestCase
     {
         $this->actingAs(User::factory()->create())->get('/evaluation')->assertOk()
             ->assertSee('Avec <strong>Teacher Joe</strong>', false)
-            ->assertSee('href="'.route('assessment.show', ['professeur' => 'rose']).'">Préférer Teacher Rose</a>', false)
+            ->assertSee('href="'.route('assessment.show', ['professeur' => 'rose']).'" data-busy-label="Teacher Rose arrive…">Préférer Teacher Rose</a>', false)
             ->assertSee('5 minutes à l\'oral avec Teacher Joe, pour trouver votre niveau.')
             ->assertSee('data-teacher-name="Teacher Joe"', false)
             ->assertSee('"connect":"'.str_replace('/', '\/', route('assessment.connect')).'"', false);

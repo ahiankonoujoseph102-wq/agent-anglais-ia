@@ -194,7 +194,8 @@ return [
     // à la main, jamais un nombre de leçons, aucune fonction qui n'existe pas. Changer un texte change le
     // nom de son fichier audio : l'ancien n'est plus jamais joué (préparer le nouveau dans « Diagnostic de la voix »).
     'welcome' => [
-        'style' => 'a warm, joyful and professional male teacher welcoming a new learner, speaking French clearly and calmly, never fast, with a short pause between sentences and a smile in the voice; the few English words are pronounced slowly and clearly',
+        // Ton enjoué (octobre 2026 : le fondateur trouvait les messages plats) ; changer ce texte refait les fichiers.
+        'style' => 'an enthusiastic, joyful and warm male teacher celebrating a new learner who has just joined, with real energy, a big smile in the voice and a bright, strong voice, like a happy coach announcing great news; French spoken clearly and naturally, never fast, with a short pause between sentences; the few English words are pronounced slowly and clearly',
         // Ouverture propre à l'apprenant : :greeting (Bonjour ou Bonsoir), :english (Good morning ou Good evening), :name (prénom).
         'opening' => ':greeting :name ! :english, :name !',
         'paragraphs' => [

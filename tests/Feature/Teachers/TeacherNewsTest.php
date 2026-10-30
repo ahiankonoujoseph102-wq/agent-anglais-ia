@@ -58,7 +58,7 @@ class TeacherNewsTest extends TestCase
         $this->assertLessThan(strpos($html, 'id="next-step-title"'), strpos($html, 'teacher-news-rose'));
 
         // Un seul bouton orange : celui de la prochaine étape ; l'essai est en contour.
-        $this->assertStringContainsString('class="btn btn-outline">Essayer avec elle', $html);
+        $this->assertStringContainsString('class="btn btn-outline" data-busy-label="Teacher Rose arrive…">Essayer avec elle', $html);
 
         $this->actingAs($user)->post(route('teacher.choose'), ['teacher' => 'rose'])->assertRedirect();
         $this->assertSame('rose', Teachers::forUser($user->fresh())->key);

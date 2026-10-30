@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\Avatar;
 use App\Support\Gemini\WelcomeMessage;
 use App\Support\Greeting;
+use App\Support\Speech\LightAudio;
 use App\Support\Speech\SpeechProvider;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Teachers\Teacher;
@@ -48,15 +49,25 @@ class WelcomeController extends Controller
         $message = WelcomeMessage::message($texts);
         $files = $message->files();
         $provider = $message->provider($files);
+        $openingReady = $provider !== null && WelcomeMessage::openingReady($texts, $provider);
+
+        // Salutation au prénom pas encore gardée (autre moment de la journée, autre professeur) : préparée APRÈS
+        // cette réponse ; la page la redemande quelques fois et, si elle n'est pas là au toucher, commence sans elle.
+        if ($provider !== null && ! $openingReady) {
+            WelcomeMessage::queueOpeningFor($user, $texts['period'], $texts['teacher']);
+        }
+
         $pieces = [];
 
         for ($index = 0, $count = WelcomeMessage::count($texts); $index < $count; $index++) {
             $text = WelcomeMessage::piece($texts, $index);
             $pieces[] = [
                 'text' => $text,
-                'url' => route('welcome.audio', ['index' => $index, 'salut' => $texts['period'], 'voix' => $provider?->name()]),
-                // La salutation est générée à l'écoute ; un paragraphe pas encore préparé chez ce fournisseur reste en texte.
-                'ready' => $provider !== null && ($index === 0 || isset($files[WelcomeMessage::path($text, $provider)])),
+                // Toujours « déjà prêt seulement » : la page n'attend jamais une synthèse vocale.
+                'url' => route('welcome.audio', ['index' => $index, 'salut' => $texts['period'], 'voix' => $provider?->name(), 'pret' => 1]),
+                // Un paragraphe pas encore préparé chez ce fournisseur reste en texte ; la salutation peut arriver ensuite.
+                'ready' => $provider !== null && ($index === 0 ? $openingReady : isset($files[WelcomeMessage::path($text, $provider)])),
+                'soon' => $index === 0 && $provider !== null && ! $openingReady,
             ];
         }
 
@@ -69,6 +80,7 @@ class WelcomeController extends Controller
 
         return view('welcome.show', [
             'firstName' => $texts['first_name'],
+            'firstVisit' => ! $request->boolean('reecouter'),
             'planName' => $texts['plan'],
             'pieces' => $pieces,
             'next' => $next,
@@ -109,6 +121,18 @@ class WelcomeController extends Controller
         $wav = $this->sampleWav($request->user(), $choice);
         abort_if($wav === null, 404);
 
+        return self::wavResponse($wav, $request->boolean('leger'));
+    }
+
+    /**
+     * Réponse audio ; « leger » : version µ-law, deux fois plus petite, pour le préchargement (LightAudio).
+     */
+    private static function wavResponse(string $wav, bool $light): Response
+    {
+        if ($light) {
+            $wav = LightAudio::mulaw($wav) ?? $wav;
+        }
+
         return response($wav, 200, [
             'Content-Type' => 'audio/wav',
             'Content-Length' => (string) strlen($wav),
@@ -144,16 +168,13 @@ class WelcomeController extends Controller
             ? SpeechProviders::find((string) $request->query('voix'), $texts['teacher'])
             : WelcomeMessage::providerFor($texts);
 
-        $wav = $provider !== null ? $messages->get($text, $provider, $index === 0) : null;
+        // « pret » : jamais de synthèse pendant l'écoute (la salutation se prépare à part, voir show()).
+        $wav = $provider !== null ? $messages->get($text, $provider, $index === 0, readyOnly: $request->boolean('pret')) : null;
 
         if ($wav === null) {
             return response('Message vocal indisponible.', 503, ['Retry-After' => WelcomeMessage::RETRY_AFTER]);
         }
 
-        return response($wav, 200, [
-            'Content-Type' => 'audio/wav',
-            'Content-Length' => (string) strlen($wav),
-            'Cache-Control' => 'private, max-age=3600',
-        ]);
+        return self::wavResponse($wav, $request->boolean('leger'));
     }
 }

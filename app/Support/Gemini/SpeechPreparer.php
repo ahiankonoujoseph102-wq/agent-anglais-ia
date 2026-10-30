@@ -5,9 +5,11 @@ namespace App\Support\Gemini;
 use App\Support\PrivateStorage;
 use App\Support\Speech\Loudness;
 use App\Support\Speech\SpeechFiles;
+use App\Support\Speech\SpeechLoudness;
 use App\Support\Speech\SpeechProvider;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\VoiceMessage;
+use App\Support\Videos\VoiceSplitter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Sleep;
@@ -136,7 +138,13 @@ class SpeechPreparer
 
                 $failedHere = false;
 
-                foreach ($message->missing($provider, $files) as $piece) {
+                // Plusieurs paragraphes par demande (recoupés au silence) : un message entier en deux ou trois demandes.
+                $missing = $message->missing($provider, $files);
+                $groups = VoiceSplitter::groups(array_map(fn (array $piece) => $piece['text'], $missing), (int) config('platform.speech.group_characters', 1200));
+
+                foreach ($groups as $group) {
+                    $pieces = array_map(fn (int $index) => $missing[$index], $group);
+                    $piece = ['label' => $pieces[0]['label'].(count($pieces) > 1 ? ' et '.(count($pieces) - 1).' autre(s)' : '')];
                     $attempt = 0;
                     $retryAfter = null;
 
@@ -147,7 +155,9 @@ class SpeechPreparer
                             $wait = max($wait, $delays[$attempt - 1], $retryAfter ?? 0);
                         }
 
-                        $timeout = (int) min((int) config('services.gemini.tts_timeout'), floor($remaining() - $wait));
+                        // Une demande groupée est plus longue à dire : délai des vidéos.
+                        $limit = count($pieces) > 1 ? max((int) config('services.gemini.tts_timeout'), (int) config('videos.voice.timeout')) : (int) config('services.gemini.tts_timeout');
+                        $timeout = (int) min($limit, floor($remaining() - $wait));
 
                         if ($timeout < self::MIN_REQUEST_SECONDS) {
                             $stopped = 'budget';
@@ -161,9 +171,13 @@ class SpeechPreparer
                         $requested = true;
 
                         try {
-                            $message->prepare($piece, $provider, $timeout);
-                            $files[$message->path($piece['text'], $provider)] = true;
-                            $generated++;
+                            $message->prepareGroup($pieces, $provider, $timeout);
+
+                            foreach ($pieces as $done) {
+                                $files[$message->path($done['text'], $provider)] = true;
+                            }
+
+                            $generated += count($pieces);
                             $report("Prêt : {$piece['label']} ({$provider->label()}).");
                             break;
                         } catch (SpeechFailed $e) {
@@ -235,29 +249,47 @@ class SpeechPreparer
      * @param  array{generated: int, stopped: ?string, error: ?string, exhausted?: list<string>, keys?: list<string>, welcome: array{ready: int, total: int}, levels: array{ready: int, total: int}}  $result
      */
     /**
-     * Amène une fois les messages déjà gardés à la crête de Loudness (fichiers d'avant la normalisation).
+     * Amène une fois les messages déjà gardés à la sonie des vidéos (SpeechLoudness : −14 LUFS) : messages du résultat
+     * et salutations au prénom (les paragraphes de bienvenue d'avant le nouveau ton sont refaits, donc ignorés).
+     * Quelques secondes par fichier : s'arrête au bout de « $seconds » et reprend à la préparation suivante.
      */
-    public static function normalizeStoredFiles(): int
+    public static function normalizeStoredFiles(int $seconds = 40): int
     {
-        $key = 'speech-loudness:'.Loudness::targetDb();
+        $key = 'speech-lufs:'.SpeechLoudness::targetLufs().':'.Loudness::targetDb();
 
         if (Cache::get($key)) {
             return 0;
         }
 
         $disk = PrivateStorage::disk();
+        $started = microtime(true);
         $count = 0;
+        $done = 'speech-lufs-done:'.SpeechLoudness::targetLufs();
+        $finished = (array) Cache::get($done, []);
 
-        foreach (array_keys(SpeechFiles::index([WelcomeMessage::DIRECTORY, LevelMessage::DIRECTORY])) as $path) {
+        foreach (array_keys(SpeechFiles::index([LevelMessage::DIRECTORY, WelcomeMessage::DIRECTORY.'/'.WelcomeMessage::OPENINGS])) as $path) {
+            if (isset($finished[$path])) {
+                continue;
+            }
+
+            if (microtime(true) - $started > $seconds) {
+                Cache::put($done, $finished, now()->addDays(7));
+
+                return $count;
+            }
+
             $wav = (string) $disk->get($path);
-            $normalized = Loudness::normalize($wav);
+            $normalized = SpeechLoudness::normalize($wav);
 
             if ($normalized !== $wav) {
                 $disk->put($path, $normalized);
                 $count++;
             }
+
+            $finished[$path] = true;
         }
 
+        Cache::forget($done);
         Cache::forever($key, true);
 
         return $count;

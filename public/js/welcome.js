@@ -4,12 +4,83 @@
  * l'écran de conversation : teacher-view.js, teacher-3d.js, HeadAudio), des sous-titres, « Pause » et
  * « Passer ». À la fin, le bouton de la prochaine étape apparaît, la page y descend et lui donne le focus.
  *
- * Les morceaux sont demandés au serveur l'un après l'autre (le suivant se charge pendant que le précédent
- * est dit) : rien n'est lu avant le toucher, et aucun fichier vidéo n'est chargé. Un morceau indisponible
- * (salutation en échec, paragraphe pas encore préparé) est sauté : il reste écrit dans les sous-titres et la
- * suite est jouée ; le message d'erreur n'apparaît que si rien n'a pu être joué.
+ * Départ en moins d'une seconde : dès l'ouverture de la page, les premiers morceaux et la voix de chaque
+ * professeur sont téléchargés en version légère (µ-law, deux fois plus petite ; version complète si le
+ * navigateur ne la lit pas) et décodés d'avance ; rien n'est JOUÉ avant le toucher. Les suivants se chargent
+ * pendant que les premiers sont dits. Le serveur ne fait jamais de synthèse pendant l'écoute (« pret=1 ») : la
+ * salutation au prénom pas encore gardée se prépare à part, la page la redemande quelques fois et, si elle n'est
+ * pas là au toucher, le message commence au paragraphe suivant. Un morceau indisponible est sauté (il reste écrit
+ * dans les sous-titres) ; le message d'erreur n'apparaît que si rien n'a pu être joué.
  */
 const root = document.getElementById('welcome');
+
+/** Morceaux préchargés, au plus, avant le toucher (les suivants se chargent pendant la lecture). */
+const PRELOAD = 3;
+
+/** Salutation en préparation : redemandée toutes les 2,5 secondes, 10 fois au plus. */
+const SOON_TRIES = 10;
+const SOON_EVERY_MS = 2500;
+
+// Décodeur sans son (aucun toucher nécessaire) : les morceaux sont prêts à jouer avant le toucher.
+let decoder = null;
+
+try {
+    const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    decoder = Offline ? new Offline(1, 1, 24000) : null;
+} catch {
+    decoder = null;
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function withLight(url) {
+    const light = new URL(url, window.location.href);
+    light.searchParams.set('leger', '1');
+
+    return light.toString();
+}
+
+/**
+ * Télécharge et décode un son : version légère d'abord, version complète si le navigateur ne la lit pas.
+ * Renvoie un AudioBuffer, ou null (pas prêt, réseau).
+ */
+async function fetchSound(url, context = decoder) {
+    for (const candidate of [withLight(url), url]) {
+        let data;
+
+        try {
+            const response = await fetch(candidate, { credentials: 'same-origin' });
+
+            if (!response.ok) {
+                return null;
+            }
+
+            data = await response.arrayBuffer();
+        } catch {
+            return null;
+        }
+
+        try {
+            return await decodeWith(context, data);
+        } catch {
+            // Version légère illisible ici : la version complète.
+        }
+    }
+
+    return null;
+}
+
+function decodeWith(context, data) {
+    if (!context) {
+        return Promise.reject(new Error('Aucun décodeur.'));
+    }
+
+    // Anciens Safari : decodeAudioData à fonctions de rappel seulement.
+    return new Promise((resolve, reject) => {
+        const result = context.decodeAudioData(data, resolve, reject);
+        result?.then?.(resolve, reject);
+    });
+}
 
 if (root) {
     run();
@@ -17,19 +88,65 @@ if (root) {
 }
 
 /**
- * « Sa voix » (choix du professeur) : court extrait de la voix de chaque professeur, un seul à la fois,
- * jamais avant un toucher. Un extrait illisible ne bloque rien (le bouton disparaît).
+ * « Sa voix » (choix du professeur) : court extrait de la voix de chaque professeur, préchargé dès l'ouverture,
+ * joué au toucher, un seul à la fois (un second toucher l'arrête). Un extrait illisible ne bloque rien.
  */
 function voiceSamples() {
-    let current = null;
+    const buttons = [...root.querySelectorAll('[data-voice-sample]')];
+    const sounds = new Map(buttons.map((button) => [button, fetchSound(button.dataset.voiceSample)]));
+    let context = null;
+    let playing = null;
 
-    for (const button of root.querySelectorAll('[data-voice-sample]')) {
-        button.addEventListener('click', () => {
-            current?.pause();
-            current = new Audio(button.dataset.voiceSample);
-            current.play().catch(() => { button.hidden = true; });
+    const stop = () => {
+        if (playing) {
+            try { playing.source.stop(); } catch { /* déjà fini */ }
+
+            playing.button.setAttribute('aria-pressed', 'false');
+            playing = null;
+        }
+    };
+
+    for (const button of buttons) {
+        button.setAttribute('aria-pressed', 'false');
+        button.addEventListener('click', async () => {
+            const again = playing?.button === button;
+            stop();
+
+            if (again) {
+                return;
+            }
+
+            // Contexte créé pendant le toucher (obligatoire pour le son), puis gardé.
+            if (!context) {
+                const Context = window.AudioContext || window.webkitAudioContext;
+                context = new Context({ latencyHint: 'interactive' });
+            }
+
+            context.resume?.().catch(() => {});
+            const buffer = await sounds.get(button);
+
+            if (!buffer) {
+                button.hidden = true;
+
+                return;
+            }
+
+            const source = context.createBufferSource();
+            source.buffer = buffer;
+            source.connect(context.destination);
+            source.onended = () => {
+                if (playing?.source === source) {
+                    stop();
+                }
+            };
+            source.start();
+            playing = { button, source };
+            button.setAttribute('aria-pressed', 'true');
         });
     }
+
+    // Le message principal coupe l'extrait en cours.
+    root.addEventListener('welcome:play', stop);
 }
 
 async function run() {
@@ -89,12 +206,29 @@ async function run() {
     ui.subtitles.replaceChildren(...sentences.map(({ paragraph }) => paragraph));
     ui.start.hidden = false;
 
+
     let graph = null;
     let finished = false;
     let skipped = false;
     let raf = 0;
     // Lecture : morceaux programmés (début et fin dans l'horloge audio), position du prochain, pause.
     const play = { timeline: [], cursor: 0, paused: false, pausedAt: 0 };
+
+    // Préchargement : un emplacement par morceau (promesse, son décodé, terminé).
+    let skippedOpening = false;
+    const slots = pieces.map(() => ({ promise: null, buffer: null, done: false }));
+
+    // L'un après l'autre, le premier d'abord (sur un réseau lent, le partage ralentirait le premier) ; la
+    // salutation en préparation n'est pas attendue.
+    (async () => {
+        for (let index = 0; index < Math.min(PRELOAD, pieces.length); index++) {
+            const loading = want(index);
+
+            if (!pieces[index].soon) {
+                await loading;
+            }
+        }
+    })();
 
     function showNext() {
         ui.next.classList.add('is-shown');
@@ -188,11 +322,14 @@ async function run() {
     });
 
     async function startPlayback() {
+        root.dispatchEvent(new CustomEvent('welcome:play'));
+
         // Le contexte est créé pendant le toucher (obligatoire pour que le son soit autorisé).
         const Context = window.AudioContext || window.webkitAudioContext;
-        const context = new Context({ latencyHint: 'playback' });
+        const context = new Context({ latencyHint: 'interactive' });
+        context.resume?.().catch(() => {});
 
-        // Voix → volume (LIVE_VOICE_GAIN) → limiteur → sortie. Le professeur 3D écoute la sortie
+        // Voix → volume (fichiers déjà à −14 LUFS) → limiteur → sortie. Le professeur 3D écoute la sortie
         // avant le petit retard ajouté au haut-parleur : sa bouche a le temps de se préparer.
         const boost = context.createGain();
         boost.gain.value = audioConfig.voice_gain;
@@ -215,31 +352,36 @@ async function run() {
 
         teacher?.expression('welcome');
 
-        // Chaque morceau : demandé au serveur, décodé, puis programmé à la suite du précédent.
-        play.cursor = context.currentTime + 0.1;
-        let pending = load(0);
+        // Ce qui est prêt part tout de suite : la salutation encore en préparation est sautée (elle reste écrite).
+        if (!slots[0].buffer && pieces[0].soon) {
+            skippedOpening = true;
+        }
+
+        play.cursor = context.currentTime + 0.03;
         let missing = 0;
 
         for (let index = 0; index < pieces.length; index++) {
-            const buffer = await pending;
+            // Le morceau suivant se charge pendant que celui-ci est dit.
+            want(index + 1);
+            const buffer = index === 0 && skippedOpening ? null : await want(index);
 
             if (finished) {
                 return;
             }
 
-            // Le morceau suivant se charge pendant que celui-ci est dit.
-            pending = index + 1 < pieces.length ? load(index + 1) : null;
-
             if (buffer === null) {
                 // Morceau indisponible : il reste écrit, la suite est jouée.
-                missing++;
+                if (index > 0 || !skippedOpening) {
+                    missing++;
+                }
+
                 sentences[index].paragraph.classList.add('is-text-only');
                 continue;
             }
 
             ui.status.hidden = true;
             // En pause, le temps est figé : le morceau attend la reprise.
-            const earliest = play.paused ? play.pausedAt : context.currentTime + 0.05;
+            const earliest = play.paused ? play.pausedAt : context.currentTime + 0.03;
             const start = Math.max(play.cursor, earliest);
             const item = { index, buffer, start, end: start + buffer.duration, last: false, source: null };
             play.timeline.push(item);
@@ -310,23 +452,56 @@ async function run() {
         item.source = null;
     }
 
-    async function load(index) {
-        // Paragraphe pas encore préparé : aucune demande, il reste en texte.
-        if (pieces[index].ready === false) {
-            return null;
+    /**
+     * Le son décodé d'un morceau (promesse partagée : un seul téléchargement). Paragraphe pas encore préparé :
+     * null, sans demande. Salutation en préparation (« soon ») : redemandée quelques fois, tant qu'elle peut
+     * encore servir (avant le toucher).
+     */
+    function want(index) {
+        if (index >= pieces.length) {
+            return Promise.resolve(null);
         }
 
-        try {
-            const response = await fetch(pieces[index].url, { credentials: 'same-origin' });
+        const slot = slots[index];
 
-            if (!response.ok) {
+        if (slot.promise) {
+            return slot.promise;
+        }
+
+        const piece = pieces[index];
+
+        slot.promise = (async () => {
+            if (!piece.ready && !piece.soon) {
                 return null;
             }
 
-            return await graph.context.decodeAudioData(await response.arrayBuffer());
-        } catch {
+            const tries = piece.ready ? 1 : SOON_TRIES;
+
+            for (let attempt = 0; attempt < tries; attempt++) {
+                if (attempt > 0) {
+                    await sleep(SOON_EVERY_MS);
+                }
+
+                if (skippedOpening || finished) {
+                    return null;
+                }
+
+                const buffer = await fetchSound(piece.url);
+
+                if (buffer) {
+                    return buffer;
+                }
+            }
+
             return null;
-        }
+        })().then((buffer) => {
+            slot.buffer = buffer;
+            slot.done = true;
+
+            return buffer;
+        });
+
+        return slot.promise;
     }
 
     // Sous-titres : l'heure (dans l'horloge audio) de chaque phrase, répartie selon sa longueur.

@@ -24,7 +24,8 @@
                     @if ($teacher->key === $current->key)
                         <p class="teacher-choice-current"><x-icon name="check-circle" /> <strong>{{ $teacher->name() }}</strong> <span class="muted">Votre professeur</span></p>
                     @else
-                        <button type="submit" class="btn btn-outline btn-block">Choisir {{ $teacher->name() }}</button>
+                        {{-- Au toucher : « Teacher Rose arrive… » (le nom reste affiché), jamais le texte générique des envois. --}}
+                        <button type="submit" class="btn btn-outline btn-block" data-busy-label="{{ $teacher->name() }} arrive…">Choisir {{ $teacher->name() }}</button>
                     @endif
                 </form>
             @endforeach

@@ -6,6 +6,12 @@
 
 
 
+## Bienvenue professionnelle et rapide (30 octobre 2026, branche `claude/bienvenue-pro`)
+
+- **Fait** : voir CLAUDE.md, feuille de route, « Bienvenue professionnelle, chaleureuse et rapide ». Félicitations au prénom, fête de deux secondes, cartes des professeurs (nom jamais remplacé, « Teacher Rose arrive… » partout où l'on choisit un professeur), préchargement léger, salutation préparée après la réponse de la page, ton enjoué, −14 LUFS.
+- **Mesures locales** (Chromium, 360 × 640, faux fournisseur de voix ; la production n'est pas joignable d'ici) : salutation non gardée, fournisseur à 5 secondes : 5,4 secondes avant → 0,1 seconde après (elle est sautée si elle n'est pas prête, puis jouée aux écoutes suivantes) ; tout prêt, réseau mobile moyen : 0,9 à 1 seconde → 0,1 seconde.
+- **Après la mise en ligne** : le nouveau ton rend TOUS les paragraphes de bienvenue à refaire (24 pour les deux professeurs, en 10 demandes groupées) ; ils se refont tout seuls (déploiement, puis toutes les 10 minutes). Pendant ce temps, les parties pas encore refaites restent écrites. Au fondateur : « Diagnostic de la voix » → tableau des messages (prêts / manquants) ; s'il en manque, « Préparer le message de bienvenue », ou attendre le lendemain matin si la limite du jour de Gemini est atteinte (7 heures à Lomé).
+
 ## Grand chantier de qualité (30 octobre 2026) : étapes 1 à 3 tout de suite, étape 4 (refonte du site) APRÈS l'accord du fondateur sur l'audit
 
 - **Étape 1, Teacher Rose enseigne comme Teacher Joe (#158, fusionnée)** : voir CLAUDE.md, feuille de route. Ses consignes étaient déjà celles de Teacher Joe ; cause probable : la VOIX (Sulafat plus vive) et la phrase « gentle sense of humour ». Au fondateur : « Essai des voix » → Teacher Rose → « Écouter en séance » sur Sulafat, Zephyr, Achernar, Gacrux et Vindemiatrix (et sur la voix de Teacher Joe, onglet Teacher Joe), comparer les mots par seconde, choisir la plus lente qui lui plaît.

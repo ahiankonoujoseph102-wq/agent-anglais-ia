@@ -4,7 +4,7 @@ namespace App\Support\Gemini;
 
 use App\Support\PrivateStorage;
 use App\Support\Speech\GeminiSpeech;
-use App\Support\Speech\Loudness;
+use App\Support\Speech\SpeechLoudness;
 use App\Support\Speech\SpeechProvider;
 use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\SpeechUsage;
@@ -274,8 +274,8 @@ class VoiceSampler
      */
     public static function store(string $path, string $wav, string $label, ?SpeechProvider $provider = null): string
     {
-        // Même volume pour tous les messages : crête à −1 décibel.
-        $wav = Loudness::normalize($wav);
+        // Même volume pour tous les messages, celui des vidéos : −14 LUFS, crêtes sous −1 décibel.
+        $wav = SpeechLoudness::normalize($wav);
 
         try {
             $written = PrivateStorage::disk()->put($path, $wav);

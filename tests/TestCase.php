@@ -26,6 +26,10 @@ abstract class TestCase extends BaseTestCase
         // Fin trop tôt (LiveEarlyEnd) : vérifiée par tests/Feature/Live/EarlyEndTest.php seulement ; les autres tests
         // enregistrent un verdict ou un bilan sans attendre les minutes d'une vraie séance.
         config(['platform.live.refuse_early_end' => false]);
+
+        // Messages vocaux préparés un paragraphe par demande (le faux son des tests ne se recoupe pas) ; les demandes
+        // groupées sont vérifiées par tests/Feature/WelcomeFastTest.php avec un vrai WAV.
+        config(['platform.speech.group_characters' => 0]);
     }
 
     /**
