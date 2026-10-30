@@ -184,7 +184,7 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('ask ONE question at a time, then STOP and WAIT', $text);
         $this->assertStringContainsString('rephrase ONCE, more simply; still not: an easier question.', $text);
         $this->assertStringContainsString('never cut the learner off', $text);
-        $this->assertStringContainsString('Then your first very easy question, and STOP: wait.', $text);
+        $this->assertStringContainsString('at once, your first very easy question in English, and STOP: wait for the answer.', $text);
         $this->assertStringContainsString('A QUESTION ENDS YOUR TURN', $text);
         // Aucune question donnée mot pour mot : chacun a ses propres questions.
         $this->assertStringNotContainsString('What is your name?', $text);

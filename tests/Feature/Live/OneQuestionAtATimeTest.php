@@ -53,19 +53,38 @@ class OneQuestionAtATimeTest extends TestCase
         $this->assertStringContainsString('(3) Only then, in a new turn: today\'s topic', $lesson);
     }
 
-    public function test_the_assessment_welcomes_asks_for_questions_then_gives_the_instructions(): void
+    public function test_the_assessment_starts_at_once_reassures_then_asks_one_question(): void
     {
         foreach (['assessment', 'assessment_new'] as $key) {
             $text = (string) config("teacher.{$key}");
-            $this->assertStringContainsString('ONE thing per turn', $text, $key);
-            $this->assertStringContainsString('« Avez-vous des questions avant de commencer ? »', $text, $key);
-            $this->assertStringContainsString('« Je vais vous poser quelques questions en anglais pour trouver votre niveau.', $text, $key);
-            $this->assertLessThan(strpos($text, 'Je vais vous poser'), strpos($text, 'Avez-vous des questions avant de commencer'), $key);
+            $this->assertStringContainsString('WELCOME, in ONE short first turn', $text, $key);
+            $this->assertStringContainsString('« Votre évaluation orale gratuite de :minutes minutes commence maintenant. »', $text, $key);
+            $this->assertStringContainsString('dites-le-moi à tout moment, même en français : je suis là pour vous aider. »', $text, $key);
+            $this->assertStringContainsString('at once, your first very easy question in English', $text, $key);
+            // Plus jamais « Avez-vous des questions ? » avant que rien n'ait commencé.
+            $this->assertStringNotContainsString('Avez-vous des questions avant de commencer', $text, $key);
+            $this->assertStringContainsString('Never ask whether they have questions at the start', $text, $key);
+            $this->assertStringContainsString('If the learner asks a question at any moment of the assessment, answer it simply', $text, $key);
+            $this->assertLessThan(strpos($text, 'commence maintenant'), strpos($text, 'hello'), $key);
+            $this->assertLessThan(strpos($text, 'first very easy question'), strpos($text, 'je suis là pour vous aider'), $key);
         }
 
-        $this->assertStringContainsString('STOP and wait for the answer', TeacherSetup::cue('assessment_start'));
+        $setup = TeacherSetup::instructions('assessment', User::factory()->make(['name' => 'Afi Mensah']), 5);
+        $this->assertStringContainsString('« Votre évaluation orale gratuite de 5 minutes commence maintenant. »', $setup);
+
+        foreach (['assessment_start', 'assessment_start_new'] as $cue) {
+            $this->assertStringContainsString('announce in French that the assessment starts now', TeacherSetup::cue($cue));
+            $this->assertStringContainsString('STOP and wait for the answer', TeacherSetup::cue($cue));
+        }
         $this->assertStringContainsString('STOP: wait for the answer', TeacherSetup::cue('level_test_start'));
         $this->assertStringContainsString('STOP and wait for their answer', TeacherSetup::cue('course_start', ['minutes' => 10]));
+    }
+
+    public function test_the_daily_lesson_never_asks_for_questions_before_it_starts(): void
+    {
+        $lesson = (string) config('teacher.lesson');
+        $this->assertStringContainsString('Never ask whether they have questions before the lesson has started', $lesson);
+        $this->assertStringNotContainsString('Avez-vous des questions avant de commencer', TeacherSetup::cue('lesson_start', ['minutes' => 15]));
     }
 
     public function test_the_teacher_uses_the_first_name_and_never_a_role_name(): void

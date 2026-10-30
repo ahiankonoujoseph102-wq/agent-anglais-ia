@@ -6,6 +6,10 @@
 
 
 
+## Début de l'évaluation sans « Avez-vous des questions ? » (30 octobre 2026, branche `claude/debut-evaluation`)
+
+- **Fait** : voir CLAUDE.md, feuille de route, « Début de l'évaluation ». À vérifier par le fondateur avec un compte neuf (l'évaluation est unique par compte : « Réinitialiser l'évaluation » sur la fiche d'un inscrit de test).
+
 ## Suivi des élèves payants : rappels, séances manquées, e-mail (30 octobre 2026, branche `claude/suivi-eleves`)
 
 - **Accord du fondateur** (plan accepté) : rappel 30 minutes avant (e-mail et notification), 1 minute avant (notification), relance 2 heures après une séance manquée (une fois par jour) ; « manque souvent » = 3 jours de travail manqués sur les 7 derniers ; « vous » toujours (« J'ai constaté que vous ne suivez pas souvent votre programme. ») ; AUCUN SMS ni appel (payants : solutions et prix donnés au fondateur, à vérifier sur les sites avant tout accord) ; réserve d'e-mails Brevo pour les documents de révision, les alertes et les vidéos envoyées à amitalk62@gmail.com.
