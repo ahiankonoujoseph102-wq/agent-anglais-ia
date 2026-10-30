@@ -6,7 +6,8 @@
 //    sonie, limiteur : environ −14 LUFS), et écrit un MP4 vertical 1080 × 1920 (H.264 + AAC 128 kilobits par
 //    seconde, compatible TikTok et WhatsApp).
 // 3. Vérifie que la bouche a suivi la voix (lip-check.mjs) : sinon, la vidéo n'est PAS déposée (échec).
-// 4. Dépose la vidéo dans le bucket privé (adresse signée donnée par Talkami) et prévient Talkami (avec les mesures).
+// 4. Dépose la vidéo dans le bucket privé (adresse signée donnée par Talkami), puis sa version « e-mail » (légère,
+//    mail-version.mjs : jointe à l'e-mail envoyé au fondateur), et prévient Talkami (avec les mesures).
 //
 // Variables : TALKAMI_URL (adresse du site), TALKAMI_VIDEO_TOKEN (secret), VIDEO_COUNT (1 à 4), VIDEO_BUDGET_MINUTES (temps accordé), CHROME_PATH
 // (navigateur), VIDEO_PEEK=1 (dire seulement combien de vidéos attendent, sans rien prendre).
@@ -19,6 +20,7 @@ import { chromium } from 'playwright-core';
 import { join, resolve } from 'node:path';
 import { buildAss } from './subtitles.mjs';
 import { lipCheck } from './lip-check.mjs';
+import { makeMailVersion } from './mail-version.mjs';
 import { AUDIO_PRE, FONTS, audioDuration, audioFilter, gainFor, launch, measureLoudness, serve, soundFix, willFinish } from './common.mjs';
 
 export { gainFor, measureLoudness };
@@ -290,6 +292,29 @@ async function remote() {
 
                 if (!upload.ok) {
                     throw new Error(`dépôt refusé (${upload.status})`);
+                }
+
+                // Version « e-mail » : un échec ne bloque jamais la vidéo (l'e-mail partira avec le lien seulement).
+                if (job.mail?.upload) {
+                    try {
+                        const light = await makeMailVersion(job.mail, out, total, workdir);
+
+                        if (light) {
+                            const lightSize = (await stat(light)).size;
+                            const lightHeaders = { ...job.mail.upload.headers, 'Content-Length': String(lightSize) };
+
+                            if (!job.mail.upload.direct) {
+                                lightHeaders.Authorization = `Bearer ${token}`;
+                            }
+
+                            const sent = await fetch(job.mail.upload.url, { method: job.mail.upload.method, headers: lightHeaders, body: await readFile(light) });
+                            log(`vidéo ${job.id} : version e-mail de ${(lightSize / 1048576).toFixed(1)} mégaoctets ${sent.ok ? 'déposée' : `refusée (${sent.status})`}.`);
+                        } else {
+                            log(`vidéo ${job.id} : trop longue pour une version e-mail sous la limite ; l'e-mail aura le lien seulement.`);
+                        }
+                    } catch (error) {
+                        log(`vidéo ${job.id} : version e-mail impossible (${error.message}).`);
+                    }
                 }
 
                 await api(job.done_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ duration: total, lips_correlation: lips.correlation, lips_open: lips.open_speech, loudness_lufs: sound.lufs, true_peak_db: sound.peak }) });

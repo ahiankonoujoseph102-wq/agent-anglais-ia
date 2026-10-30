@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * Vidéo de leçon de Teacher Joe (App\Support\Videos\LessonVideos) : un sujet du programme des vidéos, son script,
  * sa voix (disque privé), puis la vidéo fabriquée par GitHub Actions. Un sujet n'est jamais traité deux fois.
  */
-#[Fillable(['kind', 'teacher', 'theme', 'items', 'topic_key', 'day', 'slot', 'level', 'title', 'status', 'script', 'caption', 'hashtags', 'text_provider', 'voice_provider', 'voice_name', 'timings', 'audio_path', 'video_path', 'duration_seconds', 'size_bytes', 'lips_correlation', 'lips_open', 'loudness_lufs', 'true_peak_db', 'attempts', 'next_attempt_at', 'error', 'render_started_at', 'ready_at', 'published_at'])]
+#[Fillable(['kind', 'teacher', 'theme', 'items', 'topic_key', 'day', 'slot', 'level', 'title', 'status', 'script', 'caption', 'hashtags', 'text_provider', 'voice_provider', 'voice_name', 'timings', 'audio_path', 'video_path', 'mail_path', 'mail_size_bytes', 'mail_status', 'mail_error', 'mail_attempts', 'next_mail_at', 'mailed_at', 'purged_at', 'duration_seconds', 'size_bytes', 'lips_correlation', 'lips_open', 'loudness_lufs', 'true_peak_db', 'attempts', 'next_attempt_at', 'error', 'render_started_at', 'ready_at', 'published_at'])]
 class LessonVideo extends Model
 {
     /** Vidéo de promotion (TikTok, chaîne WhatsApp). */
@@ -37,6 +37,13 @@ class LessonVideo extends Model
     public const READY = 'ready';
 
     public const FAILED = 'failed';
+
+    /** E-mail au fondateur : envoyé, en échec après tous les essais, ou non envoyé (vidéo d'avant l'envoi par e-mail). */
+    public const MAIL_SENT = 'sent';
+
+    public const MAIL_FAILED = 'failed';
+
+    public const MAIL_SKIPPED = 'skipped';
 
     public const LABELS = [
         self::PLANNED => 'Script à écrire',
@@ -69,6 +76,11 @@ class LessonVideo extends Model
             'render_started_at' => 'datetime',
             'ready_at' => 'datetime',
             'published_at' => 'datetime',
+            'mail_size_bytes' => 'integer',
+            'mail_attempts' => 'integer',
+            'next_mail_at' => 'datetime',
+            'mailed_at' => 'datetime',
+            'purged_at' => 'datetime',
         ];
     }
 
@@ -145,6 +157,12 @@ class LessonVideo extends Model
     public function voiceLabel(): string
     {
         return $this->isClub() ? 'Vidéo du Club des abonnés' : 'Vidéo de leçon';
+    }
+
+    /** Version « e-mail » (légère, en pièce jointe), fabriquée par GitHub à côté de la vidéo. */
+    public function mailPath(): string
+    {
+        return $this->folder().'/'.str($this->downloadName())->beforeLast('.mp4').'-email.mp4';
     }
 
     /** Nom du fichier proposé au téléchargement. */

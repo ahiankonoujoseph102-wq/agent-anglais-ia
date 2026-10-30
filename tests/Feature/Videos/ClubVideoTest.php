@@ -128,8 +128,8 @@ class ClubVideoTest extends TestCase
         $this->assertNull($club->ensureToday());
 
         // Les vidéos de promotion ne comptent pas la vidéo du Club.
-        $this->assertSame(2, app(LessonVideos::class)->planToday());
-        $this->assertSame(3, LessonVideo::query()->whereDate('day', today())->count());
+        $this->assertSame(1, app(LessonVideos::class)->planToday());
+        $this->assertSame(2, LessonVideo::query()->whereDate('day', today())->count());
 
         $themes = [];
 

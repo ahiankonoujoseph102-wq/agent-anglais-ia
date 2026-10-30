@@ -57,3 +57,6 @@ Schedule::command('learners:send-invitations')->hourly()->withoutOverlapping()->
 // minutes. La fabrication de l'image se fait sur GitHub Actions (.github/workflows/videos.yml).
 Schedule::command('videos:prepare --plan')->dailyAt('04:40')->withoutOverlapping(10)->onOneServer();
 Schedule::command('videos:prepare')->everyMinute()->withoutOverlapping(10)->onOneServer();
+
+// Vidéos de promotion et du Club prêtes : envoyées par e-mail au fondateur, puis retirées du stockage.
+Schedule::command('videos:mail')->everyMinute()->withoutOverlapping(10)->onOneServer();

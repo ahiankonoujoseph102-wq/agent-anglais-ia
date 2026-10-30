@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\LessonVideo;
 use App\Support\Gemini\SpeechFailed;
+use App\Support\MailQuota;
 use App\Support\PrivateStorage;
 use App\Support\Teachers\Teachers;
 use App\Support\Videos\ClubVideos;
@@ -13,6 +14,7 @@ use App\Support\Videos\OldAddress;
 use App\Support\Videos\PresentationVideos;
 use App\Support\Videos\ScreenCatalogue;
 use App\Support\Videos\VideoEnding;
+use App\Support\Videos\VideoMailer;
 use App\Support\Videos\VideoSettings;
 use App\Support\Videos\VideoTopics;
 use App\Support\Videos\VideoVoice;
@@ -50,6 +52,7 @@ class VideoController extends Controller
             'onlyClub' => false,
             'videos' => $videos,
             'remaining' => VideoTopics::remaining(),
+            'promoLevel' => VideoTopics::level(),
             'tokenConfigured' => filled(config('videos.token')),
             'voices' => collect(VideoVoice::providers())->map(fn ($provider) => $provider->label().' (voix « '.VideoVoice::voiceFor($provider).' »)')->all(),
             // Autres professeurs (un jour chacun) : leur propre voix, celle de leurs séances.
@@ -63,6 +66,10 @@ class VideoController extends Controller
             'redoable' => LessonVideo::query()->whereDate('day', today())->whereIn('status', [LessonVideo::READY, LessonVideo::FAILED])->count(),
             'reminder' => (string) config('videos.ai_label_reminder'),
             'perDay' => VideoSettings::perDay(),
+            'keepDays' => VideoSettings::keepDays(),
+            'keepDaysChoices' => VideoSettings::keepDaysChoices(),
+            'mailTo' => VideoMailer::maskedRecipient(),
+            'mailReady' => MailQuota::configured(),
             'perDayChoices' => VideoSettings::perDayChoices(),
             'presentations' => $presentations->all(),
             'catalogue' => app(ScreenCatalogue::class)->last(),
@@ -131,6 +138,26 @@ class VideoController extends Controller
 
         return redirect()->to(route('admin.videos.index').'#videos-par-jour')
             ->with('status', "Vidéos de promotion par jour : {$count}. Pris en compte dès la préparation de demain matin.");
+    }
+
+    /** « Garder la pleine qualité » : jours avant l'effacement d'une vidéo envoyée par e-mail (0 : tout de suite). */
+    public function updateKeepDays(Request $request): RedirectResponse
+    {
+        $days = (int) $request->validate(['keep_days' => ['required', 'integer', 'in:'.implode(',', VideoSettings::keepDaysChoices())]])['keep_days'];
+        VideoSettings::saveKeepDays($days);
+
+        return redirect()->to(route('admin.videos.index').'#videos-email')
+            ->with('status', $days === 0 ? 'Chaque vidéo sera effacée du stockage dès son e-mail parti.' : "Chaque vidéo restera {$days} jour".($days > 1 ? 's' : '').' dans le stockage après son e-mail, puis sera effacée.');
+    }
+
+    /** « Renvoyer l'e-mail » d'une vidéo dont l'envoi a échoué (seulement si ses fichiers sont encore là). */
+    public function resendMail(LessonVideo $video, VideoMailer $mailer): RedirectResponse
+    {
+        $anchor = ($video->isClub() ? '#club-' : '#video-').$video->id;
+
+        return redirect()->to(route('admin.videos.index').$anchor)->with('status', $mailer->retry($video)
+            ? 'L\'e-mail de cette vidéo repart dans la minute.'
+            : 'Cette vidéo ne peut plus être envoyée : elle n\'est plus dans le stockage.');
     }
 
     /** Extrait de l'essai comparatif : préparé au premier toucher, puis gardé. */

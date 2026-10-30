@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\AdminAlert;
 use App\Models\CourseReview;
 use App\Models\LearnerInvitation;
+use App\Models\LessonVideo;
 
 /**
  * Limite d'envoi d'e-mails du jour (offre gratuite de Brevo : mail.daily_limit, 300 par jour), UN seul compteur pour
@@ -48,9 +49,21 @@ class MailQuota
         return AdminAlert::query()->where('channel', 'mail')->where('created_at', '>=', today())->count();
     }
 
+    /** Vidéos envoyées par e-mail au fondateur aujourd'hui (videos:mail). */
+    public static function videosToday(): int
+    {
+        return LessonVideo::query()->where('mail_status', LessonVideo::MAIL_SENT)->where('mailed_at', '>=', today())->count();
+    }
+
     public static function usedToday(): int
     {
-        return self::reviewsToday() + self::invitationsToday() + self::alertsToday();
+        return self::reviewsToday() + self::invitationsToday() + self::alertsToday() + self::videosToday();
+    }
+
+    /** Une vidéo peut-elle encore partir par e-mail aujourd'hui (10 e-mails toujours gardés pour les alertes) ? */
+    public static function allowsVideo(): bool
+    {
+        return self::usedToday() < self::limit() - 10;
     }
 
     public static function limit(): int

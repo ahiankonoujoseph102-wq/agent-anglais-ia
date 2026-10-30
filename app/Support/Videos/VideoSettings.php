@@ -19,6 +19,8 @@ class VideoSettings
 
     public const PER_DAY = 'videos.per_day';
 
+    public const KEEP_DAYS = 'videos.mail_keep_days';
+
     /** Adresse du site des vidéos (« talkami.net »), ou null : la fabrication est alors bloquée. */
     public static function site(): ?string
     {
@@ -96,6 +98,28 @@ class VideoSettings
     public static function savePerDay(int $count): void
     {
         Setting::put(self::PER_DAY, (string) $count);
+    }
+
+    /**
+     * Jours pendant lesquels la vidéo en pleine qualité reste dans le stockage après l'e-mail (lien de l'e-mail) :
+     * réglage de la page « Vidéos » (0 : effacée dès l'e-mail parti), sinon la configuration.
+     */
+    public static function keepDays(): int
+    {
+        $saved = self::read(self::KEEP_DAYS);
+
+        return $saved !== null && in_array((int) $saved, self::keepDaysChoices(), true) ? (int) $saved : (int) config('videos.mail.keep_days');
+    }
+
+    /** @return list<int> */
+    public static function keepDaysChoices(): array
+    {
+        return array_map('intval', (array) config('videos.mail.keep_days_choices', [0, 1, 3, 7]));
+    }
+
+    public static function saveKeepDays(int $days): void
+    {
+        Setting::put(self::KEEP_DAYS, (string) $days);
     }
 
     /** Nom du professeur en filigrane (VIDEO_WATERMARK, sinon le nom du professeur de la vidéo, Teacher Joe par défaut). */

@@ -57,8 +57,10 @@ class VideoJobController extends Controller
             return response()->json(['message' => 'Vidéo vide ou trop lourde.'], 413);
         }
 
+        // « version=email » : la version légère jointe à l'e-mail au fondateur.
+        $path = $request->query('version') === 'email' ? $video->mailPath() : LessonVideos::videoPath($video);
         $stream = $request->getContent(true);
-        PrivateStorage::disk()->writeStream(LessonVideos::videoPath($video), $stream);
+        PrivateStorage::disk()->writeStream($path, $stream);
 
         return response()->json(['stored' => true]);
     }
