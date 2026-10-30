@@ -1,0 +1,473 @@
+{
+ "fichier_source": "voix off du fondateur (Google Drive)",
+ "duree_totale_secondes": 30.85,
+ "methode": "Reconnaissance vocale (faster-whisper, modèle small) pour les temps des mots, puis détection des silences (ffmpeg silencedetect, -35 dB) pour les limites des phrases ; texte des phrases = texte fourni (la reconnaissance écrit « Tolcamy » et « Tita Joe »).",
+ "phrases": [
+  {
+   "numero": 1,
+   "debut": 1.72,
+   "fin": 5.9,
+   "duree": 4.18,
+   "texte": "L'anglais vous bloque ? Vous le comprenez… mais vous n'osez pas le parler ?"
+  },
+  {
+   "numero": 2,
+   "debut": 6.63,
+   "fin": 14.23,
+   "duree": 7.6,
+   "texte": "Avec Talkami, vous parlez anglais avec Teacher Joe ou Teacher Rose, directement depuis votre téléphone. Même si vous partez de zéro."
+  },
+  {
+   "numero": 3,
+   "debut": 14.55,
+   "fin": 19.63,
+   "duree": 5.08,
+   "texte": "Ils vous écoutent, corrigent vos erreurs avec douceur, et vous expliquent en français quand vous bloquez."
+  },
+  {
+   "numero": 4,
+   "debut": 19.9,
+   "fin": 22.4,
+   "duree": 2.5,
+   "texte": "Commencez par une évaluation orale gratuite."
+  },
+  {
+   "numero": 5,
+   "debut": 22.77,
+   "fin": 28.53,
+   "duree": 5.76,
+   "texte": "Talkami : l'anglais, enfin, vous allez oser le parler. Rendez-vous sur talkami point net."
+  }
+ ],
+ "reperes": [
+  {
+   "temps": 2.08,
+   "mot": "anglais"
+  },
+  {
+   "temps": 6.86,
+   "mot": "Talkami (1re fois)"
+  },
+  {
+   "temps": 8.68,
+   "mot": "Teacher Joe"
+  },
+  {
+   "temps": 9.54,
+   "mot": "Teacher Rose"
+  },
+  {
+   "temps": 11.5,
+   "mot": "téléphone"
+  },
+  {
+   "temps": 13.3,
+   "mot": "partez de zéro"
+  },
+  {
+   "temps": 14.76,
+   "mot": "écoutent"
+  },
+  {
+   "temps": 15.46,
+   "mot": "corrigent"
+  },
+  {
+   "temps": 16.46,
+   "mot": "douceur"
+  },
+  {
+   "temps": 18.12,
+   "mot": "français"
+  },
+  {
+   "temps": 20.02,
+   "mot": "Commencez"
+  },
+  {
+   "temps": 20.92,
+   "mot": "évaluation"
+  },
+  {
+   "temps": 21.72,
+   "mot": "gratuite"
+  },
+  {
+   "temps": 22.88,
+   "mot": "Talkami (2e fois)"
+  },
+  {
+   "temps": 24.2,
+   "mot": "enfin"
+  },
+  {
+   "temps": 25.38,
+   "mot": "oser"
+  },
+  {
+   "temps": 26.8,
+   "mot": "Rendez-vous"
+  },
+  {
+   "temps": 27.42,
+   "mot": "talkami point net"
+  }
+ ],
+ "mots_reconnus": [
+  {
+   "w": "L",
+   "s": 1.54,
+   "e": 2.08
+  },
+  {
+   "w": "'anglais",
+   "s": 2.08,
+   "e": 2.34
+  },
+  {
+   "w": "vous",
+   "s": 2.34,
+   "e": 2.54
+  },
+  {
+   "w": "bloque.",
+   "s": 2.54,
+   "e": 2.78
+  },
+  {
+   "w": "Vous",
+   "s": 3.56,
+   "e": 3.82
+  },
+  {
+   "w": "le",
+   "s": 3.82,
+   "e": 3.96
+  },
+  {
+   "w": "comprenez",
+   "s": 3.96,
+   "e": 4.4
+  },
+  {
+   "w": "mais",
+   "s": 4.4,
+   "e": 4.62
+  },
+  {
+   "w": "vous",
+   "s": 4.62,
+   "e": 4.78
+  },
+  {
+   "w": "n",
+   "s": 4.78,
+   "e": 5.02
+  },
+  {
+   "w": "'osez",
+   "s": 5.02,
+   "e": 5.12
+  },
+  {
+   "w": "pas",
+   "s": 5.12,
+   "e": 5.24
+  },
+  {
+   "w": "le",
+   "s": 5.24,
+   "e": 5.38
+  },
+  {
+   "w": "parler.",
+   "s": 5.38,
+   "e": 5.64
+  },
+  {
+   "w": "Avec",
+   "s": 6.58,
+   "e": 6.86
+  },
+  {
+   "w": "Tolcamy",
+   "s": 6.86,
+   "e": 7.4
+  },
+  {
+   "w": "vous",
+   "s": 7.4,
+   "e": 7.7
+  },
+  {
+   "w": "parlez",
+   "s": 7.7,
+   "e": 8.1
+  },
+  {
+   "w": "anglais",
+   "s": 8.1,
+   "e": 8.44
+  },
+  {
+   "w": "avec",
+   "s": 8.44,
+   "e": 8.68
+  },
+  {
+   "w": "Tita",
+   "s": 8.68,
+   "e": 9.02
+  },
+  {
+   "w": "Joe",
+   "s": 9.02,
+   "e": 9.28
+  },
+  {
+   "w": "ou",
+   "s": 9.28,
+   "e": 9.54
+  },
+  {
+   "w": "Tita",
+   "s": 9.54,
+   "e": 9.76
+  },
+  {
+   "w": "Rose,",
+   "s": 9.76,
+   "e": 10.06
+  },
+  {
+   "w": "directement",
+   "s": 10.36,
+   "e": 10.94
+  },
+  {
+   "w": "depuis",
+   "s": 10.94,
+   "e": 11.5
+  },
+  {
+   "w": "vos",
+   "s": 11.5,
+   "e": 11.8
+  },
+  {
+   "w": "téléphones,",
+   "s": 11.8,
+   "e": 12.24
+  },
+  {
+   "w": "même",
+   "s": 12.7,
+   "e": 12.96
+  },
+  {
+   "w": "si",
+   "s": 12.96,
+   "e": 13.16
+  },
+  {
+   "w": "vous",
+   "s": 13.16,
+   "e": 13.3
+  },
+  {
+   "w": "partez",
+   "s": 13.3,
+   "e": 13.66
+  },
+  {
+   "w": "de",
+   "s": 13.66,
+   "e": 13.78
+  },
+  {
+   "w": "zéro.",
+   "s": 13.78,
+   "e": 14.08
+  },
+  {
+   "w": "Il",
+   "s": 14.08,
+   "e": 14.76
+  },
+  {
+   "w": "vous",
+   "s": 14.76,
+   "e": 14.94
+  },
+  {
+   "w": "écoute,",
+   "s": 14.94,
+   "e": 15.32
+  },
+  {
+   "w": "corrige",
+   "s": 15.46,
+   "e": 15.7
+  },
+  {
+   "w": "vos",
+   "s": 15.7,
+   "e": 15.88
+  },
+  {
+   "w": "erreurs",
+   "s": 15.88,
+   "e": 16.28
+  },
+  {
+   "w": "avec",
+   "s": 16.28,
+   "e": 16.46
+  },
+  {
+   "w": "douceur",
+   "s": 16.46,
+   "e": 17.08
+  },
+  {
+   "w": "et",
+   "s": 17.08,
+   "e": 17.44
+  },
+  {
+   "w": "vous",
+   "s": 17.44,
+   "e": 17.58
+  },
+  {
+   "w": "expliquez",
+   "s": 17.58,
+   "e": 18.02
+  },
+  {
+   "w": "en",
+   "s": 18.02,
+   "e": 18.12
+  },
+  {
+   "w": "français",
+   "s": 18.12,
+   "e": 18.52
+  },
+  {
+   "w": "quand",
+   "s": 18.52,
+   "e": 19.0
+  },
+  {
+   "w": "vous",
+   "s": 19.0,
+   "e": 19.16
+  },
+  {
+   "w": "bloquez.",
+   "s": 19.16,
+   "e": 19.52
+  },
+  {
+   "w": "Commencez",
+   "s": 20.02,
+   "e": 20.58
+  },
+  {
+   "w": "par",
+   "s": 20.58,
+   "e": 20.7
+  },
+  {
+   "w": "une",
+   "s": 20.7,
+   "e": 20.92
+  },
+  {
+   "w": "évaluation",
+   "s": 20.92,
+   "e": 21.34
+  },
+  {
+   "w": "oral",
+   "s": 21.34,
+   "e": 21.72
+  },
+  {
+   "w": "gratuite.",
+   "s": 21.72,
+   "e": 22.3
+  },
+  {
+   "w": "Tolcamy,",
+   "s": 22.88,
+   "e": 23.38
+  },
+  {
+   "w": "l",
+   "s": 23.72,
+   "e": 23.88
+  },
+  {
+   "w": "'anglais",
+   "s": 23.88,
+   "e": 24.2
+  },
+  {
+   "w": "enfin",
+   "s": 24.2,
+   "e": 24.7
+  },
+  {
+   "w": "vous",
+   "s": 24.7,
+   "e": 25.1
+  },
+  {
+   "w": "allez",
+   "s": 25.1,
+   "e": 25.38
+  },
+  {
+   "w": "oser",
+   "s": 25.38,
+   "e": 25.86
+  },
+  {
+   "w": "le",
+   "s": 25.86,
+   "e": 25.98
+  },
+  {
+   "w": "parler.",
+   "s": 25.98,
+   "e": 26.28
+  },
+  {
+   "w": "Rendez",
+   "s": 26.8,
+   "e": 27.14
+  },
+  {
+   "w": "-vous",
+   "s": 27.14,
+   "e": 27.24
+  },
+  {
+   "w": "sur",
+   "s": 27.24,
+   "e": 27.42
+  },
+  {
+   "w": "Tolcamy",
+   "s": 27.42,
+   "e": 27.96
+  },
+  {
+   "w": ".net",
+   "s": 27.96,
+   "e": 28.38
+  }
+ ]
+}

@@ -1,0 +1,738 @@
+[
+ {
+  "name": "joe-sourire",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 4,
+  "scene": "classroom",
+  "transparent": false,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-joe.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.3,
+   "voice_hz": 130
+  },
+  "camera": {
+   "target": [
+    0,
+    0.63,
+    0
+   ],
+   "half_height": 0.42,
+   "half_width": 0.33,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.4,
+    "do": "expression",
+    "name": "happy"
+   }
+  ],
+  "seed": 1
+ },
+ {
+  "name": "joe-salut",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 4,
+  "scene": "classroom",
+  "transparent": false,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-joe.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.3,
+   "voice_hz": 130
+  },
+  "camera": {
+   "target": [
+    -0.07,
+    0.74,
+    0
+   ],
+   "half_height": 0.62,
+   "half_width": 0.42,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.3,
+    "do": "expression",
+    "name": "welcome"
+   }
+  ],
+  "seed": 2
+ },
+ {
+  "name": "joe-ecoute",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 5,
+  "scene": "classroom",
+  "transparent": false,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-joe.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.3,
+   "voice_hz": 130
+  },
+  "camera": {
+   "target": [
+    0,
+    0.63,
+    0
+   ],
+   "half_height": 0.42,
+   "half_width": 0.33,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.2,
+    "do": "expression",
+    "name": "attentive"
+   },
+   {
+    "t": 0.2,
+    "do": "listen",
+    "until": 4.8
+   }
+  ],
+  "seed": 3
+ },
+ {
+  "name": "joe-hochement",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 4,
+  "scene": "classroom",
+  "transparent": false,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-joe.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.3,
+   "voice_hz": 130
+  },
+  "camera": {
+   "target": [
+    0,
+    0.63,
+    0
+   ],
+   "half_height": 0.42,
+   "half_width": 0.33,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.3,
+    "do": "expression",
+    "name": "waiting"
+   },
+   {
+    "t": 1.2,
+    "do": "nod",
+    "amplitude": 0.12
+   },
+   {
+    "t": 2.3,
+    "do": "nod",
+    "amplitude": 0.1
+   },
+   {
+    "t": 3.0,
+    "do": "expression",
+    "name": "encouraging"
+   }
+  ],
+  "seed": 4
+ },
+ {
+  "name": "joe-duo-moitie",
+  "width": 540,
+  "height": 960,
+  "fps": 30,
+  "seconds": 6,
+  "scene": "classroom",
+  "transparent": false,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-joe.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.3,
+   "voice_hz": 130
+  },
+  "camera": {
+   "target": [
+    0,
+    0.62,
+    0
+   ],
+   "half_height": 0.4,
+   "half_width": 0.3,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.3,
+    "do": "expression",
+    "name": "welcome"
+   },
+   {
+    "t": 3.6,
+    "do": "expression",
+    "name": "happy"
+   }
+  ],
+  "seed": 5
+ },
+ {
+  "name": "joe-sourire-transparent",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 4,
+  "scene": "brand",
+  "transparent": true,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-joe.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.3,
+   "voice_hz": 130
+  },
+  "camera": {
+   "target": [
+    0,
+    0.63,
+    0
+   ],
+   "half_height": 0.42,
+   "half_width": 0.33,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.4,
+    "do": "expression",
+    "name": "happy"
+   }
+  ],
+  "seed": 6
+ },
+ {
+  "name": "joe-salut-transparent",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 4,
+  "scene": "brand",
+  "transparent": true,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-joe.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.3,
+   "voice_hz": 130
+  },
+  "camera": {
+   "target": [
+    -0.07,
+    0.74,
+    0
+   ],
+   "half_height": 0.62,
+   "half_width": 0.42,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.3,
+    "do": "expression",
+    "name": "welcome"
+   }
+  ],
+  "seed": 7
+ },
+ {
+  "name": "rose-sourire",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 4,
+  "scene": "classroom",
+  "transparent": false,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-rose.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.45,
+   "voice_hz": 210
+  },
+  "camera": {
+   "target": [
+    0,
+    0.63,
+    0
+   ],
+   "half_height": 0.42,
+   "half_width": 0.33,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.4,
+    "do": "expression",
+    "name": "happy"
+   }
+  ],
+  "seed": 101
+ },
+ {
+  "name": "rose-salut",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 4,
+  "scene": "classroom",
+  "transparent": false,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-rose.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.45,
+   "voice_hz": 210
+  },
+  "camera": {
+   "target": [
+    -0.07,
+    0.74,
+    0
+   ],
+   "half_height": 0.62,
+   "half_width": 0.42,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.3,
+    "do": "expression",
+    "name": "welcome"
+   }
+  ],
+  "seed": 102
+ },
+ {
+  "name": "rose-ecoute",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 5,
+  "scene": "classroom",
+  "transparent": false,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-rose.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.45,
+   "voice_hz": 210
+  },
+  "camera": {
+   "target": [
+    0,
+    0.63,
+    0
+   ],
+   "half_height": 0.42,
+   "half_width": 0.33,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.2,
+    "do": "expression",
+    "name": "attentive"
+   },
+   {
+    "t": 0.2,
+    "do": "listen",
+    "until": 4.8
+   }
+  ],
+  "seed": 103
+ },
+ {
+  "name": "rose-hochement",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 4,
+  "scene": "classroom",
+  "transparent": false,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-rose.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.45,
+   "voice_hz": 210
+  },
+  "camera": {
+   "target": [
+    0,
+    0.63,
+    0
+   ],
+   "half_height": 0.42,
+   "half_width": 0.33,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.3,
+    "do": "expression",
+    "name": "waiting"
+   },
+   {
+    "t": 1.2,
+    "do": "nod",
+    "amplitude": 0.12
+   },
+   {
+    "t": 2.3,
+    "do": "nod",
+    "amplitude": 0.1
+   },
+   {
+    "t": 3.0,
+    "do": "expression",
+    "name": "encouraging"
+   }
+  ],
+  "seed": 104
+ },
+ {
+  "name": "rose-duo-moitie",
+  "width": 540,
+  "height": 960,
+  "fps": 30,
+  "seconds": 6,
+  "scene": "classroom",
+  "transparent": false,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-rose.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.45,
+   "voice_hz": 210
+  },
+  "camera": {
+   "target": [
+    0,
+    0.62,
+    0
+   ],
+   "half_height": 0.4,
+   "half_width": 0.3,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.3,
+    "do": "expression",
+    "name": "welcome"
+   },
+   {
+    "t": 3.6,
+    "do": "expression",
+    "name": "happy"
+   }
+  ],
+  "seed": 105
+ },
+ {
+  "name": "rose-sourire-transparent",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 4,
+  "scene": "brand",
+  "transparent": true,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-rose.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.45,
+   "voice_hz": 210
+  },
+  "camera": {
+   "target": [
+    0,
+    0.63,
+    0
+   ],
+   "half_height": 0.42,
+   "half_width": 0.33,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.4,
+    "do": "expression",
+    "name": "happy"
+   }
+  ],
+  "seed": 106
+ },
+ {
+  "name": "rose-salut-transparent",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "seconds": 4,
+  "scene": "brand",
+  "transparent": true,
+  "avatar": {
+   "url": "/teacher3d/models/teacher-rose.glb",
+   "profile": "teacher-joe",
+   "desk_height": 0.175,
+   "resting_smile": 0.45,
+   "voice_hz": 210
+  },
+  "camera": {
+   "target": [
+    -0.07,
+    0.74,
+    0
+   ],
+   "half_height": 0.62,
+   "half_width": 0.42,
+   "eye_height": 0.68
+  },
+  "board": {
+   "left": -0.37,
+   "right": 0.09,
+   "bottom": 0.945,
+   "top": 1.08,
+   "lines": [
+    "Let's talk!"
+   ]
+  },
+  "window": {
+   "x": 0.31,
+   "y": 0.99,
+   "w": 0.14,
+   "h": 0.28
+  },
+  "actions": [
+   {
+    "t": 0.3,
+    "do": "expression",
+    "name": "welcome"
+   }
+  ],
+  "seed": 107
+ }
+]

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Clip publicitaire</title>
+<style>html,body{margin:0;background:#0E2A5C}#stage{position:absolute;left:0;top:0}</style></head>
+<body><div id="stage"></div>
+<script type="module">
+// Clip muet du professeur 3D pour la publicité : mêmes module et décor que les vidéos de leçon (mode « vidéo »,
+// image par image), mais aucune voix : seulement des expressions, des hochements et l'écoute, à des instants donnés.
+function seeded(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const toBase64 = (blob) => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = ko; r.readAsDataURL(blob); });
+window.renderClip = async (job) => {
+    Math.random = seeded(job.seed ?? 7);
+    const stage = document.getElementById('stage');
+    stage.style.width = `${job.width}px`; stage.style.height = `${job.height}px`;
+    const { createTeacher3D } = await import('/js/teacher-3d.js');
+    const teacher = await createTeacher3D({ container: stage, config: {
+        video: true, scene: { mode: job.scene }, antialias: true, jaw: 0.3, board: job.board, window: job.window,
+        lib: { three: '/teacher3d/lib/three-teacher.min.js', headaudio: '/teacher3d/lib/headaudio.min.js', worklet: '/teacher3d/lib/headworklet.min.js', lipsync: '/teacher3d/lib/lipsync-en.bin' },
+        model: { size: 0, ...job.avatar, camera: job.camera },
+    } });
+    if (job.scene !== 'classroom') { teacher.scene.background = job.transparent ? null : new teacher.THREE.Color('#0E2A5C'); }
+    teacher.resize();
+    const fps = job.fps, dt = 1 / fps, frames = Math.round(job.seconds * fps);
+    const canvas = teacher.renderer.domElement;
+    // Préchauffage : le personnage se pose (respiration, sourire de repos) avant la première image.
+    for (let i = 0; i < fps; i++) teacher.step(dt);
+    const done = new Set();
+    for (let f = 0; f < frames; f++) {
+        const t = f / fps;
+        job.actions.forEach((a, i) => {
+            if (a.do === 'listen' && t >= a.t && t < a.until) teacher.learnerSpoke();
+            else if (!done.has(i) && t >= a.t) {
+                done.add(i);
+                if (a.do === 'expression') teacher.expression(a.name);
+                if (a.do === 'nod') teacher.nod(a.amplitude ?? 0.1, a.duration ?? 0.7);
+            }
+        });
+        teacher.step(dt);
+        const blob = await new Promise((ok) => canvas.toBlob(ok, job.transparent ? 'image/png' : 'image/jpeg', 0.95));
+        await window.sendFrame(await toBase64(blob));
+    }
+    return { frames };
+};
+</script></body></html>
