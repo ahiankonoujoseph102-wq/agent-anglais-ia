@@ -37,6 +37,7 @@
             </p>
             @include('admin.videos.voice-line', ['video' => $video])
             @include('admin.videos.old-address', ['video' => $video])
+                @include('admin.videos.mail-line', ['video' => $video])
             @if ($video->error && ! $onlyClub)
                 <p class="muted small">Dernière erreur : {{ $video->error }}</p>
             @endif
@@ -46,7 +47,7 @@
                 <div class="voice-actions">
                     <a class="btn btn-accent" href="{{ route('admin.videos.file', ['video' => $video, 'telecharger' => 1]) }}" download="{{ $video->downloadName() }}"><x-icon name="download" /> Télécharger pour WhatsApp</a>
                 </div>
-            @elseif ($video->status !== \App\Models\LessonVideo::FAILED)
+            @elseif ($video->status !== \App\Models\LessonVideo::FAILED && $video->purged_at === null)
                 <p class="muted small">La vidéo arrive : script et voix préparés par le site, puis fabriquée par GitHub en premier.</p>
             @endif
 

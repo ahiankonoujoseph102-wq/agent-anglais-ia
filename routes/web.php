@@ -295,6 +295,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/videos/{video}/fichier', [AdminVideoController::class, 'file'])->name('videos.file');
     Route::put('/videos/reglages', [AdminVideoController::class, 'updateSite'])->name('videos.site');
     Route::put('/videos/par-jour', [AdminVideoController::class, 'updatePerDay'])->name('videos.per-day');
+    Route::put('/videos/garde', [AdminVideoController::class, 'updateKeepDays'])->name('videos.keep-days');
+    Route::post('/videos/{video}/renvoyer', [AdminVideoController::class, 'resendMail'])->name('videos.mail');
     Route::post('/videos/club', [AdminVideoController::class, 'prepareClub'])->middleware('throttle:6,1')->name('videos.club.prepare');
     Route::get('/videos/voix/{provider}/{voice}', [AdminVideoController::class, 'voiceSample'])->where(['provider' => '[a-z]+', 'voice' => '[A-Za-z]+'])->middleware('throttle:20,1')->name('videos.voice-sample');
     Route::post('/videos/voix', [AdminVideoController::class, 'chooseVoice'])->name('videos.voice-choose');

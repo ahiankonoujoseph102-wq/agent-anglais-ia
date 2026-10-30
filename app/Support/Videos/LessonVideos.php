@@ -282,6 +282,14 @@ class LessonVideos
             'site' => VideoSettings::site(),
             'audio_url' => route('api.videos.audio', $video),
             'upload' => $this->uploadTarget($video),
+            // Version légère jointe à l'e-mail au fondateur (VideoMailer) : sous la limite d'une pièce jointe.
+            'mail' => [
+                'max_bytes' => (int) floor((float) config('videos.mail.attachment_megabytes') * 1024 * 1024),
+                'width' => (int) config('videos.mail.width'),
+                'height' => (int) config('videos.mail.height'),
+                'audio_kbps' => (int) config('videos.mail.audio_kbps'),
+                'upload' => $this->uploadTarget($video, true),
+            ],
             'done_url' => route('api.videos.done', $video),
             'failed_url' => route('api.videos.failed', $video),
             'release_url' => route('api.videos.release', $video),
@@ -319,15 +327,15 @@ class LessonVideos
      *
      * @return array{method: string, url: string, headers: array<string, string>, direct: bool}
      */
-    private function uploadTarget(LessonVideo $video): array
+    private function uploadTarget(LessonVideo $video, bool $mail = false): array
     {
         try {
-            $signed = PrivateStorage::disk()->temporaryUploadUrl(self::videoPath($video), now()->addMinutes((int) config('videos.upload_url_minutes')), ['ContentType' => 'video/mp4']);
+            $signed = PrivateStorage::disk()->temporaryUploadUrl($mail ? $video->mailPath() : self::videoPath($video), now()->addMinutes((int) config('videos.upload_url_minutes')), ['ContentType' => 'video/mp4']);
             $headers = array_map(fn ($value) => is_array($value) ? implode(', ', $value) : (string) $value, $signed['headers'] ?? []);
 
             return ['method' => 'PUT', 'url' => $signed['url'], 'headers' => $headers + ['Content-Type' => 'video/mp4'], 'direct' => true];
         } catch (Throwable) {
-            return ['method' => 'PUT', 'url' => route('api.videos.upload', $video), 'headers' => ['Content-Type' => 'video/mp4'], 'direct' => false];
+            return ['method' => 'PUT', 'url' => route('api.videos.upload', $mail ? ['video' => $video, 'version' => 'email'] : $video), 'headers' => ['Content-Type' => 'video/mp4'], 'direct' => false];
         }
     }
 
@@ -346,9 +354,21 @@ class LessonVideos
             return false;
         }
 
+        // Version « e-mail » déposée par GitHub (sinon l'e-mail part avec le lien seulement). Vidéo refaite : elle
+        // repart par e-mail.
+        $mail = $disk->exists($video->mailPath()) ? $video->mailPath() : null;
+
         $video->update([
             'status' => LessonVideo::READY,
             'video_path' => $path,
+            'mail_path' => $mail,
+            'mail_size_bytes' => $mail !== null ? (int) $disk->size($mail) : null,
+            'mail_status' => null,
+            'mail_error' => null,
+            'mail_attempts' => 0,
+            'next_mail_at' => null,
+            'mailed_at' => null,
+            'purged_at' => null,
             'size_bytes' => (int) $disk->size($path),
             'duration_seconds' => $duration !== null ? (int) ceil($duration) : $video->duration_seconds,
             'ready_at' => now(),

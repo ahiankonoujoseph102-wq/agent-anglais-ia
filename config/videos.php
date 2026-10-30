@@ -130,6 +130,31 @@ return [
         'signature' => '— :teacher',
     ],
 
+    /*
+    | ENVOI PAR E-MAIL (App\Support\Videos\VideoMailer, commande videos:mail chaque minute) : chaque vidéo de
+    | promotion et du Club, une fois prête, part à « to » avec sa description et le texte à publier, la version légère
+    | « e-mail » en pièce jointe (fabriquée par GitHub, sous « attachment_megabytes » : limite de Brevo, 4 mégaoctets par
+    | pièce jointe) et, tant qu'elle est gardée, un lien vers la vidéo en pleine qualité. Une fois l'e-mail parti, la
+    | version légère est effacée ; la vidéo et sa voix le sont après le nombre de jours réglé dans la page « Vidéos »
+    | (« Garder la pleine qualité », 0 : tout de suite). Rien n'est effacé tant que l'e-mail n'est pas parti.
+    */
+    'mail' => [
+        'to' => env('VIDEO_MAIL_TO') ?: 'amitalk62@gmail.com',
+        'attachment_megabytes' => (float) env('VIDEO_MAIL_ATTACHMENT_MB', 3.8),
+        // Image de la version « e-mail » (la moitié de 1080 × 1920) et son mono léger.
+        'width' => 540,
+        'height' => 960,
+        'audio_kbps' => 48,
+        // Jours pendant lesquels la vidéo en pleine qualité reste téléchargeable par le lien de l'e-mail (7 au plus :
+        // durée maximale d'une adresse signée du stockage). Réglage de la page « Vidéos ».
+        'keep_days' => 7,
+        'keep_days_choices' => [0, 1, 3, 7],
+        // E-mails par passage, nouvel essai après un échec, essais avant « en échec » (« Renvoyer l'e-mail »).
+        'per_pass' => 3,
+        'retry_minutes' => 10,
+        'max_attempts' => 5,
+    ],
+
     // Temps accordé à une préparation (videos:prepare), en secondes : la suite reprend au passage suivant.
     'prepare_budget' => 50,
 

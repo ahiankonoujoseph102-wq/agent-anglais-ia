@@ -49,6 +49,28 @@
         </form>
     </section>
 
+    <section class="card" id="videos-email" aria-labelledby="videos-email-titre">
+        <h2 id="videos-email-titre">Envoi des vidéos par e-mail</h2>
+        <p class="muted small">
+            Chaque vidéo de promotion et du Club, une fois prête, part à <strong>{{ $mailTo }}</strong> avec sa description,
+            le texte à publier et la version légère en pièce jointe. Ensuite, elle est effacée du stockage du site.
+        </p>
+        @unless ($mailReady)
+            <p class="alert alert-error small" role="alert"><x-icon name="alert" /> L'envoi d'e-mails n'est pas réglé : aucune vidéo n'est envoyée ni effacée.</p>
+        @endunless
+        <form method="POST" action="{{ route('admin.videos.keep-days') }}" class="video-prepare">
+            @csrf
+            @method('PUT')
+            <label for="videos-keep-days">Garder la pleine qualité après l'e-mail</label>
+            <select id="videos-keep-days" name="keep_days">
+                @foreach ($keepDaysChoices as $choice)
+                    <option value="{{ $choice }}" @selected($choice === $keepDays)>{{ $choice === 0 ? 'Non : effacer dès l\'e-mail parti' : $choice.' jour'.($choice > 1 ? 's' : '').' (lien dans l\'e-mail)' }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="btn btn-light">Enregistrer</button>
+        </form>
+    </section>
+
     <section class="card card-soft">
         <h2>État</h2>
         <ul>
@@ -140,6 +162,7 @@
                 </p>
                 @include('admin.videos.voice-line', ['video' => $video])
                 @include('admin.videos.old-address', ['video' => $video])
+                @include('admin.videos.mail-line', ['video' => $video])
                 @if ($video->lips_correlation !== null || $video->loudness_lufs !== null)
                     <p class="small video-measures">
                         @if ($video->lips_correlation !== null)Lèvres : accord {{ number_format($video->lips_correlation, 2, ',', ' ') }}@endif
