@@ -16,7 +16,7 @@
                     <form method="POST" action="{{ route('teacher.choose') }}">
                         @csrf
                         <input type="hidden" name="teacher" value="{{ $teacher->key }}">
-                        <button type="submit" class="btn btn-outline">Essayer avec {{ $she ? 'elle' : 'lui' }}<span class="sr-only"> : {{ $teacher->name() }}</span></button>
+                        <button type="submit" class="btn btn-outline" data-busy-label="{{ $teacher->name() }} arrive…">Essayer avec {{ $she ? 'elle' : 'lui' }}<span class="sr-only"> : {{ $teacher->name() }}</span></button>
                     </form>
                     <button type="button" class="btn-link teacher-news-later" data-dismiss>Plus tard</button>
                 </div>

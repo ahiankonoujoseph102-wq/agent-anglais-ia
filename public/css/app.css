@@ -1093,18 +1093,64 @@ html:not(.js) .teacher-news-later { display: none; }
 .welcome-page .btn-link, .welcome-page .btn-link:hover { color: var(--c-on-dark); }
 .welcome-page .btn-light, .welcome-page .btn-light:hover, .welcome-page .btn-light:focus-visible { background: var(--c-on-dark-glow); color: var(--c-on-dark); border: 1px solid var(--c-on-dark-line); box-shadow: none; }
 .welcome-panel { display: grid; gap: var(--space-3); }
-/* « Avec qui voulez-vous travailler ? » : une ligne par professeur, compacte (le bouton d'écoute reste visible). */
+/* « Avec qui voulez-vous travailler ? » : deux cartes (visage, nom, sa voix) qui arrivent en douceur. Au toucher,
+   la carte se met en avant (contour orange, léger agrandissement) ; le nom reste, « Un instant… » apparaît dessous. */
 .welcome-choice { text-align: center; margin: 0 0 var(--space-2); }
 .welcome-choice h2 { color: var(--c-on-dark); font-size: var(--fs-base); margin: 0 0 var(--space-2); }
-.welcome-choice-list { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
-.welcome-choice-item { display: flex; align-items: center; justify-content: space-between; gap: var(--space-1); min-height: 48px; padding: 0 var(--space-1) 0 var(--space-2); border: 1px solid var(--c-on-dark-line); border-radius: var(--radius); }
-.welcome-choice-item.is-current { border-color: var(--c-accent); background: var(--c-on-dark-glow); }
-.welcome-choice-item form { flex: 1; min-width: 0; }
-.welcome-choice-name { margin: 0; color: var(--c-on-dark); display: flex; align-items: center; gap: var(--space-1); font-size: var(--fs-sm); text-align: left; }
-.welcome-choice-name .icon { color: var(--c-accent); }
-.welcome-choice-pick { background: none; border: 0; padding: 0; min-height: 44px; width: 100%; cursor: pointer; font: inherit; font-size: var(--fs-sm); color: var(--c-on-dark); text-decoration: underline; text-underline-offset: 3px; display: block; }
-.welcome-choice-voice { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--c-on-dark-line); background: var(--c-on-dark-glow); color: var(--c-on-dark); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.welcome-cards { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.welcome-card { display: grid; gap: var(--space-1); padding: var(--space-2); border: 2px solid var(--c-on-dark-line); border-radius: var(--radius-lg); background: var(--c-on-dark-glow);
+    transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast); }
+.js .welcome-card { animation: welcome-card-in .45s var(--ease) both; animation-delay: calc(.15s + var(--i, 0) * .12s); }
+.welcome-card.is-current { border-color: var(--c-accent); background: rgba(255, 122, 26, .16); }
+.welcome-card form { margin: 0; }
+.welcome-card-main { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; margin: 0; padding: 0; background: none; border: 0; color: var(--c-on-dark); font: inherit; cursor: default; }
+.welcome-card-pick { cursor: pointer; min-height: 44px; }
+.welcome-card-face { display: block; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid var(--c-on-dark-line); background: var(--c-primary-soft); }
+.welcome-card.is-current .welcome-card-face { border-color: var(--c-accent); }
+.welcome-card-face img { display: block; width: 100%; height: 100%; transform: scale(2.3) translate(0, 17%); }
+.welcome-card-name { font-weight: var(--fw-heavy); font-size: var(--fs-sm); line-height: 1.25; }
+.welcome-card-state { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs, .8rem); color: var(--c-on-dark-muted); }
+.welcome-card-pick .welcome-card-state { text-decoration: underline; text-underline-offset: 3px; color: var(--c-on-dark); }
+.welcome-card.is-current .welcome-card-state .icon { color: var(--c-accent); }
+.welcome-card-wait { display: none; font-size: .72rem; white-space: nowrap; color: var(--c-on-dark); }
+.welcome-card-pick.is-busy { opacity: 1; }
+.welcome-card-pick.is-busy .welcome-card-state { display: none; }
+.welcome-card-pick.is-busy .welcome-card-wait { display: block; }
+.welcome-card:has(.is-busy) { border-color: var(--c-accent); transform: scale(1.04); box-shadow: 0 0 0 4px rgba(255, 122, 26, .25); background: rgba(255, 122, 26, .16); }
+.welcome-card:has(.is-busy) .welcome-card-face { border-color: var(--c-accent); }
+.welcome-card-voice { justify-self: center; display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 var(--space-3); border-radius: var(--radius-pill); border: 1px solid var(--c-on-dark-line); background: transparent; color: var(--c-on-dark); font: inherit; font-size: var(--fs-xs, .8rem); font-weight: var(--fw-bold); cursor: pointer; }
+.welcome-card-voice[aria-pressed="true"] { border-color: var(--c-accent); background: rgba(255, 122, 26, .2); }
 .welcome-choice-note { color: var(--c-on-dark-muted); font-size: var(--fs-xs, .8rem); margin: var(--space-1) 0 0; }
+/* Téléphone : tout tient au-dessus de « Toucher pour écouter » (visible sans défiler à 360 × 640). */
+@media (max-width: 639px) {
+    .welcome-page { padding-top: var(--space-4); }
+    .welcome-head { margin-bottom: var(--space-2); }
+    .welcome-page h1 { font-size: 1.6rem; }
+    .welcome-lead { font-size: var(--fs-base); }
+    .welcome-choice h2 { font-size: var(--fs-sm); margin-bottom: var(--space-1); }
+    .welcome-card { padding: var(--space-1) var(--space-1) var(--space-2); gap: 2px; }
+    .welcome-card-face { width: 48px; height: 48px; }
+    .welcome-card-voice { min-height: 36px; }
+    .welcome-start .btn-lg { font-size: var(--fs-base); padding-left: var(--space-3); padding-right: var(--space-3); }
+    body .welcome-page.has-choice .teacher-3d .teacher3d-stage { height: clamp(104px, 17dvh, 440px); }
+    .js body .welcome-page.has-choice[data-teacher="loading"] .teacher { min-height: clamp(104px, 17dvh, 440px); }
+}
+@keyframes welcome-card-in { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
+/* Fête : 18 petits morceaux qui tombent pendant deux secondes, puis disparaissent. */
+.welcome-confetti { position: absolute; inset: 0 0 auto; height: 70%; pointer-events: none; overflow: hidden; z-index: 2; }
+.welcome-confetti span { position: absolute; top: -12px; left: var(--x); width: 8px; height: 12px; border-radius: 2px; background: var(--c); opacity: 0;
+    animation: welcome-confetti 2s var(--ease) var(--d) forwards; }
+.welcome-confetti span:nth-child(3n) { width: 6px; height: 6px; border-radius: 50%; }
+@keyframes welcome-confetti {
+    0% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translate3d(var(--s), 380px, 0) rotate(var(--r)); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .welcome-confetti { display: none; }
+    .js .welcome-card { animation: none; }
+    .welcome-card:has(.is-busy) { transform: none; }
+}
 .welcome-page.has-choice .teacher-3d .teacher3d-stage { height: clamp(150px, 24dvh, 440px); }
 .js .welcome-page.has-choice[data-teacher="loading"] .teacher { min-height: clamp(150px, 24dvh, 440px); }
 .welcome-page.has-choice .face { width: min(170px, 50%); }

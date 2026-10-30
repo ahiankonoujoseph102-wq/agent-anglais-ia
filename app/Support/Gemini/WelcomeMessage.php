@@ -342,17 +342,32 @@ class WelcomeMessage
      */
     public static function queueOpening(User $user): void
     {
-        if ($user->welcomed_at !== null || SpeechProviders::available() === []) {
+        if ($user->welcomed_at !== null) {
+            return;
+        }
+
+        self::queueOpeningFor($user);
+    }
+
+    /**
+     * Fait préparer APRÈS la réponse la salutation au prénom (Bonjour ou Bonsoir donné, professeur donné, sinon ceux
+     * du moment et de l'apprenant) si elle n'est pas déjà gardée : ouverture de la page de bienvenue, choix d'un
+     * autre professeur. Jamais pendant l'écoute, jamais d'erreur visible.
+     */
+    public static function queueOpeningFor(User $user, ?string $period = null, ?Teacher $teacher = null): void
+    {
+        if (SpeechProviders::available() === []) {
             return;
         }
 
         $id = $user->getKey();
+        $teacherKey = $teacher?->key;
 
-        defer(static function () use ($id) {
+        defer(static function () use ($id, $period, $teacherKey) {
             try {
-                // Relu : l'accès vient d'être ouvert (relations déjà chargées sans lui).
+                // Relu : l'accès vient peut-être d'être ouvert (relations déjà chargées sans lui).
                 $user = User::query()->find($id);
-                $texts = $user === null ? null : self::texts($user);
+                $texts = $user === null ? null : self::texts($user, $period, $teacherKey !== null ? Teachers::find($teacherKey) : null);
                 $provider = $texts === null ? null : self::providerFor($texts);
 
                 if ($provider !== null) {
@@ -362,6 +377,18 @@ class WelcomeMessage
                 report($e);
             }
         });
+    }
+
+    /**
+     * La salutation au prénom est-elle déjà gardée chez ce fournisseur ?
+     */
+    public static function openingReady(array $texts, SpeechProvider $provider): bool
+    {
+        try {
+            return PrivateStorage::disk()->exists(self::path($texts['opening'], $provider->forTeacher($texts['teacher']), true));
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /**
@@ -391,7 +418,7 @@ class WelcomeMessage
      * paragraphes communs sont préparés à l'avance (commande app:prepare-voice, bouton de « Diagnostic de la
      * voix ») : un paragraphe pas encore prêt reste affiché en texte, sans aucune demande.
      */
-    public function get(string $text, SpeechProvider $provider, bool $opening = false): ?string
+    public function get(string $text, SpeechProvider $provider, bool $opening = false, bool $readyOnly = false): ?string
     {
         $path = self::path($text, $provider, $opening);
         $disk = PrivateStorage::disk();
@@ -400,7 +427,8 @@ class WelcomeMessage
             return $disk->get($path);
         }
 
-        if (! $opening || ! $provider->hasKey()) {
+        // « readyOnly » : la page précharge sans jamais attendre une synthèse (la salutation se prépare à part).
+        if (! $opening || $readyOnly || ! $provider->hasKey()) {
             return null;
         }
 

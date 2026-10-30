@@ -10,7 +10,7 @@
     use App\Support\Asset;
 
     $teacherName = $teacher->name();
-    $audio = ['voice_gain' => (float) config('platform.live.voice_gain')];
+    $audio = ['voice_gain' => (float) config('platform.speech.page_gain', 1.0)];
 @endphp
 <x-layout title="Bienvenue" focus>
     <div id="welcome" @class(['welcome-page', 'has-choice' => $choices !== []])
@@ -24,35 +24,55 @@
              data-teacher3d='@json($teacher3d)'
          @endif>
 
+        @if ($firstVisit)
+            {{-- Petite fête de deux secondes (CSS seulement, transform et opacity ; rien avec « réduire les animations »). --}}
+            <div class="welcome-confetti" aria-hidden="true">
+                @for ($i = 0; $i < 18; $i++)
+                    <span style="--x: {{ ($i * 37) % 100 }}%; --d: {{ 0.05 * ($i % 6) }}s; --r: {{ ($i * 53) % 360 }}deg; --s: {{ ($i % 2 ? 1 : -1) * (12 + ($i * 7) % 36) }}px; --c: {{ ['var(--c-accent)', 'var(--c-on-dark)', 'var(--c-accent-soft)', 'var(--c-primary-soft)'][$i % 4] }}"></span>
+                @endfor
+            </div>
+        @endif
+
         <div class="welcome-head">
-            <h1>Bienvenue, {{ $firstName }} !</h1>
-            <p class="welcome-lead">Félicitations pour votre formule {{ $planName }} !</p>
+            <h1>Félicitations, {{ $firstName }} ! <span aria-hidden="true">🎉</span></h1>
+            <p class="welcome-lead">Votre formule {{ $planName }} est activée</p>
         </div>
 
         @if ($choices !== [])
-            {{-- Choix du professeur, compact (le bouton d'écoute reste visible sans défiler) ; changeable ensuite chaque jour. --}}
+            {{-- Choix du professeur : une carte par professeur (visage, nom, sa voix). Le nom ne disparaît jamais :
+                 au toucher, la carte se met en avant et « Un instant… » apparaît dessous, le temps de recharger. --}}
             <section class="welcome-choice" aria-labelledby="welcome-choice-title">
                 <h2 id="welcome-choice-title">Avec qui voulez-vous travailler ?</h2>
-                <div class="welcome-choice-list">
-                    @foreach ($choices as $choice)
-                        <div @class(['welcome-choice-item', 'is-current' => $choice['current']])>
+                <div class="welcome-cards">
+                    @foreach ($choices as $position => $choice)
+                        @php($who = $choice['teacher'])
+                        <div @class(['welcome-card', 'is-current' => $choice['current']]) style="--i: {{ $position }}">
                             @if ($choice['current'])
-                                <p class="welcome-choice-name" aria-current="true"><x-icon name="check-circle" /> <strong>{{ $choice['teacher']->name() }}</strong></p>
+                                <div class="welcome-card-main" aria-current="true">
+                                    <span class="welcome-card-face"><img src="{{ Asset::url(ltrim($who->portrait(), '/')) }}" alt="" width="64" height="64"></span>
+                                    <span class="welcome-card-name">{{ $who->name() }}</span>
+                                    <span class="welcome-card-state"><x-icon name="check-circle" /> Votre choix</span>
+                                </div>
                             @else
                                 <form method="POST" action="{{ route('teacher.choose') }}">
                                     @csrf
-                                    <input type="hidden" name="teacher" value="{{ $choice['teacher']->key }}">
+                                    <input type="hidden" name="teacher" value="{{ $who->key }}">
                                     <input type="hidden" name="retour" value="/bienvenue">
-                                    <button type="submit" class="welcome-choice-name welcome-choice-pick">Choisir <strong>{{ $choice['teacher']->name() }}</strong></button>
+                                    <button type="submit" class="welcome-card-main welcome-card-pick" data-busy-keep aria-label="Choisir {{ $who->name() }}">
+                                        <span class="welcome-card-face"><img src="{{ Asset::url(ltrim($who->portrait(), '/')) }}" alt="" width="64" height="64"></span>
+                                        <span class="welcome-card-name">{{ $who->name() }}</span>
+                                        <span class="welcome-card-state">Choisir</span>
+                                        <span class="welcome-card-wait" aria-hidden="true">{{ $who->name() }} arrive…</span>
+                                    </button>
                                 </form>
                             @endif
                             @if ($choice['sample'])
-                                <button type="button" class="welcome-choice-voice" data-voice-sample="{{ $choice['sample'] }}" aria-label="Écouter la voix de {{ $choice['teacher']->name() }}"><x-icon name="play" /></button>
+                                <button type="button" class="welcome-card-voice" data-voice-sample="{{ $choice['sample'] }}" aria-label="Écouter la voix de {{ $who->name() }}"><x-icon name="play" /> Sa voix</button>
                             @endif
                         </div>
                     @endforeach
                 </div>
-                <p class="welcome-choice-note">Vous pourrez changer chaque jour, dans « Mon espace ».</p>
+                <p class="welcome-choice-note">Modifiable chaque jour, dans « Mon espace ».</p>
             </section>
         @endif
 

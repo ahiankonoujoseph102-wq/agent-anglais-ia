@@ -546,10 +546,15 @@ function markBusy(form, button) {
     form.dataset.busy = '1';
 
     if (button && !button.classList.contains('is-busy')) {
-        button.dataset.idleHtml = button.innerHTML;
         button.classList.add('is-busy');
         button.setAttribute('aria-disabled', 'true');
-        button.innerHTML = '<span class="busy-spinner" aria-hidden="true"></span> ' + (button.dataset.busyLabel || 'Envoi en cours…');
+
+        // « data-busy-keep » : le texte du bouton reste (carte d'un professeur : son nom ne disparaît jamais),
+        // la page montre elle-même l'attente.
+        if (!('busyKeep' in button.dataset)) {
+            button.dataset.idleHtml = button.innerHTML;
+            button.innerHTML = '<span class="busy-spinner" aria-hidden="true"></span> ' + (button.dataset.busyLabel || 'Envoi en cours…');
+        }
     }
 
     // Si la page ne change pas (réseau coupé), le bouton redevient utilisable.
@@ -590,10 +595,30 @@ document.addEventListener('submit', (event) => {
     markBusy(form, event.submitter ?? form.querySelector('button[type="submit"], button:not([type])'));
 });
 
+// Lien qui recharge la page avec un autre choix (« Préférer Teacher Rose » de l'évaluation) : son texte d'attente
+// (« Teacher Rose arrive… ») pendant le chargement ; jamais avec une touche de modification (nouvel onglet).
+document.addEventListener('click', (event) => {
+    const link = event.target.closest?.('a[data-busy-label]');
+
+    if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+    }
+
+    link.dataset.idleHtml ??= link.innerHTML;
+    link.classList.add('is-busy');
+    link.setAttribute('aria-disabled', 'true');
+    link.textContent = link.dataset.busyLabel;
+});
+
 // Retour arrière vers une page gardée en mémoire : les boutons sont de nouveau utilisables.
 window.addEventListener('pageshow', (event) => {
     if (event.persisted) {
         document.querySelectorAll('form[data-busy]').forEach(unmarkBusy);
+        document.querySelectorAll('a.is-busy[data-busy-label]').forEach((link) => {
+            link.classList.remove('is-busy');
+            link.removeAttribute('aria-disabled');
+            link.innerHTML = link.dataset.idleHtml ?? link.innerHTML;
+        });
     }
 });
 

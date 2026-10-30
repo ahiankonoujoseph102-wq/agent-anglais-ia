@@ -9,7 +9,7 @@
         <span>Avec <strong>{{ $teacher->name() }}</strong></span>
         @foreach (\App\Support\Teachers\Teachers::choosable() as $other)
             @continue($other->key === $teacher->key)
-            <a href="{{ route('assessment.show', $other->isDefault() ? [] : ['professeur' => $other->key]) }}">Préférer {{ $other->name() }}</a>
+            <a href="{{ route('assessment.show', $other->isDefault() ? [] : ['professeur' => $other->key]) }}" data-busy-label="{{ $other->name() }} arrive…">Préférer {{ $other->name() }}</a>
         @endforeach
     </p>
 @endif

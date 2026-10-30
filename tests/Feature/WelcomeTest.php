@@ -122,6 +122,8 @@ class WelcomeTest extends TestCase
 
     public function test_a_provisional_access_leads_straight_to_the_welcome_page_once(): void
     {
+        // La page fait préparer la salutation au prénom après sa réponse.
+        self::fakeSpeech();
         $user = User::factory()->unwelcomed()->create(['name' => 'Ama Kodjo']);
         Subscription::factory()->for($user)->create(['status' => SubscriptionStatus::Provisional, 'provisional_until' => now()->addHours(20)]);
         $payment = $this->pendingPayment($user);
@@ -131,8 +133,8 @@ class WelcomeTest extends TestCase
             ->get(route('payment.show', $payment))->assertRedirect(route('welcome.show'));
 
         $this->get(route('welcome.show'))->assertOk()
-            ->assertSee('Bienvenue, Ama !')
-            ->assertSee('Félicitations pour votre formule Essentiel !')
+            ->assertSee('Félicitations, Ama !')
+            ->assertSee('Votre formule Essentiel est activée')
             ->assertSee('Toucher pour écouter Teacher Joe')
             ->assertSee('Écoutez bien : il vous explique comment tout fonctionne.')
             ->assertSee('Pause')
@@ -154,6 +156,8 @@ class WelcomeTest extends TestCase
 
     public function test_a_payment_validated_by_the_administrator_opens_the_welcome_at_the_next_visit(): void
     {
+        // La page fait préparer la salutation au prénom après sa réponse.
+        self::fakeSpeech();
         $user = User::factory()->unwelcomed()->create(['name' => 'Ama Kodjo']);
         $payment = $this->pendingPayment($user, 'intensif');
 
@@ -164,17 +168,19 @@ class WelcomeTest extends TestCase
         $payment->approve(User::factory()->admin()->create());
 
         $this->actingAs($user)->get(route('dashboard'))->assertRedirect(route('welcome.show'));
-        $this->get(route('welcome.show'))->assertOk()->assertSee('Félicitations pour votre formule Intensif !');
+        $this->get(route('welcome.show'))->assertOk()->assertSee('Votre formule Intensif est activée');
         $this->get(route('dashboard'))->assertOk();
     }
 
     public function test_a_granted_access_opens_the_welcome_too(): void
     {
+        // La page fait préparer la salutation au prénom après sa réponse.
+        self::fakeSpeech();
         $user = User::factory()->unwelcomed()->create(['name' => 'Yao Agbeko']);
         AccessGrant::offer($user, User::factory()->admin()->create(), Plan::find('semaine'), 3, null);
 
         $this->actingAs($user)->get(route('dashboard'))->assertRedirect(route('welcome.show'));
-        $this->get(route('welcome.show'))->assertOk()->assertSee('Bienvenue, Yao !')->assertSee('Félicitations pour votre formule Semaine !');
+        $this->get(route('welcome.show'))->assertOk()->assertSee('Félicitations, Yao !')->assertSee('Votre formule Semaine est activée');
     }
 
     public function test_administrators_and_accounts_already_welcomed_are_never_redirected(): void
@@ -195,6 +201,8 @@ class WelcomeTest extends TestCase
 
     public function test_the_welcome_can_be_listened_again_only_after_an_access(): void
     {
+        // La page fait préparer la salutation au prénom après sa réponse.
+        self::fakeSpeech();
         $user = User::factory()->create(['name' => 'Ama Kodjo']);
         $this->actingAs($user)->get(route('dashboard'))->assertOk()->assertDontSee('Réécouter le message de bienvenue');
 
@@ -203,7 +211,7 @@ class WelcomeTest extends TestCase
         $before = $user->fresh()->welcomed_at;
 
         $this->get(route('dashboard'))->assertOk()->assertSee('Réécouter le message de bienvenue');
-        $this->get(route('welcome.show', ['reecouter' => 1]))->assertOk()->assertSee('Bienvenue, Ama !');
+        $this->get(route('welcome.show', ['reecouter' => 1]))->assertOk()->assertSee('Félicitations, Ama !');
         $this->assertTrue($user->fresh()->welcomed_at->equalTo($before));
         $this->get(route('welcome.show'))->assertRedirect(route('dashboard'));
     }
@@ -395,7 +403,7 @@ class WelcomeTest extends TestCase
         Http::assertSentCount($prepared + 1);
         Http::assertSent(fn (Request $request) => $request['generation_config']['speech_config'][0]['voice'] === config('services.gemini.voice')
             && $request['model'] === config('services.gemini.tts_model')
-            && str_contains($request['input'][0]['content'][0]['annotations'][0]['style'], 'welcoming a new learner'));
+            && str_contains($request['input'][0]['content'][0]['annotations'][0]['style'], 'celebrating a new learner'));
         $this->assertTrue(PrivateStorage::disk()->exists(WelcomeMessage::path($this->texts($user, 'evening')['opening'], app(GeminiSpeech::class), true)));
 
         // Réécoute : plus aucun appel à Google.
@@ -510,8 +518,11 @@ class WelcomeTest extends TestCase
         // La page reste utilisable : le texte est affiché, chaque morceau dit s'il est prêt.
         $page = $this->get(route('welcome.show', ['reecouter' => 1]))->assertOk()->assertSee('Je suis Teacher Joe, votre professeur d&#039;anglais.', false);
         $pieces = json_decode(html_entity_decode((string) preg_replace('/.*data-pieces=\'([^\']*)\'.*/s', '$1', $page->getContent())), true);
-        $this->assertTrue($pieces[0]['ready']);
+        // Salutation en échec : pas prête, la page la redemandera (« soon ») et commencera sans elle au besoin.
+        $this->assertFalse($pieces[0]['ready']);
+        $this->assertTrue($pieces[0]['soon']);
         $this->assertFalse($pieces[1]['ready']);
+        $this->assertStringContainsString('pret=1', $pieces[1]['url']);
     }
 
     public function test_a_failed_greeting_still_lets_the_ready_common_part_play(): void

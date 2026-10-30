@@ -462,7 +462,14 @@ return [
     | volume). Chaque fichier y est amené à l'enregistrement (App\Support\Speech\Loudness).
     */
     'speech' => [
+        // Volume des messages préparés (SpeechLoudness) : sonie des vidéos, crêtes sous peak_db.
+        'target_lufs' => -14.0,
         'peak_db' => -1.0,
+        // Préparation : plusieurs paragraphes par demande de synthèse vocale (au plus ce nombre de caractères),
+        // recoupés au silence comme les vidéos ; 0 : un paragraphe par demande.
+        'group_characters' => 1200,
+        // Page de bienvenue : volume de lecture (les fichiers sont déjà à −14 LUFS ; un limiteur garde les crêtes).
+        'page_gain' => 1.0,
         // Message pas encore prêt quand l'élève touche « Écouter » : texte affiché, léger geste de Teacher Joe,
         // lecture automatique dès qu'il est prêt. Jamais « Préparation du message… ».
         'wait_poll_seconds' => 3,

@@ -5,6 +5,8 @@ namespace App\Support\Speech;
 use App\Support\Gemini\SpeechFailed;
 use App\Support\Gemini\VoiceSampler;
 use App\Support\Teachers\Teacher;
+use App\Support\Videos\VideoVoice;
+use App\Support\Videos\VoiceSplitter;
 
 /**
  * Un message vocal commun (message de bienvenue d'une formule, ou message du résultat d'un niveau) : ses
@@ -107,5 +109,37 @@ final class VoiceMessage
         $wav = $provider->synthesize($piece['text'], $this->style, $piece['label'], $timeout);
 
         return VoiceSampler::store($this->path($piece['text'], $provider), $wav, $piece['label'], $provider);
+    }
+
+    /**
+     * Génère plusieurs morceaux en UNE demande (moins de demandes : 10 par jour chez Gemini en offre gratuite), puis
+     * recoupe l'audio au silence le plus proche entre deux morceaux (VoiceSplitter, comme les vidéos) ; chaque
+     * morceau est gardé dans son propre fichier, exactement comme s'il avait été demandé seul.
+     *
+     * @param  list<array{label: string, text: string}>  $pieces
+     *
+     * @throws SpeechFailed
+     */
+    public function prepareGroup(array $pieces, SpeechProvider $provider, ?int $timeout = null): void
+    {
+        if (count($pieces) === 1) {
+            $this->prepare($pieces[0], $provider, $timeout);
+
+            return;
+        }
+
+        $provider = $this->bind($provider);
+        $texts = array_map(fn (array $piece) => $piece['text'], $pieces);
+        $label = $pieces[0]['label'].' et '.(count($pieces) - 1).' autre(s)';
+        $wav = $provider->synthesize(VoiceSplitter::join($texts), $this->style, $label, $timeout);
+        $parsed = VideoVoice::parse($wav);
+
+        if ($parsed === null) {
+            throw new SpeechFailed(SpeechFailed::UNREADABLE, 'Audio illisible : impossible de le recouper en paragraphes.');
+        }
+
+        foreach (VoiceSplitter::split($parsed, $texts) as $position => $data) {
+            VoiceSampler::store($this->path($texts[$position], $provider), VideoVoice::wav($data, $parsed['rate'], $parsed['channels']), $pieces[$position]['label'], $provider);
+        }
     }
 }

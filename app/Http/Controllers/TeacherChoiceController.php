@@ -28,6 +28,11 @@ class TeacherChoiceController extends Controller
         $teacher = Teachers::forUser($request->user());
         $back = self::back($request->input('retour'));
 
+        // Page de bienvenue : la carte du professeur choisi le montre déjà, aucun message par-dessus les cartes.
+        if ($back === url('/bienvenue?reecouter=1')) {
+            return redirect()->to($back);
+        }
+
         return redirect()->to($back ?? route('dashboard').'#professeur')
             ->with('status', 'Votre professeur est maintenant '.$teacher->name().' : '.$teacher->pronoun().' vous accompagne dès votre prochaine séance. Votre niveau, votre programme et vos erreurs à revoir ne changent pas.');
     }
