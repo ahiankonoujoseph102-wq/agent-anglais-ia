@@ -237,6 +237,22 @@
                 </button>
             </div>
 
+            {{-- Abonné payant sans adresse e-mail : le professeur la demande au début de la séance, l'élève l'écrit ici
+                 sans quitter la séance (live-session.js prévient le professeur une fois enregistrée). --}}
+            @if ($askEmail ?? false)
+                <section id="email-ask" class="card email-ask" aria-labelledby="email-ask-title">
+                    <h2 id="email-ask-title"><x-icon name="mail" /> Votre adresse e-mail</h2>
+                    <p class="muted small">Pour recevoir vos rappels avant chaque séance et ne plus rater vos cours.</p>
+                    <form id="email-ask-form" method="POST" action="{{ route('lesson.email') }}" novalidate>
+                        @csrf
+                        <x-input name="email" label="Votre adresse e-mail" type="email" inputmode="email" autocomplete="email" />
+                        <button type="submit" class="btn btn-accent btn-block">Enregistrer</button>
+                    </form>
+                    <p id="email-ask-error" class="error" role="alert" hidden></p>
+                    <p id="email-ask-done" class="email-ask-done" role="status" hidden><x-icon name="check-circle" /> <span>Merci, votre adresse e-mail est enregistrée.</span></p>
+                </section>
+            @endif
+
             @if (\App\Support\SessionRecording::enabled($mode))
                 {{-- « Enregistrer ma séance » : vidéo fabriquée sur le téléphone (session-recorder.js), jamais envoyée.
                      Caché sans JavaScript ; affiché seulement si le navigateur sait enregistrer. --}}

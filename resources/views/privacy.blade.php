@@ -23,7 +23,7 @@
     <section class="card privacy rise" aria-labelledby="privacy-collected" style="--i: 1">
         <h2 id="privacy-collected">Les informations que nous gardons</h2>
         <ul>
-            <li><strong>Votre compte</strong> : votre nom, votre numéro de téléphone (il sert à vous connecter) et, si vous la donnez, votre adresse e-mail (elle sert seulement à vous envoyer vos documents de révision). Votre mot de passe est enregistré sous une forme protégée que personne ne peut relire.</li>
+            <li><strong>Votre compte</strong> : votre nom, votre numéro de téléphone (il sert à vous connecter) et votre adresse e-mail (facultative au départ, demandée aux abonnés : elle sert à vous envoyer vos documents de révision et les rappels de vos séances). Votre mot de passe est enregistré sous une forme protégée que personne ne peut relire.</li>
             <li><strong>Votre pays</strong> : celui que vous choisissez à l'inscription (pour les comptes plus anciens, il est déduit de l'indicatif de votre numéro de téléphone) ; il sert à vous proposer les bons moyens de paiement et à vous saluer à l'heure de votre pays.</li>
             <li><strong>Votre apprentissage</strong> : le niveau trouvé lors de l'évaluation, vos réponses au questionnaire (objectif, métier, jours de travail, difficultés), votre programme, les résumés et devoirs de vos séances, vos erreurs à revoir, vos notes et vos attestations de niveau.</li>
             @if (\App\Support\Teachers\Teachers::hasChoice())
@@ -47,6 +47,7 @@
             <li>Vous connecter, vous donner accès à votre formule et suivre le temps de séance de chaque jour.</li>
             <li>Construire votre programme personnel et permettre à {{ $teacher }} de vous parler par votre prénom, à votre niveau, sur la leçon du jour.</li>
             <li>Vérifier vos paiements : la capture est lue automatiquement, puis contrôlée par l'administrateur.</li>
+            <li>Abonnés : vous rappeler votre séance du jour à l'heure que vous avez choisie (un e-mail et, si vous l'acceptez sur votre téléphone, une notification) et vous relancer si elle n'a pas eu lieu. Pour cela, nous gardons l'heure de vos séances, les téléphones où vous avez accepté les notifications (vous pouvez les arrêter dans « Mon espace ») et la date de chaque rappel envoyé.</li>
             <li>Vous aider sur vos leçons d'anglais de l'école, avec « Mes cours », et vous préparer après chaque séance un document de révision, à télécharger et, si vous avez donné votre adresse, envoyé par e-mail.</li>
             <li>Relire les conversations pour améliorer {{ $teacher }}, vérifier qu'il se comporte bien et répondre à vos questions ou à vos réclamations. Des extraits anonymisés (sans nom, numéro ni adresse) peuvent être analysés, y compris avec un outil d'intelligence artificielle, pour améliorer {{ $teacher }}.</li>
             <li>Préparer les vidéos du Club des abonnés (groupe WhatsApp des abonnés payants) : {{ $teacher }} peut y présenter les erreurs fréquentes des abonnés, seulement si au moins trois personnes différentes les ont faites, sans jamais donner de nom ni reprendre une phrase telle qu'elle a été dite (l'exemple est toujours réécrit) ; les progrès du Club n'y sont donnés qu'en chiffres globaux.</li>
@@ -79,7 +80,7 @@
 
     <section class="card privacy rise" aria-labelledby="privacy-access" style="--i: 5">
         <h2 id="privacy-access">Qui y a accès</h2>
-        <p>Seul l'administrateur de {{ $platform }} peut voir vos informations, vos captures de paiement, vos leçons de « Mes cours » et le texte de vos conversations. Le site est hébergé sur des serveurs en Europe ; les fichiers (captures, leçons, documents de révision, attestations) y sont gardés dans un espace privé, jamais accessible par une adresse publique. Quand un paiement arrive, l'administrateur est prévenu par une notification et par un e-mail qui indiquent votre nom, votre pays, la formule et le moyen de paiement (jamais la capture ni le numéro de transaction) ; cet e-mail passe par un service d'envoi de messages. Si vous avez donné votre adresse, votre document de révision vous est envoyé en pièce jointe par ce même service d'envoi.</p>
+        <p>Seul l'administrateur de {{ $platform }} peut voir vos informations, vos captures de paiement, vos leçons de « Mes cours » et le texte de vos conversations. Le site est hébergé sur des serveurs en Europe ; les fichiers (captures, leçons, documents de révision, attestations) y sont gardés dans un espace privé, jamais accessible par une adresse publique. Quand un paiement arrive, l'administrateur est prévenu par une notification et par un e-mail qui indiquent votre nom, votre pays, la formule et le moyen de paiement (jamais la capture ni le numéro de transaction) ; cet e-mail passe par un service d'envoi de messages. Si vous avez donné votre adresse, votre document de révision vous est envoyé en pièce jointe par ce même service d'envoi, comme les rappels de vos séances.</p>
     </section>
 
     <section class="card privacy rise" aria-labelledby="privacy-parents" style="--i: 6">

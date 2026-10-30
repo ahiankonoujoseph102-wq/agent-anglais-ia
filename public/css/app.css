@@ -2025,3 +2025,11 @@ body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260p
     .hero-alt-text { padding: 2px 7px; font-size: 0.72rem; line-height: 1.2; }
     .hero-media:has(.hero-alt) .hero-bubble.right { display: none; }
 }
+
+/* Suivi des élèves payants : e-mail demandé pendant la séance, heure des séances et rappels (« Mon espace »). */
+.email-ask { margin-top: var(--space-3); }
+.email-ask h2 { display: flex; gap: var(--space-2); align-items: center; font-size: var(--fs-md); margin: 0 0 var(--space-1); }
+.email-ask-done { display: flex; gap: var(--space-2); align-items: center; font-weight: var(--fw-bold); margin: 0; }
+.lesson-reminders .reminders-time { margin-top: var(--space-3); }
+.lesson-reminders .reminders-push { margin-top: var(--space-3); }
+.lesson-reminders .alert { margin-bottom: var(--space-3); }

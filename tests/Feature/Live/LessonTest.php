@@ -58,6 +58,8 @@ class LessonTest extends TestCase
     public function test_lesson_token_is_limited_and_lesson_gets_the_plan_duration(): void
     {
         $user = $this->subscriber('intensif');
+        // Avec une adresse e-mail : le professeur n'a rien à demander avant la leçon (LearnerFollowUpTest).
+        $user->forceFill(['email' => 'eleve@example.test'])->save();
 
         $this->actingAs($user)->postJson('/seance/connexion')
             ->assertOk()

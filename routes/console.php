@@ -60,3 +60,6 @@ Schedule::command('videos:prepare')->everyMinute()->withoutOverlapping(10)->onOn
 
 // Vidéos de promotion et du Club prêtes : envoyées par e-mail au fondateur, puis retirées du stockage.
 Schedule::command('videos:mail')->everyMinute()->withoutOverlapping(10)->onOneServer();
+
+// Suivi des élèves payants : rappels avant la séance du jour et relance d'une séance manquée (notification et e-mail).
+Schedule::command('learners:remind')->everyMinute()->withoutOverlapping(5)->onOneServer();

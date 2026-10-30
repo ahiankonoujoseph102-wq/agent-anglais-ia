@@ -139,6 +139,9 @@
          prendre sa place). --}}
     <x-club-invite class="rise" />
 
+    {{-- Abonné payant avec un programme : heure de ses séances, rappels sur ce téléphone, e-mail à ajouter. --}}
+    <x-lesson-reminders class="rise" />
+
     {{-- Niveau validé il y a moins de 14 jours : on le fête juste après la prochaine étape, attestation à portée de main. --}}
     @php
         $freshAttestation = $attestations->sortByDesc('issued_at')->first(fn ($a) => $a->issued_at->gt(now()->subDays(14)));

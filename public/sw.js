@@ -124,7 +124,8 @@ self.addEventListener('fetch', (event) => {
     // Tout le reste (JSON des séances, captures de paiement, manifeste…) : réseau, sans cache.
 });
 
-// Notifications de paiement de l'administrateur (Web Push). Le contenu est écrit par le serveur : titre, texte
+// Notifications (Web Push) : alertes de paiement de l'administrateur et rappels de séance des élèves. Le contenu
+// est écrit par le serveur : titre, texte
 // court et adresse de la page à ouvrir. Jamais de donnée sensible dedans.
 self.addEventListener('push', (event) => {
     let data = {};

@@ -49,6 +49,7 @@ use App\Http\Controllers\Program\AttestationController;
 use App\Http\Controllers\Program\LessonHistoryController;
 use App\Http\Controllers\Program\ProgramAnswersController;
 use App\Http\Controllers\Program\ProgramController;
+use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\TeacherChoiceController;
 use App\Http\Controllers\WebAppController;
@@ -122,6 +123,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/espace', DashboardController::class)->name('dashboard');
     // Choix du professeur (« Mon espace ») : seulement les professeurs prêts (config/teachers.php).
     Route::post('/espace/professeur', [TeacherChoiceController::class, 'update'])->middleware('throttle:10,1')->name('teacher.choose');
+    // Suivi des élèves : heure des séances, téléphones abonnés aux rappels, e-mail ajouté depuis l'écran de la séance.
+    Route::put('/espace/heure', [ReminderController::class, 'time'])->middleware('throttle:10,1')->name('reminders.time');
+    Route::post('/espace/rappels/telephone', [ReminderController::class, 'subscribe'])->middleware('throttle:10,1')->name('reminders.device');
+    Route::delete('/espace/rappels/telephone', [ReminderController::class, 'unsubscribe'])->middleware('throttle:10,1')->name('reminders.device.remove');
+    Route::post('/seance/email', [ReminderController::class, 'email'])->middleware('throttle:10,1')->name('lesson.email');
 
     // Espace ambassadeur : lien, code et code QR personnels, mois gratuit, régularité.
     Route::get('/ambassadeur', [AmbassadorSpaceController::class, 'show'])->name('ambassador.show');

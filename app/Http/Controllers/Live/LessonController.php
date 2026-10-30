@@ -25,6 +25,7 @@ use App\Support\Live\LiveEarlyEnd;
 use App\Support\Live\LivePage;
 use App\Support\Live\SessionEnd;
 use App\Support\Live\WorkingTogether;
+use App\Support\Reminders\LessonReminders;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
 use App\Support\Text\TextProviders;
@@ -79,6 +80,8 @@ class LessonController extends Controller
             'introMore' => 'Ce temps du jour est partagé avec « Mes cours ». '.ucfirst($teacher->theTeacher()).' vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
             'remainingSeconds' => $remaining,
             'board' => $board,
+            // Abonné payant sans adresse e-mail : champ montré sur l'écran de la séance (le professeur la demande).
+            'askEmail' => LessonReminders::needsEmail($user),
             // Traductions du tableau : visibles en A1 et A2, discrètes en B1, masquées ensuite.
             'boardTranslations' => match ($user->activeProgram()->first()?->level ?? $user->level) {
                 Level::A1, Level::A2, null => 'show',
@@ -189,7 +192,10 @@ class LessonController extends Controller
                 'welcome_note' => self::isFirstPaidLesson($lesson) ? TeacherSetup::cue('first_paid_lesson') : '',
                 // Passage de relais : APRÈS l'échange de salutations (partie « continuité » de l'échauffement).
                 'handoff_note' => self::handoffNote($user, $lesson, $teacher).'.',
+                // Suivi de l'élève payant, en français et avant l'échauffement : e-mail à ajouter, programme peu suivi.
+                'followup_note' => $resumed ? '' : LessonReminders::sessionNote($user),
             ]),
+            'email_saved' => TeacherSetup::cue('email_saved'),
             'resume' => TeacherSetup::cue('resume'),
             'warning' => TeacherSetup::cue('lesson_warning', ['remaining' => $warningMinutes]),
             // Séance en quatre temps : reprise selon l'étape en cours, et une seule relance douce vers la conversation.
