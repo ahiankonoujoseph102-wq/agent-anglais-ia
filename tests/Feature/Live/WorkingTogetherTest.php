@@ -114,7 +114,7 @@ class WorkingTogetherTest extends TestCase
     {
         $user = User::factory()->create(['name' => 'Afi']);
         $assessment = TeacherSetup::instructions('assessment', $user, 5);
-        $this->assertStringContainsString('Répondez comme vous pouvez : si vous ne comprenez pas, dites-le-moi, même en français. Vous avez le droit de vous tromper. »', $assessment);
+        $this->assertStringContainsString('« Répondez comme vous pouvez. Si quelque chose n\'est pas clair ou si vous avez un souci, dites-le-moi à tout moment, même en français : je suis là pour vous aider. »', $assessment);
         $this->assertStringNotContainsString('HOW TO WORK WITH ME', $assessment);
 
         $first = TeacherSetup::course($user, 10, 'THE LESSON', null, 1)['systemInstruction']['parts'][0]['text'];
