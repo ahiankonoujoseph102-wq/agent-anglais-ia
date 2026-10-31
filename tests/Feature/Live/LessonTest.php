@@ -68,7 +68,7 @@ class LessonTest extends TestCase
             ->assertJsonPath('token_expires_in', 1800 + 60)
             ->assertJsonPath('warning_seconds', 120)
             // Première séance de cette formule payée : félicitations et déroulé en deux phrases (FirstPaidLessonTest).
-            ->assertJsonPath('cues.start', '[System] The learner is connected and ready. Say your FIRST TURN now, and only it: greet the learner, announce that the lesson lasts 30 minutes (exactly this number, never another one),'.TeacherSetup::cue('first_paid_lesson').' follow HOW TO WORK WITH ME, then ask how they are today and STOP: wait for their answer. Do not announce the topic and do not teach anything in this turn. Then follow the WARM-UP, one question per turn.');
+            ->assertJsonPath('cues.start', '[System] The learner is connected and ready. Say your FIRST TURN now, and only it: greet the learner, announce that the lesson lasts 30 minutes (exactly this number, never another one),'.TeacherSetup::cue('first_paid_lesson').' follow HOW TO WORK WITH ME, then ask how they are today and STOP: wait for their answer. Greeting, duration and question in simple ENGLISH; only HOW TO WORK WITH ME (and any French note below) in French. Do not announce the topic and do not teach anything in this turn. Then follow the WARM-UP, one question per turn.');
 
         Http::assertSent(function (Request $request) {
             $instructions = $request['bidiGenerateContentSetup']['systemInstruction']['parts'][0]['text'];
