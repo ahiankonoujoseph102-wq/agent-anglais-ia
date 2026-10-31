@@ -70,9 +70,10 @@ class LessonWarmUpTest extends TestCase
         $this->assertStringContainsString('Use them for the CONTINUITY part of the WARM-UP, after the greeting exchange', $text);
         // Ordre du premier tour : accueil, comment travailler, rappel, sujet du jour.
         // Premier tour : salut, durée, « comment travailler avec moi », UNE question, puis on attend.
-        $this->assertStringContainsString('then HOW TO WORK WITH ME, then ONE question: how they are today. STOP there and WAIT for the answer. Never present the topic or the board in this first turn.', $text);
+        $this->assertStringContainsString('then HOW TO WORK WITH ME, then ONE question: how they are today.', $text);
+        $this->assertStringContainsString('STOP there and WAIT for the answer. Never present the topic or the board in this first turn.', $text);
         $cue = TeacherSetup::cue('lesson_start', ['minutes' => 15, 'handoff_note' => '.']);
-        $this->assertStringContainsString('then ask how they are today and STOP: wait for their answer. Do not announce the topic and do not teach anything in this turn.', $cue);
+        $this->assertStringContainsString('then ask how they are today and STOP: wait for their answer. Greeting, duration and question in simple ENGLISH; only HOW TO WORK WITH ME (and any French note below) in French. Do not announce the topic and do not teach anything in this turn.', $cue);
         $this->assertStringEndsWith('Then follow the WARM-UP, one question per turn.', $cue);
     }
 

@@ -258,7 +258,7 @@ class LearnerFollowUpTest extends TestCase
         $start = $this->actingAs($user)->postJson('/seance/connexion')->assertOk()->json('cues.start');
 
         $this->assertStringNotContainsString('BEFORE the WARM-UP and the lesson', $start);
-        $this->assertStringContainsString('STOP: wait for their answer. Do not announce the topic and do not teach anything in this turn. Then follow the WARM-UP', $start);
+        $this->assertStringContainsString('STOP: wait for their answer. Greeting, duration and question in simple ENGLISH; only HOW TO WORK WITH ME (and any French note below) in French. Do not announce the topic and do not teach anything in this turn. Then follow the WARM-UP', $start);
     }
 
     public function test_serious_matters_are_said_in_french(): void
