@@ -123,7 +123,7 @@ class SpeechProvidersTest extends TestCase
     {
         $this->actingAs($user);
         $page = $this->get(route('welcome.show', ['reecouter' => 1]))->assertOk()->getContent();
-        $pieces = json_decode(html_entity_decode((string) preg_replace('/.*data-pieces=\'([^\']*)\'.*/s', '$1', $page)), true);
+        $pieces = WelcomeFastTest::currentPieces($page);
         $played = [];
 
         foreach ($pieces as $piece) {

@@ -141,10 +141,18 @@ class WelcomeMessage
      */
     public static function messages(): array
     {
+        // En alternance, professeur par professeur (formule recommandée d'abord) : si la limite du jour du fournisseur
+        // arrive en cours de préparation, chaque professeur a déjà son message principal (avant le 31 octobre 2026,
+        // tous ceux de Teacher Joe passaient d'abord et Teacher Rose pouvait rester sans voix).
+        $lists = array_values(array_map(fn (Teacher $teacher) => self::messagesFor($teacher), Teachers::choosable()));
         $messages = [];
 
-        foreach (Teachers::choosable() as $teacher) {
-            array_push($messages, ...self::messagesFor($teacher));
+        for ($index = 0, $count = max(array_map('count', $lists) ?: [0]); $index < $count; $index++) {
+            foreach ($lists as $list) {
+                if (isset($list[$index])) {
+                    $messages[] = $list[$index];
+                }
+            }
         }
 
         return $messages;

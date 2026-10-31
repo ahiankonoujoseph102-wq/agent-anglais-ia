@@ -36,7 +36,7 @@ Ce document décrit l'identité visuelle de la plateforme. Le nom, le nom court,
 
 ### Seule exception : WhatsApp
 
-Le bouton « WhatsApp » garde un vert (`#0F7A40`, `--c-whatsapp`, texte blanc 5,4:1), parce que c'est la couleur que les apprenants reconnaissent. **Aucun autre vert** n'est utilisé sur le site, dans la scène 3D ni dans les icônes.
+Le bouton « WhatsApp » garde un vert (`#0F7A40`, `--c-whatsapp`, texte blanc 5,4:1), parce que c'est la couleur que les apprenants reconnaissent. **Un seul autre vert** (décision du fondateur, 31 octobre 2026) : le professeur choisi sur la page de bienvenue (`--c-choice`, `#34C77B`, contour et « Votre choix » sur fond bleu nuit, 6,6:1). Aucun autre vert sur le site, dans la scène 3D ni dans les icônes.
 
 ## Contrastes (niveau AA)
 
@@ -95,4 +95,4 @@ Le personnage 3D et le visage SVG de secours portent les couleurs de la marque :
 - **Déformer le logo** : ne jamais l'étirer, l'écraser, le pencher, le recadrer ni lui ajouter d'ombre ou de contour. Toujours garder ses proportions (`width` et `height` d'origine, ou une seule des deux).
 - **Changer les couleurs du logo** : ne jamais le recolorer. Sur fond clair : logo horizontal ou vertical ; sur fond bleu nuit : logo blanc. Ne pas le poser sur une photo ou un fond orange.
 - **Texte blanc sur orange** : interdit (contraste 2,6:1). Sur orange, le texte est bleu nuit.
-- Pas d'autre vert que celui du bouton WhatsApp, pas d'autre police que Sora.
+- Pas d'autre vert que celui du bouton WhatsApp et du professeur choisi sur la page de bienvenue, pas d'autre police que Sora.

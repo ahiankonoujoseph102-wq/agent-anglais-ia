@@ -1,21 +1,26 @@
 /*
- * Page de bienvenue du professeur (Teacher Joe ou Teacher Rose) : lit le message vocal (une suite de morceaux : l'ouverture avec le
- * prénom, puis les paragraphes), avec le professeur 3D dont la bouche suit la voix (même technique que
- * l'écran de conversation : teacher-view.js, teacher-3d.js, HeadAudio), des sous-titres, « Pause » et
+ * Page de bienvenue du professeur (Teacher Joe ou Teacher Rose) : lit le message vocal (une suite de morceaux :
+ * l'ouverture avec le prénom, puis les paragraphes), avec le professeur 3D dont la bouche suit la voix (même
+ * technique que l'écran de conversation : teacher-view.js, teacher-3d.js, HeadAudio), des sous-titres, « Pause » et
  * « Passer ». À la fin, le bouton de la prochaine étape apparaît, la page y descend et lui donne le focus.
  *
- * Départ en moins d'une seconde : dès l'ouverture de la page, les premiers morceaux et la voix de chaque
- * professeur sont téléchargés en version légère (µ-law, deux fois plus petite ; version complète si le
- * navigateur ne la lit pas) et décodés d'avance ; rien n'est JOUÉ avant le toucher. Les suivants se chargent
- * pendant que les premiers sont dits. Le serveur ne fait jamais de synthèse pendant l'écoute (« pret=1 ») : la
- * salutation au prénom pas encore gardée se prépare à part, la page la redemande quelques fois et, si elle n'est
- * pas là au toucher, le message commence au paragraphe suivant. Un morceau indisponible est sauté (il reste écrit
- * dans les sous-titres) ; le message d'erreur n'apparaît que si rien n'a pu être joué.
+ * « Avec qui voulez-vous apprendre ? » : la page connaît CHAQUE professeur proposé (data-teachers : message, voix,
+ * personnage). Toucher l'autre carte change tout aussitôt, sans rechargement : carte en vert, personnage, message et
+ * sa voix, bouton « Toucher pour écouter … » ; le choix est enregistré en arrière-plan (sans JavaScript, la carte est
+ * un formulaire ordinaire).
+ *
+ * Départ en moins d'une seconde : dès l'ouverture, les premiers morceaux du professeur choisi, puis ceux de l'autre,
+ * sont téléchargés en version légère (µ-law, deux fois plus petite ; version complète si le navigateur ne la lit
+ * pas) et décodés d'avance ; rien n'est JOUÉ avant le toucher. Le serveur ne fait jamais de synthèse pendant
+ * l'écoute (« pret=1 ») : la salutation au prénom pas encore gardée se prépare à part, la page la redemande quelques
+ * fois et, si elle n'est pas là au toucher, le message commence au paragraphe suivant. Un morceau indisponible est
+ * sauté (il reste écrit dans les sous-titres) ; le message d'erreur n'apparaît que si rien n'a pu être joué.
  */
 const root = document.getElementById('welcome');
 
-/** Morceaux préchargés, au plus, avant le toucher (les suivants se chargent pendant la lecture). */
+/** Morceaux préchargés avant le toucher : le professeur choisi, puis l'autre (les suivants pendant la lecture). */
 const PRELOAD = 3;
+const PRELOAD_OTHER = 2;
 
 /** Salutation en préparation : redemandée toutes les 2,5 secondes, 10 fois au plus. */
 const SOON_TRIES = 10;
@@ -84,156 +89,231 @@ function decodeWith(context, data) {
 
 if (root) {
     run();
-    voiceSamples();
-}
-
-/**
- * « Sa voix » (choix du professeur) : court extrait de la voix de chaque professeur, préchargé dès l'ouverture,
- * joué au toucher, un seul à la fois (un second toucher l'arrête). Un extrait illisible ne bloque rien.
- */
-function voiceSamples() {
-    const buttons = [...root.querySelectorAll('[data-voice-sample]')];
-    const sounds = new Map(buttons.map((button) => [button, fetchSound(button.dataset.voiceSample)]));
-    let context = null;
-    let playing = null;
-
-    const stop = () => {
-        if (playing) {
-            try { playing.source.stop(); } catch { /* déjà fini */ }
-
-            playing.button.setAttribute('aria-pressed', 'false');
-            playing = null;
-        }
-    };
-
-    for (const button of buttons) {
-        button.setAttribute('aria-pressed', 'false');
-        button.addEventListener('click', async () => {
-            const again = playing?.button === button;
-            stop();
-
-            if (again) {
-                return;
-            }
-
-            // Contexte créé pendant le toucher (obligatoire pour le son), puis gardé.
-            if (!context) {
-                const Context = window.AudioContext || window.webkitAudioContext;
-                context = new Context({ latencyHint: 'interactive' });
-            }
-
-            context.resume?.().catch(() => {});
-            const buffer = await sounds.get(button);
-
-            if (!buffer) {
-                button.hidden = true;
-
-                return;
-            }
-
-            const source = context.createBufferSource();
-            source.buffer = buffer;
-            source.connect(context.destination);
-            source.onended = () => {
-                if (playing?.source === source) {
-                    stop();
-                }
-            };
-            source.start();
-            playing = { button, source };
-            button.setAttribute('aria-pressed', 'true');
-        });
-    }
-
-    // Le message principal coupe l'extrait en cours.
-    root.addEventListener('welcome:play', stop);
 }
 
 async function run() {
-    const pieces = JSON.parse(root.dataset.pieces);
+    const teachers = JSON.parse(root.dataset.teachers);
     const audioConfig = JSON.parse(root.dataset.audio);
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     const { expressionFor } = await import(root.dataset.teacherCues);
+    const viewModule = root.dataset.teacherView ? import(root.dataset.teacherView).catch(() => null) : Promise.resolve(null);
 
     const $ = (id) => document.getElementById(id);
     const ui = {
         start: $('welcome-start'), play: $('welcome-play'), skipStart: $('welcome-skip-start'),
         controls: $('welcome-controls'), pause: $('welcome-pause'), skip: $('welcome-skip'),
         status: $('welcome-status'), error: $('welcome-error'), partial: $('welcome-partial'), subtitles: $('welcome-subtitles'),
-        next: $('welcome-next'), mouth: $('welcome-mouth'),
+        next: $('welcome-next'), switchNote: $('welcome-switch'), mouth: null,
     };
+    const switchNoteText = ui.switchNote?.textContent ?? '';
 
-    // Professeur 3D, chargé en arrière-plan ; un emplacement de chargement en attendant, le visage simple en repli.
+    let currentKey = root.dataset.current;
     let teacher = null;
-
-    if (root.dataset.teacher3d && root.dataset.teacherView) {
-        import(root.dataset.teacherView)
-            .then(({ createTeacherView }) => {
-                teacher = createTeacherView(root, JSON.parse(root.dataset.teacher3d));
-
-                if (graph) {
-                    teacher.attachAudio(graph.context, graph.output, null);
-                }
-            })
-            .catch((error) => {
-                console.warn('Professeur 3D indisponible :', error);
-                root.dataset.teacher = 'svg';
-            });
-    }
-
-    // Sous-titres : une ligne par morceau, une étiquette par phrase.
-    const sentences = pieces.map((piece, index) => {
-        const paragraph = document.createElement('p');
-        paragraph.dataset.piece = String(index);
-        const list = piece.text.split(/(?<=[.!?…»])\s+(?=[A-ZÀ-ÖØ-Þ«])/u).filter(Boolean);
-        const spans = list.map((text) => {
-            const span = document.createElement('span');
-            span.className = 'sentence';
-            span.textContent = text;
-
-            return { text, span, expressed: false };
-        });
-        spans.forEach(({ span }, position) => {
-            if (position > 0) {
-                paragraph.append(' ');
-            }
-
-            paragraph.append(span);
-        });
-
-        return { paragraph, spans, start: 0, end: 0 };
-    });
-    ui.subtitles.replaceChildren(...sentences.map(({ paragraph }) => paragraph));
-    ui.start.hidden = false;
-
-
     let graph = null;
     let finished = false;
     let skipped = false;
     let raf = 0;
+    let playback = 0;
     // Lecture : morceaux programmés (début et fin dans l'horloge audio), position du prochain, pause.
-    const play = { timeline: [], cursor: 0, paused: false, pausedAt: 0 };
+    let play = { timeline: [], cursor: 0, paused: false, pausedAt: 0 };
+    let sentences = [];
+    // Préchargement : un emplacement par professeur et par morceau (promesse partagée, son décodé).
+    const slots = {};
+    const skippedOpening = {};
 
-    // Préchargement : un emplacement par morceau (promesse, son décodé, terminé).
-    let skippedOpening = false;
-    const slots = pieces.map(() => ({ promise: null, buffer: null, done: false }));
+    const data = () => teachers[currentKey];
 
-    // L'un après l'autre, le premier d'abord (sur un réseau lent, le partage ralentirait le premier) ; la
-    // salutation en préparation n'est pas attendue.
-    (async () => {
-        for (let index = 0; index < Math.min(PRELOAD, pieces.length); index++) {
-            const loading = want(index);
+    /* ---------- Le professeur affiché : personnage, textes, sous-titres ---------- */
 
-            if (!pieces[index].soon) {
+    async function showCharacter(key) {
+        const who = teachers[key];
+
+        for (const face of root.querySelectorAll('[data-face-for]')) {
+            face.hidden = face.dataset.faceFor !== key;
+        }
+
+        ui.mouth = document.getElementById(`welcome-mouth-${key}`);
+        root.dataset.teacherName = who.name;
+        root.querySelector('[data-arriving]')?.replaceChildren(who.arriving);
+
+        teacher?.dispose?.();
+        teacher = null;
+
+        if (!who.teacher3d) {
+            root.dataset.teacher = 'svg';
+
+            return;
+        }
+
+        root.dataset.teacher = 'loading';
+        const module = await viewModule;
+
+        // Un autre professeur a été choisi pendant l'attente : celui-ci n'est plus affiché.
+        if (key !== currentKey) {
+            return;
+        }
+
+        if (!module) {
+            root.dataset.teacher = 'svg';
+
+            return;
+        }
+
+        try {
+            teacher = module.createTeacherView(root, who.teacher3d);
+
+            if (graph) {
+                teacher.attachAudio(graph.context, graph.output, null);
+            }
+        } catch (error) {
+            console.warn('Professeur 3D indisponible :', error);
+            root.dataset.teacher = 'svg';
+        }
+    }
+
+    function showTexts(key) {
+        const who = teachers[key];
+        root.querySelector('[data-play-label]')?.replaceChildren(who.play);
+        root.querySelector('[data-hint]')?.replaceChildren(who.hint);
+        root.querySelector('[data-next-label]')?.replaceChildren(who.next.label);
+        ui.next.href = who.next.url;
+        ui.subtitles.setAttribute('aria-label', who.subtitles);
+
+        // Sous-titres : une ligne par morceau, une étiquette par phrase.
+        sentences = who.pieces.map((piece, index) => {
+            const paragraph = document.createElement('p');
+            paragraph.dataset.piece = String(index);
+            const list = piece.text.split(/(?<=[.!?…»])\s+(?=[A-ZÀ-ÖØ-Þ«])/u).filter(Boolean);
+            const spans = list.map((text) => {
+                const span = document.createElement('span');
+                span.className = 'sentence';
+                span.textContent = text;
+
+                return { text, span, expressed: false };
+            });
+            spans.forEach(({ span }, position) => {
+                if (position > 0) {
+                    paragraph.append(' ');
+                }
+
+                paragraph.append(span);
+            });
+
+            return { paragraph, spans, start: 0, end: 0 };
+        });
+        ui.subtitles.replaceChildren(...sentences.map(({ paragraph }) => paragraph));
+    }
+
+    function markCards(key) {
+        for (const card of root.querySelectorAll('[data-card]')) {
+            const chosen = card.dataset.card === key;
+            card.classList.toggle('is-current', chosen);
+            card.querySelector('button')?.setAttribute('aria-pressed', String(chosen));
+            card.querySelector('[data-state-chosen]').hidden = !chosen;
+            card.querySelector('[data-state-choose]').hidden = chosen;
+        }
+    }
+
+    /* ---------- Préchargement ---------- */
+
+    function slotsFor(key) {
+        slots[key] ??= teachers[key].pieces.map(() => ({ promise: null, buffer: null }));
+
+        return slots[key];
+    }
+
+    /**
+     * Le son décodé d'un morceau (promesse partagée : un seul téléchargement). Paragraphe pas encore préparé :
+     * null, sans demande. Salutation en préparation (« soon ») : redemandée quelques fois, tant qu'elle peut
+     * encore servir (avant le toucher).
+     */
+    function want(key, index) {
+        const pieces = teachers[key].pieces;
+
+        if (index >= pieces.length) {
+            return Promise.resolve(null);
+        }
+
+        const slot = slotsFor(key)[index];
+
+        if (slot.promise) {
+            return slot.promise;
+        }
+
+        const piece = pieces[index];
+
+        slot.promise = (async () => {
+            if (!piece.ready && !piece.soon) {
+                return null;
+            }
+
+            const tries = piece.ready ? 1 : SOON_TRIES;
+
+            for (let attempt = 0; attempt < tries; attempt++) {
+                if (attempt > 0) {
+                    await sleep(SOON_EVERY_MS);
+                }
+
+                if (skippedOpening[key]) {
+                    return null;
+                }
+
+                const buffer = await fetchSound(piece.url);
+
+                if (buffer) {
+                    return buffer;
+                }
+            }
+
+            return null;
+        })().then((buffer) => {
+            slot.buffer = buffer;
+
+            return buffer;
+        });
+
+        return slot.promise;
+    }
+
+    // L'un après l'autre (sur un réseau lent, le partage ralentirait le premier) : le professeur choisi d'abord,
+    // puis le début du message de l'autre, pour qu'il soit prêt s'il est choisi. La salutation en préparation n'est
+    // pas attendue.
+    async function preload(key, count) {
+        for (let index = 0; index < Math.min(count, teachers[key].pieces.length); index++) {
+            const loading = want(key, index);
+
+            if (!teachers[key].pieces[index].soon) {
                 await loading;
             }
         }
+    }
+
+    (async () => {
+        await preload(currentKey, PRELOAD);
+
+        for (const key of Object.keys(teachers)) {
+            if (key !== currentKey) {
+                await preload(key, PRELOAD_OTHER);
+            }
+        }
     })();
+
+    /* ---------- Lecture ---------- */
 
     function showNext() {
         ui.next.classList.add('is-shown');
         ui.next.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
         ui.next.focus({ preventScroll: true });
+    }
+
+    function stopSound() {
+        cancelAnimationFrame(raf);
+        play.timeline.forEach((item) => stopItem(item));
+        sentences.forEach(({ spans }) => spans.forEach(({ span }) => span.classList.remove('is-now')));
+        ui.mouth?.setAttribute('ry', 3);
+        graph?.context.close?.().catch(() => {});
+        graph = null;
+        teacher?.detachAudio?.();
     }
 
     function finish() {
@@ -242,16 +322,11 @@ async function run() {
         }
 
         finished = true;
-        cancelAnimationFrame(raf);
-        play.timeline.forEach((item) => stopItem(item));
+        stopSound();
         ui.controls.hidden = true;
         ui.start.hidden = true;
         ui.status.hidden = true;
-        sentences.forEach(({ spans }) => spans.forEach(({ span }) => span.classList.remove('is-now')));
         teacher?.expression('neutral');
-        ui.mouth?.setAttribute('ry', 3);
-        graph?.context.close?.().catch(() => {});
-        teacher?.detachAudio();
         showNext();
     }
 
@@ -300,11 +375,14 @@ async function run() {
             }
         }
 
-        const paused = play.paused;
+        showPaused(play.paused);
+    });
+
+    function showPaused(paused) {
         ui.pause.setAttribute('aria-pressed', String(paused));
         ui.pause.querySelector('[data-pause-label]').hidden = paused;
         ui.pause.querySelector('[data-resume-label]').hidden = !paused;
-    });
+    }
 
     ui.play.addEventListener('click', async () => {
         ui.play.disabled = true;
@@ -322,9 +400,12 @@ async function run() {
     });
 
     async function startPlayback() {
-        root.dispatchEvent(new CustomEvent('welcome:play'));
+        const run = ++playback;
+        const key = currentKey;
+        const pieces = teachers[key].pieces;
 
-        // Le contexte est créé pendant le toucher (obligatoire pour que le son soit autorisé).
+        // Le contexte est créé pendant le toucher (obligatoire pour que le son soit autorisé, Chrome sur Android
+        // compris), et réveillé tout de suite.
         const Context = window.AudioContext || window.webkitAudioContext;
         const context = new Context({ latencyHint: 'interactive' });
         context.resume?.().catch(() => {});
@@ -353,8 +434,8 @@ async function run() {
         teacher?.expression('welcome');
 
         // Ce qui est prêt part tout de suite : la salutation encore en préparation est sautée (elle reste écrite).
-        if (!slots[0].buffer && pieces[0].soon) {
-            skippedOpening = true;
+        if (!slotsFor(key)[0].buffer && pieces[0].soon) {
+            skippedOpening[key] = true;
         }
 
         play.cursor = context.currentTime + 0.03;
@@ -362,16 +443,17 @@ async function run() {
 
         for (let index = 0; index < pieces.length; index++) {
             // Le morceau suivant se charge pendant que celui-ci est dit.
-            want(index + 1);
-            const buffer = index === 0 && skippedOpening ? null : await want(index);
+            want(key, index + 1);
+            const buffer = index === 0 && skippedOpening[key] ? null : await want(key, index);
 
-            if (finished) {
+            // Lecture arrêtée entre-temps (« Passer », autre professeur choisi).
+            if (finished || run !== playback) {
                 return;
             }
 
             if (buffer === null) {
                 // Morceau indisponible : il reste écrit, la suite est jouée.
-                if (index > 0 || !skippedOpening) {
+                if (index > 0 || !skippedOpening[key]) {
                     missing++;
                 }
 
@@ -452,58 +534,6 @@ async function run() {
         item.source = null;
     }
 
-    /**
-     * Le son décodé d'un morceau (promesse partagée : un seul téléchargement). Paragraphe pas encore préparé :
-     * null, sans demande. Salutation en préparation (« soon ») : redemandée quelques fois, tant qu'elle peut
-     * encore servir (avant le toucher).
-     */
-    function want(index) {
-        if (index >= pieces.length) {
-            return Promise.resolve(null);
-        }
-
-        const slot = slots[index];
-
-        if (slot.promise) {
-            return slot.promise;
-        }
-
-        const piece = pieces[index];
-
-        slot.promise = (async () => {
-            if (!piece.ready && !piece.soon) {
-                return null;
-            }
-
-            const tries = piece.ready ? 1 : SOON_TRIES;
-
-            for (let attempt = 0; attempt < tries; attempt++) {
-                if (attempt > 0) {
-                    await sleep(SOON_EVERY_MS);
-                }
-
-                if (skippedOpening || finished) {
-                    return null;
-                }
-
-                const buffer = await fetchSound(piece.url);
-
-                if (buffer) {
-                    return buffer;
-                }
-            }
-
-            return null;
-        })().then((buffer) => {
-            slot.buffer = buffer;
-            slot.done = true;
-
-            return buffer;
-        });
-
-        return slot.promise;
-    }
-
     // Sous-titres : l'heure (dans l'horloge audio) de chaque phrase, répartie selon sa longueur.
     function schedule(index, at, duration) {
         const entry = sentences[index];
@@ -529,7 +559,7 @@ async function run() {
     let current = null;
 
     function follow() {
-        if (finished) {
+        if (finished || !graph) {
             return;
         }
 
@@ -577,7 +607,7 @@ async function run() {
         let opening = 0;
 
         const frame = () => {
-            if (finished || !ui.mouth) {
+            if (finished || !graph || graph.analyser !== analyser || !ui.mouth) {
                 return;
             }
 
@@ -596,4 +626,86 @@ async function run() {
 
         frame();
     }
+
+    /* ---------- « Avec qui voulez-vous apprendre ? » ---------- */
+
+    // Choisir un professeur : tout change aussitôt ; la lecture en cours s'arrête, le message du nouveau
+    // professeur est prêt à être écouté (bouton « Toucher pour écouter … »).
+    function select(key) {
+        if (key === currentKey || !teachers[key]) {
+            return;
+        }
+
+        currentKey = key;
+        playback++;
+        stopSound();
+        play = { timeline: [], cursor: 0, paused: false, pausedAt: 0 };
+        current = null;
+        finished = false;
+        skipped = false;
+        showPaused(false);
+        ui.controls.hidden = true;
+        ui.status.hidden = true;
+        ui.error.hidden = true;
+        ui.partial.hidden = true;
+        ui.start.hidden = false;
+        ui.play.disabled = false;
+
+        markCards(key);
+        showTexts(key);
+        showCharacter(key);
+        preload(key, PRELOAD);
+    }
+
+    for (const card of root.querySelectorAll('[data-card]')) {
+        card.addEventListener('submit', async (event) => {
+            // Envoyé en arrière-plan : la page ne se recharge pas (app.js ignore un envoi déjà pris en charge).
+            event.preventDefault();
+            const key = card.dataset.card;
+
+            if (key === currentKey) {
+                return;
+            }
+
+            const previous = currentKey;
+            select(key);
+
+            // « Un instant, Teacher Rose arrive… » le temps d'enregistrer le choix (court), puis la phrase d'avant.
+            if (ui.switchNote) {
+                ui.switchNote.textContent = teachers[key].arriving;
+            }
+
+            try {
+                const response = await fetch(root.dataset.chooseUrl, {
+                    method: 'POST',
+                    body: new FormData(card),
+                    credentials: 'same-origin',
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                });
+
+                if (!response.ok) {
+                    throw new Error(response.status === 429 ? 'trop-vite' : String(response.status));
+                }
+
+                if (ui.switchNote && currentKey === key) {
+                    ui.switchNote.textContent = switchNoteText;
+                }
+            } catch (error) {
+                // Choix non enregistré : retour au professeur d'avant, et on dit simplement pourquoi.
+                select(previous);
+
+                if (ui.switchNote) {
+                    ui.switchNote.textContent = error.message === 'trop-vite'
+                        ? 'Vous avez changé de professeur plusieurs fois très vite. Patientez une minute, puis touchez de nouveau le professeur.'
+                        : 'Votre choix n\'a pas pu être enregistré. Vérifiez votre connexion, puis touchez de nouveau le professeur.';
+                }
+            }
+        });
+    }
+
+    /* ---------- Démarrage ---------- */
+
+    showTexts(currentKey);
+    showCharacter(currentKey);
+    ui.start.hidden = false;
 }

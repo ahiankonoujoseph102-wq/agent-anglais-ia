@@ -66,7 +66,11 @@
     --c-info-soft: #E8F0FB;
     --c-warning: #6B4A06;
     --c-warning-soft: #FDF3DC;
-    --c-whatsapp: #0F7A40;         /* seul vert du site : bouton WhatsApp (blanc dessus 5,4:1) */
+    --c-whatsapp: #0F7A40;         /* vert du bouton WhatsApp (blanc dessus 5,4:1) */
+    /* Professeur choisi sur la page de bienvenue (demande du fondateur, 31 octobre 2026) : seul autre vert du site,
+       sur fond bleu nuit (contour et coche : 6,6:1 sur #0E2A5C). */
+    --c-choice: #34C77B;
+    --c-choice-glow: rgba(52, 199, 123, .16);
     --c-whatsapp-strong: #0B5F32;
     --c-focus: #B25512;            /* contour du focus (4,6:1 sur le fond) */
     --c-danger-line: #F6C9C4;

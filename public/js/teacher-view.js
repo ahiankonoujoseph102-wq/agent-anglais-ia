@@ -101,6 +101,8 @@ export function createTeacherView(root, config) {
     let audio = null;
     let pendingExpression = null;
     let loadingPromise = null;
+    // Vue retirée (page de bienvenue : l'élève a choisi l'autre professeur) : rien ne revient ensuite.
+    let disposed = false;
     // « Enregistrer ma séance » : appelé avec le canevas 3D juste après chaque rendu.
     let onRender = null;
 
@@ -129,6 +131,17 @@ export function createTeacherView(root, config) {
 
         learnerSpoke() {
             teacher?.learnerSpoke();
+        },
+
+        /** Retire le personnage (et celui qui arriverait encore) : la page en affiche un autre. */
+        dispose() {
+            disposed = true;
+            teacher?.dispose();
+            teacher = null;
+            stage.replaceChildren();
+            box.classList.remove('teacher-3d');
+            loading.hidden = true;
+            toggle.hidden = true;
         },
 
         set onRender(callback) {
@@ -186,6 +199,12 @@ export function createTeacherView(root, config) {
         // Tournage d'une vidéo (window.__filming) : machine lente, on attend Teacher Joe animé plus longtemps.
         loadingPromise = withTimeout(attempt, window.__filming ? 180000 : LOAD_TIMEOUT_MS)
             .then((instance) => {
+                if (disposed) {
+                    instance.dispose();
+
+                    return;
+                }
+
                 teacher = instance;
                 teacher.onrender = onRender;
                 teacher.onfail = () => {
@@ -213,6 +232,10 @@ export function createTeacherView(root, config) {
                 });
             })
             .catch((error) => {
+                if (disposed) {
+                    return;
+                }
+
                 // Aucune erreur affichée à l'apprenant : le visage simple reste.
                 console.warn('Professeur 3D indisponible :', error);
 
