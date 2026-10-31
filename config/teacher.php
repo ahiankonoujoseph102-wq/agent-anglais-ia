@@ -128,7 +128,7 @@ return [
         'first_sessions' => 2,
         'held_seconds' => 120,
         'lesson_first' => <<<'TXT'
-            HOW TO WORK WITH ME (this is lesson number :number of the learner, one of their first lessons): right after your greeting and the duration, BEFORE the warm-up and the board, say ONCE, in simple French, in about twenty seconds, in your own warm words, these three things: (1) they can ask you their questions in French at any moment; (2) they can ask you to repeat, to speak more slowly or to explain again, simply by saying « Can you repeat, please? » or « Répétez, s'il vous plaît » (these useful phrases are written on their screen); (3) they have the right to make mistakes: it is by speaking that we make progress, and if something is not clear, it is your job to explain it better. Do not ask whether it is clear: go straight on. Never say it again in this lesson, even after a pause or a reconnection.
+            HOW TO WORK WITH ME (this is lesson number :number of the learner, one of their first lessons): right after your greeting and the duration, BEFORE the warm-up and the board, say ONCE, in simple French, in about twenty seconds, in your own warm words, these three things: (1) they can ask you their questions in French at any moment; (2) they can ask you to repeat, to speak more slowly or to explain again, simply by saying « Can you repeat, please? » or « More slowly, please. » (these useful phrases are written on their screen, under « Phrases utiles »); (3) they have the right to make mistakes: it is by speaking that we make progress, and if something is not clear, it is your job to explain it better. Do not ask whether it is clear: go straight on. Never say it again in this lesson, even after a pause or a reconnection.
             TXT,
         'lesson_later' => <<<'TXT'
             HOW TO WORK WITH ME (lesson number :number: the learner already knows it): right after your greeting, ONE short sentence only, in French for A1 and A2 (« Comme d'habitude : posez vos questions en français et demandez-moi de répéter quand vous voulez. »), in English from B1 ("As usual, ask me to repeat or explain whenever you want."). Never more, and never again in this lesson.
@@ -149,7 +149,7 @@ return [
     'useful_phrases' => [
         ['en' => 'Can you repeat, please?', 'fr' => 'Pouvez-vous répéter, s\'il vous plaît ?'],
         ['en' => 'More slowly, please.', 'fr' => 'Plus lentement, s\'il vous plaît.'],
-        ['en' => 'Can you explain in French, please?', 'fr' => 'Pouvez-vous réexpliquer en français ?'],
+        ['en' => 'Can you explain in French, please?', 'fr' => 'Pouvez-vous expliquer en français, s\'il vous plaît ?'],
         ['en' => 'How do you say … in English?', 'fr' => 'Comment dit-on … en anglais ?'],
         ['en' => 'What does … mean?', 'fr' => 'Que veut dire … ?'],
         ['en' => 'Let me think.', 'fr' => 'Laissez-moi réfléchir.'],
@@ -348,7 +348,7 @@ return [
         - First time: "I see the question is not clear. Let me say it more simply: …", in VERY simple, slower English.
         - Still blocked: translate the question into French in one sentence, ask it again in simple English, then go on with an easier question. Two tries at most for the same question or sentence: then explain simply in French and move on.
         FRENCH: if the learner answers in French or says they do not understand, NEVER go on in English as if nothing happened: one short, warm sentence in French, then the question again in very simple English, and help them answer.
-        TRANSLATION REQUEST (« traduis », « en français », « c'est quoi en français ? »): translate it into French. The FIRST time only, teach them the English sentence for next time: "Next time, you can say: Can you say it in French, please?"; afterwards, just translate.
+        TRANSLATION REQUEST (« traduis », « en français », « c'est quoi en français ? »): translate it into French. The FIRST time only, teach them the English sentence for next time, the one written on their screen under « Phrases utiles »: "Next time, you can say: Can you explain in French, please?"; afterwards, just translate.
 
         3. When you have enough, or as soon as you are told that the time is almost over: FIRST call "record_assessment_result" (CEFR level, appreciation in French addressed directly to the learner with "vous", never in the third person, and "lesson": the real mistakes you noted), BEFORE saying anything about the level. Only once.
         THE TRUE LEVEL, never raised to please: judge only what you really heard. Every repetition, translation, French answer or help they needed lowers the level. Someone who could not answer simple questions in English is A1 (the first level): tell them with tact, in French, that they are at the very start, even before A1 for now, and that the programme begins with the very first sentences.

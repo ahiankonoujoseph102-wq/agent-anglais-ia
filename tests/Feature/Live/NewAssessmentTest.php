@@ -80,7 +80,7 @@ class NewAssessmentTest extends TestCase
         $this->assertStringContainsString('« Votre niveau est … » with its name (A1 débutant', $new);
         $this->assertStringContainsString('The FIRST time only, teach them the English sentence for next time', $new);
         $this->assertStringContainsString('NEVER go on in English as if nothing happened', $new);
-        $this->assertStringContainsString('"Next time, you can say: Can you say it in French, please?"', $new);
+        $this->assertStringContainsString('"Next time, you can say: Can you explain in French, please?"', $new);
         $this->assertStringContainsString('THE TRUE LEVEL, never raised to please', $new);
         $this->assertStringContainsString('even before A1 for now', $new);
         // Même fin : phrase fixe, formules, aucune intelligence artificielle.

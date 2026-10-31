@@ -147,7 +147,7 @@
             @if ($next)
                 <x-next-step hidden :title="$next['title']" :text="$next['text']" :href="$next['href']" :label="$next['label']" :icon="$next['icon']">
                     @if ($nextBack)<a href="{{ $nextBack['href'] }}">{{ $nextBack['label'] }}</a>@endif
-                    @if ($installHint)<x-install-hint />@endif
+                    @if ($installHint)<x-install-hint :teacher-name="$teacherName" />@endif
                 </x-next-step>
             @endif
 

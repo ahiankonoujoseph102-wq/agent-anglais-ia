@@ -4,20 +4,20 @@
         "sha256": "e89bc6e9b5cc4ef8d56ecdbbdc512aba283dfda464ae507c236b2d87e7a6920d"
     },
     "assessment.new": {
-        "length": 87774,
-        "sha256": "73911d86006aa03f92647f9d256c25aa42a5d395ac2e2fb2932002304c7583ae"
+        "length": 87892,
+        "sha256": "f5cf9909e2de0bf41299221b7ef97ff0ca3d549741be8e545e519c50639bae00"
     },
     "lesson.A1.first": {
-        "length": 85756,
-        "sha256": "c67eb51310f37f9be85b781f27d8ee7659af14a422914a8be62e553260f11971"
+        "length": 85800,
+        "sha256": "2af06ba371965729b8172820e5f60320db209133181673734c92939b74d800fd"
     },
     "lesson.B2.later": {
         "length": 84387,
         "sha256": "ff090d612da74d18c535051cc4b601b8f7811ef8dde4bc6d14cddcc8a2339174"
     },
     "lesson.without_programme": {
-        "length": 85412,
-        "sha256": "4916188906b19bfa845d2c2464598f1272ad582dec3a00e3805a561605f530e2"
+        "length": 85456,
+        "sha256": "3ba44792ce7f101728c7526b605507787eb9b247715095f004c2c8fe25fe8b9c"
     },
     "course.A2": {
         "length": 83502,
@@ -32,8 +32,8 @@
         "sha256": "5089fe1834fa65d05dc8f657ad583f334b2b459a0cd9f3c4e30b5d55e05711f1"
     },
     "lesson.A1.chosen_voice": {
-        "length": 85756,
-        "sha256": "85e0f6b611e92ee1343d9cb2c34ac27d47ac0018c73b29abb6d48a4fd0bc6dcf"
+        "length": 85800,
+        "sha256": "c74d62839dd82c3a6348dfe43c0fe60748f4af680fff48a0c143c1ab5bebe8e2"
     },
     "site_guide.all": {
         "length": 22911,
