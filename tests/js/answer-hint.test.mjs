@@ -66,3 +66,20 @@ test('lastQuestion lit la dernière phrase interrogative', () => {
     assert.equal(lastQuestion('How are you today? Take your time.'), 'how are you today');
     assert.equal(lastQuestion('No question here.'), null);
 });
+
+test('le prénom ajouté à la fin de la question ne change rien', () => {
+    assert.equal(answerHint('Nice to meet you, Kofi! How are you today, Kofi?'), "I'm fine, thank you.");
+    assert.equal(answerHint("What do you do, Ama?"), "I'm a …");
+    // Une suite qui n'est pas un prénom (« … or not? ») : pas d'exemple pour « How are you ».
+    assert.equal(answerHint('How are you today, or are you tired today, and why?'), null);
+});
+
+test('les trois premiers bandeaux de l\'évaluation suivent les trois premières questions', () => {
+    // Tour 1 : accueil et question du nom ; l'élève n'a encore rien dit.
+    assert.equal(listeningText(`${welcome}What's your name?`, { firstAnswer: true }), 'À vous de parler : par exemple « My name is … »');
+    // Tour 2 : réaction et « How are you today? ».
+    assert.equal(listeningText('Nice to meet you, Afi! How are you today?'), 'À vous de parler : par exemple « I\'m fine, thank you. »');
+    // Tour 3 : première question adaptée (inventée par le professeur) : exemple seulement s'il est sûr.
+    assert.equal(listeningText("I'm happy to hear that. Where do you live?"), 'À vous de parler : par exemple « I live in … »');
+    assert.equal(listeningText("I'm happy to hear that. What did you do yesterday?"), 'À vous de parler');
+});

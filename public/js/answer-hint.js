@@ -5,14 +5,17 @@
  * after me »), pas d'exemple : seulement un conseil général. Fonctions pures, testées par tests/js/answer-hint.test.mjs.
  */
 
+// Prénom ajouté à la fin d'une question (« How are you today, Kofi? »), toléré là où la question doit finir.
+const NAME = "(, ?[a-z' -]{1,30})?";
+
 // Questions reconnues et leur exemple de réponse (anglais américain, niveau débutant). Une seule réponse sûre chacune.
 export const HINTS = [
     { example: 'My name is …', patterns: [/\bwhat'?s your (first )?name\b/, /\bwhat is your (first )?name\b/, /\bcan you tell me your name\b/, /\bmay i (have|know) your name\b/, /\bcomment vous appelez[- ]vous\b/, /\bquel est votre (pre)?nom\b/] },
-    { example: "I'm fine, thank you.", patterns: [/\bhow are you( doing)?( today| this morning| this afternoon| this evening| now)?\s*$/, /\bhow'?s it going\b/, /\bhow is it going\b/, /\bcomment allez[- ]vous\b/] },
+    { example: "I'm fine, thank you.", patterns: [new RegExp(`\\bhow are you( doing)?( today| this morning| this afternoon| this evening| now)?${NAME}\\s*$`), /\bhow'?s it going\b/, /\bhow is it going\b/, /\bcomment allez[- ]vous\b/] },
     { example: 'I live in …', patterns: [/\bwhere do you live\b/] },
     { example: "I'm from …", patterns: [/\bwhere are you from\b/, /\bwhere do you come from\b/] },
     { example: "I'm … years old.", patterns: [/\bhow old are you\b/] },
-    { example: "I'm a …", patterns: [/\bwhat do you do( for a living)?\s*$/, /\bwhat'?s your job\b/, /\bwhat is your job\b/] },
+    { example: "I'm a …", patterns: [new RegExp(`\\bwhat do you do( for a living)?${NAME}\\s*$`), /\bwhat'?s your job\b/, /\bwhat is your job\b/] },
     { example: 'I want to learn English because …', patterns: [/\bwhy do you want to (learn|speak|study|improve)( your)? english\b/] },
     { example: 'I like …', patterns: [/\bwhat do you like to do\b/, /\bwhat are your hobbies\b/, /\bwhat do you do in your free time\b/] },
 ];

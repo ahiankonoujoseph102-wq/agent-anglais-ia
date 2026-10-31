@@ -177,7 +177,7 @@
 
             <div class="live-bar">
                 <div>
-                    {{-- « Vos questions » après l'annonce du niveau (évaluation), avec le temps restant de ce moment. --}}
+                    {{-- « Mini-leçon et questions » après l'annonce du niveau (évaluation), avec le temps restant de ce moment. --}}
                     <div class="label"><x-icon name="clock" /> <span id="timer-label">Temps restant</span></div>
                     <div id="timer" class="timer" aria-live="off">{{ sprintf('%d:%02d', intdiv($remainingSeconds, 60), $remainingSeconds % 60) }}</div>
                 </div>
@@ -226,7 +226,7 @@
 
             <div id="controls" class="live-controls" hidden>
                 <button type="button" id="interrupt" class="btn btn-accent btn-lg live-control live-control-wide" hidden>
-                    <x-icon name="hand" /> Interrompre le professeur
+                    <x-icon name="hand" /> Interrompre {{ $teacher->theTeacher() }}
                 </button>
                 <button type="button" id="pause" class="btn btn-lg live-control" aria-pressed="false">
                     <span class="live-control-off"><x-icon name="pause" /> Pause</span>

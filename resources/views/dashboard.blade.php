@@ -74,7 +74,7 @@
             <a href="{{ route('program.questionnaire', 1) }}" class="btn btn-lg btn-block">Construire mon programme <x-icon name="arrow-right" /></a>
         @elseif ($program?->status === \App\Enums\ProgramStatus::LevelTestDue)
             <h2 id="next-step-title">Bilan de fin de niveau {{ $program->level->value }}</h2>
-            <p>Vous avez terminé les 12 unités ! Passez le bilan oral avec le professeur pour obtenir votre attestation et passer au niveau suivant.</p>
+            <p>Vous avez terminé les 12 unités ! Passez le bilan oral avec {{ $myTeacher->name() }} pour obtenir votre attestation et passer au niveau suivant.</p>
             <a href="{{ route('level-test.show') }}" class="btn btn-lg btn-block"><x-icon name="award" /> Passer mon bilan</a>
         @else
             <h2 id="next-step-title">Votre séance du jour</h2>

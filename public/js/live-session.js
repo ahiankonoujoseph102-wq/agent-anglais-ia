@@ -461,7 +461,8 @@ const MESSAGES = {
     cutAgain: WAIT.cut_again,
     unavailable: WAIT.unavailable,
     reconnecting: WAIT.reconnecting,
-    quota: `${teacherName} est très demandé en ce moment. Réessayez dans quelques minutes : votre temps non utilisé reste disponible.`,
+    // Sans accord masculin ou féminin : le même texte pour Teacher Joe et Teacher Rose.
+    quota: `Beaucoup d'élèves parlent avec ${teacherName} en ce moment. Réessayez dans quelques minutes : votre temps non utilisé reste disponible.`,
     pauseTooLong: 'La pause a duré trop longtemps : la conversation est terminée. Le temps déjà utilisé est décompté.',
     slow: WAIT.slow,
     stuck: WAIT.stuck,
@@ -671,7 +672,7 @@ function renderTimer() {
 
     if (ui.timerLabel) {
         // Après le verdict de l'évaluation : le temps restant est celui du moment des questions.
-        ui.timerLabel.textContent = state.end.questions && !state.pendingReveal ? 'Vos questions' : 'Temps restant';
+        ui.timerLabel.textContent = state.end.questions && !state.pendingReveal ? 'Mini-leçon et questions' : 'Temps restant';
     }
 
     ui.timer.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
