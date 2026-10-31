@@ -1101,25 +1101,18 @@ html:not(.js) .teacher-news-later { display: none; }
 .welcome-card { display: grid; gap: var(--space-1); padding: var(--space-2); border: 2px solid var(--c-on-dark-line); border-radius: var(--radius-lg); background: var(--c-on-dark-glow);
     transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast); }
 .js .welcome-card { animation: welcome-card-in .45s var(--ease) both; animation-delay: calc(.15s + var(--i, 0) * .12s); }
-.welcome-card.is-current { border-color: var(--c-accent); background: rgba(255, 122, 26, .16); }
-.welcome-card form { margin: 0; }
-.welcome-card-main { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; margin: 0; padding: 0; background: none; border: 0; color: var(--c-on-dark); font: inherit; cursor: default; }
-.welcome-card-pick { cursor: pointer; min-height: 44px; }
+.welcome-card.is-current { border-color: var(--c-choice); background: var(--c-choice-glow); box-shadow: 0 0 0 3px var(--c-choice-glow); }
+.welcome-card { margin: 0; }
+.welcome-card-main { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; margin: 0; padding: 0; background: none; border: 0; color: var(--c-on-dark); font: inherit; cursor: pointer; min-height: 44px; }
 .welcome-card-face { display: block; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid var(--c-on-dark-line); background: var(--c-primary-soft); }
-.welcome-card.is-current .welcome-card-face { border-color: var(--c-accent); }
+.welcome-card.is-current .welcome-card-face { border-color: var(--c-choice); }
+.welcome-card.is-current .welcome-card-state { color: var(--c-choice); font-weight: var(--fw-bold); }
+.welcome-card-state[hidden] { display: none; }
+.welcome-card-choose { text-decoration: underline; text-underline-offset: 3px; color: var(--c-on-dark); }
+.welcome-card:active { transform: scale(.98); }
 .welcome-card-face img { display: block; width: 100%; height: 100%; transform: scale(2.3) translate(0, 17%); }
 .welcome-card-name { font-weight: var(--fw-heavy); font-size: var(--fs-sm); line-height: 1.25; }
 .welcome-card-state { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs, .8rem); color: var(--c-on-dark-muted); }
-.welcome-card-pick .welcome-card-state { text-decoration: underline; text-underline-offset: 3px; color: var(--c-on-dark); }
-.welcome-card.is-current .welcome-card-state .icon { color: var(--c-accent); }
-.welcome-card-wait { display: none; font-size: .72rem; white-space: nowrap; color: var(--c-on-dark); }
-.welcome-card-pick.is-busy { opacity: 1; }
-.welcome-card-pick.is-busy .welcome-card-state { display: none; }
-.welcome-card-pick.is-busy .welcome-card-wait { display: block; }
-.welcome-card:has(.is-busy) { border-color: var(--c-accent); transform: scale(1.04); box-shadow: 0 0 0 4px rgba(255, 122, 26, .25); background: rgba(255, 122, 26, .16); }
-.welcome-card:has(.is-busy) .welcome-card-face { border-color: var(--c-accent); }
-.welcome-card-voice { justify-self: center; display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 var(--space-3); border-radius: var(--radius-pill); border: 1px solid var(--c-on-dark-line); background: transparent; color: var(--c-on-dark); font: inherit; font-size: var(--fs-xs, .8rem); font-weight: var(--fw-bold); cursor: pointer; }
-.welcome-card-voice[aria-pressed="true"] { border-color: var(--c-accent); background: rgba(255, 122, 26, .2); }
 .welcome-choice-note { color: var(--c-on-dark-muted); font-size: var(--fs-xs, .8rem); margin: var(--space-1) 0 0; }
 /* Téléphone : tout tient au-dessus de « Toucher pour écouter » (visible sans défiler à 360 × 640). */
 @media (max-width: 639px) {
@@ -1130,7 +1123,6 @@ html:not(.js) .teacher-news-later { display: none; }
     .welcome-choice h2 { font-size: var(--fs-sm); margin-bottom: var(--space-1); }
     .welcome-card { padding: var(--space-1) var(--space-1) var(--space-2); gap: 2px; }
     .welcome-card-face { width: 48px; height: 48px; }
-    .welcome-card-voice { min-height: 36px; }
     .welcome-start .btn-lg { font-size: var(--fs-base); padding-left: var(--space-3); padding-right: var(--space-3); }
     body .welcome-page.has-choice .teacher-3d .teacher3d-stage { height: clamp(104px, 17dvh, 440px); }
     .js body .welcome-page.has-choice[data-teacher="loading"] .teacher { min-height: clamp(104px, 17dvh, 440px); }
@@ -1149,7 +1141,6 @@ html:not(.js) .teacher-news-later { display: none; }
 @media (prefers-reduced-motion: reduce) {
     .welcome-confetti { display: none; }
     .js .welcome-card { animation: none; }
-    .welcome-card:has(.is-busy) { transform: none; }
 }
 .welcome-page.has-choice .teacher-3d .teacher3d-stage { height: clamp(150px, 24dvh, 440px); }
 .js .welcome-page.has-choice[data-teacher="loading"] .teacher { min-height: clamp(150px, 24dvh, 440px); }

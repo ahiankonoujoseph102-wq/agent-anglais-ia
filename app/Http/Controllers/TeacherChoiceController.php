@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\Teachers\Teachers;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -14,7 +15,7 @@ use Illuminate\Validation\Rule;
  */
 class TeacherChoiceController extends Controller
 {
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request): RedirectResponse|JsonResponse
     {
         abort_unless(Teachers::hasChoice(), 404);
 
@@ -28,7 +29,12 @@ class TeacherChoiceController extends Controller
         $teacher = Teachers::forUser($request->user());
         $back = self::back($request->input('retour'));
 
-        // Page de bienvenue : la carte du professeur choisi le montre déjà, aucun message par-dessus les cartes.
+        // Page de bienvenue (choix envoyé en arrière-plan, la page a déjà changé de professeur) : simple accord.
+        if ($request->expectsJson()) {
+            return response()->json(['teacher' => $teacher->key, 'name' => $teacher->name()]);
+        }
+
+        // Page de bienvenue sans JavaScript : la carte du professeur choisi le montre déjà, aucun message par-dessus.
         if ($back === url('/bienvenue?reecouter=1')) {
             return redirect()->to($back);
         }

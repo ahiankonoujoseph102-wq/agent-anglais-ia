@@ -19,7 +19,7 @@ use Illuminate\Support\Sleep;
 use Tests\TestCase;
 
 /**
- * Teacher Rose dans les messages vocaux et la page de bienvenue : « Avec qui voulez-vous travailler ? » après
+ * Teacher Rose dans les messages vocaux et la page de bienvenue : « Avec qui voulez-vous apprendre ? » après
  * l'ouverture d'un accès (jamais sur la page de paiement), messages de bienvenue et du résultat préparés aussi avec
  * sa voix (Sulafat chez Gemini, marin chez OpenAI) et ses accords, fichiers de Teacher Joe inchangés. Aucun appel réel.
  */
@@ -129,9 +129,7 @@ class TeacherRoseVoiceTest extends TestCase
         $user = $this->newcomer();
 
         $this->actingAs($user)->get('/bienvenue')->assertOk()
-            ->assertSee('Avec qui voulez-vous travailler ?')
-            ->assertSee('data-voice-sample="'.route('welcome.voice', 'joe').'"', false)
-            ->assertSee('data-voice-sample="'.route('welcome.voice', 'rose').'"', false)
+            ->assertSee('Avec qui voulez-vous apprendre ?')
             ->assertSee('Toucher pour écouter Teacher Joe')
             ->assertSee('name="retour" value="/bienvenue"', false);
 
@@ -149,7 +147,7 @@ class TeacherRoseVoiceTest extends TestCase
             ->assertSee('elle vous explique comment tout fonctionne')
             ->assertSee('Je suis Teacher Rose, votre professeure d\'anglais')
             ->assertSee('face-rose', false)
-            ->assertSee('id="welcome-mouth"', false);
+            ->assertSee('id="welcome-mouth-rose"', false);
     }
 
     public function test_the_greeting_with_the_first_name_is_said_by_the_chosen_teacher(): void
@@ -168,9 +166,9 @@ class TeacherRoseVoiceTest extends TestCase
     {
         $user = $this->newcomer();
 
-        $this->actingAs($user)->get(route('payment.create', 'essentiel'))->assertDontSee('Avec qui voulez-vous travailler');
+        $this->actingAs($user)->get(route('payment.create', 'essentiel'))->assertDontSee('Avec qui voulez-vous apprendre');
 
         config(['teachers.list.rose.ready' => false]);
-        $this->actingAs($user)->get('/bienvenue')->assertOk()->assertDontSee('Avec qui voulez-vous travailler');
+        $this->actingAs($user)->get('/bienvenue')->assertOk()->assertDontSee('Avec qui voulez-vous apprendre');
     }
 }

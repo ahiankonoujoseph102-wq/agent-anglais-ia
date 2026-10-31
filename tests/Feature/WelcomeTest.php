@@ -517,7 +517,7 @@ class WelcomeTest extends TestCase
 
         // La page reste utilisable : le texte est affiché, chaque morceau dit s'il est prêt.
         $page = $this->get(route('welcome.show', ['reecouter' => 1]))->assertOk()->assertSee('Je suis Teacher Joe, votre professeur d&#039;anglais.', false);
-        $pieces = json_decode(html_entity_decode((string) preg_replace('/.*data-pieces=\'([^\']*)\'.*/s', '$1', $page->getContent())), true);
+        $pieces = WelcomeFastTest::currentPieces($page->getContent());
         // Salutation en échec : pas prête, la page la redemandera (« soon ») et commencera sans elle au besoin.
         $this->assertFalse($pieces[0]['ready']);
         $this->assertTrue($pieces[0]['soon']);
@@ -574,7 +574,7 @@ class WelcomeTest extends TestCase
         $this->assertStringNotContainsString('<audio', $html);
         $this->assertStringContainsString('js/welcome.js', $html);
         // Les morceaux sont des adresses, demandées seulement après le toucher.
-        $this->assertStringContainsString('data-pieces', $html);
+        $this->assertStringContainsString('data-teachers', $html);
         $this->assertLessThan(60 * 1024, strlen($html));
     }
 }

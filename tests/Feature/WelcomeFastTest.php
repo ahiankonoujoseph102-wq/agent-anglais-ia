@@ -74,7 +74,19 @@ class WelcomeFastTest extends TestCase
 
     private function pieces(string $html): array
     {
-        return json_decode(html_entity_decode((string) preg_replace('/.*data-pieces=\'([^\']*)\'.*/s', '$1', $html)), true);
+        return self::currentPieces($html);
+    }
+
+    /** Morceaux du message du professeur affiché (data-teachers, data-current). */
+    public static function currentPieces(string $html): array
+    {
+        return self::teachers($html)[preg_replace('/.*data-current="([^"]*)".*/s', '$1', $html)]['pieces'];
+    }
+
+    /** Ce que la page sait de chaque professeur proposé (data-teachers). */
+    public static function teachers(string $html): array
+    {
+        return json_decode(html_entity_decode((string) preg_replace('/.*data-teachers=\'([^\']*)\'.*/s', '$1', $html)), true);
     }
 
     public function test_both_teachers_are_prepared_in_few_requests_at_the_loudness_of_the_videos(): void
@@ -163,25 +175,61 @@ class WelcomeFastTest extends TestCase
         $this->assertMatchesRegularExpression('/prefers-reduced-motion: reduce\) \{\s*\.welcome-confetti \{ display: none; \}/', $css);
     }
 
-    public function test_teacher_cards_keep_their_name_while_the_choice_is_sent(): void
+    public function test_teacher_cards_show_only_photo_and_name_with_the_choice_in_green(): void
     {
         self::fakeSpokenSpeech();
         $page = $this->actingAs($this->newcomer())->get(route('welcome.show'))->assertOk();
+        $html = $page->getContent();
 
-        $page->assertSee('Avec qui voulez-vous travailler ?')
+        $page->assertSee('Avec qui voulez-vous apprendre ?')
+            ->assertDontSee('Avec qui voulez-vous travailler')
             ->assertSee('class="welcome-card is-current"', false)
+            ->assertSee('data-card="rose"', false)
             ->assertSee('Votre choix')
-            ->assertSee('data-busy-keep aria-label="Choisir Teacher Rose"', false)
-            ->assertSee('Teacher Rose arrive…')
             ->assertSee('images/teacher-rose.webp', false)
             ->assertSee('images/teacher-joe.webp', false);
 
-        // Le bouton garde son texte (le nom) : jamais « Envoi en cours… » à la place.
-        $app = (string) file_get_contents(public_path('js/app.js'));
-        $this->assertStringContainsString("if (!('busyKeep' in button.dataset))", $app);
+        // Plus de bouton « Sa voix » sur les cartes.
+        $this->assertStringNotContainsString('Sa voix', $html);
+        $this->assertStringNotContainsString('data-voice-sample', $html);
+
+        // Le professeur choisi est encadré de vert (seul autre vert que WhatsApp).
         $css = (string) file_get_contents(public_path('css/app.css'));
-        $this->assertStringContainsString('.welcome-card-pick.is-busy .welcome-card-wait { display: block; }', $css);
-        $this->assertStringContainsString('.welcome-card:has(.is-busy) { border-color: var(--c-accent); transform: scale(1.04);', $css);
+        $this->assertStringContainsString('.welcome-card.is-current { border-color: var(--c-choice);', $css);
+        $this->assertStringContainsString('--c-choice: #34C77B;', (string) file_get_contents(public_path('css/tokens.css')));
+    }
+
+    public function test_the_page_knows_both_teachers_to_switch_instantly(): void
+    {
+        self::fakeSpokenSpeech();
+        $user = $this->newcomer();
+        $html = $this->actingAs($user)->get(route('welcome.show'))->assertOk()->getContent();
+        $teachers = self::teachers($html);
+
+        $this->assertSame(['joe', 'rose'], array_keys($teachers));
+        $this->assertSame('Toucher pour écouter Teacher Rose', $teachers['rose']['play']);
+        $this->assertSame('Un instant, Teacher Rose arrive…', $teachers['rose']['arriving']);
+        $this->assertSame('Écoutez bien : elle vous explique comment tout fonctionne.', $teachers['rose']['hint']);
+        $this->assertStringContainsString('Je suis Teacher Rose', $teachers['rose']['pieces'][2]['text']);
+        // Chaque morceau dit de quel professeur il est : la voix de Teacher Rose est préchargée avant qu'elle soit choisie.
+        $this->assertStringContainsString('professeur=rose', $teachers['rose']['pieces'][1]['url']);
+        $this->assertNotNull($teachers['rose']['teacher3d']);
+
+        // Sa salutation au prénom est préparée aussi, après la réponse de la page.
+        Http::assertSent(fn (Request $request) => str_contains((string) json_encode($request->data()), 'female teacher')
+            && str_contains((string) ($request['input'][0]['content'][0]['text'] ?? ''), 'Afi'));
+
+        // Le morceau de Teacher Rose est bien servi avec SA voix, même si l'élève n'a pas encore choisi.
+        $this->get($teachers['rose']['pieces'][0]['url'])->assertOk()->assertHeader('Content-Type', 'audio/wav');
+
+        // Le choix est enregistré en arrière-plan (réponse JSON, aucun rechargement).
+        $this->postJson(route('teacher.choose'), ['teacher' => 'rose', 'retour' => '/bienvenue'])
+            ->assertOk()->assertJson(['teacher' => 'rose', 'name' => 'Teacher Rose']);
+        $this->assertSame('rose', $user->fresh()->teacher);
+
+        $js = (string) file_get_contents(public_path('js/welcome.js'));
+        $this->assertStringContainsString("card.addEventListener('submit'", $js);
+        $this->assertStringContainsString('event.preventDefault();', $js);
     }
 
     public function test_every_teacher_choice_says_the_teacher_arrives_never_sending(): void
@@ -212,9 +260,10 @@ class WelcomeFastTest extends TestCase
 
         // Préchargement en version légère dès l'ouverture, version complète si le navigateur ne la lit pas.
         $this->assertStringContainsString("light.searchParams.set('leger', '1')", $js);
-        $this->assertStringContainsString('for (let index = 0; index < Math.min(PRELOAD, pieces.length); index++)', $js);
+        $this->assertStringContainsString('await preload(currentKey, PRELOAD);', $js);
+        $this->assertStringContainsString('await preload(key, PRELOAD_OTHER);', $js);
         // Au toucher : la salutation encore en préparation est sautée, le reste part tout de suite.
-        $this->assertStringContainsString('if (!slots[0].buffer && pieces[0].soon)', $js);
+        $this->assertStringContainsString('if (!slotsFor(key)[0].buffer && pieces[0].soon)', $js);
         // Volume de la page : les fichiers sont déjà à −14 LUFS.
         $this->assertSame(1.0, (float) config('platform.speech.page_gain'));
         $this->assertSame(-14.0, (float) config('platform.speech.target_lufs'));
