@@ -12,6 +12,11 @@
 - **À vérifier par le fondateur sur son téléphone** (compte neuf, ou « Réinitialiser l'évaluation ») : premier tour (annonce, phrase rassurante, « What's your name? ») et bandeau « par exemple « My name is … » » ; après sa réponse, « How are you today? » et « par exemple « I'm fine, thank you. » » ; avec Teacher Rose, bouton « Interrompre la professeure ».
 - **Laissé tel quel (coût)** : les messages vocaux du résultat disent « Choisissez votre formule juste en dessous » même pour un élève déjà abonné (les refaire relancerait la synthèse vocale de 12 messages).
 
+## Revue des pages des élèves payants (31 octobre 2026, branche `claude/sweet-johnson-e6lsds`)
+
+- **Fait** : voir CLAUDE.md, feuille de route, « Revue des pages des élèves payants ». Méthode : un outil de test temporaire (jamais poussé) rend chaque page d'un élève payant avec Teacher Joe et avec Teacher Rose, dans plusieurs états, puis relecture du texte.
+- **Laissé tel quel (coût de voix)** : le message vocal du résultat dit « Choisissez votre formule juste en dessous » même à un abonné ; « Let's start ! » du message de bienvenue (espace avant le point d'exclamation). Les refaire relancerait la synthèse vocale.
+
 ## Choix du professeur sur la bienvenue et fin d'abonnement (31 octobre 2026, branche `claude/bienvenue-choix-fin-abonnement`)
 
 - **Fait** : voir CLAUDE.md, feuille de route, « Choix du professeur sur la bienvenue » et « Fin d'abonnement ».

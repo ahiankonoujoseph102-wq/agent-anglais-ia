@@ -142,8 +142,18 @@ class Program extends Model
     /**
      * Libellé des jours de travail : « lundi, mercredi et vendredi ».
      */
+    /** « le lundi, mercredi et vendredi », ou « tous les jours » : à placer dans une phrase. */
+    public function studyDaysPhrase(): string
+    {
+        return count(array_unique($this->study_days ?? [])) >= 7 ? 'tous les jours' : 'le '.$this->studyDaysLabel();
+    }
+
     public function studyDaysLabel(): string
     {
+        if (count(array_unique($this->study_days ?? [])) >= 7) {
+            return 'tous les jours';
+        }
+
         $names = [1 => 'lundi', 2 => 'mardi', 3 => 'mercredi', 4 => 'jeudi', 5 => 'vendredi', 6 => 'samedi', 7 => 'dimanche'];
         $days = array_map(fn ($day) => $names[(int) $day] ?? '', $this->study_days ?? []);
 

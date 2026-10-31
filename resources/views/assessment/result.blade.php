@@ -119,7 +119,9 @@
         <span class="eyebrow">Votre prochaine étape</span>
         <h2 id="formules">Commencez votre programme {{ $chosen?->value ?? $found?->value }} dès aujourd'hui</h2>
         <p class="muted">
-            Chaque jour, une séance orale avec {{ $teacher }}, à votre niveau : {{ $teacherModel->pronoun() }} vous fait parler, corrige vos erreurs
+            {{-- Séances du jour : le professeur CHOISI par l'élève ; sans choix, celui de son évaluation. --}}
+            @php($dailyTeacher = filled(auth()->user()?->getAttributes()['teacher'] ?? null) ? \App\Support\Teachers\Teachers::forUser(auth()->user()) : $teacherModel)
+            Chaque jour, une séance orale avec {{ $dailyTeacher->name() }}, à votre niveau : {{ $dailyTeacher->pronoun() }} vous fait parler, corrige vos erreurs
             et les reprend aux séances suivantes. Plus vous commencez tôt, plus vite l'anglais devient une habitude.
         </p>
         @include('assessment.plans')

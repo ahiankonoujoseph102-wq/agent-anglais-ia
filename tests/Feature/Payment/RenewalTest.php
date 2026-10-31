@@ -24,7 +24,8 @@ class RenewalTest extends TestCase
         ]);
         $this->buildProgram($user);
 
-        $this->actingAs($user)->get('/espace')->assertDontSee('Renouveler');
+        // Le lien discret « Renouveler ou changer » de la carte « Ma formule » est toujours là ; le rappel, non.
+        $this->actingAs($user)->get('/espace')->assertDontSee('Votre formule se termine le');
 
         $this->travel(2)->days();
 

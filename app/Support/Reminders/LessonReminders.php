@@ -70,12 +70,12 @@ final class LessonReminders
         return filled($time) ? substr((string) $time, 0, 5) : null;
     }
 
-    /** « 18 h 30 », « 9 h 00 ». */
+    /** « 18 heures 30 », « 9 heures », « 1 heure » : sans abréviation, comme partout sur le site. */
     public static function timeLabel(string $time): string
     {
         [$hour, $minute] = array_map('intval', explode(':', $time) + [1 => 0]);
 
-        return $hour.' h '.str_pad((string) $minute, 2, '0', STR_PAD_LEFT);
+        return $hour.($hour > 1 ? ' heures' : ' heure').($minute > 0 ? ' '.str_pad((string) $minute, 2, '0', STR_PAD_LEFT) : '');
     }
 
     /**

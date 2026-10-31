@@ -22,7 +22,7 @@
                         <input type="hidden" name="retour" value="{{ $back }}">
                     @endif
                     @if ($teacher->key === $current->key)
-                        <p class="teacher-choice-current"><x-icon name="check-circle" /> <strong>{{ $teacher->name() }}</strong> <span class="muted">Votre professeur</span></p>
+                        <p class="teacher-choice-current"><x-icon name="check-circle" /> <strong>{{ $teacher->name() }}</strong> <span class="muted">Votre choix</span></p>
                     @else
                         {{-- Au toucher : « Teacher Rose arrive… » (le nom reste affiché), jamais le texte générique des envois. --}}
                         <button type="submit" class="btn btn-outline btn-block" data-busy-label="{{ $teacher->name() }} arrive…">Choisir {{ $teacher->name() }}</button>

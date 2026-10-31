@@ -12,6 +12,7 @@ use App\Models\Program;
 use App\Models\ProgramLesson;
 use App\Models\User;
 use App\Support\Gemini\TextClient;
+use App\Support\LearnerName;
 use App\Support\Text\TextProviders;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -243,7 +244,7 @@ class ProgramBuilder
             .'au vouvoiement, pour un adulte d\'Afrique francophone. 3 ou 4 phrases, sans titre, sans liste, sans emoji. '
             .'N\'invente aucune information.',
             "Présente son programme personnel à l'apprenant.\n"
-            ."Prénom : {$user->name}\nNiveau : {$program->level->value} ({$program->level->label()})\n"
+            .'Prénom : '.(LearnerName::first($user) ?? 'inconnu (ne cite aucun nom)')."\nNiveau : {$program->level->value} ({$program->level->label()})\n"
             .'Objectif : '.Str::lcfirst($program->goal->label())."\n"
             .($program->otherGoals() ? 'Autres objectifs : '.implode(' ; ', array_map(fn (Goal $other) => Str::lcfirst($other->label()), $program->otherGoals()))."\n" : '')
             .($program->profile ? 'Profil : '.Str::lcfirst($program->profile->label())."\n" : '')
@@ -258,15 +259,17 @@ class ProgramBuilder
             return null;
         }
 
+        // Texte de secours : prénom seulement (jamais le nom de famille ni « Administrateur »), objectif cité tel qu'il a
+        // été choisi (« des situations liées à le travail » était une faute).
         return $written ?? sprintf(
-            'Bienvenue dans votre programme %s, %s ! Vos %d unités sont prêtes, avec en priorité des situations liées à %s et à votre activité (%s). '
-            .'Nous travaillerons ensemble le %s, en insistant sur ce que vous trouvez difficile : %s. Commencez par l\'unité « %s ».',
+            'Bienvenue dans votre programme %s%s ! Vos %d unités sont prêtes, avec en priorité des situations choisies pour votre objectif (« %s ») et pour votre activité (%s). '
+            .'Nous travaillerons ensemble %s, en insistant sur ce que vous trouvez difficile : %s. Commencez par l\'unité « %s ».',
             $program->level->value,
-            $user->name,
+            ($first = LearnerName::first($user)) !== null ? ', '.$first : '',
             Curriculum::UNITS_PER_LEVEL,
-            Str::lcfirst($program->goal->label()),
+            $program->goal->label(),
             $program->occupation,
-            $program->studyDaysLabel(),
+            $program->studyDaysPhrase(),
             $difficulties,
             $units[0] ?? '',
         );

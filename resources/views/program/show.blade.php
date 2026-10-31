@@ -48,7 +48,7 @@
         <div class="stat rise" style="--i: 3">
             <div class="label"><x-icon name="calendar" /> Mon rythme</div>
             <div class="value small-value">{{ ucfirst($program->studyDaysLabel()) }}</div>
-            <div class="detail">{{ $program->study_time ? 'vers '.str_replace(':', ' h ', $program->study_time) : '' }}</div>
+            <div class="detail">{{ $program->study_time ? 'vers '.\App\Support\Reminders\LessonReminders::timeLabel(substr((string) $program->study_time, 0, 5)) : '' }}</div>
         </div>
     </div>
 

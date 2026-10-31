@@ -154,7 +154,7 @@ class TeacherRoseTest extends TestCase
             ->assertSee('data-teacher="loading"', false)
             ->assertSee('teacher-rose.glb', false)
             ->assertDontSee('teacher-joe.glb', false)
-            ->assertSee('La professeure vous annoncera la durée');
+            ->assertSee('Teacher Rose vous annoncera la durée');
 
         $setup = $this->geminiSetup($user, '/seance/connexion');
         $instructions = self::instructions($setup);
