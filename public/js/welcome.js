@@ -684,18 +684,20 @@ async function run() {
                 });
 
                 if (!response.ok) {
-                    throw new Error(String(response.status));
+                    throw new Error(response.status === 429 ? 'trop-vite' : String(response.status));
                 }
 
                 if (ui.switchNote && currentKey === key) {
                     ui.switchNote.textContent = switchNoteText;
                 }
-            } catch {
-                // Choix non enregistré (réseau) : retour au professeur d'avant, et on le dit simplement.
+            } catch (error) {
+                // Choix non enregistré : retour au professeur d'avant, et on dit simplement pourquoi.
                 select(previous);
 
                 if (ui.switchNote) {
-                    ui.switchNote.textContent = 'Votre choix n\'a pas pu être enregistré. Vérifiez votre connexion, puis touchez de nouveau le professeur.';
+                    ui.switchNote.textContent = error.message === 'trop-vite'
+                        ? 'Vous avez changé de professeur plusieurs fois très vite. Patientez une minute, puis touchez de nouveau le professeur.'
+                        : 'Votre choix n\'a pas pu être enregistré. Vérifiez votre connexion, puis touchez de nouveau le professeur.';
                 }
             }
         });

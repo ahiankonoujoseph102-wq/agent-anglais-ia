@@ -122,7 +122,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/espace', DashboardController::class)->name('dashboard');
     // Choix du professeur (« Mon espace ») : seulement les professeurs prêts (config/teachers.php).
-    Route::post('/espace/professeur', [TeacherChoiceController::class, 'update'])->middleware('throttle:10,1')->name('teacher.choose');
+    Route::post('/espace/professeur', [TeacherChoiceController::class, 'update'])->middleware('throttle:30,1')->name('teacher.choose');
     // Suivi des élèves : heure des séances, téléphones abonnés aux rappels, e-mail ajouté depuis l'écran de la séance.
     Route::put('/espace/heure', [ReminderController::class, 'time'])->middleware('throttle:10,1')->name('reminders.time');
     Route::post('/espace/rappels/telephone', [ReminderController::class, 'subscribe'])->middleware('throttle:10,1')->name('reminders.device');

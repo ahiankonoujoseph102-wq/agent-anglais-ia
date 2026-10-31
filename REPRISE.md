@@ -6,6 +6,11 @@
 
 
 
+## Choix du professeur sur la bienvenue et fin d'abonnement (31 octobre 2026, branche `claude/bienvenue-choix-fin-abonnement`)
+
+- **Fait** : voir CLAUDE.md, feuille de route, « Choix du professeur sur la bienvenue » et « Fin d'abonnement ».
+- **À vérifier par le fondateur sur Android Chrome** : la voix de Teacher Rose sur `/bienvenue` (ses paragraphes se préparent maintenant en alternance avec ceux de Teacher Joe : si la limite du jour de Google est atteinte, ils arrivent au passage suivant de `app:prepare-voice`, toutes les 10 minutes) ; « Diagnostic de la voix » montre les messages prêts de chaque professeur.
+
 ## Début de l'évaluation sans « Avez-vous des questions ? » (30 octobre 2026, branche `claude/debut-evaluation`)
 
 - **Fait** : voir CLAUDE.md, feuille de route, « Début de l'évaluation ». À vérifier par le fondateur avec un compte neuf (l'évaluation est unique par compte : « Réinitialiser l'évaluation » sur la fiche d'un inscrit de test).
