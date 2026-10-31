@@ -56,7 +56,7 @@ class UsefulPhrasesTest extends TestCase
 
         $this->assertMatchesRegularExpression('/class="useful-phrases"\s+open/', $block);
         $this->assertStringContainsString('Can you repeat, please?', $block);
-        $this->assertStringContainsString('Pouvez-vous réexpliquer en français ?', $block);
+        $this->assertStringContainsString('Pouvez-vous expliquer en français', $block);
         $this->assertStringContainsString('À dire à voix haute', $block);
         // À lire seulement : l'élève s'entraîne à les dire.
         $this->assertStringNotContainsString('<button', $block);

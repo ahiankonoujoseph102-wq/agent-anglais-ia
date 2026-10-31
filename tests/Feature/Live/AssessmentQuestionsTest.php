@@ -290,7 +290,7 @@ class AssessmentQuestionsTest extends TestCase
         $show = substr($session, strpos($session, 'function showAssessmentResult('), 600);
         $this->assertStringContainsString('recording.recorder?.revealLevel(level, label);', $show);
         // Le minuteur garde « Temps restant » pendant l'attente (rien ne dit que le verdict est tombé).
-        $this->assertStringContainsString("state.end.questions && !state.pendingReveal ? 'Vos questions' : 'Temps restant'", $session);
+        $this->assertStringContainsString("state.end.questions && !state.pendingReveal ? 'Mini-leçon et questions' : 'Temps restant'", $session);
         // Les sous-titres de l'annonce attendent aussi le niveau.
         $this->assertStringContainsString('state.pendingReveal.held.push(text);', $session);
         // Fin de la conversation pendant l'attente : montré avant l'arrêt de la vidéo.

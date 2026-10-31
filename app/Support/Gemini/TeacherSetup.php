@@ -342,8 +342,11 @@ class TeacherSetup
             'founder' => (string) config('platform.founder.name'),
             // Prénom seulement, jamais un nom de rôle (« Administrateur ») : sinon le professeur salue sans nom.
             'name' => LearnerName::first($user) ?? 'The learner',
+            // Évaluation : le nom est TOUJOURS la première question (règle du fondateur), jamais dans la salutation.
             'name_line' => ($first = LearnerName::first($user)) !== null
-                ? 'The learner\'s first name is "'.$first.'": use it to greet them (never a family name, never another name).'
+                ? ($kind === 'assessment'
+                    ? 'The name on the learner\'s account is "'.$first.'", but in this assessment you never greet them by name: you ask "What\'s your name?" first, then use the name they give.'
+                    : 'The learner\'s first name is "'.$first.'": use it to greet them (never a family name, never another name).')
                 : 'You do not know the learner\'s first name: greet them warmly WITHOUT a name, and never call them by a role or account word ("Administrateur", "Admin", "Assistant", "Élève", "User").',
             'level' => $level,
             'minutes' => $minutes,

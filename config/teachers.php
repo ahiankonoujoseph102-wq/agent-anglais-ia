@@ -158,8 +158,11 @@ return [
                 'Il ne fait PAS les devoirs' => 'Elle ne fait PAS les devoirs',
                 'quand il ne trouve pas un passage' => 'quand elle ne trouve pas un passage',
                 'Il pose les questions une par une' => 'Elle pose les questions une par une',
+                '« Interrompre le professeur » (pendant qu\'il parle)' => '« Interrompre la professeure » (pendant qu\'elle parle)',
             ],
             'welcome_paragraphs' => [
+                // Le bouton de son écran dit « Interrompre la professeure » (live/session.blade.php, Teacher::theTeacher()).
+                'lesson_rules' => 'Dans « Mon espace », vous voyez toujours le temps qu\'il vous reste aujourd\'hui. Quand il est écoulé, la séance s\'arrête toute seule, et votre temps revient chaque jour à minuit. Pendant que je parle, vous pouvez m\'interrompre avec le bouton « Interrompre la professeure ». Vous pouvez aussi faire une pause, mais le temps continue de s\'écouler, ou couper votre micro. Si la connexion est coupée, reprenez votre séance dès que possible : le temps de la coupure est mis en pause, vous ne perdez pas de minutes.',
                 'teacher' => "Je suis :teacher, votre professeure d'anglais. Vous avez fait un très bon choix pour parler anglais avec confiance, et je suis heureuse de vous accompagner, jour après jour.",
             ],
         ],

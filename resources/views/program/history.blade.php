@@ -17,7 +17,7 @@
             <h2>Mes erreurs à revoir ({{ $openErrors->count() }})</h2>
         </div>
         <p class="muted small">
-            Le professeur vous les fait répéter à chaque séance. Une erreur disparaît quand vous dites la bonne forme
+            {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }} vous les fait répéter à chaque séance. Une erreur disparaît quand vous dites la bonne forme
             deux séances de suite. Déjà corrigées : {{ $resolvedCount }}.
         </p>
         @forelse ($openErrors as $error)

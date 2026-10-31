@@ -10,6 +10,7 @@ use App\Models\Subscription;
 use App\Support\Greeting;
 use App\Support\Origins;
 use App\Support\Plan;
+use App\Support\Teachers\Teachers;
 use App\Support\WhatsApp;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -195,7 +196,8 @@ final class Subscribers
     {
         [$firstName] = self::names($subscription->user->name);
         $hello = 'Bonjour'.($firstName !== '' ? ' '.$firstName : '').", c'est l'équipe de ".config('platform.name').'.';
-        $teacher = config('avatar.model.name');
+        // Le professeur de l'apprenant (Teacher Joe ou Teacher Rose), jamais un autre.
+        $teacher = Teachers::forUser($subscription->user)->name();
         $plans = route('payment.plans');
         $date = $subscription->ends_at->translatedFormat('j F Y');
         $group = self::group($subscription);

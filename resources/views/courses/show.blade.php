@@ -35,7 +35,7 @@
             @if ($byParts)
                 <p>Votre PDF a {{ $course->page_count }} pages. Indiquez les pages ({{ $partLimits['max_pages'] }} au plus à la fois) ou décrivez le passage : {{ $teacher }} le lit, puis se concentre dessus. Vous reviendrez un autre jour pour la suite, sans renvoyer le fichier.</p>
             @else
-                <p>Facultatif : {{ $teacher }} a lu toute la leçon. Indiquez une partie pour qu'il se concentre dessus.</p>
+                <p>Facultatif : {{ $teacher }} a lu toute la leçon. Indiquez une partie pour {{ $teacherOf->pronoun() === 'elle' ? 'qu\'elle' : 'qu\'il' }} se concentre dessus.</p>
             @endif
 
             @if ($part)

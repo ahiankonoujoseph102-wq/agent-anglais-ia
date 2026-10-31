@@ -77,7 +77,7 @@ class LessonController extends Controller
             'title' => 'Ma séance du jour',
             // UNE ligne courte sous « Commencer » ; le détail est replié sous « Avant de commencer ».
             'intro' => DailyTime::remainingSentence($remaining),
-            'introMore' => 'Ce temps du jour est partagé avec « Mes cours ». '.ucfirst($teacher->theTeacher()).' vous annoncera la durée, puis vous préviendra deux minutes avant la fin.',
+            'introMore' => 'Ce temps du jour est partagé avec « Mes cours ». '.ucfirst($teacher->theTeacher()).' vous annoncera la durée au début, puis vous préviendra quand la fin approche.',
             'remainingSeconds' => $remaining,
             'board' => $board,
             // Abonné payant sans adresse e-mail : champ montré sur l'écran de la séance (le professeur la demande).

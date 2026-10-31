@@ -10,6 +10,7 @@ use App\Http\Requests\Program\QuestionnaireRequest;
 use App\Models\Program;
 use App\Models\User;
 use App\Support\Curriculum\ProgramBuilder;
+use App\Support\Teachers\Teachers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -83,7 +84,7 @@ class ProgramAnswersController extends Controller
         RateLimiter::hit(self::limiterKey($user), (int) now()->diffInSeconds(now()->endOfDay(), true) + 1);
         $request->session()->forget($key);
 
-        return to_route('program.show')->with('status', 'Vos objectifs sont enregistrés. '.config('avatar.model.name').' en tiendra compte dès votre prochaine séance.');
+        return to_route('program.show')->with('status', 'Vos objectifs sont enregistrés. '.Teachers::forUser($user)->name().' en tiendra compte dès votre prochaine séance.');
     }
 
     /**
