@@ -319,7 +319,7 @@ class WelcomeTest extends TestCase
             '« Mes cours »', 'leçon ou votre exercice d\'anglais', 'je vous l\'explique', 'je réponds à vos questions',
             'je vous guide pour faire vous-même l\'exercice', 'Une explication dure 12 minutes au plus', 'prend simplement sur votre temps du jour', 'uniquement pour l\'anglais',
             // g) conclusion motivante, en anglais traduit
-            'Let\'s start !', 'Cela veut dire : c\'est parti !',
+            'Let\'s start!', 'Cela veut dire : c\'est parti !',
         ];
         $position = -1;
 
