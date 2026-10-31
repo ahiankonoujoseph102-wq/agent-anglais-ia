@@ -62,7 +62,7 @@ class NewAssessmentTest extends TestCase
 
         // Nouvelle évaluation : accueil humain, hésitation remarquée, français, traduction apprise, vrai niveau.
         $this->assertStringContainsString('"Hello! Welcome to your free English assessment. I\'m Teacher Joe, your English teacher at Talkami."', $new);
-        $this->assertStringContainsString('(if you do not know their first name: "What\'s your name?"), and STOP: wait for the answer', $new);
+        $this->assertStringContainsString('ALWAYS this first question, word for word: "What\'s your name?", and STOP: wait for the answer', $new);
         $this->assertStringContainsString('« Votre évaluation orale gratuite de 5 minutes commence maintenant. »', $new);
         $this->assertStringNotContainsString('Avez-vous des questions avant de commencer', $new);
         $this->assertStringContainsString('YOU NOTICE HESITATION YOURSELF, without waiting to be asked', $new);
@@ -121,7 +121,7 @@ class NewAssessmentTest extends TestCase
         $this->actingAs($this->makeTestAccount())->postJson('/evaluation/connexion')->assertOk()
             ->assertJsonPath('cues.start', TeacherSetup::cue('assessment_start_new'));
 
-        $this->assertStringContainsString('ask your first very easy question, STOP and wait for the answer', TeacherSetup::cue('assessment_start_new'));
+        $this->assertStringContainsString('ask exactly "What\'s your name?", STOP and wait for the answer', TeacherSetup::cue('assessment_start_new'));
         Http::assertSent(fn (Request $request) => str_ends_with($request->url(), '/auth_tokens')
             && str_contains(json_encode($request->data(), JSON_UNESCAPED_UNICODE), 'YOU NOTICE HESITATION'));
     }

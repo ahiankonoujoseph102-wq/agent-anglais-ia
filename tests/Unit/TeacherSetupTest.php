@@ -184,10 +184,12 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('ask ONE question at a time, then STOP and WAIT', $text);
         $this->assertStringContainsString('rephrase ONCE, more simply; still not: an easier question.', $text);
         $this->assertStringContainsString('never cut the learner off', $text);
-        $this->assertStringContainsString('at once, your first very easy question in English, and STOP: wait for the answer.', $text);
+        $this->assertStringContainsString('at once, ALWAYS this first question, word for word: "What\'s your name?", and STOP: wait for the answer.', $text);
         $this->assertStringContainsString('A QUESTION ENDS YOUR TURN', $text);
-        // Aucune question donnée mot pour mot : chacun a ses propres questions.
-        $this->assertStringNotContainsString('What is your name?', $text);
+        // Règle du fondateur : la première question est TOUJOURS le nom, puis « How are you today? » ; ensuite
+        // seulement, des questions propres à chaque personne.
+        $this->assertStringContainsString('Your SECOND question, in your next turn after a short reaction ("Nice to meet you, …!"), is: "How are you today?"', $text);
+        $this->assertStringContainsString('never ask two learners the same series', $text);
     }
 
     public function test_resumption_cues_never_ask_for_a_new_welcome(): void

@@ -60,13 +60,17 @@ class OneQuestionAtATimeTest extends TestCase
             $this->assertStringContainsString('WELCOME, in ONE short first turn', $text, $key);
             $this->assertStringContainsString('« Votre évaluation orale gratuite de :minutes minutes commence maintenant. »', $text, $key);
             $this->assertStringContainsString('dites-le-moi à tout moment, même en français : je suis là pour vous aider. »', $text, $key);
-            $this->assertStringContainsString('at once, your first very easy question in English', $text, $key);
+            $this->assertStringContainsString('at once, ALWAYS this first question, word for word: "What\'s your name?"', $text, $key);
+            $this->assertStringContainsString('is: "How are you today?"', $text, $key);
+            $this->assertLessThan(strpos($text, 'How are you today?'), strpos($text, 'What\'s your name?'), $key);
+            // Pas de salutation au prénom : le nom est la première question.
+            $this->assertStringContainsString('WITHOUT the learner\'s name in this assessment', $text, $key);
             // Plus jamais « Avez-vous des questions ? » avant que rien n'ait commencé.
             $this->assertStringNotContainsString('Avez-vous des questions avant de commencer', $text, $key);
             $this->assertStringContainsString('Never ask whether they have questions at the start', $text, $key);
             $this->assertStringContainsString('If the learner asks a question at any moment of the assessment, answer it simply', $text, $key);
             $this->assertLessThan(strpos($text, 'commence maintenant'), strpos($text, 'hello'), $key);
-            $this->assertLessThan(strpos($text, 'first very easy question'), strpos($text, 'je suis là pour vous aider'), $key);
+            $this->assertLessThan(strpos($text, 'ALWAYS this first question'), strpos($text, 'je suis là pour vous aider'), $key);
         }
 
         $setup = TeacherSetup::instructions('assessment', User::factory()->make(['name' => 'Afi Mensah']), 5);
@@ -75,6 +79,7 @@ class OneQuestionAtATimeTest extends TestCase
         foreach (['assessment_start', 'assessment_start_new'] as $cue) {
             $this->assertStringContainsString('announce in French that the assessment starts now', TeacherSetup::cue($cue));
             $this->assertStringContainsString('STOP and wait for the answer', TeacherSetup::cue($cue));
+            $this->assertStringContainsString('then ask exactly "What\'s your name?"', TeacherSetup::cue($cue));
         }
         $this->assertStringContainsString('STOP: wait for the answer', TeacherSetup::cue('level_test_start'));
         $this->assertStringContainsString('STOP and wait for their answer', TeacherSetup::cue('course_start', ['minutes' => 10]));
@@ -105,7 +110,9 @@ class OneQuestionAtATimeTest extends TestCase
 
         $joseph = new User(['name' => 'Joseph Ahiankonou']);
         $text = TeacherSetup::instructions('assessment', $joseph, 5);
-        $this->assertStringContainsString('The learner\'s first name is "Joseph": use it to greet them', $text);
+        // Évaluation : le nom est la première question, jamais dans la salutation.
+        $this->assertStringContainsString('The name on the learner\'s account is "Joseph", but in this assessment you never greet them by name', $text);
+        $this->assertStringContainsString('The learner\'s first name is "Joseph": use it to greet them', TeacherSetup::instructions('lesson', $joseph, 15));
         $this->assertStringContainsString('Prénom : Joseph', $text);
         $this->assertStringNotContainsString('Prénom : Joseph Ahiankonou', $text);
     }
