@@ -3,12 +3,14 @@
 namespace App\Support\Reminders;
 
 use App\Enums\LessonStatus;
+use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
 use App\Mail\LessonReminderMail;
 use App\Models\LearnerPushSubscription;
 use App\Models\LearnerReminder;
 use App\Models\Program;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Support\Alerts\PushTransport;
 use App\Support\Alerts\Redact;
@@ -18,6 +20,8 @@ use App\Support\DailyTime;
 use App\Support\Gemini\TeacherSetup;
 use App\Support\Live\WorkingTogether;
 use App\Support\MailQuota;
+use App\Support\PaymentCountry;
+use App\Support\Plan;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
 use Carbon\CarbonImmutable;
@@ -145,7 +149,74 @@ final class LessonReminders
             Cache::put($key, true, now()->addDays((int) config('platform.reminders.missed_days')));
         }
 
+        // Avant-dernier et dernier jour d'un abonnement payé pas encore renouvelé : en dernier, juste avant la leçon.
+        $days = self::daysBeforeLastDay($user);
+
+        if ($days !== null) {
+            $parts[] = TeacherSetup::cue('followup_renew', ['when' => $days === 0 ? "aujourd'hui" : 'demain']);
+        }
+
         return $parts === [] ? '' : TeacherSetup::cue('followup_intro').implode('', $parts).TeacherSetup::cue('followup_outro');
+    }
+
+    /**
+     * Abonnement payé en cours qui se termine bientôt et n'est pas encore renouvelé : nombre de jours avant son
+     * DERNIER jour (1 : la veille, 0 : le dernier jour, à l'heure du pays de l'élève), sinon null. Dernier jour :
+     * jour de la fin de l'accès (ends_at, une seconde avant). Renouvelé : un abonnement payé qui finit plus tard,
+     * ou un paiement déjà envoyé et en vérification.
+     */
+    public static function daysBeforeLastDay(User $user, ?CarbonImmutable $now = null): ?int
+    {
+        if (! self::follows($user)) {
+            return null;
+        }
+
+        $subscription = $user->activeSubscription;
+        $timezone = Countries::timezone($user->country);
+        $today = ($now ?? CarbonImmutable::now())->setTimezone($timezone)->startOfDay();
+        $last = CarbonImmutable::parse($subscription->ends_at)->setTimezone($timezone)->subSecond()->startOfDay();
+        $days = (int) round($today->diffInDays($last, false));
+
+        if ($days < 0 || $days > 1 || self::renewed($user, $subscription)) {
+            return null;
+        }
+
+        return $days;
+    }
+
+    private static function renewed(User $user, Subscription $subscription): bool
+    {
+        return $user->subscriptions()->paid()->whereNull('ambassador_id')->whereKeyNot($subscription->id)
+            ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Provisional])
+            ->where('ends_at', '>', $subscription->ends_at)
+            ->exists()
+            || $user->payments()->where('status', PaymentStatus::Pending)->exists();
+    }
+
+    /** Adresse pour renouveler : la formule en cours si elle existe encore, sinon le choix des formules. */
+    public static function renewUrl(User $user): string
+    {
+        $plan = $user->activeSubscription?->plan;
+
+        return filled($plan) && Plan::find((string) $plan) !== null
+            ? route('payment.create', $plan)
+            : route('payment.plans');
+    }
+
+    /** Moyens de paiement du pays de l'élève (« Mixx by Yas ou Flooz »), ou null hors des pays de paiement. */
+    public static function paymentMethods(User $user): ?string
+    {
+        $country = PaymentCountry::findAvailable($user->countryCode());
+
+        if ($country === null) {
+            return null;
+        }
+
+        $names = array_values(array_map(fn ($operator) => $operator->name, $country->operators));
+
+        return count($names) > 1
+            ? implode(', ', array_slice($names, 0, -1)).' ou '.end($names)
+            : ($names[0] ?? null);
     }
 
     /**
@@ -178,6 +249,44 @@ final class LessonReminders
                 }
             } catch (Throwable $e) {
                 Log::warning('Rappel de séance : envoi impossible.', ['reason' => Redact::reason($e->getMessage())]);
+            }
+        }
+
+        return $sent + $this->runRenewals($now);
+    }
+
+    /**
+     * Fin d'abonnement : la veille du dernier jour, une fois, entre renew_hour et renew_until_hour (heure du pays),
+     * e-mail et notification au nom du professeur. Aucun programme ni heure de séance n'est nécessaire.
+     */
+    private function runRenewals(CarbonImmutable $now): int
+    {
+        $sent = 0;
+
+        $users = User::query()
+            ->where('role', Role::Learner)
+            ->whereHas('subscriptions', fn ($query) => $query->paid()->whereNull('ambassador_id')
+                ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Provisional])
+                ->where('ends_at', '>', $now)
+                ->where('ends_at', '<=', $now->addDays(3)))
+            ->with('activeSubscription')
+            ->get();
+
+        foreach ($users as $user) {
+            try {
+                $local = $now->setTimezone(Countries::timezone($user->country));
+
+                if ($local->hour < (int) config('platform.reminders.renew_hour')
+                    || $local->hour >= (int) config('platform.reminders.renew_until_hour')
+                    || self::daysBeforeLastDay($user, $now) !== 1) {
+                    continue;
+                }
+
+                if ($this->send($user, LearnerReminder::RENEW, $local->toDateString(), '')) {
+                    $sent++;
+                }
+            } catch (Throwable $e) {
+                Log::warning('Rappel de fin d\'abonnement : envoi impossible.', ['reason' => Redact::reason($e->getMessage())]);
             }
         }
 
@@ -255,9 +364,12 @@ final class LessonReminders
 
         $reminder = LearnerReminder::query()->where(['user_id' => $user->id, 'day' => $day, 'kind' => $kind])->firstOrFail();
         $teacher = Teachers::forUser($user);
-        $message = self::message($kind, $teacher, self::timeLabel($time));
+        $renew = $kind === LearnerReminder::RENEW;
+        $message = self::message($kind, $teacher, $renew ? '' : self::timeLabel($time));
 
-        $reminder->push_status = $this->push($user, $message);
+        $reminder->push_status = $this->push($user, $message + ($renew
+            ? ['url' => parse_url(self::renewUrl($user), PHP_URL_PATH) ?: '/abonnement', 'tag' => 'renouvellement']
+            : ['url' => '/seance', 'tag' => 'seance-du-jour']));
 
         if ($kind === LearnerReminder::NOW) {
             $reminder->mail_status = 'skipped';
@@ -284,6 +396,10 @@ final class LessonReminders
                 'title' => "{$name} vous attend à {$time}",
                 'body' => 'Votre séance d\'anglais commence dans '.config('platform.reminders.soon_minutes').' minutes. Installez-vous dans un coin calme : à tout à l\'heure !',
             ],
+            LearnerReminder::RENEW => [
+                'title' => 'Votre abonnement se termine demain',
+                'body' => "Renouvelez-le pour continuer vos progrès sans interruption. Je compte sur vous ! {$name}",
+            ],
             LearnerReminder::NOW => [
                 'title' => 'C\'est l\'heure de votre séance !',
                 'body' => "{$name} vous attend maintenant. Touchez ici pour commencer.",
@@ -296,7 +412,7 @@ final class LessonReminders
     }
 
     /**
-     * @param  array{title: string, body: string}  $message
+     * @param  array{title: string, body: string, url: string, tag: string}  $message
      */
     private function push(User $user, array $message): string
     {
@@ -311,7 +427,7 @@ final class LessonReminders
         }
 
         $transport = app(PushTransport::class);
-        $payload = $message + ['url' => '/seance', 'tag' => 'seance-du-jour'];
+        $payload = $message;
         $ok = false;
 
         foreach ($devices as $device) {
@@ -346,7 +462,7 @@ final class LessonReminders
         }
 
         try {
-            Mail::to($user->email)->send(new LessonReminderMail($user, $teacher, $kind, self::timeLabel($time)));
+            Mail::to($user->email)->send(new LessonReminderMail($user, $teacher, $kind, $time === '' ? '' : self::timeLabel($time)));
         } catch (Throwable $e) {
             return ['failed', mb_strimwidth(Redact::reason($e->getMessage()), 0, 200, '…')];
         }

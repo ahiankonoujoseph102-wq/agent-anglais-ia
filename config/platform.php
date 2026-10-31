@@ -149,6 +149,10 @@ return [
         'mail_reserve' => 100,
         // Un rappel en retard de plus de ce temps n'est plus envoyé (serveur arrêté, déploiement).
         'late_minutes' => 10,
+        // Fin d'abonnement : rappel la veille du dernier jour (e-mail et notification), à partir de cette heure-là
+        // (heure du pays de l'élève) et jusqu'à renew_until_hour exclue ; jamais s'il est déjà renouvelé.
+        'renew_hour' => 10,
+        'renew_until_hour' => 21,
     ],
 
     /*

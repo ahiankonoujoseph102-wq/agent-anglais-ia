@@ -22,6 +22,9 @@ class LearnerReminder extends Model
     /** Séance pas faite 2 heures après l'heure prévue : e-mail et notification. */
     public const MISSED = 'missed';
 
+    /** Veille du dernier jour d'un abonnement payé pas encore renouvelé : e-mail et notification. */
+    public const RENEW = 'renew';
+
     protected function casts(): array
     {
         return ['day' => 'date'];
