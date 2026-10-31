@@ -390,6 +390,23 @@ return [
         // LIVE_VOICE_GAIN (l'ancienne GEMINI_VOICE_GAIN est encore lue) ; absente, vide ou nulle : 2,5 (une voix
         // muette n'est jamais voulue).
         'voice_gain' => (float) (env('LIVE_VOICE_GAIN') ?: env('GEMINI_VOICE_GAIN')) ?: 2.5,
+        // « Voix plus nette » (App\Support\Live\VoiceClarity, public/js/voice-clarity.js) : même voix, rendu plus net
+        // dans le téléphone. Activé dans « Réglages » seulement (désactivé par défaut). Mesuré le 31 octobre 2026
+        // dans Chromium (voix de synthèse anglaise et française) : aucun échantillon saturé quel que soit le niveau
+        // reçu (le son actuel en avait jusqu'à 61 quand la voix arrive forte), consonnes plus présentes de 1,5 à
+        // 2 décibels, volume moyen comparable (1,5 décibel plus bas pour une voix forte, 1 plus haut pour une faible).
+        'voice_clarity' => [
+            'gain' => 1.8,
+            'highpass_hz' => 120,
+            'mud_hz' => 320,
+            'mud_db' => -2,
+            'presence_hz' => 3000,
+            'presence_db' => 3,
+            'presence_q' => 0.9,
+            'compressor_threshold' => -20,
+            'compressor_knee' => 12,
+            'compressor_ratio' => 3,
+        ],
         // Annulation d'écho du navigateur. Sur Android, Chrome passe alors le téléphone en mode « communication » :
         // la voix suit le volume d'APPEL, souvent bien plus bas. Le demi-duplex (micro fermé pendant la voix du
         // professeur) empêche déjà l'écho : coupée par défaut sur Android, gardée ailleurs. Seules les valeurs

@@ -20,7 +20,9 @@
         'voice_gap_hold_seconds' => (float) config('platform.live.voice_gap_hold_seconds'),
         'greeting_wait_seconds' => (float) config('platform.live.greeting_wait_seconds'),
         'messages' => array_map(fn ($text) => strtr($text, [':teacher' => $teacherName, ':rule' => config('platform.live.disconnect_rule')]), config('platform.live.messages')),
-    ];
+    ] + \App\Support\Live\VoiceClarity::clientConfig(auth()->user(), request()->query(\App\Support\Live\VoiceClarity::QUERY));
+    // Équipe seulement : comparer le son actuel et la voix plus nette sur cette même page.
+    $voiceCompare = auth()->user()?->isStaff() ? $audio['voice_mode'] : null;
 
     // LA SUITE à la fin de la conversation (<x-next-step>, montrée par live-session.js, avant le résumé) :
     // UN bouton orange, une phrase qui dit ce qui attend l'élève, les retours en liens discrets.
@@ -55,6 +57,7 @@
          data-token-usage="{{ \App\Support\Asset::url('js/token-usage.js') }}"
          data-pcm-audio="{{ \App\Support\Asset::url('js/pcm-audio.js') }}"
          data-mic-input="{{ \App\Support\Asset::url('js/mic-input.js') }}"
+         data-voice-clarity="{{ \App\Support\Asset::url('js/voice-clarity.js') }}"
          data-conversation-end="{{ \App\Support\Asset::url('js/conversation-end.js') }}"
          data-teacher-cues="{{ \App\Support\Asset::url('js/teacher-cues.js') }}"
          data-live-gemini="{{ \App\Support\Asset::url('js/live-gemini.js') }}"
@@ -168,6 +171,13 @@
                     {{-- Évaluation pas encore commencée : avec quel professeur (Teacher Joe choisi d'avance). --}}
                     @if ($mode === 'assessment' && ($assessmentChoice ?? false))
                         <x-assessment-teacher :teacher="$teacher" />
+                    @endif
+                    {{-- Équipe seulement (jamais un élève) : comparer les deux rendus de la même voix. --}}
+                    @if ($voiceCompare)
+                        <p class="small muted voice-compare" id="voice-compare">
+                            Son de la voix : <strong>{{ $voiceCompare === 'clear' ? 'plus net' : 'actuel' }}</strong> ·
+                            <a href="{{ request()->fullUrlWithQuery([\App\Support\Live\VoiceClarity::QUERY => $voiceCompare === 'clear' ? 'actuel' : 'net']) }}">Essayer le son {{ $voiceCompare === 'clear' ? 'actuel' : 'plus net' }}</a>
+                        </p>
                     @endif
                 </div>
                 {{-- Pendant la connexion : « Teacher Joe arrive… », indicateur discret. --}}
