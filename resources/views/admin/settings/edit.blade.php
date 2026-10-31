@@ -114,6 +114,25 @@
             @enderror
         </section>
 
+        <section class="card" id="voix-plus-nette">
+            <h2>Voix plus nette</h2>
+            <p class="muted small">
+                Même voix et mêmes paroles du professeur ; seul le rendu dans le téléphone change : grave sourd retiré,
+                consonnes plus nettes, volume régulier et jamais saturé. Rien ne coûte en plus. Pour comparer : ouvrez
+                « Ma séance du jour » avec votre compte, puis touchez « Essayer le son plus net » ou « Essayer le son actuel »
+                sous « Commencer » (lien visible par l'équipe seulement).
+            </p>
+            <fieldset>
+                <legend>Qui entend la voix plus nette ?</legend>
+                @foreach (\App\Support\Live\VoiceClarity::MODES as $value => $label)
+                    <label><input type="radio" name="voice[clarity]" value="{{ $value }}" @checked(old('voice.clarity', \App\Support\Live\VoiceClarity::mode()) === $value)> {{ $label }}</label>
+                @endforeach
+            </fieldset>
+            @error('voice.clarity')
+                <div class="error field">{{ $message }}</div>
+            @enderror
+        </section>
+
         <section class="card" id="alerte-cout">
             <h2>Alerte de coût par abonné</h2>
             <p class="muted small">

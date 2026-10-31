@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Support\Live\AssessmentVersion;
+use App\Support\Live\VoiceClarity;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -28,6 +29,7 @@ class UpdateSettingsRequest extends FormRequest
             'cost_alert.xof_per_usd' => ['nullable', 'integer', 'min:100', 'max:5000'],
             'ambassadors.places' => ['nullable', 'integer', 'min:0', 'max:500'],
             'assessment.new_version' => ['nullable', 'in:'.implode(',', array_keys(AssessmentVersion::MODES))],
+            'voice.clarity' => ['nullable', 'in:'.implode(',', array_keys(VoiceClarity::MODES))],
         ];
 
         foreach (config('payment.countries') as $code => $country) {
@@ -67,6 +69,7 @@ class UpdateSettingsRequest extends FormRequest
             'cost_alert.xof_per_usd.*' => 'Indiquez un nombre entier de francs CFA entre 100 et 5 000.',
             'ambassadors.places.*' => 'Indiquez un nombre entier de places entre 0 et 500.',
             'assessment.new_version.*' => 'Choisissez qui passe la nouvelle évaluation.',
+            'voice.clarity.*' => 'Choisissez qui entend la voix plus nette.',
         ];
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Support\Ambassadors\AmbassadorProgram;
 use App\Support\Live\AssessmentVersion;
 use App\Support\Live\CostWatch;
+use App\Support\Live\VoiceClarity;
 use App\Support\PaymentCountry;
 use App\Support\SiteSettings;
 use App\Support\SubscribersClub;
@@ -64,6 +65,11 @@ class SettingsController extends Controller
         // Interrupteur de la nouvelle évaluation : gardé seulement s'il est envoyé (ancien formulaire : inchangé).
         if ($request->filled('assessment.new_version')) {
             $values[AssessmentVersion::SETTING] = $request->input('assessment.new_version');
+        }
+
+        // « Voix plus nette » : gardé seulement s'il est envoyé (ancien formulaire : inchangé).
+        if ($request->filled('voice.clarity')) {
+            $values[VoiceClarity::SETTING] = $request->input('voice.clarity');
         }
 
         foreach (PaymentCountry::all() as $country) {

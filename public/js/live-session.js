@@ -33,6 +33,8 @@ const { TokenTally, geminiUsage, openAiUsage } = await import(root.dataset.token
 const { VOICE_RATE, decodePcm16, StreamResampler, VoiceScheduler, fadeIn } = await import(root.dataset.pcmAudio);
 // Micro : liste « Micro utilisé », témoin de niveau, alerte de silence.
 const { listMicrophones, rms, meterLevel, SilenceWatch } = await import(root.dataset.micInput);
+// Rendu de la voix du professeur : son actuel, ou « voix plus nette » (Réglages ; App\Support\Live\VoiceClarity).
+const { buildVoiceChain } = await import(root.dataset.voiceClarity);
 // Réglages audio de la page (config/platform.php → live).
 const audioConfig = JSON.parse(root.dataset.audio);
 // Fin automatique après le verdict ; expressions du professeur 3D d'après ses paroles.
@@ -1023,18 +1025,12 @@ async function setupAudio() {
     // La voix est un peu retardée : la lecture labiale du professeur 3D
     // (qui écoute avant ce retard) a le temps de préparer la forme de la bouche.
     const output = context.createGain();
-    // Fondu de la voix (arrêt sans clic), puis volume (GEMINI_VOICE_GAIN) et limiteur :
-    // plus fort, sans jamais saturer.
+    // Fondu de la voix (arrêt sans clic), puis la chaîne de rendu : volume (LIVE_VOICE_GAIN) et limiteur,
+    // ou « voix plus nette » (même voix : coupe-bas, présence, compression douce, garde-fou).
     const voice = context.createGain();
-    const boost = context.createGain();
-    boost.gain.value = audioConfig.voice_gain;
-    const limiter = context.createDynamicsCompressor();
-    limiter.threshold.value = -3;
-    limiter.knee.value = 0;
-    limiter.ratio.value = 20;
-    limiter.attack.value = 0.002;
-    limiter.release.value = 0.15;
-    voice.connect(boost).connect(limiter).connect(output);
+    const chain = buildVoiceChain(context, { mode: audioConfig.voice_mode, gain: audioConfig.voice_gain, clear: audioConfig.voice_clear });
+    voice.connect(chain.input);
+    chain.output.connect(output);
     // Volume de la voix reçue (OpenAI) : fin réelle de la lecture, en plus de la fin de l'envoi.
     const voiceAnalyser = context.createAnalyser();
     voiceAnalyser.fftSize = 512;
