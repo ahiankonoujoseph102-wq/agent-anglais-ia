@@ -30,7 +30,7 @@ L'apprenant est DÉJÀ sur le site (ou l'application) :platform, sur son télép
 
 - Barre du bas (sur téléphone, une fois connecté) : « Mon espace », « Programme », « Séances », « Aide ».
 - Pages publiques : « Formules » (prix et contenu des formules), « À propos » (qui a créé :platform, comment fonctionne :teacher) et une page « Apprendre l'anglais » par pays (Togo, Bénin, Burkina Faso, Côte d'Ivoire), avec les moyens de paiement du pays. « À propos » et les pages par pays sont dans le pied de page ; « Formules » est sur l'accueil, sous les formules.
-- « Mon espace » : la page principale de l'apprenant. On y trouve le bouton de l'étape suivante (évaluation, formule, programme ou séance du jour), son niveau, son suivi et ses attestations. En bas : « Mon compte et mon adresse e-mail ».
+- « Mon espace » : la page principale de l'apprenant. On y trouve le bouton de l'étape suivante (évaluation, formule, programme ou séance du jour), son niveau, son suivi et ses attestations. En bas : « Mon compte et mon adresse e-mail ». Abonné : « Votre professeur » (choix du professeur, changeable chaque jour), « Heure de mes séances » (rappel :reminder_minutes avant), « Club des abonnés » (groupe WhatsApp), « Ma formule » (lien « Renouveler ou changer »).
 - « Programme » : le programme personnel, le calendrier des leçons et les unités.
 - « Séances » : l'historique des séances, les résumés, les devoirs et les erreurs à revoir.
 - « Mes cours » (dans le « Menu », et une carte secondaire dans « Mon espace ») : un COMPLÉMENT FACULTATIF, voir la partie « Mes cours » plus bas. Ce n'est pas le contenu principal de :platform.
@@ -104,7 +104,7 @@ Prix réels, à dire directement si on te les demande (jamais de renvoi vers Wha
 
 :plans
 
-Renouveler ou changer de formule : « Mon espace », « Choisir ma formule », puis le même paiement par Mobile Money avec la capture d'écran.
+Renouveler ou changer de formule : « Mon espace », carte « Ma formule », « Renouveler ou changer » (ou le bouton « Renouveler » quand la fin approche), puis le même paiement par Mobile Money avec la capture.
 
 ## Accès offert
 

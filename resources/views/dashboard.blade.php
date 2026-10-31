@@ -9,7 +9,8 @@
         {{-- Petit visage du professeur de l'apprenant (au lieu du logo). --}}
         <span class="hero-teacher-face welcome-face"><img src="{{ \App\Support\Asset::url($myTeacher->portrait()) }}" width="56" height="56" alt=""></span>
         <div>
-            <h1>Bonjour {{ $user->name }}</h1>
+            {{-- Prénom seulement (jamais le nom de famille ni un mot de rôle comme « Administrateur »). --}}
+            <h1>Bonjour{{ ($firstName = \App\Support\LearnerName::first($user)) !== null ? ' '.$firstName : '' }}</h1>
             <p>{{ $myTeacher->pronoun() === 'elle' ? 'Votre professeure' : 'Votre professeur' }} {{ $myTeacher->name() }} est {{ $myTeacher->pronoun() === 'elle' ? 'prête' : 'prêt' }}.</p>
         </div>
     </div>
@@ -37,7 +38,7 @@
             <h2 id="next-step-title">Nous vérifions votre paiement</h2>
             <p>
                 {{ $pendingPayment->plan_name }}, {{ $pendingPayment->formattedAmount() }}, envoyé le
-                {{ $pendingPayment->created_at->translatedFormat('j F à H:i') }}. Votre formule sera activée ici dès la vérification :
+                {{ \App\Support\Duration::at($pendingPayment->created_at, false) }}. Votre formule sera activée ici dès la vérification :
                 vous n'avez rien d'autre à faire.
             </p>
             <a href="{{ route('payment.show', $pendingPayment) }}" class="btn btn-lg btn-block">Suivre mon paiement <x-icon name="arrow-right" /></a>
@@ -57,7 +58,7 @@
                     {{ $expiredSubscription->ends_at->translatedFormat('j F Y') }}. Vos séances sont en pause ;
                     renouvelez votre formule : votre niveau et votre programme vous attendent.
                 </p>
-                <a href="{{ route('payment.plans') }}" class="btn btn-lg btn-block">Renouveler <x-icon name="arrow-right" /></a>
+                <a href="{{ route('payment.plans') }}" class="btn btn-accent btn-lg btn-block">Renouveler <x-icon name="arrow-right" /></a>
             @else
                 <h2 id="next-step-title">Choisissez votre formule</h2>
                 <p>
@@ -66,7 +67,7 @@
                     @endif
                     Choisissez une formule et payez par Mobile Money : vos séances orales quotidiennes commencent tout de suite après.
                 </p>
-                <a href="{{ route('payment.plans') }}" class="btn btn-lg btn-block">Choisir ma formule <x-icon name="arrow-right" /></a>
+                <a href="{{ route('payment.plans') }}" class="btn btn-accent btn-lg btn-block">Choisir ma formule <x-icon name="arrow-right" /></a>
             @endif
         @elseif (! $program && ! $attestations->contains('level', \App\Enums\Level::C2))
             <h2 id="next-step-title">Construisons votre programme</h2>
@@ -125,7 +126,7 @@
                 <x-icon name="clock" />
                 <span>
                     <strong>Accès provisoire : encore {{ \App\Support\Duration::format(max(1, (int) ceil(now()->diffInSeconds($subscription->provisional_until) / 60)) * 60) }}</strong>
-                    (jusqu'au {{ $subscription->provisional_until->translatedFormat('j F à H:i') }}), pendant que notre équipe vérifie votre paiement.
+                    (jusqu'au {{ \App\Support\Duration::at($subscription->provisional_until, false) }}), pendant que notre équipe vérifie votre paiement.
                     <a href="{{ route('payment.show', $pendingPayment) }}">Voir mon paiement</a>
                 </span>
             </p>
@@ -193,10 +194,10 @@
             <x-icon name="calendar" />
             <div>
                 @if ($granted->isAmbassadorMonth())
-                    <strong>Votre mois gratuit d'ambassadeur se termine {{ $granted->ends_at->isToday() ? 'aujourd\'hui' : 'demain' }}, le {{ $granted->ends_at->translatedFormat('j F à H:i') }}.</strong>
+                    <strong>Votre mois gratuit d'ambassadeur se termine {{ $granted->ends_at->isToday() ? 'aujourd\'hui' : 'demain' }}, le {{ \App\Support\Duration::at($granted->ends_at, false) }}.</strong>
                     Il est renouvelé chaque mois si vous respectez les conditions du programme.
                 @else
-                    <strong>Votre accès offert se termine {{ $granted->ends_at->isToday() ? 'aujourd\'hui' : 'demain' }}, le {{ $granted->ends_at->translatedFormat('j F à H:i') }}.</strong>
+                    <strong>Votre accès offert se termine {{ $granted->ends_at->isToday() ? 'aujourd\'hui' : 'demain' }}, le {{ \App\Support\Duration::at($granted->ends_at, false) }}.</strong>
                     Choisissez une formule pour continuer vos séances sans interruption.
                     <a class="btn btn-accent btn-block next-step" href="{{ route('payment.plans') }}">Choisir ma formule</a>
                 @endif
@@ -208,7 +209,7 @@
         <div class="alert alert-warning rise" role="status">
             <x-icon name="calendar" />
             <div>
-                <strong>Votre formule se termine le {{ $subscription->ends_at->translatedFormat('j F Y à H:i') }}.</strong>
+                <strong>Votre formule se termine le {{ \App\Support\Duration::at($subscription->ends_at) }}.</strong>
                 Renouvelez-la pour continuer vos séances sans interruption : la nouvelle période commencera à cette date.
                 <a class="btn btn-outline btn-block next-step" href="{{ route('payment.plans') }}">Renouveler</a>
             </div>
@@ -264,6 +265,9 @@
                 <div class="detail">
                     {{ $subscription->daily_minutes }} minutes par jour,
                     jusqu'au {{ $subscription->ends_at->translatedFormat('j F Y') }}
+                    {{-- Renouveler ou changer de formule à tout moment (la fiche du site de Teacher Joe et de Teacher Rose le dit) ;
+                         accès offert ou mois d'ambassadeur : choisir une formule payée. --}}
+                    · <a href="{{ route('payment.plans') }}">{{ $subscription->isGranted() ? 'Choisir une formule' : 'Renouveler ou changer' }}</a>
                 </div>
             @else
                 <div class="value">Aucune</div>

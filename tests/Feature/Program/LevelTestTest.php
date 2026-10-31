@@ -117,7 +117,7 @@ class LevelTestTest extends TestCase
         $this->assertSame([1, 3, 5], $newProgram->study_days);
         $this->assertSame(0, $newProgram->progressPercent());
         $this->assertSame(36, $newProgram->programLessons()->count());
-        $this->assertStringContainsString('Bienvenue dans votre programme B1, Edem Kossi', $newProgram->content['intro']);
+        $this->assertStringContainsString('Bienvenue dans votre programme B1, Edem !', $newProgram->content['intro']);
 
         $attestation = $user->attestations()->sole();
         $this->assertSame(Level::A2, $attestation->level);

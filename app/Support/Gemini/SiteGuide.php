@@ -45,6 +45,7 @@ class SiteGuide
         $text = strtr($text, [
             ':platform' => (string) config('platform.name'),
             ':teacher' => $teacher->name(),
+            ':reminder_minutes' => Duration::format((int) config('platform.reminders.soon_minutes') * 60),
             ':assessment' => Duration::format((int) config('platform.assessment.max_minutes') * 60),
             ':disconnect_rule' => (string) config('platform.live.disconnect_rule'),
             // Après le verdict : mini-leçon découverte, questions et conclusion ; durée totale de l'évaluation.

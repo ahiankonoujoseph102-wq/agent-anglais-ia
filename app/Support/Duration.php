@@ -2,8 +2,18 @@
 
 namespace App\Support;
 
+use Carbon\CarbonInterface;
+
 class Duration
 {
+    /**
+     * Date et heure sans abréviation : « 2 novembre 2026 à 11 heures 15 », « 3 novembre à 9 heures » (sans l'année).
+     */
+    public static function at(CarbonInterface $at, bool $year = true): string
+    {
+        return $at->translatedFormat($year ? 'j F Y' : 'j F').' à '.Reminders\LessonReminders::timeLabel($at->format('H:i'));
+    }
+
     /**
      * Formate une durée en secondes pour l'affichage, en toutes lettres :
      * « 12 minutes », « 1 heure 5 minutes ».

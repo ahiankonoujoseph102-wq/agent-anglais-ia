@@ -20,9 +20,9 @@
         @endif
 
         @if ($time)
-            <p>Vos séances : le {{ $program->studyDaysLabel() }}, à <strong>{{ LessonReminders::timeLabel($time) }}</strong>. {{ $teacherName }} vous envoie un rappel {{ config('platform.reminders.soon_minutes') }} minutes avant.</p>
+            <p>Vos séances : {{ $program->studyDaysPhrase() }}, à <strong>{{ LessonReminders::timeLabel($time) }}</strong>. {{ $teacherName }} vous envoie un rappel {{ config('platform.reminders.soon_minutes') }} minutes avant.</p>
         @else
-            <p>Vous n'avez pas encore choisi l'heure de vos séances. Choisissez-la : {{ $teacherName }} vous enverra un rappel avant chaque séance, le {{ $program->studyDaysLabel() }}.</p>
+            <p>Vous n'avez pas encore choisi l'heure de vos séances. Choisissez-la : {{ $teacherName }} vous enverra un rappel avant chaque séance, {{ $program->studyDaysPhrase() }}.</p>
         @endif
 
         <form method="POST" action="{{ route('reminders.time') }}" class="reminders-time">

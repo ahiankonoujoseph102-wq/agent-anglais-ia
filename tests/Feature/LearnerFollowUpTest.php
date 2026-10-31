@@ -104,7 +104,7 @@ class LearnerFollowUpTest extends TestCase
         $this->remind();
 
         $this->assertCount(1, $this->push->sent);
-        $this->assertSame('Teacher Joe vous attend à 18 h 00', $this->push->sent[0]['title']);
+        $this->assertSame('Teacher Joe vous attend à 18 heures', $this->push->sent[0]['title']);
         $this->assertSame('/seance', $this->push->sent[0]['url']);
         Mail::assertSent(LessonReminderMail::class, 1);
         Mail::assertSent(LessonReminderMail::class, fn ($mail) => $mail->hasTo('afi@example.test') && $mail->kind === LearnerReminder::SOON);
@@ -195,7 +195,7 @@ class LearnerFollowUpTest extends TestCase
         $this->actingAs($user)->put(route('reminders.time'), ['study_time' => '07:30'])->assertRedirect(route('dashboard').'#rappels');
         $this->assertSame('07:30', LessonReminders::studyTime($user->fresh()));
 
-        $this->actingAs($user)->get('/espace')->assertSee('<strong>7 h 30</strong>', false);
+        $this->actingAs($user)->get('/espace')->assertSee('<strong>7 heures 30</strong>', false);
     }
 
     public function test_the_email_is_required_for_a_paying_subscriber_only(): void
