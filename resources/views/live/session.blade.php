@@ -61,6 +61,7 @@
          data-live-openai="{{ \App\Support\Asset::url('js/live-openai.js') }}"
          data-transcript="{{ \App\Support\Asset::url('js/transcript.js') }}"
          data-turn-watch="{{ \App\Support\Asset::url('js/turn-watch.js') }}"
+         data-answer-hint="{{ \App\Support\Asset::url('js/answer-hint.js') }}"
          data-lesson-board="{{ \App\Support\Asset::url('js/lesson-board.js') }}"
          data-audio='@json($audio)'
          @if ($teacher3d)

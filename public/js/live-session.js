@@ -47,6 +47,8 @@ const { TranscriptRecorder, cleanSpeech } = await import(root.dataset.transcript
 const { VoiceActivity, TurnWatch, learnerMetrics, teacherMetrics } = await import(root.dataset.turnWatch);
 // Tableau de la séance du jour : élément expliqué et étape en cours, d'après la voix du professeur.
 const { BoardTracker, BoardView, phaseNote } = root.dataset.lessonBoard ? await import(root.dataset.lessonBoard) : {};
+// Bandeau « À vous de parler » : l'exemple suit la dernière question réellement posée par le professeur.
+const { listeningText } = await import(root.dataset.answerHint);
 // Secondes, pour la fin automatique.
 const clock = () => performance.now() / 1000;
 const MIC_PREFERENCE = 'mic-device';
@@ -447,8 +449,6 @@ const TURN_TEXTS = {
     paused: 'Conversation en pause',
     muted: 'Micro coupé',
     ending: 'Fin de la conversation…',
-    // Évaluation, premier tour de l'élève : dans les vraies évaluations, des élèves n'avaient rien dit du tout.
-    firstAnswer: 'À vous : répondez à voix haute, par exemple « My name is … »',
 };
 
 const MESSAGES = {
@@ -502,6 +502,9 @@ const state = {
     voicePending: false,
     // L'élève a déjà parlé au moins une fois (aide du premier tour de l'évaluation).
     learnerAnswered: false,
+    // Ce que le professeur a dit depuis la dernière parole de l'élève (dernière question, pour le bandeau).
+    teacherSaid: '',
+    teacherTurnDone: false,
     lastChunkAt: 0,
     expectingVoiceUntil: 0,
     timers: [],
@@ -1891,6 +1894,7 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
 
             state.spoke = true;
             state.learnerAnswered = true;
+            state.teacherSaid = '';
             teacher?.learnerSpoke();
             state.teacherLine = null;
             state.teacherUtterance = null;
@@ -1911,6 +1915,14 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
 
             state.spoke = true;
             state.learnerLine = null;
+
+            // Nouvelle réponse du professeur : le bandeau suivra sa nouvelle question.
+            if (state.teacherTurnDone) {
+                state.teacherSaid = '';
+                state.teacherTurnDone = false;
+            }
+
+            state.teacherSaid = (state.teacherSaid + text).slice(-1500);
 
             // Annonce du niveau : son texte arrive avant sa voix ; les sous-titres attendent le niveau.
             if (state.pendingReveal) {
@@ -1946,6 +1958,7 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
 
             state.end.turnComplete(clock());
             state.closing?.turnComplete(clock());
+            state.teacherTurnDone = true;
             state.voicePending = false;
             state.cues.reset();
             state.teacherLine = null;
@@ -2502,7 +2515,11 @@ function renderTurn() {
     }
 
     const turn = currentTurn();
-    const text = turn === 'listening' && mode === 'assessment' && !state.learnerAnswered ? TURN_TEXTS.firstAnswer : TURN_TEXTS[turn];
+    // Évaluation, premier tour de l'élève : conseil général (des élèves n'avaient rien dit du tout) ; l'exemple
+    // n'apparaît que s'il correspond à la question réellement posée (jamais « My name is … » après « How are you? »).
+    const text = turn === 'listening'
+        ? listeningText(state.teacherSaid, { firstAnswer: mode === 'assessment' && !state.learnerAnswered })
+        : TURN_TEXTS[turn];
 
     if (ui.turn.dataset.turn !== turn || ui.turnText.textContent !== text) {
         ui.turn.dataset.turn = turn;
