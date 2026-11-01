@@ -184,4 +184,30 @@ class SubscribersTest extends TestCase
         auth()->logout();
         $this->get(route('admin.subscribers.index'))->assertRedirect(route('login'));
     }
+
+    public function test_each_subscription_says_when_it_was_paid_and_who_validated_it(): void
+    {
+        $this->admin->forceFill(['name' => 'Joseph Ahiankonou'])->save();
+        $validated = $this->payer('Kossi Mensah', 'semaine', 5);
+        $validated->payments()->first()->forceFill(['reviewed_at' => now()->subHour()])->save();
+
+        $pending = Subscription::factory()->for(User::factory()->create(['name' => 'Ama Kpodo']))->forPlan('essentiel')->create([
+            'status' => SubscriptionStatus::Provisional, 'provisional_until' => now()->addHours(20),
+        ]);
+        $this->paymentFor($pending, PaymentStatus::Pending, null);
+
+        // Un abonnement payé sans aucun paiement lié : jamais le prix présenté comme payé.
+        $orphan = Subscription::factory()->for(User::factory()->create(['name' => 'Yao Agbeko']))->forPlan('semaine')->create();
+
+        $this->assertStringContainsString('validé le', Subscribers::paid($validated->fresh('payments.reviewer'))['note']);
+        $this->assertStringContainsString('par Joseph Ahiankonou', Subscribers::paid($validated->fresh('payments.reviewer'))['note']);
+        $this->assertTrue(Subscribers::paid($pending->fresh('payments'))['pending']);
+        $this->assertStringContainsString('pas encore validée', Subscribers::paid($pending->fresh('payments'))['note']);
+        $this->assertNull(Subscribers::paid($orphan->fresh('payments'))['amount']);
+
+        $this->actingAs($this->admin)->get(route('admin.subscribers.index'))->assertOk()
+            ->assertSee('validé le', false)
+            ->assertSee('en vérification', false)
+            ->assertSee('Aucun paiement trouvé pour cet abonnement', false);
+    }
 }

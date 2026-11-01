@@ -60,7 +60,7 @@ final class Subscribers
             ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Provisional, SubscriptionStatus::Suspended, SubscriptionStatus::Expired])
             ->when($filter === 'actifs', fn (Builder $query) => self::whereRunning($query, $now))
             ->when($filter === 'expires', fn (Builder $query) => $query->whereNot(fn (Builder $query) => self::whereRunning($query, $now)))
-            ->with(['user.origin', 'payments'])
+            ->with(['user.origin', 'payments.reviewer'])
             ->orderBy('ends_at', $sort === 'fin-recente' ? 'desc' : 'asc')
             ->orderBy('id')
             ->get();
@@ -147,9 +147,10 @@ final class Subscribers
     }
 
     /**
-     * Montant payé : paiements validés de cet abonnement ; sinon le paiement en vérification (accès provisoire).
+     * Montant payé : paiements validés de cet abonnement (avec la date et qui l'a validé) ; sinon le paiement en
+     * vérification (accès provisoire) ; sinon AUCUN montant : jamais le prix de la formule présenté comme payé.
      *
-     * @return array{amount: int, pending: bool}|null null : accès gratuit
+     * @return array{amount: int|null, pending: bool, note: string}|null null : accès gratuit
      */
     public static function paid(Subscription $subscription): ?array
     {
@@ -157,15 +158,26 @@ final class Subscribers
             return null;
         }
 
-        $validated = $subscription->payments->where('status', PaymentStatus::Validated);
+        $validated = $subscription->payments->where('status', PaymentStatus::Validated)->sortByDesc('reviewed_at');
 
         if ($validated->isNotEmpty()) {
-            return ['amount' => (int) $validated->sum('amount'), 'pending' => false];
+            $last = $validated->first();
+            $note = 'Envoyé le '.$last->created_at->format('d/m/Y H:i');
+
+            if ($last->reviewed_at !== null) {
+                $note .= ', validé le '.$last->reviewed_at->format('d/m/Y H:i').($last->reviewer ? ' par '.$last->reviewer->name : '');
+            }
+
+            return ['amount' => (int) $validated->sum('amount'), 'pending' => false, 'note' => $note];
         }
 
         $pending = $subscription->payments->firstWhere('status', PaymentStatus::Pending);
 
-        return ['amount' => (int) ($pending?->amount ?? $subscription->price), 'pending' => $pending !== null];
+        if ($pending !== null) {
+            return ['amount' => (int) $pending->amount, 'pending' => true, 'note' => 'Capture envoyée le '.$pending->created_at->format('d/m/Y H:i').', pas encore validée'];
+        }
+
+        return ['amount' => null, 'pending' => false, 'note' => 'Aucun paiement trouvé pour cet abonnement'];
     }
 
     public static function origin(Subscription $subscription): string

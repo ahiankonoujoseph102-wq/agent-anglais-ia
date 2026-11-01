@@ -26,6 +26,7 @@ class AdminAlert extends Model
         'cost_high' => 'Coût élevé d\'un abonné',
         'ambassador_application' => 'Candidature d\'ambassadeur',
         'review_pending' => 'Avis d\'élève à vérifier',
+        'renewal_reminder' => 'Rappel de fin d\'abonnement envoyé à un élève',
         'test' => 'Alerte d\'essai',
     ];
 

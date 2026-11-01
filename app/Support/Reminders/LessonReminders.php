@@ -12,6 +12,8 @@ use App\Models\LearnerReminder;
 use App\Models\Program;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Alerts\AdminAlerts;
+use App\Support\Alerts\AlertBuilder;
 use App\Support\Alerts\PushTransport;
 use App\Support\Alerts\Redact;
 use App\Support\Alerts\WebPushTransport;
@@ -378,6 +380,15 @@ final class LessonReminders
         }
 
         $reminder->save();
+
+        // Fin d'abonnement : l'administrateur est prévenu de ce que l'élève vient de recevoir (jamais bloquant).
+        if ($renew && $user->activeSubscription !== null) {
+            try {
+                app(AdminAlerts::class)->send(AlertBuilder::renewalReminder($user, $user->activeSubscription, $message, (string) $reminder->push_status, (string) $reminder->mail_status));
+            } catch (Throwable $e) {
+                Log::warning('Alerte de fin d\'abonnement : envoi impossible.', ['reason' => Redact::reason($e->getMessage())]);
+            }
+        }
 
         return true;
     }

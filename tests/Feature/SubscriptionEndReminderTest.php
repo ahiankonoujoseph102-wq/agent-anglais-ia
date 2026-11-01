@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Enums\Level;
 use App\Mail\LessonReminderMail;
+use App\Mail\PaymentAlertMail;
+use App\Models\AdminAlert;
 use App\Models\LearnerPushSubscription;
 use App\Models\LearnerReminder;
 use App\Models\PushSubscription;
@@ -112,6 +114,33 @@ class SubscriptionEndReminderTest extends TestCase
         $this->assertStringContainsString(route('payment.create', 'essentiel'), $html);
         $this->assertStringContainsString('Teacher Joe', $html);
         $this->assertStringContainsString('Rien n\'est prélevé automatiquement', $html);
+    }
+
+    public function test_the_admin_is_told_what_the_learner_just_received(): void
+    {
+        config(['alerts.emails' => ['admin@example.test']]);
+        $user = $this->learner();
+
+        $this->remind();
+        $this->remind();
+
+        // Une seule alerte, même si la tâche repasse : l'élève, la formule, le message envoyé, par quels moyens.
+        Mail::assertSent(PaymentAlertMail::class, 1);
+        Mail::assertSent(PaymentAlertMail::class, function (PaymentAlertMail $mail) {
+            $details = collect($mail->alert->details)->mapWithKeys(fn ($row) => [$row[0] => $row[1]]);
+
+            return $mail->hasTo('admin@example.test')
+                && $mail->alert->kind === 'renewal_reminder'
+                && str_contains($mail->alert->title, 'Fin d\'abonnement demain : Afi')
+                && $details['Formule'] === 'Essentiel'
+                && $details['Dernier jour'] === '6 novembre 2026'
+                && str_contains($details['Message envoyé'], 'Votre abonnement se termine demain')
+                && $details['E-mail à l\'élève'] === 'envoyé'
+                && $details['Notification à l\'élève'] === 'envoyé';
+        });
+        $this->assertSame(1, AdminAlert::query()->where(['kind' => 'renewal_reminder', 'channel' => 'mail', 'status' => 'sent'])->count());
+        // Jamais le numéro de l'élève dans l'alerte.
+        $this->assertStringNotContainsString(substr($user->phone, -6), Mail::sent(PaymentAlertMail::class)->first()->render());
     }
 
     public function test_the_renewal_reminder_is_signed_by_teacher_rose_for_her_learners(): void
