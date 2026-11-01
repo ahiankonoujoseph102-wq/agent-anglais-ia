@@ -177,10 +177,13 @@ class AssessmentQuestionsTest extends TestCase
         $this->assertStringContainsString('(2) they said "Yesterday I go to the market"', $next);
         // Une seule action par réplique : il attend la répétition avant « Your turn », puis la réponse avant les questions.
         $this->assertStringContainsString('ONE ACTION PER TURN, and WAIT for the learner after each one', $next);
-        $this->assertStringContainsString('"Repeat after me: …" with the right form, and STOP talking. TURN 2 (after they repeated)', $next);
-        $this->assertStringContainsString('TURN 3 (after their answer)', $next);
+        // Comprendre d'abord (en français, « Avez-vous compris ? »), répéter ensuite.
+        $this->assertStringContainsString('why, in two short sentences; then « Avez-vous compris ? » and STOP. TURN 2 (after their answer)', $next);
+        $this->assertStringContainsString('understood → « En anglais, on dit : … » slowly, then « Répétez après moi : … » with the right form, and STOP. TURN 3 (after they repeated)', $next);
+        $this->assertLessThan(strpos($next, 'Répétez après moi'), strpos($next, 'Avez-vous compris'));
+        $this->assertStringContainsString('TURN 4 (after their answer)', $next);
         $this->assertStringContainsString('ONE sincere encouragement about something they really did well today', $next);
-        $this->assertLessThan(strpos($next, 'Avez-vous des questions'), strpos($next, 'TURN 3'));
+        $this->assertLessThan(strpos($next, 'Avez-vous des questions'), strpos($next, 'TURN 4'));
         $this->assertStringNotContainsString('troisième', $next);
         $this->assertStringNotContainsString(':items', $next);
 
@@ -237,7 +240,9 @@ class AssessmentQuestionsTest extends TestCase
         $next = $response->json('next_step');
         $this->assertStringContainsString('« Laissez-moi vous montrer comment nous allons travailler ensemble. »', $next);
         $this->assertStringContainsString('"'.$phrases[0]['en'].'"', $next);
-        $this->assertStringContainsString('Repeat after me: '.$phrases[0]['en'], $next);
+        $this->assertStringContainsString('« Répétez après moi : '.$phrases[0]['en'].' »', $next);
+        $this->assertLessThan(strpos($next, 'Répétez après moi'), strpos($next, 'Avez-vous compris'));
+        $this->assertStringNotContainsString(':meaning', $next);
         $this->assertStringContainsString('never teach another phrase, and never call this function again', $next);
         $this->assertStringNotContainsString(':phrase', $next);
     }

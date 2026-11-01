@@ -1,11 +1,11 @@
 {
     "assessment.old": {
-        "length": 90715,
-        "sha256": "b207d4e5542c20cec3b2da58caf0c1a32f44f4a33cb119826fc63a47ca615b66"
+        "length": 91557,
+        "sha256": "a073d1e0f2b57b12b1c72b2026f648e1dee5f231de320466faaba70fcfea6621"
     },
     "assessment.new": {
-        "length": 90352,
-        "sha256": "3d3b51dc8529a37b8b53fb8ec2c50fbb5c5ded75c7693d7fdcea6890e44a93c8"
+        "length": 90678,
+        "sha256": "5a41cb3179e86a95c3d56f8c4c79dd905e1cf31747f3e586cbc1dae7b230ad10"
     },
     "lesson.A1.first": {
         "length": 89366,
