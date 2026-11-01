@@ -23,6 +23,7 @@ Licence vérifiée sur la page de chaque photo le 17 octobre 2026. Liste et text
 
 | Fichiers | Photo | Auteur |
 |---|---|---|
+| `public/images/photos/amis-telephone-*.webp` | <https://unsplash.com/photos/two-men-looking-at-a-smartphone-outdoors-smartphone-oCq3LW3rCD8> (licence gratuite vérifiée sur la page le 1er novembre 2026) | Mugabi Owen (<https://unsplash.com/@spenz_official>) |
 | `public/images/photos/eleve-ecouteurs-*.webp` | <https://unsplash.com/photos/a-person-wearing-headphones-and-holding-a-phone-nBiJoRbVHmA> | Akinyemi Gbadamosi (<https://unsplash.com/@mhyk3y>) |
 | `public/images/photos/etudiante-parle-*.webp` | <https://unsplash.com/photos/a-woman-wearing-headphones-and-holding-a-cell-phone-agINaOByj4k> | Ato Aikins (<https://unsplash.com/@ato_aikins>) |
 | `public/images/photos/parent-enfant-lecture-*.webp` | <https://unsplash.com/photos/a-woman-reading-a-book-to-a-child-Nu5819t1K6c> (« Reading with Mum », licence gratuite vérifiée sur la page le 17 octobre 2026) | Chidy Young (<https://unsplash.com/@ychidy>) |
