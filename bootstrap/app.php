@@ -10,6 +10,7 @@ use App\Http\Middleware\RedirectToPrimaryDomain;
 use App\Http\Middleware\RememberLanding;
 use App\Http\Middleware\RequireConfirmation;
 use App\Http\Middleware\VerifyVideoToken;
+use App\Http\Middleware\ViewAsLearner;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -40,6 +41,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // HTTPS obligatoire en production (avant tout le reste du groupe web).
         $middleware->prependToGroup('web', RedirectToHttps::class);
+
+        // « Voir son espace » (administrateur principal) : pages de l'apprenant en lecture seule, avant tout le reste.
+        $middleware->appendToGroup('web', ViewAsLearner::class);
 
         // Mot de passe provisoire : changement obligatoire avant tout le reste.
         $middleware->appendToGroup('web', EnsurePasswordIsChanged::class);

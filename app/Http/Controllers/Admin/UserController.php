@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OfferAccessRequest;
 use App\Models\Ambassador;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Admin\LearnerProgress;
 use App\Support\Ambassadors\AmbassadorProgram;
 use App\Support\Countries;
 use App\Support\Live\Transcripts;
@@ -91,6 +93,8 @@ class UserController extends Controller
             'payments' => $user->payments()->with(['user', 'subscription', 'reviewer'])->latest('id')->get(),
             'courseLessons' => $user->courseLessons()->with('pages')->latest('id')->get(),
             'conversations' => Transcripts::sessionsOf($user),
+            // Progression et travail : apprenants seulement (jamais l'équipe).
+            'progress' => $user->role === Role::Learner ? LearnerProgress::details($user) : null,
             'temporaryPassword' => $temporaryPassword,
             'whatsappUrl' => $whatsappUrl,
             'ambassadorGrant' => $user->ambassador?->currentGrant(),

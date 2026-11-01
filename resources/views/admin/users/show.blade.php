@@ -53,6 +53,10 @@
         @endcan
     </section>
 
+    @if ($progress)
+        @include('admin.users.progress')
+    @endif
+
     {{-- Rôle dans l'équipe : l'administrateur principal seul nomme ou retire un assistant (jamais un administrateur). --}}
     @can('admin-route', 'admin.users.assistant')
         @unless ($user->isAdmin())

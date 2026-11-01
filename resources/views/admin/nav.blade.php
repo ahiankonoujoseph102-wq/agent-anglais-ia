@@ -14,6 +14,9 @@
     @can('admin-route', 'admin.subscribers.index')
     <a href="{{ route('admin.subscribers.index') }}" @class(['active' => request()->routeIs('admin.subscribers.*')]) @if (request()->routeIs('admin.subscribers.*')) aria-current="page" @endif><x-icon name="users" /> Abonnés payants</a>
     @endcan
+    @can('admin-route', 'admin.follow.index')
+    <a href="{{ route('admin.follow.index') }}" @class(['active' => request()->routeIs('admin.follow.*')]) @if (request()->routeIs('admin.follow.*')) aria-current="page" @endif><x-icon name="chart" /> Suivi des élèves</a>
+    @endcan
     @can('admin-route', 'admin.inactive.index')
     <a href="{{ route('admin.inactive.index') }}" @class(['active' => request()->routeIs('admin.inactive.*')]) @if (request()->routeIs('admin.inactive.*')) aria-current="page" @endif><x-icon name="user-off" /> Inactifs</a>
     @endcan

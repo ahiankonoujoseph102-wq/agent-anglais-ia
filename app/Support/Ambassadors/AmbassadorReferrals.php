@@ -5,6 +5,7 @@ namespace App\Support\Ambassadors;
 use App\Models\Ambassador;
 use App\Models\AmbassadorReferral;
 use App\Models\User;
+use App\Support\Admin\ViewAs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 
@@ -117,7 +118,8 @@ final class AmbassadorReferrals
     {
         $ambassador = $user->ambassador;
 
-        if ($ambassador === null || ! $ambassador->isActive()) {
+        // « Voir son espace » de l'administration : le téléphone de l'administrateur n'est jamais noté comme le sien.
+        if ($ambassador === null || ! $ambassador->isActive() || ViewAs::active()) {
             return;
         }
 

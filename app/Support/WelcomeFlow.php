@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\User;
+use App\Support\Admin\ViewAs;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -15,7 +16,8 @@ final class WelcomeFlow
     public static function due(User $user): bool
     {
         // L'administration et les comptes qui doivent d'abord changer leur mot de passe sont laissés tranquilles.
-        if ($user->isAdmin() || $user->must_change_password || $user->welcomed_at !== null) {
+        // « Voir son espace » de l'administration (lecture seule) : la bienvenue n'est jamais ouverte ni marquée « vue ».
+        if ($user->isAdmin() || $user->must_change_password || $user->welcomed_at !== null || ViewAs::active()) {
             return false;
         }
 
@@ -39,7 +41,7 @@ final class WelcomeFlow
      */
     public static function markSeen(User $user): void
     {
-        if ($user->welcomed_at === null) {
+        if ($user->welcomed_at === null && ! ViewAs::active()) {
             $user->forceFill(['welcomed_at' => now()])->save();
         }
     }
