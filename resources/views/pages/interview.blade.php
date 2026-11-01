@@ -23,7 +23,7 @@
             <div>
                 <span class="eyebrow"><x-icon name="work" /> Bourse, admission, stage, embauche</span>
                 <h1 id="entretien-titre">Préparer un entretien en anglais avec {{ $teacher }}</h1>
-                <p class="lead">Le jour de l'entretien, il faut comprendre la question et répondre sans bloquer. Cela se prépare à voix haute : {{ $teacher }} joue le jury ou le recruteur, vous répondez, il vous corrige et vous aide à mieux dire.</p>
+                <p class="lead">Un entretien se prépare à voix haute : {{ $teacher }} joue le jury ou le recruteur, vous répondez, il vous corrige et vous aide à mieux dire.</p>
                 <div class="actions actions-row">
                     <a class="btn btn-accent btn-lg btn-block" href="{{ Navigation::assessmentUrl() }}"><x-icon name="mic" /> Passer mon évaluation gratuite</a>
                     <a class="btn btn-outline btn-block" href="{{ route('guides.show', 'entretien-en-anglais-questions') }}">Lire les 10 questions fréquentes</a>
