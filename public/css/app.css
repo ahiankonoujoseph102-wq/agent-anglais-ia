@@ -2095,3 +2095,32 @@ body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260p
 .plans-faq { margin: var(--space-5) 0 var(--space-6); }
 .hero-reviews { margin-top: 0; }
 .hero-reviews .icon { width: 18px; height: 18px; margin-right: var(--space-1); color: var(--c-accent-strong); }
+
+/* Accueil, cartes des publics sur téléphone (public/js/audience-carousel.js, classe is-ready) : onglets avec une barre
+   orange qui se remplit (seulement transform), défilement automatique, bouton plein qui suit la carte affichée (en
+   fondu : seulement opacity et transform). Sans JavaScript, et à partir de 720 pixels : comme avant. */
+.audience-tabs, .audience-follow, .help-only-folded { display: none !important; }
+@media (max-width: 719.98px) {
+    .audience-carousel.is-ready .swipe-hint { display: none; }
+    .audience-carousel.is-ready .audience-tabs { display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); margin: 0 0 var(--space-3); }
+    .audience-tab { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 var(--space-1) 4px; border-radius: var(--radius-pill); background: var(--c-surface); color: var(--c-primary-strong); font-size: var(--fs-sm); font-weight: var(--fw-bold); text-decoration: none; box-shadow: inset 0 0 0 1px var(--c-primary-line); transition: background var(--dur-fast), color var(--dur-fast); }
+    .audience-tab.is-active { background: var(--c-primary); color: var(--c-on-dark); box-shadow: none; }
+    .audience-tab-bar { position: absolute; left: 14%; right: 14%; bottom: 5px; height: 3px; border-radius: var(--radius-pill); background: var(--c-accent); transform: scaleX(0); transform-origin: left center; }
+    .audience-tab.is-active .audience-tab-bar { animation: audience-fill 4.5s linear forwards; }
+    .audience-carousel.is-paused .audience-tab.is-active .audience-tab-bar { animation-play-state: paused; }
+    .audience-carousel.is-stopped .audience-tab.is-active .audience-tab-bar { animation: none; transform: scaleX(1); }
+    .audience-carousel.is-ready .audiences .audience-cta { display: none; }
+    /* Toutes les cartes à la même hauteur : jamais de grand vide sous une carte courte. */
+    .audience-carousel.is-ready .audiences > .audience { align-self: stretch; align-content: stretch; grid-template-rows: auto auto 1fr; }
+    .audience-carousel.is-ready .audience-more { align-self: end; }
+    .audience-carousel.is-ready .audience .help-only { display: none; }
+    .audience-carousel.is-ready .help-only-folded { display: flex !important; }
+    .audience-carousel.is-ready .audience-follow { display: flex !important; margin-top: var(--space-3); }
+    .audience-follow-inner { display: inline-flex; align-items: center; gap: var(--space-2); transition: opacity var(--dur-fast) ease, transform var(--dur-fast) ease; }
+    .audience-follow.is-swapping .audience-follow-inner { opacity: 0; transform: translateY(6px); }
+}
+@keyframes audience-fill { to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+    .audience-tab .audience-tab-bar { animation: none !important; }
+    .audience-follow-inner { transition: none; }
+}

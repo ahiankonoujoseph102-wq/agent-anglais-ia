@@ -232,9 +232,22 @@
         bouton secondaire (le bouton orange reste au premier écran, aux formules et à l'appel final).
         Téléphone : petite photo à côté du titre, l'une sous l'autre ; à partir de 720 pixels : grille 2 × 2.
     --}}
-    <div class="section band band-soft">
+    {{--
+        Téléphone (moins de 720 pixels), avec JavaScript (public/js/audience-carousel.js) : les cartes défilent toutes
+        seules quand elles sont à l'écran (une toutes les quelques secondes), quatre onglets montrent la carte en cours
+        (barre qui se remplit) et un bouton sous les cartes suit la carte affichée. Un toucher, un clavier ou la molette
+        arrêtent le défilement pour de bon ; « réduire les animations » : jamais de défilement automatique.
+        Sans JavaScript : la phrase « faites glisser » et le bouton de chaque carte, comme avant.
+    --}}
+    <div class="section band band-soft audience-carousel" data-audience-carousel>
         <p class="swipe-hint muted small"><x-icon name="arrow-right" /> Étudiant, élève, parent ou professionnel : faites glisser pour voir chaque profil.</p>
-        <div class="audiences">
+        <nav class="audience-tabs" aria-label="Choisir un profil">
+            <a class="audience-tab" href="#etudiants" data-audience-tab>Étudiant<span class="audience-tab-bar" aria-hidden="true"></span></a>
+            <a class="audience-tab" href="#eleves" data-audience-tab>Élève<span class="audience-tab-bar" aria-hidden="true"></span></a>
+            <a class="audience-tab" href="#parents" data-audience-tab>Parent<span class="audience-tab-bar" aria-hidden="true"></span></a>
+            <a class="audience-tab" href="#pros" data-audience-tab>Pro<span class="audience-tab-bar" aria-hidden="true"></span></a>
+        </nav>
+        <div class="audiences" data-audience-track>
             <section class="students audience reveal reveal-side" aria-labelledby="etudiants">
                 <figure class="photo-frame"><x-photo name="etudiants-bibliotheque" /></figure>
                 <div class="audience-body">
@@ -263,6 +276,8 @@
                             <li><x-icon name="camera" /> {{ \App\Support\CourseFiles::offer() }}</li>
                             <li><x-icon name="book" /> {{ $teacher }} vous l'explique en détail, en français quand il le faut, et répond à vos questions</li>
                             <li><x-icon name="edit" /> Il vous guide pour faire votre exercice vous-même, puis corrige</li>
+                            {{-- Carrousel du téléphone : la note ci-dessous est rangée ici (cartes de même hauteur). --}}
+                            <li class="help-only-folded"><x-icon name="info" /> Uniquement pour les cours d'anglais : école, lycée, université, formation.</li>
                         </ul>
                     </details>
                     <p class="help-only"><x-icon name="info" /> Uniquement pour les cours d'anglais. Aussi pour les étudiants : lycée, université, formation.</p>
@@ -304,7 +319,9 @@
                 </div>
             </section>
         </div>
+        <a class="btn btn-lg btn-block audience-follow" href="{{ $start }}" data-audience-follow><span class="audience-follow-inner"><x-icon name="mic" /> {{ $startLabel }}</span></a>
     </div>
+    <script type="module" src="{{ Asset::url('js/audience-carousel.js') }}"></script>
 
     {{-- Avis des élèves : affichés seulement à partir de platform.reviews.home_min avis publiés (jamais inventés) ; tous les
          avis, positifs comme négatifs, sont sur /avis. --}}
