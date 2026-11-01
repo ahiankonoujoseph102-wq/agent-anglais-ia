@@ -80,11 +80,13 @@ class LessonFourStepsTest extends TestCase
         $this->assertStringContainsString('A REAL TEACHER TEACHES FIRST, THEN PRACTICES, THEN LETS THE LEARNER TALK FREELY.', $text);
         $this->assertStringContainsString('Never start with a topic you have not taught.', $text);
         $this->assertStringContainsString('STEP 1 — LESSON. Teach the board ONE ITEM AT A TIME, in small, lively pieces, never a monologue', $text);
-        $this->assertStringContainsString('its MEANING and WHEN to use it', $text);
+        $this->assertStringContainsString('show its MEANING with a simple English example or situation', $text);
         $this->assertStringContainsString('then "Your turn: …"', $text);
         $this->assertStringContainsString('never move on, and never start STEP 2 or STEP 3, while it is not understood.', $text);
-        // Débutant : expliquer en français et vérifier AVANT « Répétez après moi » (1er novembre 2026).
-        $this->assertStringContainsString('A1 and A2: FIRST explain in French what we learn and what the item MEANS, ask « Avez-vous compris ? » and WAIT; only then « En anglais, on dit : … » (slowly) and « Répétez après moi : … ».', $text);
+        // En anglais, au niveau de l'élève ; vérifier AVANT « Repeat after me » ; le français seulement par l'échelle.
+        $this->assertStringContainsString('IN ENGLISH, at the learner\'s level', $text);
+        $this->assertStringContainsString('"Do you understand?" (A1 and A2) and WAIT', $text);
+        $this->assertStringContainsString('Only once the meaning is clear: "Repeat after me: …".', $text);
         $this->assertStringContainsString('EVERY item ends with the learner speaking', $text);
         $this->assertStringContainsString("STEP 2 — GUIDED PRACTICE. Start with this exact sentence: « Now, let's practice! »", $text);
         $this->assertStringContainsString('at least one short exercise where the learner makes their OWN sentence', $text);
@@ -105,13 +107,13 @@ class LessonFourStepsTest extends TestCase
     public function test_english_first_and_french_as_a_safety_net_by_level(): void
     {
         $common = config('teacher.lesson_language.common');
-        $this->assertStringContainsString('the words and sentences to learn are always in English', $common);
-        $this->assertStringContainsString('mostly French for beginners, more and more English as the level goes up', $common);
-        $this->assertStringContainsString('If the learner asks for an explanation in French, give it clearly', $common);
+        $this->assertStringContainsString('the lesson is IN ENGLISH, at the learner\'s level', $common);
+        $this->assertStringContainsString('French is a last resort', $common);
+        $this->assertStringContainsString('Never translate everything you say.', $common);
 
         $expected = [
-            'A1' => 'EXPLANATIONS MAINLY IN FRENCH',
-            'A2' => 'Not understood: French at once.',
+            'A1' => 'VERY SIMPLE ENGLISH',
+            'A2' => 'French only through WHEN THE LEARNER DOES NOT UNDERSTAND.',
             'B1' => 'English only. French only as a last resort, for a difficult word or rule.',
             'B2' => 'Everything in English',
             'C2' => 'Everything in English',

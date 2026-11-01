@@ -22,7 +22,7 @@ class BeginnerUnderstandingTest extends TestCase
 {
     use BuildsPrograms, RefreshDatabase;
 
-    public function test_both_teachers_stop_explain_in_french_check_then_make_repeat_in_every_conversation(): void
+    public function test_both_teachers_teach_in_english_then_simpler_english_then_french_then_back_to_english(): void
     {
         $user = User::factory()->level(Level::A1)->create(['name' => 'Kossi']);
 
@@ -31,30 +31,40 @@ class BeginnerUnderstandingTest extends TestCase
                 $text = TeacherSetup::instructions($kind, $user, 15, teacher: Teachers::find($key));
                 $where = "{$key} {$kind}";
 
-                // a) Repérer : silence, hésitation, français, réponse sans rapport, mauvaise répétition… et S'ARRÊTER.
+                // Le cours se fait en anglais, au niveau de l'élève, dès les premiers mots ; jamais tout traduire.
+                $this->assertStringContainsString('THE LESSON IS IN ENGLISH', $text, $where);
+                $this->assertStringContainsString('from your very first words', $text, $where);
+                $this->assertStringContainsString('French is a LAST RESORT, never the language of the lesson, and you never translate everything you say.', $text, $where);
+                // a) Repérer et S'ARRÊTER.
                 $this->assertStringContainsString('the SAME incomplete answer twice (e.g. they repeat the model sentence instead of finishing it)', $text, $where);
-                $this->assertStringContainsString('At ONE sign, STOP the exercise: no more "Almost", "Very close" or "Repeat after me" for it', $text, $where);
-                // b) à d) Expliquer en français, vérifier, puis l'anglais et seulement ensuite « Répétez après moi ».
-                $this->assertStringContainsString('EXPLAIN in French what we are learning and what the sentence MEANS', $text, $where);
-                $this->assertStringContainsString('2) « Avez-vous compris ? » and WAIT', $text, $where);
-                $this->assertStringContainsString('3) only then « En anglais, on dit : … » (slowly, in small pieces), then « Répétez après moi : … ».', $text, $where);
-                // e) Jamais « Repeat after me » sans le sens compris.
+                $this->assertStringContainsString('At ONE sign, STOP the exercise', $text, $where);
+                // b) Échelle : anglais plus simple, puis explication en français (sens, mots anglais dedans), vérifier,
+                // puis RETOUR à l'anglais : la même question, à laquelle l'élève répond.
+                $this->assertStringContainsString('1) SIMPLER ENGLISH FIRST', $text, $where);
+                $this->assertStringContainsString('Never French at the first difficulty.', $text, $where);
+                $this->assertStringContainsString('2) Still not understood: explain in FRENCH', $text, $where);
+                $this->assertStringContainsString('Explain the point, do not translate everything. Then ask « Vous avez compris ? » and WAIT.', $text, $where);
+                $this->assertStringContainsString('3) Understood: go BACK TO ENGLISH at once: ask the same question again in English', $text, $where);
+                $this->assertLessThan(strpos($text, '2) Still not understood'), strpos($text, '1) SIMPLER ENGLISH FIRST'), $where);
+                $this->assertLessThan(strpos($text, '3) Understood'), strpos($text, '2) Still not understood'), $where);
+                $this->assertStringNotContainsString('switch to FRENCH at once', $text, $where);
+                // c) Apprendre à le dire en anglais : « I don't understand ».
+                $this->assertStringContainsString('"When you don\'t understand, you can say: I don\'t understand."', $text, $where);
+                // d) Jamais « Repeat after me » sans le sens compris ; sa propre réponse : d'abord en français.
                 $this->assertStringContainsString('NEVER "Repeat after me" before the meaning is understood.', $text, $where);
-                // f) Son propre numéro, sa propre phrase : d'abord en français, puis morceau par morceau.
                 $this->assertStringContainsString('« Dites-le-moi d\'abord en français, et je vous aide à le dire en anglais. »', $text, $where);
                 $this->assertStringContainsString('help piece by piece', $text, $where);
-                // Demande d'explication en français, même mal entendue.
+                // Demande d'explication en français, même mal entendue : tout de suite.
                 $this->assertStringContainsString('anything that sounds like "explain in French"', $text, $where);
-                // Lentement avec les débutants, et du temps pour répondre.
+                // Lentement avec les débutants, et du temps pour répondre ; accent américain clair.
                 $this->assertStringContainsString('SLOW is right: about two words per second', $text, $where);
                 $this->assertStringContainsString('GIVE TIME', $text, $where);
-                // Accent américain clair.
                 $this->assertStringContainsString('a clear, natural American accent', $text, $where);
             }
         }
     }
 
-    public function test_the_assessment_and_its_mini_lesson_follow_the_same_method(): void
+    public function test_the_assessment_and_its_mini_lesson_follow_the_same_ladder(): void
     {
         $prospect = User::factory()->create(['name' => 'Kossi']);
         $tester = User::factory()->create(['name' => 'Ama']);
@@ -62,29 +72,35 @@ class BeginnerUnderstandingTest extends TestCase
         $old = TeacherSetup::instructions('assessment', $prospect, 5);
         $new = TeacherSetup::instructions('assessment', $tester->fresh(), 5);
 
-        // Question pas comprise : le français tout de suite, « Avez-vous compris ? », puis l'anglais très simple.
-        $this->assertStringContainsString('follow WHEN THE LEARNER DOES NOT UNDERSTAND at once: say the question in French', $old);
+        // Question pas comprise : d'abord en anglais plus simple, puis le français, puis la même question en anglais.
+        $this->assertStringContainsString('first the same question in simpler, slower English', $old);
         $this->assertStringContainsString('Never go on to the next question while they are lost', $old);
-        $this->assertStringContainsString('At ONCE (follow WHEN THE LEARNER DOES NOT UNDERSTAND)', $new);
+        $this->assertStringContainsString('first the same question in VERY simple, slow English', $new);
         foreach ([$old, $new] as $text) {
-            $this->assertStringContainsString('« Avez-vous compris ? » and WAIT', $text);
+            $this->assertStringContainsString('« Vous avez compris ? » and WAIT', $text);
+            $this->assertStringContainsString('ask the question again IN ENGLISH', $text);
             $this->assertStringContainsString('piece by piece', $text);
         }
 
-        // Mini-leçon : comprendre d'abord, répéter ensuite (avec ou sans erreurs transmises).
+        // Mini-leçon : en anglais simple, comprise d'abord (le français seulement si besoin), répétée ensuite.
         foreach (['assessment_next_step', 'assessment_next_step_phrase'] as $key) {
             $step = config("teacher.{$key}");
-            $this->assertLessThan(strpos($step, 'Répétez après moi'), strpos($step, 'Avez-vous compris'), $key);
-            $this->assertStringNotContainsString('Repeat after me', $step, $key);
+            $this->assertStringContainsString('Do you understand?', $step, $key);
+            $this->assertStringContainsString('not understood → explain it in French', $step, $key);
+            $this->assertLessThan(strpos($step, 'Repeat after me'), strpos($step, 'Do you understand?'), $key);
+            $this->assertStringNotContainsString('Répétez après moi', $step, $key);
         }
     }
 
-    public function test_beginners_get_explanations_mainly_in_french_and_more_english_as_the_level_goes_up(): void
+    public function test_every_level_is_taught_in_english_at_its_own_level(): void
     {
-        $this->assertStringContainsString('EXPLANATIONS MAINLY IN FRENCH', config('teacher.lesson_language.A1'));
-        $this->assertStringContainsString('Not understood: French at once.', config('teacher.lesson_language.A2'));
+        $this->assertStringContainsString('the lesson is IN ENGLISH', config('teacher.lesson_language.common'));
+        $this->assertStringContainsString('VERY SIMPLE ENGLISH', config('teacher.lesson_language.A1'));
+        $this->assertStringNotContainsString('MAINLY IN FRENCH', config('teacher.lesson_language.A1'));
+        $this->assertStringContainsString('French only through WHEN THE LEARNER DOES NOT UNDERSTAND', config('teacher.lesson_language.A2'));
         $this->assertStringContainsString('English only', config('teacher.lesson_language.B1'));
         $this->assertStringContainsString('Everything in English', config('teacher.lesson_language.C1'));
+        $this->assertSame('I don\'t understand.', config('teacher.useful_phrases.0.en'));
     }
 
     public function test_beginners_get_more_time_before_the_teacher_speaks_again(): void

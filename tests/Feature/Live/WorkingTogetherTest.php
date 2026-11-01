@@ -61,7 +61,9 @@ class WorkingTogetherTest extends TestCase
         $text = $this->systemText($this->learner());
 
         $this->assertStringContainsString('HOW TO WORK WITH ME (this is lesson number 1 of the learner', $text);
-        $this->assertStringContainsString('they can ask you their questions in French at any moment', $text);
+        $this->assertStringContainsString('the lesson is in English, in simple English at their level', $text);
+        $this->assertStringContainsString('« I don\'t understand »', $text);
+        $this->assertStringContainsString('they may always ask a question in French', $text);
         $this->assertStringContainsString('« Can you repeat, please? »', $text);
         $this->assertStringContainsString('they have the right to make mistakes', $text);
         $this->assertStringContainsString('Never say it again in this lesson, even after a pause or a reconnection.', $text);
