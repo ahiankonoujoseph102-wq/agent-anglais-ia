@@ -61,7 +61,7 @@ class TeacherPaceTest extends TestCase
     public function test_the_pace_by_level_is_very_slow_then_slow_to_moderate_then_natural(): void
     {
         foreach (['A1', 'A2'] as $level) {
-            $this->assertStringContainsString('slow and very articulated, but natural (never dragged)', config("teacher.pace.levels.{$level}"));
+            $this->assertStringContainsString('SLOW and very articulated (about two words per second), a small pause between sentences', config("teacher.pace.levels.{$level}"));
             $this->assertStringContainsString('A short pause after each key word and after each model sentence', config("teacher.pace.levels.{$level}"));
         }
 
@@ -88,7 +88,11 @@ class TeacherPaceTest extends TestCase
         $this->assertStringContainsString('or answers something unrelated: slow down at once', $rules);
         $this->assertStringContainsString('KEEP this slower pace until the end', $rules);
         // Pauses courtes : une longue fait croire à l'élève que c'est son tour (et la sécurité du micro tient la voix pour finie).
-        $this->assertStringContainsString('one to two seconds at most', $rules);
+        $this->assertStringContainsString('Pauses between your sentences stay short (about one second)', $rules);
+        // Débutants : lent, environ deux mots par seconde ; on laisse le temps de répondre (1er novembre 2026).
+        $this->assertStringContainsString('With beginners (A1, A2, the assessment), SLOW is right: about two words per second', $rules);
+        $this->assertStringContainsString('GIVE TIME: after your question, wait, even through pauses in their answer', $rules);
+        $this->assertStringNotContainsString('never too slow', $rules);
         $this->assertDoesNotMatchRegularExpression('/google|gemini|openai|chatgpt/i', $rules.implode(' ', config('teacher.pace.levels')));
     }
 
@@ -103,6 +107,6 @@ class TeacherPaceTest extends TestCase
             $this->assertDoesNotMatchRegularExpression('/natural from B2|(?<!AND )PACE:|at a natural pace|at a moderate pace|moderate for B1/', (string) $text);
         }
 
-        $this->assertStringContainsString('slow down clearly (see SPEAKING PACE)', config('teacher.persona'));
+        $this->assertStringContainsString('keep a slower pace until the end (SPEAKING PACE)', config('teacher.persona'));
     }
 }

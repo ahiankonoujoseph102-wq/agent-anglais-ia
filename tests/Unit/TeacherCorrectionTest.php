@@ -41,8 +41,8 @@ class TeacherCorrectionTest extends TestCase
             $this->assertStringContainsString('Never let a wrong form pass as right to please the learner. If they insist, stay warm and accurate', $text, $kind);
             // Pendant la parole libre : pas d'interruption pour les petites fautes, retour à la fin de la conversation.
             $this->assertStringContainsString('DURING FREE CONVERSATION (STEP 3): let the learner speak, do NOT interrupt for small mistakes', $text, $kind);
-            // Vérifier par une question qui fait utiliser (B1), jamais par « C'est clair ? ».
-            $this->assertStringContainsString('ask ONE tiny question that makes them USE or CHOOSE it', $text, $kind);
+            // Vérifier : « Avez-vous compris ? » (A1, A2), puis une petite question qui fait utiliser.
+            $this->assertStringContainsString('ONE tiny question that makes them USE or CHOOSE it', $text, $kind);
             // Une seule règle de correction : la règle générale renvoie à HOW TO CORRECT.
             $this->assertStringContainsString('Mistakes: follow HOW TO CORRECT when it is given below', $text, $kind);
             $this->assertSame(1, substr_count($text, 'HOW TO CORRECT (daily lesson'), $kind);
@@ -59,7 +59,7 @@ class TeacherCorrectionTest extends TestCase
         // Retour sur la langue à la fin de la conversation : une réussite, puis une ou deux erreurs expliquées, redites mieux.
         $this->assertStringContainsString('LANGUAGE FEEDBACK (the last minute of this step, before the summary): first ONE thing they said well', $text);
         $this->assertStringContainsString('what they said, the right form, WHY, and they say it again once, better', $text);
-        $this->assertStringContainsString('ONE checking question (HOW YOU TEACH), never "Is it clear?"', $text);
+        $this->assertStringContainsString('check understanding (HOW YOU TEACH); never move on, and never start STEP 2 or STEP 3, while it is not understood.', $text);
     }
 
     public function test_the_assessment_and_the_level_test_keep_their_short_correction(): void

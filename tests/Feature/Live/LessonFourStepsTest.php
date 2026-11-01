@@ -82,7 +82,9 @@ class LessonFourStepsTest extends TestCase
         $this->assertStringContainsString('STEP 1 — LESSON. Teach the board ONE ITEM AT A TIME, in small, lively pieces, never a monologue', $text);
         $this->assertStringContainsString('its MEANING and WHEN to use it', $text);
         $this->assertStringContainsString('then "Your turn: …"', $text);
-        $this->assertStringContainsString('never "Is it clear?"; never move on while it is not understood.', $text);
+        $this->assertStringContainsString('never move on, and never start STEP 2 or STEP 3, while it is not understood.', $text);
+        // Débutant : expliquer en français et vérifier AVANT « Répétez après moi » (1er novembre 2026).
+        $this->assertStringContainsString('A1 and A2: FIRST explain in French what we learn and what the item MEANS, ask « Avez-vous compris ? » and WAIT; only then « En anglais, on dit : … » (slowly) and « Répétez après moi : … ».', $text);
         $this->assertStringContainsString('EVERY item ends with the learner speaking', $text);
         $this->assertStringContainsString("STEP 2 — GUIDED PRACTICE. Start with this exact sentence: « Now, let's practice! »", $text);
         $this->assertStringContainsString('at least one short exercise where the learner makes their OWN sentence', $text);
@@ -103,14 +105,13 @@ class LessonFourStepsTest extends TestCase
     public function test_english_first_and_french_as_a_safety_net_by_level(): void
     {
         $common = config('teacher.lesson_language.common');
-        $this->assertStringContainsString('You teach IN ENGLISH', $common);
-        $this->assertStringContainsString('FIRST rephrase in simpler English', $common);
-        $this->assertStringContainsString('ONLY THEN, if it is still not understood, explain briefly in French, and come back to English at once', $common);
-        $this->assertStringContainsString('If the learner asks for an explanation in French, give it briefly, then go back to English.', $common);
+        $this->assertStringContainsString('the words and sentences to learn are always in English', $common);
+        $this->assertStringContainsString('mostly French for beginners, more and more English as the level goes up', $common);
+        $this->assertStringContainsString('If the learner asks for an explanation in French, give it clearly', $common);
 
         $expected = [
-            'A1' => 'short French confirmation of the meaning (« Ça veut dire … »), then go straight back to English',
-            'A2' => 'French only if the learner has not understood after one rephrasing in simpler English',
+            'A1' => 'EXPLANATIONS MAINLY IN FRENCH',
+            'A2' => 'Not understood: French at once.',
             'B1' => 'English only. French only as a last resort, for a difficult word or rule.',
             'B2' => 'Everything in English',
             'C2' => 'Everything in English',
