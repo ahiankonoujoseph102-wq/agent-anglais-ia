@@ -74,7 +74,8 @@ class CourseHelpHomeTest extends TestCase
             $card = '//section[@aria-labelledby="'.$id.'"][contains(@class,"audience")]';
             $this->assertSame(1, $xpath->query($card.'/figure[contains(@class,"photo-frame")]//img[@loading="lazy"][@width][@height]')->length, $id);
             $this->assertSame(1, $xpath->query($card.'//h2[@id="'.$id.'"]')->length, $id);
-            $this->assertLessThanOrEqual(3, $xpath->query($card.'//ul[contains(@class,"audience-points")]/li')->length, $id);
+            // La note « Uniquement pour les cours d'anglais » rangée pour le carrousel du téléphone n'est pas un point.
+            $this->assertLessThanOrEqual(3, $xpath->query($card.'//ul[contains(@class,"audience-points")]/li[not(contains(@class,"help-only-folded"))]')->length, $id);
             $this->assertGreaterThanOrEqual(1, $xpath->query($card.'//ul[contains(@class,"audience-points")]/li')->length, $id);
             $this->assertSame(1, $xpath->query($card.'//details[contains(@class,"audience-more")]/ul[contains(@class,"audience-points")]')->length, $id);
             $this->assertSame(1, $xpath->query($card.'//a[contains(@class,"btn-outline")]')->length, $id);
