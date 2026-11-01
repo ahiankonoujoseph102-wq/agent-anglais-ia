@@ -54,6 +54,31 @@ class BeginnerUnderstandingTest extends TestCase
         }
     }
 
+    public function test_the_assessment_and_its_mini_lesson_follow_the_same_method(): void
+    {
+        $prospect = User::factory()->create(['name' => 'Kossi']);
+        $tester = User::factory()->create(['name' => 'Ama']);
+        $tester->forceFill(['is_test_account' => true])->save();
+        $old = TeacherSetup::instructions('assessment', $prospect, 5);
+        $new = TeacherSetup::instructions('assessment', $tester->fresh(), 5);
+
+        // Question pas comprise : le français tout de suite, « Avez-vous compris ? », puis l'anglais très simple.
+        $this->assertStringContainsString('follow WHEN THE LEARNER DOES NOT UNDERSTAND at once: say the question in French', $old);
+        $this->assertStringContainsString('Never go on to the next question while they are lost', $old);
+        $this->assertStringContainsString('At ONCE (follow WHEN THE LEARNER DOES NOT UNDERSTAND)', $new);
+        foreach ([$old, $new] as $text) {
+            $this->assertStringContainsString('« Avez-vous compris ? » and WAIT', $text);
+            $this->assertStringContainsString('piece by piece', $text);
+        }
+
+        // Mini-leçon : comprendre d'abord, répéter ensuite (avec ou sans erreurs transmises).
+        foreach (['assessment_next_step', 'assessment_next_step_phrase'] as $key) {
+            $step = config("teacher.{$key}");
+            $this->assertLessThan(strpos($step, 'Répétez après moi'), strpos($step, 'Avez-vous compris'), $key);
+            $this->assertStringNotContainsString('Repeat after me', $step, $key);
+        }
+    }
+
     public function test_beginners_get_explanations_mainly_in_french_and_more_english_as_the_level_goes_up(): void
     {
         $this->assertStringContainsString('EXPLANATIONS MAINLY IN FRENCH', config('teacher.lesson_language.A1'));

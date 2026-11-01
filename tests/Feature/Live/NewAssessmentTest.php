@@ -66,11 +66,12 @@ class NewAssessmentTest extends TestCase
         $this->assertStringContainsString('« Votre évaluation orale gratuite de 5 minutes commence maintenant. »', $new);
         $this->assertStringNotContainsString('Avez-vous des questions avant de commencer', $new);
         $this->assertStringContainsString('YOU NOTICE HESITATION YOURSELF, without waiting to be asked', $new);
-        $this->assertStringContainsString('"I see the question is not clear. Let me say it more simply: …"', $new);
-        $this->assertStringContainsString('translate the question into French in one sentence, ask it again in simple English', $new);
+        // Débutant perdu : le français tout de suite, « Avez-vous compris ? », puis l'anglais très simple.
+        $this->assertStringContainsString('At ONCE (follow WHEN THE LEARNER DOES NOT UNDERSTAND): « Je vois que ce n\'est pas clair. » then say the question in French', $new);
+        $this->assertStringContainsString('ask « Avez-vous compris ? » and WAIT.', $new);
+        $this->assertStringContainsString('Never "Repeat after me" before they understood.', $new);
         // Corrections du 28 octobre 2026 (deux vidéos d'essai).
         $this->assertStringContainsString('A STARTED SENTENCE ("Je…", "I…") is not an answer: the first time, say only "Take your time." and WAIT', $new);
-        $this->assertStringContainsString('Two tries at most for the same question or sentence', $new);
         $this->assertStringContainsString('never "Nice!" or "Perfect!" on a wrong answer', $new);
         $this->assertStringContainsString('NO CORRECTION at this stage', $new);
         $this->assertStringContainsString('END EVERY ANSWER with exactly « Avez-vous une autre question ? » and WAIT', $new);

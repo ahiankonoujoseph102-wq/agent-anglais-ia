@@ -260,7 +260,9 @@ class TeacherSetupTest extends TestCase
         $this->assertStringContainsString('Pronunciation: only a word you clearly heard.', $text);
         $this->assertStringContainsString('A1, A2, ASSESSMENT, or a request for French: switch to FRENCH at once', $text);
         $this->assertStringContainsString('« Essayez en anglais : … »', $text);
-        $this->assertStringContainsString('French is only a short tool when the learner struggles (see WHEN THE LEARNER STRUGGLES)', $text);
+        $this->assertStringContainsString('When the learner does not understand a question (silence, hesitation, French, an unrelated answer, a request for French), follow WHEN THE LEARNER DOES NOT UNDERSTAND at once', $text);
+        $this->assertStringContainsString('ask « Avez-vous compris ? » and WAIT; then the question again in very simple, slow English', $text);
+        $this->assertStringNotContainsString('WHEN THE LEARNER STRUGGLES', $text);
         $this->assertStringContainsString('how much help and French the learner needed', $text);
         $this->assertStringNotContainsString('LAST RESORT', $text);
         $this->assertStringContainsString('at the pace given in SPEAKING PACE (start slowly, then adapt)', $text);
