@@ -34,7 +34,7 @@
                     <legend>Pourquoi apprenez-vous l'anglais ? (votre objectif principal)</legend>
                     @foreach ($goals as $goal)
                         <label class="checkbox option">
-                            <input type="radio" name="goal" value="{{ $goal->value }}" @checked(old('goal', $answers['goal'] ?? null) === $goal->value) required>
+                            <input type="radio" name="goal" value="{{ $goal->value }}" @checked(old('goal', $answers['goal'] ?? null) === $goal->value) required data-then-submit>
                             {{ $goal->label() }}
                         </label>
                     @endforeach

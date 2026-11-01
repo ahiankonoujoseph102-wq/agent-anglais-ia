@@ -7,7 +7,7 @@
 @if (\App\Support\Teachers\Teachers::hasChoice())
     <p class="teacher-switch">
         <span class="teacher-switch-face"><img src="{{ \App\Support\Asset::url($teacher->portrait()) }}" width="36" height="36" alt=""></span>
-        <span>Avec <strong>{{ $teacher->name() }}</strong></span>
+        <span class="teacher-switch-name">Avec <strong>{{ $teacher->name() }}</strong></span>
         <a href="{{ $back !== '' ? route('dashboard', ['retour' => $back]) : route('dashboard') }}#professeur">Changer de professeur</a>
     </p>
 @endif

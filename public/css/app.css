@@ -2072,3 +2072,24 @@ body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260p
 .star-choices input:checked ~ label, .star-choices label:hover, .star-choices label:hover ~ label { color: var(--c-accent); }
 .star-choices input:focus-visible + label { outline: 3px solid var(--c-focus); outline-offset: 2px; border-radius: var(--radius-sm); }
 .review-form textarea { width: 100%; }
+
+/* Bandeau de phrases qui défile (accueil) : seulement transform, en pause au survol ou au toucher ; immobile avec
+   « réduire les animations » (on le fait alors défiler à la main). Jamais plus large que la page. */
+.phrase-ticker { position: relative; z-index: 1; width: 100vw; margin-inline: calc(50% - 50vw); overflow: hidden; background: var(--c-primary); color: var(--c-on-dark); padding: var(--space-3) 0; border-block: 3px solid var(--c-accent); }
+.ticker-track { display: flex; width: max-content; animation: ticker 55s linear infinite; }
+.phrase-ticker:hover .ticker-track, .phrase-ticker:active .ticker-track { animation-play-state: paused; }
+.ticker-list { display: flex; gap: var(--space-6); margin: 0; padding: 0 var(--space-6) 0 0; list-style: none; }
+.ticker-list li { display: flex; flex-direction: column; white-space: nowrap; line-height: 1.3; }
+.ticker-list li span[lang] { font-weight: var(--fw-bold); color: var(--c-accent); font-size: var(--fs-md); }
+.ticker-fr { font-size: var(--fs-sm); color: var(--c-on-dark-muted); }
+@keyframes ticker { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+    .ticker-track { animation: none; }
+    .phrase-ticker { overflow-x: auto; }
+    .ticker-list[aria-hidden="true"] { display: none; }
+}
+.teacher-switch-name { white-space: nowrap; }
+.teacher-switch { flex-wrap: wrap; }
+.club-more { margin-top: var(--space-3); }
+.club-more summary { cursor: pointer; font-weight: var(--fw-bold); color: var(--c-primary); min-height: 44px; display: flex; align-items: center; }
+.plans-faq { margin: var(--space-5) 0 var(--space-6); }
