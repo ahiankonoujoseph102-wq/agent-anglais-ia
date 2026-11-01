@@ -30,8 +30,8 @@ return [
     'togo' => [
         'code' => 'TG',
         'in' => 'au',
-        'title' => 'Cours d\'anglais en ligne à Lomé, au Togo',
-        'description' => 'Apprenez à parler anglais à Lomé et partout au Togo avec :teacher, sur votre téléphone. Évaluation orale gratuite, paiement par :operators.',
+        'title' => 'Apprendre l\'anglais au Togo, en ligne à Lomé',
+        'description' => 'Cours d\'anglais en ligne à Lomé et au Togo : parlez anglais sur téléphone avec :teacher. Évaluation orale gratuite, paiement :operators.',
         'heading' => 'Apprendre à parler anglais au Togo',
         'lead' => ':teacher, le professeur d\'anglais en ligne de :platform, vous fait parler anglais chaque jour depuis votre téléphone, à Lomé, à Kara, à Sokodé ou ailleurs au Togo, que vous soyez débutant ou déjà avancé. Vous commencez par une évaluation orale gratuite de :minutes minutes.',
         'photo' => 'etudiante-parle',
@@ -76,7 +76,7 @@ return [
     'benin' => [
         'code' => 'BJ',
         'in' => 'au',
-        'title' => 'Cours d\'anglais en ligne à Cotonou, au Bénin',
+        'title' => 'Apprendre l\'anglais au Bénin, en ligne à Cotonou',
         'description' => 'Au Bénin, :teacher fait parler anglais les adultes et aide les élèves dans leurs cours d\'anglais, sur le téléphone. Paiement par :operators.',
         'heading' => 'Apprendre l\'anglais au Bénin',
         'lead' => 'Que vous soyez à Cotonou, à Porto-Novo, à Abomey-Calavi ou à Parakou, :teacher vous donne chaque jour une séance d\'anglais à l\'oral sur votre téléphone. Pour les élèves et les étudiants, il explique aussi les leçons d\'anglais de l\'école, de l\'université ou de la formation.',
@@ -118,7 +118,7 @@ return [
     'burkina-faso' => [
         'code' => 'BF',
         'in' => 'au',
-        'title' => 'Apprendre l\'anglais à Ouagadougou, Burkina Faso',
+        'title' => 'Apprendre l\'anglais au Burkina Faso, à Ouagadougou',
         'description' => 'Améliorez votre anglais oral à Ouagadougou ou à Bobo-Dioulasso avec :teacher : séances courtes, selon votre métier. Paiement :operators.',
         'heading' => 'Apprendre l\'anglais au Burkina Faso',
         'lead' => 'À Ouagadougou, à Bobo-Dioulasso, à Koudougou ou ailleurs au Burkina Faso, :teacher vous fait pratiquer l\'anglais à l\'oral un peu chaque jour, depuis votre téléphone, même avec un emploi du temps chargé.',
@@ -164,7 +164,7 @@ return [
     'cote-d-ivoire' => [
         'code' => 'CI',
         'in' => 'en',
-        'title' => 'Apprendre l\'anglais à Abidjan, en Côte d\'Ivoire',
+        'title' => 'Apprendre l\'anglais en Côte d\'Ivoire, à Abidjan',
         'description' => 'Apprenez l\'anglais à Abidjan et partout en Côte d\'Ivoire avec :teacher : niveau de A1 à C2, attestation de niveau, paiement par Mobile Money.',
         'heading' => 'Apprendre l\'anglais en Côte d\'Ivoire',
         'lead' => 'D\'Abidjan à Bouaké, de Yamoussoukro à San-Pédro, :teacher vous fait progresser en anglais oral, niveau après niveau, depuis votre téléphone.',

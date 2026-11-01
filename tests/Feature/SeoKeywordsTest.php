@@ -30,10 +30,10 @@ class SeoKeywordsTest extends TestCase
             '/a-propos' => ['Joseph Ahiankonou', 'fondateur'],
             '/formules' => ['prix', 'cours d\'anglais en ligne'],
             '/comment-ca-marche' => ['Apprendre l\'anglais sur téléphone'],
-            '/apprendre-anglais/togo' => ['Lomé', 'Togo'],
-            '/apprendre-anglais/benin' => ['Cotonou', 'Bénin'],
-            '/apprendre-anglais/burkina-faso' => ['Ouagadougou', 'Burkina Faso'],
-            '/apprendre-anglais/cote-d-ivoire' => ['Abidjan', 'Côte d\'Ivoire'],
+            '/apprendre-anglais/togo' => ['Apprendre l\'anglais au Togo', 'Lomé'],
+            '/apprendre-anglais/benin' => ['Apprendre l\'anglais au Bénin', 'Cotonou'],
+            '/apprendre-anglais/burkina-faso' => ['Apprendre l\'anglais au Burkina Faso', 'Ouagadougou'],
+            '/apprendre-anglais/cote-d-ivoire' => ['Apprendre l\'anglais en Côte d\'Ivoire', 'Abidjan'],
         ];
 
         foreach ($expected as $path => $words) {
@@ -118,6 +118,26 @@ class SeoKeywordsTest extends TestCase
     /**
      * @return list<array<string, mixed>>
      */
+    public function test_each_country_page_describes_its_own_service_with_the_real_prices(): void
+    {
+        $prices = array_values(array_map(fn (Plan $plan) => (string) $plan->price, Plan::all()));
+
+        foreach (CountryPage::all() as $page) {
+            $service = collect($this->jsonLd($this->get('/apprendre-anglais/'.$page->slug)->assertOk()->getContent()))
+                ->firstWhere('@type', 'Service');
+
+            $this->assertNotNull($service, $page->slug);
+            $this->assertSame([['@type' => 'Country', 'name' => $page->name]], $service['areaServed'], $page->slug);
+            $this->assertSame('https://talkami.net/apprendre-anglais/'.$page->slug, $service['url']);
+            $this->assertStringContainsString($page->in.' '.$page->name, $service['name']);
+            $this->assertSame($prices, array_column($service['offers'], 'price'));
+            $this->assertSame(['XOF'], array_values(array_unique(array_column($service['offers'], 'priceCurrency'))));
+            // Jamais de note ni d'avis dans les données structurées.
+            $this->assertArrayNotHasKey('aggregateRating', $service);
+            $this->assertArrayNotHasKey('review', $service);
+        }
+    }
+
     private function jsonLd(string $html): array
     {
         preg_match_all('/<script type="application\/ld\+json">(.*?)<\/script>/s', $html, $scripts);
