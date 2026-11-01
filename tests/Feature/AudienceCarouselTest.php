@@ -62,5 +62,8 @@ class AudienceCarouselTest extends TestCase
         // Seulement transform et opacity pour la barre et le fondu du bouton.
         $this->assertMatchesRegularExpression('#@keyframes audience-fill \{ to \{ transform: scaleX\(1\); \} \}#', $css);
         $this->assertStringContainsString('.audience-tab .audience-tab-bar { animation: none !important; }', $css);
+
+        // Une carte toutes les 3 secondes (4,5 secondes : jugé trop lent par le fondateur).
+        $this->assertStringContainsString('animation: audience-fill 3s linear forwards;', $css);
     }
 }
