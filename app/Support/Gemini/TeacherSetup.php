@@ -222,10 +222,10 @@ class TeacherSetup
                     'type' => 'OBJECT',
                     'properties' => [
                         'passed' => ['type' => 'BOOLEAN', 'description' => 'True if the learner has the level.'],
-                        'feedback' => ['type' => 'STRING', 'description' => 'Short feedback in French: strengths and what to improve.'],
+                        'feedback' => ['type' => 'STRING', 'description' => 'Short feedback in French, addressed to the learner with "vous": one or two strengths and one or two points to improve, each with an example really heard in the test.'],
                         'units_to_review' => [
                             'type' => 'ARRAY',
-                            'description' => 'If failed: numbers (1 to 12) of the units to work on again.',
+                            'description' => 'If failed: numbers (1 to 12) of the units where the difficulties were heard, to work on again.',
                             'items' => ['type' => 'INTEGER'],
                         ],
                     ],

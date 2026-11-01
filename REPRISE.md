@@ -6,6 +6,12 @@
 
 
 
+## Référencement, navigation, photo, bilan de niveau (1er novembre 2026)
+
+- **Fusionnées** : #187 (titres des pages pays, service par pays), #188 (deux boutons remontés après la revue de toutes les pages), #189 (une photo sur « Devenir ambassadeur »). **#190** : bilan de fin de niveau juste.
+- **En attente de l'accord du fondateur** : « Mes cours » (garder le français pour expliquer la leçon de l'école ; pratique et exercices en anglais d'abord à partir de B1, le français en filet de sécurité pour A1 et A2). NE RIEN FAIRE avant sa réponse.
+- **Gestes du fondateur hors du site** : `docs/referencement-audit.md`, section 7 (Search Console et fiche Google déjà faites : ne pas les redemander).
+
 ## Le bandeau suit le professeur et vérification de A à Z (31 octobre 2026, branche `claude/sweet-johnson-e6lsds`)
 
 - Commencé par une autre session sur `claude/bandeau-suit-le-professeur` (3 commits : bandeau, première question « What's your name? », cohérence Teacher Rose), repris et terminé ici (accords au féminin, bouton « Interrompre la professeure », message de limite, minuteur « Mini-leçon et questions », « Mes cours », « Mes séances », tests). La branche `claude/bandeau-suit-le-professeur` ne sert plus : à supprimer sur GitHub après la fusion.
