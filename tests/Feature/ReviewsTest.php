@@ -208,16 +208,27 @@ class ReviewsTest extends TestCase
         $this->assertSame('', ReviewAsk::note($user, $third));
     }
 
-    public function test_home_shows_reviews_only_from_a_few_published(): void
+    public function test_home_shows_reviews_from_the_first_published_one(): void
     {
-        $this->get('/')->assertDontSee('Ce que disent nos élèves');
+        $this->get('/')->assertDontSee('Ce que disent nos élèves')->assertDontSee('Lire les avis de nos élèves');
 
-        foreach (['Kofi Mensah', 'Ama Koffi', 'Afi Doe', 'Yao Kodjo', 'Esi Adzo'] as $name) {
-            $this->send($this->assessed($name), 5);
-        }
+        $this->send($this->assessed('Kofi Mensah'), 5);
         auth()->logout();
 
-        $this->get('/')->assertSee('Ce que disent nos élèves')->assertSee('Voir tous les avis');
+        $this->get('/')->assertSee('Ce que disent nos élèves')->assertSee('Voir tous les avis')
+            ->assertSee('Lire les avis de nos élèves (1)');
         $this->assertNull(Reviews::stats()['average']);
+    }
+
+    public function test_the_menu_leads_every_learner_to_the_reviews(): void
+    {
+        $kofi = $this->assessed();
+        $this->actingAs($kofi)->get(route('dashboard'))->assertSee('Donner mon avis');
+        $this->send($kofi, 5);
+        $this->get(route('dashboard'))->assertSee('href="'.route('reviews.edit').'"', false)->assertSee('Mon avis');
+
+        // Un compte sans évaluation, et l'équipe : la page publique des avis (l'équipe ne laisse jamais d'avis).
+        $this->actingAs(User::factory()->create())->get(route('dashboard'))->assertSee('href="'.route('reviews.index').'"', false);
+        $this->actingAs(User::factory()->admin()->create())->get(route('admin.users.index'))->assertSee('href="'.route('reviews.index').'"', false);
     }
 }

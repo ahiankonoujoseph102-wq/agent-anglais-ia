@@ -37,6 +37,10 @@
             @endguest
             {{-- Une ligne de texte vers les vidéos : rien n'est chargé ici (page « Comment ça marche »). --}}
             <p class="hero-how"><a href="{{ route('how') }}">Voir comment ça marche</a></p>
+            {{-- Avis des élèves : dès le premier avis publié, un lien juste sous le haut de page. --}}
+            @if ($reviewStats['count'] > 0)
+                <p class="hero-how hero-reviews"><a href="{{ route('reviews.index') }}"><x-icon name="star" /> Lire les avis de nos élèves ({{ $reviewStats['count'] }})</a></p>
+            @endif
             <div class="hero-more">
                 <p>{{ $teacher }} vous fait progresser à votre rythme. Vous apprenez l'anglais américain, compris partout dans le monde.</p>
                 <p class="hero-also">Élève ou étudiant ? {{ $teacher }} vous aide aussi à comprendre vos cours d'anglais de l'école ou de l'université.</p>

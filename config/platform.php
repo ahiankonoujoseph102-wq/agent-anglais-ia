@@ -366,7 +366,7 @@ return [
         // Le professeur invite à laisser un avis à la fin de cette séance du jour tenue (une seule fois).
         'teacher_ask_after_lessons' => 3,
         // Bloc de l'accueil seulement à partir de ce nombre d'avis publiés ; note moyenne à partir de ce nombre.
-        'home_min' => 5,
+        'home_min' => 1,
         'average_min' => 10,
         'home_count' => 3,
         'per_page' => 20,

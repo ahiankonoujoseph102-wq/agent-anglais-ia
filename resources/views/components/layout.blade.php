@@ -97,11 +97,16 @@
                         ['route' => 'courses.index', 'active' => 'courses.*', 'icon' => 'book', 'label' => 'Mes cours'],
                         $user->isAmbassador() ? ['route' => 'ambassador.show', 'active' => 'ambassador.*', 'icon' => 'award', 'label' => 'Espace ambassadeur'] : null,
                         ['route' => 'account.edit', 'active' => 'account.*', 'icon' => 'user', 'label' => 'Mon compte'],
+                        // Avis : « Donner mon avis » pour un élève qui peut en laisser un, sinon la page publique des avis
+                        // (l'équipe ne laisse jamais d'avis). Dans le menu seulement : la navigation d'ordinateur reste courte.
+                        \App\Support\Reviews\Reviews::canReview($user)
+                            ? ['route' => 'reviews.edit', 'active' => 'reviews.edit', 'icon' => 'star', 'label' => $user->review()->exists() ? 'Mon avis' : 'Donner mon avis', 'menu_only' => true]
+                            : ['route' => 'reviews.index', 'active' => 'reviews.index', 'icon' => 'star', 'label' => 'Avis des élèves', 'menu_only' => true],
                         ['route' => 'contact', 'active' => 'contact', 'icon' => 'bubble', 'label' => 'Aide'],
                     ]));
                 @endphp
                 <nav class="nav nav-desktop" aria-label="Navigation principale">
-                    @foreach ($links as $link)
+                    @foreach (array_filter($links, fn ($link) => empty($link['menu_only'])) as $link)
                         <a href="{{ route($link['route']) }}" @class([$tab($link['active'])]) @if (request()->routeIs($link['active'])) aria-current="page" @endif>
                             <x-icon :name="$link['icon']" /> {{ $link['label'] }}
                             @if (($link['badge'] ?? 0) > 0)
