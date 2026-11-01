@@ -2106,7 +2106,7 @@ body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260p
     .audience-tab { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 var(--space-1) 4px; border-radius: var(--radius-pill); background: var(--c-surface); color: var(--c-primary-strong); font-size: var(--fs-sm); font-weight: var(--fw-bold); text-decoration: none; box-shadow: inset 0 0 0 1px var(--c-primary-line); transition: background var(--dur-fast), color var(--dur-fast); }
     .audience-tab.is-active { background: var(--c-primary); color: var(--c-on-dark); box-shadow: none; }
     .audience-tab-bar { position: absolute; left: 14%; right: 14%; bottom: 5px; height: 3px; border-radius: var(--radius-pill); background: var(--c-accent); transform: scaleX(0); transform-origin: left center; }
-    .audience-tab.is-active .audience-tab-bar { animation: audience-fill 4.5s linear forwards; }
+    .audience-tab.is-active .audience-tab-bar { animation: audience-fill 3s linear forwards; }
     .audience-carousel.is-paused .audience-tab.is-active .audience-tab-bar { animation-play-state: paused; }
     .audience-carousel.is-stopped .audience-tab.is-active .audience-tab-bar { animation: none; transform: scaleX(1); }
     .audience-carousel.is-ready .audiences .audience-cta { display: none; }
