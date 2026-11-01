@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Support\CountryPage;
 use App\Support\PaymentCountry;
 use App\Support\Plan;
+use App\Support\Reviews\Reviews;
 use App\Support\SiteSettings;
 use App\Support\WhatsApp;
 use Illuminate\View\View;
@@ -26,6 +27,9 @@ class HomeController extends Controller
                 'name' => $page->name,
                 'operators' => array_map(fn ($operator) => $operator->name, array_values(($countries[$page->code] ?? null)?->operators ?? [])),
             ], CountryPage::all())),
+            // Avis des élèves : seulement à partir de quelques avis publiés (aucun avis inventé, jamais un bloc vide).
+            'homeReviews' => Reviews::forHome(),
+            'reviewStats' => Reviews::stats(),
             'whatsappUrl' => $whatsapp ? WhatsApp::url($whatsapp, 'Bonjour '.config('platform.name').', j\'ai une question : ') : null,
         ]);
     }

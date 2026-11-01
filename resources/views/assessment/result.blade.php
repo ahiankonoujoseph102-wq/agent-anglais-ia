@@ -169,6 +169,8 @@
         </section>
     @endif
 
+    <x-review-invite class="section-tight reveal" />
+
     <x-invite-friend class="card section-tight reveal" />
 
     <script type="module" src="{{ Asset::url('js/level-message.js') }}"></script>

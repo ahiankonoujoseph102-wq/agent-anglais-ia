@@ -14,9 +14,10 @@ final class SessionEnd
     /**
      * @param  string  $kind  lesson ou course
      * @param  int  $allowedSeconds  durée accordée à la séance
+     * @param  string  $note  ajouté à l'indication de conclusion (invitation à laisser un avis), vide le plus souvent
      * @return array<string, mixed>
      */
-    public static function client(string $kind, int $allowedSeconds): array
+    public static function client(string $kind, int $allowedSeconds, string $note = ''): array
     {
         $end = (array) config('platform.live.session_end');
         $conclude = (int) $end['conclude_seconds'];
@@ -31,7 +32,7 @@ final class SessionEnd
             'silent_end_seconds' => (int) $end['silent_end_seconds'],
             'closing_phrase' => (string) $end['closing_phrase'],
             'announce' => TeacherSetup::cue('session_announce'),
-            'conclude' => TeacherSetup::cue($kind === 'lesson' ? 'lesson_conclude' : 'course_conclude', ['seconds' => $conclude]),
+            'conclude' => TeacherSetup::cue($kind === 'lesson' ? 'lesson_conclude' : 'course_conclude', ['seconds' => $conclude]).$note,
         ];
     }
 }

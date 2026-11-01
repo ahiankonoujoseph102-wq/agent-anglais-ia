@@ -4,6 +4,7 @@ namespace App\Support\Alerts;
 
 use App\Models\AmbassadorApplication;
 use App\Models\Payment;
+use App\Models\Review;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\Ambassadors\AmbassadorProgram;
@@ -149,6 +150,31 @@ final class AlertBuilder
                 ['Heure', self::now()],
             ],
             tag: 'candidature-'.$application->id,
+        );
+    }
+
+    /**
+     * Avis d'élève qui attend une vérification (note très basse, ou texte à vérifier) : jamais le numéro.
+     */
+    public static function reviewPending(Review $review): AlertMessage
+    {
+        $user = $review->user;
+        $reasons = implode(', ', array_map('mb_strtolower', $review->flagLabels()));
+
+        return new AlertMessage(
+            kind: 'review_pending',
+            title: 'Avis à vérifier : '.$review->rating.' sur 5',
+            body: self::fullName($user).' · '.$user->countryName().' : '.$reasons.'.',
+            url: route('admin.reviews.index').'#avis-'.$review->id,
+            buttonLabel: 'Voir l\'avis',
+            details: [
+                ['Élève', self::fullName($user)],
+                ['Pays', $user->countryName()],
+                ['Note', $review->rating.' sur 5'],
+                ['À vérifier', $reasons],
+                ['Heure', self::now()],
+            ],
+            tag: 'avis-'.$review->id,
         );
     }
 

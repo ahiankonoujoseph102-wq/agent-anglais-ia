@@ -26,6 +26,8 @@ use App\Support\Live\LivePage;
 use App\Support\Live\SessionEnd;
 use App\Support\Live\WorkingTogether;
 use App\Support\Reminders\LessonReminders;
+use App\Support\Reviews\ReviewAsk;
+use App\Support\Reviews\TimeBonuses;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
 use App\Support\Text\TextProviders;
@@ -149,6 +151,11 @@ class LessonController extends Controller
             return $this->refuse(DailyTime::EXHAUSTED, 403);
         }
 
+        // Nouvelle séance : les minutes offertes pas encore utilisées sont attachées à aujourd'hui.
+        if ($lesson === null) {
+            TimeBonuses::pin($user);
+        }
+
         $deadline = $lesson?->deadline() ?? now()->addSeconds($allowedSeconds);
         // La leçon du programme : celle de la séance reprise, sinon la prochaine à faire.
         $program = $user->activeProgram()->first();
@@ -212,7 +219,8 @@ class LessonController extends Controller
                 'total' => $lesson->allowed_seconds,
             ],
             // Fin de séance : annonce d'une minute, puis UNE conclusion, d'après le temps restant.
-            'session_end' => SessionEnd::client('lesson', (int) $lesson->allowed_seconds),
+            // À la fin de la 3e séance tenue, sans avis encore laissé : une phrase pour inviter à donner son avis.
+            'session_end' => SessionEnd::client('lesson', (int) $lesson->allowed_seconds, ReviewAsk::note($user, $lesson)),
         ]);
     }
 

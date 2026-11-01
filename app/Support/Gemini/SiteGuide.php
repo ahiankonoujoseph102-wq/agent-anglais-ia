@@ -7,6 +7,7 @@ use App\Support\DailyTime;
 use App\Support\Duration;
 use App\Support\PaymentCountry;
 use App\Support\Plan;
+use App\Support\Reviews\TimeBonuses;
 use App\Support\Seo;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
@@ -60,6 +61,8 @@ class SiteGuide
             ':course_pdf' => (int) (config('platform.courses.pdf_max_kilobytes') / 1024).' mégaoctets et '.(int) config('platform.courses.pdf_max_pages').' pages au plus',
             ':plans' => self::plans(),
             ':operators' => self::operators(),
+            // Avis des élèves : minutes offertes lues dans la configuration.
+            ':review_minutes' => (string) intdiv(TimeBonuses::seconds(), 60),
             // Programme d'ambassadeurs : formule, durées et pourcentage lus dans la configuration.
             ':ambassador_page' => preg_replace('#^https?://#', '', Seo::url(route('ambassador.join', [], false))),
             ':ambassador_plan' => (string) Plan::find((string) config('platform.ambassadors.plan'))?->name,

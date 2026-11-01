@@ -143,6 +143,9 @@
     {{-- Abonné payant avec un programme : heure de ses séances, rappels sur ce téléphone, e-mail à ajouter. --}}
     <x-lesson-reminders class="rise" />
 
+    {{-- Avis : élève qui peut en laisser un et ne l'a pas encore fait (minutes offertes pour tout avis). --}}
+    <x-review-invite class="rise" />
+
     {{-- Niveau validé il y a moins de 14 jours : on le fête juste après la prochaine étape, attestation à portée de main. --}}
     @php
         $freshAttestation = $attestations->sortByDesc('issued_at')->first(fn ($a) => $a->issued_at->gt(now()->subDays(14)));
@@ -390,6 +393,9 @@
     <x-invite-friend class="card next-step reveal" />
 
     <p class="center next-step"><a href="{{ route('account.edit') }}"><x-icon name="user" /> Mon compte et mon adresse e-mail</a></p>
+    @if ($user->review()->exists())
+        <p class="center"><a href="{{ route('reviews.edit') }}"><x-icon name="star" /> Modifier mon avis</a></p>
+    @endif
     @if ($welcomeReplay)
         <p class="center welcome-replay"><a href="{{ route('welcome.show', ['reecouter' => 1]) }}"><x-icon name="play" /> Réécouter le message de bienvenue</a></p>
     @endif

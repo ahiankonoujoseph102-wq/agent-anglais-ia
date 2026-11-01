@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\LiveTrialController;
 use App\Http\Controllers\Admin\OriginController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\PresentationVideoController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SubscriberController;
 use App\Http\Controllers\Admin\TextDiagnosticController;
@@ -51,6 +52,7 @@ use App\Http\Controllers\Program\LessonHistoryController;
 use App\Http\Controllers\Program\ProgramAnswersController;
 use App\Http\Controllers\Program\ProgramController;
 use App\Http\Controllers\ReminderController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\TeacherChoiceController;
 use App\Http\Controllers\WebAppController;
@@ -103,6 +105,8 @@ Route::get('/attestation/verifier/{code}', [AttestationController::class, 'verif
 Route::get('/a/{code}', AmbassadorLinkController::class)->where('code', '[A-Za-z0-9]{1,20}')->middleware('throttle:60,1')->name('ambassador.link');
 // Page « Devenir ambassadeur » : compteur réel des places, candidature ou liste d'attente.
 Route::get('/devenir-ambassadeur', [AmbassadorJoinController::class, 'show'])->name('ambassador.join');
+// Avis des élèves : publiés tels qu'ils ont été écrits (positifs comme négatifs), réponse de l'équipe dessous.
+Route::get('/avis', [ReviewController::class, 'index'])->name('reviews.index');
 
 Route::middleware('guest')->group(function () {
     Route::get('/inscription', [RegisteredUserController::class, 'create'])->name('register');
@@ -125,6 +129,9 @@ Route::middleware('auth')->group(function () {
     // Choix du professeur (« Mon espace ») : seulement les professeurs prêts (config/teachers.php).
     Route::post('/espace/professeur', [TeacherChoiceController::class, 'update'])->middleware('throttle:30,1')->name('teacher.choose');
     // Suivi des élèves : heure des séances, téléphones abonnés aux rappels, e-mail ajouté depuis l'écran de la séance.
+    // Donner (ou modifier) son avis : élève gratuit après l'évaluation, abonné après une séance.
+    Route::get('/mon-avis', [ReviewController::class, 'edit'])->name('reviews.edit');
+    Route::put('/mon-avis', [ReviewController::class, 'save'])->middleware('throttle:10,1')->name('reviews.save');
     Route::put('/espace/heure', [ReminderController::class, 'time'])->middleware('throttle:10,1')->name('reminders.time');
     Route::post('/espace/rappels/telephone', [ReminderController::class, 'subscribe'])->middleware('throttle:10,1')->name('reminders.device');
     Route::delete('/espace/rappels/telephone', [ReminderController::class, 'unsubscribe'])->middleware('throttle:10,1')->name('reminders.device.remove');
@@ -235,6 +242,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/inscrits/{user}', [UserController::class, 'show'])->name('users.show');
     // Suivi des élèves (séance du jour, régularité, programme) et « Voir son espace » en lecture seule.
     Route::get('/suivi', [LearnerFollowController::class, 'index'])->name('follow.index');
+    // Avis des élèves : à vérifier, publiés, retirés ; publier, retirer, répondre (jamais modifier le texte).
+    Route::get('/avis', [AdminReviewController::class, 'index'])->name('reviews.index');
+    Route::post('/avis/{review}/publier', [AdminReviewController::class, 'publish'])->name('reviews.publish');
+    Route::post('/avis/{review}/retirer', [AdminReviewController::class, 'hide'])->middleware('confirm:review.hide')->name('reviews.hide');
+    Route::post('/avis/{review}/reponse', [AdminReviewController::class, 'reply'])->name('reviews.reply');
     Route::post('/inscrits/{user}/voir-son-espace', [LearnerFollowController::class, 'start'])->name('users.view-as');
     Route::post('/voir-son-espace/fin', [LearnerFollowController::class, 'stop'])->name('view-as.stop');
     Route::put('/inscrits/{user}/compte-de-test', [UserController::class, 'testAccount'])->name('users.test-account');

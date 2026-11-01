@@ -17,6 +17,7 @@ use App\Support\Gemini\TeacherSetup;
 use App\Support\Live\LivePage;
 use App\Support\Live\SessionEnd;
 use App\Support\Live\WorkingTogether;
+use App\Support\Reviews\TimeBonuses;
 use App\Support\Teachers\Teachers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -157,6 +158,8 @@ class CourseSessionController extends Controller
             if (! $course->readyForSession()) {
                 return $this->refuse(self::CHOOSE_PART, 409);
             }
+
+            TimeBonuses::pin($user);
         } elseif (! $session->canConnectAgain()) {
             return $this->refuse('Trop de reconnexions pour cette séance. Rechargez la page pour en commencer une nouvelle.', 429);
         }

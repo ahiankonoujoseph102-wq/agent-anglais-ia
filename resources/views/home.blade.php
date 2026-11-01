@@ -284,6 +284,26 @@
         </div>
     </div>
 
+    {{-- Avis des élèves : affichés seulement à partir de platform.reviews.home_min avis publiés (jamais inventés) ; tous les
+         avis, positifs comme négatifs, sont sur /avis. --}}
+    @if ($homeReviews->isNotEmpty())
+        <section class="section band band-soft home-reviews" aria-labelledby="avis-accueil">
+            <div class="section-head reveal">
+                <span class="eyebrow">Avis des élèves</span>
+                <h2 id="avis-accueil">Ce que disent nos élèves</h2>
+                @if ($reviewStats['average'] !== null)
+                    <p class="review-stats"><x-stars :rating="(int) round($reviewStats['average'])" /> <strong>{{ str_replace('.', ',', (string) $reviewStats['average']) }} sur 5</strong> · {{ $reviewStats['count'] }} avis</p>
+                @endif
+            </div>
+            <div class="reviews-grid">
+                @foreach ($homeReviews as $review)
+                    <x-review-card :review="$review" class="reveal" />
+                @endforeach
+            </div>
+            <p class="center"><a href="{{ route('reviews.index') }}">Voir tous les avis, positifs comme négatifs ({{ $reviewStats['count'] }}) <x-icon name="arrow-right" /></a></p>
+        </section>
+    @endif
+
     {{-- « Qui est derrière … ? » : le fondateur, sobrement (config/platform.php → founder ; photo chargée à la demande). --}}
     @if (\App\Support\Founder::bio())
         <section class="section band founder-section" aria-labelledby="fondateur-accueil">
@@ -376,6 +396,10 @@
                     <details>
                         <summary><x-icon name="headphones" /><span>De quoi ai-je besoin (matériel, internet) ?</span></summary>
                         <p>Un téléphone ou un ordinateur avec un micro, un navigateur récent comme Chrome et une connexion internet ; des écouteurs sont pratiques mais pas obligatoires, et aucune application n'est à installer. Pendant une séance, la voix passe en continu : comptez environ 3 à 4 mégaoctets par minute, soit environ 50 mégaoctets pour une séance de 15 minutes. Le professeur en 3D (environ 1 mégaoctet) n'est téléchargé qu'une seule fois. Si vous le pouvez, utilisez le wifi.</p>
+                    </details>
+                    <details>
+                        <summary><x-icon name="star" /><span>Puis-je donner mon avis ?</span></summary>
+                        <p>Oui, après votre évaluation gratuite ou après une séance avec une formule : dans « Mon espace », touchez « Donner mon avis ». Positif ou négatif, il est publié tel que vous l'avez écrit, avec votre prénom, l'initiale de votre nom, votre pays et votre niveau. Une note très basse, ou un texte avec un lien, un numéro ou un mot grossier, est d'abord vérifié par notre équipe. Pour vous remercier du temps pris, vous recevez {{ intdiv(\App\Support\Reviews\TimeBonuses::seconds(), 60) }} minutes de séance offertes, quelle que soit votre note. Tous les avis sont sur la page « Avis des élèves ».</p>
                     </details>
                     <details>
                         <summary><x-icon name="award" /><span>Qu'est-ce que l'attestation de niveau ?</span></summary>
