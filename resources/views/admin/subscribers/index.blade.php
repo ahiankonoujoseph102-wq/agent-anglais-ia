@@ -114,10 +114,13 @@
                                     @if ($paid === null)
                                         Gratuit
                                     @else
-                                        <span class="nowrap">{{ Money::format($paid['amount']) }}</span>
-                                        @if ($paid['pending'])
-                                            <br><span class="muted small">en vérification</span>
+                                        @if ($paid['amount'] !== null)
+                                            <span class="nowrap">{{ Money::format($paid['amount']) }}</span>
                                         @endif
+                                        @if ($paid['pending'])
+                                            <br><span class="badge badge-alert">en vérification</span>
+                                        @endif
+                                        <br><span class="muted small">{{ $paid['note'] }}</span>
                                     @endif
                                 </td>
                                 <td data-label="Provenance">{{ Subscribers::origin($subscription) }}</td>

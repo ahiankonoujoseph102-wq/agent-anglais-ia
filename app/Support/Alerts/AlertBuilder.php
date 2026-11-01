@@ -8,6 +8,7 @@ use App\Models\Review;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\Ambassadors\AmbassadorProgram;
+use App\Support\Countries;
 use App\Support\Live\CostWatch;
 use App\Support\Money;
 use Illuminate\Support\Carbon;
@@ -175,6 +176,36 @@ final class AlertBuilder
                 ['Heure', self::now()],
             ],
             tag: 'avis-'.$review->id,
+        );
+    }
+
+    /**
+     * Le site vient d'envoyer à un élève le rappel « Votre abonnement se termine demain » : l'administrateur
+     * reçoit la même information (à qui, quoi, par quel moyen), pour pouvoir le suivre. Jamais le numéro.
+     *
+     * @param  array{title: string, body: string}  $message
+     */
+    public static function renewalReminder(User $user, Subscription $subscription, array $message, string $push, string $mail): AlertMessage
+    {
+        $end = $subscription->ends_at->copy()->setTimezone(Countries::timezone($user->country))->subSecond();
+        $channels = ['sent' => 'envoyé', 'failed' => 'en échec', 'no_email' => 'aucune adresse e-mail', 'quota' => 'limite des e-mails du jour atteinte', 'skipped' => 'non réglé', 'none' => 'aucun téléphone abonné'];
+
+        return new AlertMessage(
+            kind: 'renewal_reminder',
+            title: 'Fin d\'abonnement demain : '.self::shortName($user),
+            body: self::fullName($user).' · '.$subscription->plan_name.' : rappel « '.$message['title'].' » envoyé.',
+            url: route('admin.users.show', $user),
+            buttonLabel: 'Voir l\'élève',
+            details: [
+                ['Élève', self::fullName($user)],
+                ['Formule', $subscription->plan_name],
+                ['Dernier jour', $end->translatedFormat('j F Y')],
+                ['Message envoyé', $message['title'].' — '.$message['body']],
+                ['E-mail à l\'élève', $channels[$mail] ?? $mail],
+                ['Notification à l\'élève', $channels[$push] ?? $push],
+                ['Heure', self::now()],
+            ],
+            tag: 'fin-abonnement-'.$subscription->id,
         );
     }
 
