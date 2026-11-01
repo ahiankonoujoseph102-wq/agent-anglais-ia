@@ -10,6 +10,7 @@ use App\Models\Subscription;
 use App\Support\Greeting;
 use App\Support\Origins;
 use App\Support\Plan;
+use App\Support\Reminders\SubscriptionReport;
 use App\Support\Teachers\Teachers;
 use App\Support\WhatsApp;
 use Illuminate\Database\Eloquent\Builder;
@@ -224,6 +225,20 @@ final class Subscribers
 
         if ($group === 'ambassador') {
             return $hello;
+        }
+
+        if ($days === null && $group === 'paid') {
+            // Formule payée terminée : le bilan réel de l'élève (faits seulement), la suite, puis l'avis s'il n'en a pas laissé.
+            $report = SubscriptionReport::for($subscription);
+            $parts = array_merge(
+                ["{$hello} {$what} s'est terminée le {$date}."],
+                $report->lines(),
+                [$report->encouragement(), "Pour continuer avec {$teacher}, choisissez votre formule ici : {$plans}"],
+                array_filter([$report->reviewInvitation()]),
+                [$question],
+            );
+
+            return implode(' ', $parts);
         }
 
         if ($days === null) {
