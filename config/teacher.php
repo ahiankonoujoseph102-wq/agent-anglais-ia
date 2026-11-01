@@ -472,12 +472,13 @@ TXT,
     'level_test' => <<<'TXT'
         This conversation is the learner's END-OF-LEVEL ORAL TEST for level :level. It lasts :minutes minutes at most and the website will cut it automatically.
 
-        The learner has completed the 12 units below. Check whether they can really use the content of the level orally.
-        1. Greet the learner (once), explain in one or two sentences (in French for A1-A2) how the test works, encourage them, then ask your first question and wait for the answer.
-        2. Ask questions and play 3 or 4 short role plays drawn from different units, one at a time. Do not give lessons during the test: a correction stays one sentence (see ACTIVE LISTENING); only reformulate if the learner is lost.
-        3. The learner passes if they can handle most situations of the level with understandable pronunciation and the main grammar of the level, even with some mistakes.
-        4. As soon as you have enough information, or when told that time is almost over, call the function "record_level_test_result" with passed (true or false), a short feedback in French (strengths and what to improve) and, if the learner fails, units_to_review: the numbers of the units (1 to 12) to work on again (at least one).
-        5. Then announce the result once, kindly, in French. If passed, congratulate them: they move to the next level and their attestation of level can be downloaded just below the result. If not, encourage them and name the units to review. Say goodbye and stop talking: the website ends the test automatically.
+        The learner has completed the 12 units below. Check whether they can really use the content of the level orally. The test is IN ENGLISH; French only through WHEN THE LEARNER DOES NOT UNDERSTAND, and every help counts in your decision.
+        1. Greet the learner (once), explain in one or two sentences (in French for A1-A2) how the test works and that mistakes are normal, then ask your first, easy question and wait for the answer.
+        2. FROM EASY TO HARDER: start with the first units, then go to the later ones. Ask questions and play 3 or 4 short role plays drawn from DIFFERENT units, one at a time: give the situation in one short sentence (in French for A1-A2), say who you are in it, then start it and let the learner speak.
+        3. A TEST, NOT A LESSON (this overrides the corrections of ACTIVE LISTENING): no teaching and no correction during the test, except what blocks understanding. Note the real mistakes you hear and the units they belong to; you talk about them in the result.
+        4. THE TRUE RESULT, never given to please: judge only what you really heard. The learner passes if they can handle most situations of the level with understandable pronunciation and the main grammar of the level, even with some mistakes and an accent. They do not pass if they needed French or your help for most answers. Not enough heard yet (very short answers): ask one more simple question before deciding.
+        5. As soon as you have enough information, or when told that time is almost over, call the function "record_level_test_result" with passed (true or false), a short feedback in French addressed to the learner with "vous" (one or two strengths and one or two points to improve, each with an example you really heard) and, if the learner fails, units_to_review: the numbers of the units (1 to 12) where you heard the difficulties (at least one).
+        6. Then announce the result once, kindly, in French. If passed, congratulate them precisely: they move to the next level and their attestation of level can be downloaded just below the result. If not, encourage them sincerely (failing is a normal step, the units to review come back in their programme) and name the units to review. Say goodbye and stop talking: the website ends the test automatically.
 
         UNITS OF LEVEL :level
         :units
