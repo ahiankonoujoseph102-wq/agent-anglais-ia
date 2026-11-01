@@ -38,7 +38,7 @@
         @empty
             <div class="card empty-state">
                 <span class="icon-bubble"><x-icon name="star" /></span>
-                <p>Aucun avis publié pour le moment. Les premiers élèves sont en train de donner le leur.</p>
+                <p>Aucun avis publié pour le moment. Vous avez passé votre évaluation ou suivi une séance ? Soyez le premier à donner le vôtre.</p>
                 <a class="btn btn-accent" href="{{ \App\Support\Navigation::assessmentUrl() }}"><x-icon name="mic" /> Passer mon évaluation gratuite</a>
             </div>
         @endforelse

@@ -342,6 +342,20 @@ return [
     | 3e séance du jour. 15 minutes offertes pour tout avis, quelle que soit la note.
     |
     */
+    // Bandeau de l'accueil qui défile : phrases d'anglais américain du quotidien, avec leur sens (aucun chiffre, aucune
+    // promesse). Lomé seulement comme ville : public d'abord togolais, aucun autre pays nommé.
+    'phrase_ticker' => [
+        ['Nice to meet you.', 'Enchanté.'],
+        ['How much is it?', 'C\'est combien ?'],
+        ['I live in Lomé.', 'J\'habite à Lomé.'],
+        ['What do you do?', 'Que faites-vous dans la vie ?'],
+        ['I don\'t understand.', 'Je ne comprends pas.'],
+        ['Can you repeat, please?', 'Pouvez-vous répéter ?'],
+        ['I\'m learning English.', 'J\'apprends l\'anglais.'],
+        ['Have a nice day!', 'Bonne journée !'],
+        ['See you tomorrow!', 'À demain !'],
+    ],
+
     'reviews' => [
         'min_characters' => 20,
         'max_characters' => 500,

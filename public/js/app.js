@@ -536,6 +536,13 @@ document.addEventListener('change', (event) => {
         next.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
         next.focus({ preventScroll: true });
     }
+
+    // Un choix qui suffit pour l'écran (data-then-submit) : la page descend jusqu'au bouton d'envoi du formulaire,
+    // sans l'envoyer ni déplacer le curseur (l'élève peut encore changer d'avis).
+    if (choice.dataset && 'thenSubmit' in choice.dataset && choice.checked && choice.form) {
+        const buttons = choice.form.querySelectorAll('button[type="submit"], button:not([type])');
+        buttons[buttons.length - 1]?.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
+    }
 });
 
 /* ---------- Boutons d'envoi : « Envoi en cours… » et aucun double envoi ---------- */

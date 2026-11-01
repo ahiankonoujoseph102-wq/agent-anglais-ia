@@ -67,9 +67,9 @@
                                 <br><span class="muted small">Programme pas encore construit</span>
                             @endif
                         </td>
-                        <td data-label="Temps utilisé aujourd'hui">{{ Duration::formatPrecise($today['used_seconds']) }} sur {{ Duration::formatPrecise($today['daily_seconds']) }}</td>
+                        <td data-label="Temps utilisé aujourd'hui">{{ $today['used_seconds'] > 0 ? Duration::formatPrecise($today['used_seconds']) : 'Rien encore' }} sur {{ Duration::formatPrecise($today['daily_seconds']) }}</td>
                         <td data-label="Dernière séance">{{ $row['last'] ? $row['last']->timezone('Africa/Lome')->format('d/m/Y H:i') : 'Jamais' }}</td>
-                        <td data-label="Série">{{ $row['streak'] }} {{ $row['streak'] > 1 ? 'jours' : 'jour' }}</td>
+                        <td data-label="Série">{{ $row['streak'] > 0 ? $row['streak'].' '.($row['streak'] > 1 ? 'jours' : 'jour') : 'Aucune' }}</td>
                         <td data-label="Programme">
                             @if ($row['progress'] !== null)
                                 {{ $row['lessons_done'] }} leçons sur {{ $row['lessons_total'] }} ({{ $row['progress'] }} %)

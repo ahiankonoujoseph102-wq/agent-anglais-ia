@@ -37,10 +37,10 @@
         </dd>
         @if ($today['daily_seconds'] > 0)
             <dt>Temps utilisé aujourd'hui</dt>
-            <dd>{{ Duration::formatPrecise($today['used_seconds']) }} sur {{ Duration::formatPrecise($today['daily_seconds']) }} (séance du jour : {{ Duration::formatPrecise($today['lesson_seconds']) }}, « Mes cours » : {{ Duration::formatPrecise($today['course_seconds']) }})</dd>
+            <dd>{{ $today['used_seconds'] > 0 ? Duration::formatPrecise($today['used_seconds']) : 'Rien encore' }} sur {{ Duration::formatPrecise($today['daily_seconds']) }} (séance du jour : {{ Duration::formatPrecise($today['lesson_seconds']) }}, « Mes cours » : {{ Duration::formatPrecise($today['course_seconds']) }})</dd>
         @endif
         <dt>Dernière séance</dt><dd>{{ $row['last'] ? $row['last']->timezone('Africa/Lome')->format('d/m/Y H:i') : 'Jamais' }}</dd>
-        <dt>Série</dt><dd>{{ $row['streak'] }} {{ $row['streak'] > 1 ? 'jours de suite' : 'jour' }}</dd>
+        <dt>Série</dt><dd>{{ $row['streak'] > 0 ? $row['streak'].' '.($row['streak'] > 1 ? 'jours de suite' : 'jour') : 'Aucune pour le moment' }}</dd>
         <dt>Séances du jour terminées</dt><dd>{{ $progress['lessons_done'] }}</dd>
         <dt>Jours de travail manqués</dt><dd>{{ $row['missed'] }} sur les 7 derniers jours</dd>
         @if ($program)
