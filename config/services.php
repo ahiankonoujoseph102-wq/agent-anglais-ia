@@ -196,13 +196,16 @@ return [
         // Silence attendu avant de considérer que l'élève a fini de parler, en millisecondes, selon le niveau (fixé au
         // début de la séance, chez Gemini et chez OpenAI). Google recommande 500 à 800 (valeur interne d'environ 800 ;
         // au-delà, la réponse arrive plus tard : ai.google.dev/gemini-api/docs/live-guide, lu le 21 octobre 2026).
-        // A1 et A2 : un peu plus, les débutants hésitent. « unknown » : évaluation gratuite.
+        // A1, A2 et B1 : plus, les débutants hésitent et cherchent leurs mots. « unknown » : évaluation gratuite.
         'silence_ms' => [
-            'A1' => (int) env('LIVE_BEGINNER_SILENCE_MS', 1000),
-            'A2' => (int) env('LIVE_BEGINNER_SILENCE_MS', 1000),
-            // Évaluation gratuite (niveau inconnu) : comme un débutant. Avec 800 millisecondes, une élève qui disait
-            // « Je… » en cherchant ses mots était coupée (« Sorry, I didn't hear you well »).
-            'unknown' => (int) env('LIVE_ASSESSMENT_SILENCE_MS', 1000),
+            // 1er novembre 2026 (vidéo d'un élève débutant) : il disait son numéro par petits groupes de chiffres, avec
+            // 3 à 5 secondes entre deux groupes ; Teacher Rose reprenait la parole 1,1 à 2,4 secondes après lui et le
+            // coupait. Avant : 1 000 millisecondes en A1, A2 et à l'évaluation, 800 ailleurs.
+            'A1' => (int) env('LIVE_A1_SILENCE_MS', 2500),
+            'A2' => (int) env('LIVE_BEGINNER_SILENCE_MS', 2000),
+            'B1' => (int) env('LIVE_B1_SILENCE_MS', 1200),
+            // Évaluation gratuite (niveau inconnu) : presque comme un débutant.
+            'unknown' => (int) env('LIVE_ASSESSMENT_SILENCE_MS', 1800),
             'default' => (int) env('LIVE_SILENCE_MS', 800),
         ],
     ],

@@ -11,7 +11,9 @@
         'echo_cancellation_android' => (bool) config('platform.live.echo_cancellation_android'),
         'voice_gain' => (float) config('platform.live.voice_gain'),
         'silent_mic_seconds' => (int) config('platform.live.silent_mic_seconds'),
-        'end_of_turn_seconds' => (float) config('platform.live.end_of_turn_seconds'),
+        // Fin de tour signalée par le navigateur : jamais avant que le silence attendu selon le niveau soit passé
+        // (sinon un débutant qui cherche ses mots serait coupé par le navigateur lui-même).
+        'end_of_turn_seconds' => max((float) config('platform.live.end_of_turn_seconds'), \App\Support\Gemini\TeacherSetup::silenceMs(auth()->user() ? \App\Support\Gemini\TeacherSetup::paceLevel($mode === 'assessment' ? 'assessment' : 'lesson', auth()->user()) : 'unknown') / 1000 + 1.5),
         'end_of_turn_silence_seconds' => (float) config('platform.live.end_of_turn_silence_seconds'),
         'instant_seconds' => (float) config('platform.live.instant_seconds'),
         'no_answer_seconds' => (float) config('platform.live.no_answer_seconds'),

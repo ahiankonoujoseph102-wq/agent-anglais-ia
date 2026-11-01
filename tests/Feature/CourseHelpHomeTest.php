@@ -194,12 +194,12 @@ class CourseHelpHomeTest extends TestCase
         $course = TeacherSetup::instructions('course', $user, 10, ['lesson' => 'x', 'warning_seconds' => 90]);
 
         foreach ([$daily, $course] as $text) {
-            // Mal compris : le remarquer, anglais très simple, puis français, rassurer, et la phrase redonnée en anglais.
+            // Mal compris : s'arrêter, expliquer en français (débutants), vérifier, puis seulement « Répétez après moi ».
             $this->assertStringContainsString('« je ne comprends pas », « hein ? »', $text);
-            $this->assertStringContainsString('say the same idea again in VERY simple English', $text);
-            $this->assertStringContainsString('explain it in clear, calm French and reassure', $text);
+            $this->assertStringContainsString('At ONE sign, STOP the exercise', $text);
+            $this->assertStringContainsString('« Avez-vous compris ? » and WAIT', $text);
             // N'entend pas / ne suit pas : ralentir nettement, et garder ce débit.
-            $this->assertStringContainsString('slow down clearly', $text);
+            $this->assertStringContainsString('slow down at once', $text);
             $this->assertStringContainsString('KEEP this slower pace until the end', $text);
             // Ton, âge, encouragements précis ; une ou deux corrections par réponse.
             $this->assertStringContainsString('softer and simpler with a young pupil', $text);
@@ -210,7 +210,7 @@ class CourseHelpHomeTest extends TestCase
 
         // Séance orale : faire parler en anglais, le français seulement pour débloquer.
         $this->assertStringContainsString('in the DAILY LESSON the goal is to make the learner SPEAK English', $daily);
-        $this->assertStringContainsString('French is an explanation tool, never the language of the conversation', $daily);
+        $this->assertStringContainsString('the EXPLANATIONS depend on the level', $daily);
 
         // « Mes cours » : le français est la langue principale ; détail complet de chaque point ; vérifications.
         $this->assertStringContainsString('French is the MAIN language of EXPLANATION', $course);

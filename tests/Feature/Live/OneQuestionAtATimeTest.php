@@ -34,7 +34,7 @@ class OneQuestionAtATimeTest extends TestCase
                 $text = TeacherSetup::instructions($kind, $user, 15, teacher: $teacher);
                 $this->assertStringContainsString('A QUESTION ENDS YOUR TURN: as soon as you have asked the learner something', $text, "{$key} {$kind}");
                 $this->assertStringContainsString('ANSWER WHAT THEY JUST SAID', $text, "{$key} {$kind}");
-                $this->assertStringContainsString('"I see this is not clear. Let me say it more simply: …"', $text, "{$key} {$kind}");
+                $this->assertStringContainsString('NEVER "Repeat after me" before the meaning is understood.', $text, "{$key} {$kind}");
             }
         }
     }

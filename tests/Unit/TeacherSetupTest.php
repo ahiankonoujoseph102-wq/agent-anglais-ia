@@ -62,12 +62,13 @@ class TeacherSetupTest extends TestCase
 
             $this->assertStringContainsString(config("teacher.level_guidance.{$value}"), $text);
             $this->assertStringContainsString(config("teacher.lesson_language.{$value}"), TeacherSetup::instructions('lesson', $user, 15));
-            $this->assertStringContainsString('repeat', config("teacher.level_guidance.{$value}"));
-            $this->assertStringContainsString('rephrase in simpler English', config("teacher.level_guidance.{$value}"));
         }
 
-        $this->assertStringContainsString('English by default', config('teacher.level_guidance.A2'));
-        $this->assertStringContainsString('Never switch to French just because the learner said "I don\'t understand"', config('teacher.level_guidance.A2'));
+        // 1er novembre 2026 : un débutant qui ne comprend pas reçoit l'explication en français AUSSITÔT (A2) ;
+        // à partir de B1, d'abord un anglais plus simple.
+        $this->assertStringContainsString('explain in French (WHEN THE LEARNER DOES NOT UNDERSTAND)', config('teacher.level_guidance.A2'));
+        $this->assertStringContainsString('rephrase in simpler English', config('teacher.level_guidance.B1'));
+        $this->assertStringNotContainsString('Never switch to French just because', config('teacher.level_guidance.A2'));
         $this->assertStringContainsString('English only', config('teacher.level_guidance.B1'));
     }
 
@@ -96,19 +97,18 @@ class TeacherSetupTest extends TestCase
             $this->assertStringContainsString('the learner must know what it MEANS, WHEN to use it (the situation), and, after a mistake, the DIFFERENCE with what they said and WHY', $text);
             $this->assertStringContainsString('START FROM WHAT THE LEARNER KNOWS', $text);
             $this->assertStringContainsString('ERRORS TO REVIEW', $text);
-            // Vérifier par une question, jamais par « C'est clair ? ».
-            $this->assertStringContainsString('CHECK UNDERSTANDING WITH A QUESTION, never with "Is it clear?", « C\'est clair ? » or « Vous avez compris ? »', $text);
+            // Vérifier : « Avez-vous compris ? » en A1 et A2 (attendre la réponse), puis une petite question d'usage.
+            $this->assertStringContainsString('CHECK UNDERSTANDING: A1 and A2 (and after any difficulty): ask « Avez-vous compris ? » and WAIT for the answer', $text);
             $this->assertStringContainsString('false friend', $text);
             $this->assertStringContainsString('break it slowly into syllables, say it at normal speed, then the whole sentence', $text);
             $this->assertStringContainsString('ONE gentle funny remark OR a tiny invented story', $text);
             $this->assertStringContainsString('never about politics, religion or real people', $text);
             $this->assertStringContainsString('softer and simpler with a young pupil', $text);
             // Élève qui ne comprend pas : le remarquer, anglais très simple, puis français et la phrase redonnée en anglais.
-            $this->assertStringContainsString('1. NOTICE IT, kindly, and say the same idea again in VERY simple English', $text);
-            $this->assertStringContainsString('"I see this is not clear. Let me say it more simply: …"', $text);
-            $this->assertStringContainsString('2. Still not understood: explain it in clear, calm French', $text);
-            $this->assertStringContainsString('then give the sentence in English again and invite them to say it', $text);
-            $this->assertStringContainsString('3. Back to English at once with ONE short, easy question the learner will succeed.', $text);
+            $this->assertStringContainsString('At ONE sign, STOP the exercise', $text);
+            $this->assertStringContainsString('A1, A2, ASSESSMENT, or a request for French: switch to FRENCH at once', $text);
+            $this->assertStringContainsString('NEVER "Repeat after me" before the meaning is understood.', $text);
+            $this->assertStringContainsString('B1 and above: first simpler English with an example', $text);
             $this->assertStringContainsString('« Essayez en anglais : … »', $text);
             $this->assertStringContainsString('in « Mes cours », French is the main language of explanation', $text);
         }
@@ -182,7 +182,7 @@ class TeacherSetupTest extends TestCase
 
         $this->assertStringContainsString('Greet and announce the activity ONCE in the whole conversation; after a pause or a reconnection, just continue.', $text);
         $this->assertStringContainsString('ask ONE question at a time, then STOP and WAIT', $text);
-        $this->assertStringContainsString('rephrase ONCE, more simply; still not: an easier question.', $text);
+        $this->assertStringContainsString('No answer: wait; then rephrase ONCE, more simply. Not understood: follow WHEN THE LEARNER DOES NOT UNDERSTAND below.', $text);
         $this->assertStringContainsString('never cut the learner off', $text);
         $this->assertStringContainsString('at once, ALWAYS this first question, word for word: "What\'s your name?", and STOP: wait for the answer.', $text);
         $this->assertStringContainsString('A QUESTION ENDS YOUR TURN', $text);
@@ -258,7 +258,7 @@ class TeacherSetupTest extends TestCase
         // Pas de correction pendant les questions : les vraies erreurs sont notées pour la mini-leçon personnelle.
         $this->assertStringContainsString('Do NOT correct mistakes now (only rephrase if a mistake blocks understanding). Silently NOTE the one or two most useful REAL mistakes', $text);
         $this->assertStringContainsString('Pronunciation: only a word you clearly heard.', $text);
-        $this->assertStringContainsString('French is an explanation tool, never the language of the conversation', $text);
+        $this->assertStringContainsString('A1, A2, ASSESSMENT, or a request for French: switch to FRENCH at once', $text);
         $this->assertStringContainsString('« Essayez en anglais : … »', $text);
         $this->assertStringContainsString('French is only a short tool when the learner struggles (see WHEN THE LEARNER STRUGGLES)', $text);
         $this->assertStringContainsString('how much help and French the learner needed', $text);
