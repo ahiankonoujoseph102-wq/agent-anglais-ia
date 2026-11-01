@@ -4,7 +4,10 @@
     <div class="step-panel">
         <div class="page-head">
             <h1>Choisissez votre formule</h1>
-            @if (auth()->user()->canPayOnline())
+            @if ($subscription && auth()->user()->canPayOnline())
+                {{-- Renouvellement : une seule phrase courte (à la place de l'encadré), pour que « Choisir … » reste visible sans défiler. --}}
+                <p class="muted">Votre formule {{ $subscription->plan_name }} est valable jusqu'au {{ $subscription->ends_at->translatedFormat('j F Y') }}. Le renouvellement commencera à cette date.</p>
+            @elseif (auth()->user()->canPayOnline())
                 {{-- Une phrase : le détail du paiement est sous les formules (liste juste en dessous). --}}
                 <p class="muted">Payez par Mobile Money, puis envoyez la capture d'écran de la confirmation.</p>
             @else
@@ -32,7 +35,7 @@
             @endif
         @endif
 
-        @if ($subscription)
+        @if ($subscription && ! auth()->user()->canPayOnline())
             <div class="alert alert-info">
                 <x-icon name="info" />
                 <div>

@@ -65,6 +65,29 @@ class ActionFirstTest extends TestCase
         $this->assertSame(count(Plan::all()), substr_count($html, 'plan-compact'));
     }
 
+    public function test_a_renewing_learner_reads_one_short_sentence_instead_of_a_box_above_the_plans(): void
+    {
+        // Renouvellement : la date de fin dans la phrase d'introduction (plus d'encadré) : « Choisir … » reste visible à 360 × 640.
+        $user = User::factory()->level(Level::A2)->create(['country' => 'TG', 'phone' => '+22890112244', 'welcomed_at' => now()]);
+        $subscription = Subscription::factory()->for($user)->forPlan('essentiel')->create();
+
+        $html = $this->actingAs($user)->get('/abonnement')->assertOk()
+            ->assertSee('Votre formule '.$subscription->plan_name.' est valable jusqu\'au', false)
+            ->assertSee('Le renouvellement commencera à cette date.', false)
+            ->assertDontSee('Payez par Mobile Money, puis envoyez', false)
+            ->getContent();
+        $this->assertStringNotContainsString('alert-info', $html);
+        $this->assertLessThan(strpos($html, 'plan-compact'), strpos($html, 'Le renouvellement commencera'));
+    }
+
+    public function test_the_interview_page_keeps_a_short_lead_before_its_button(): void
+    {
+        $html = $this->get('/preparer-un-entretien-en-anglais')->assertOk()->getContent();
+        preg_match('/<p class="lead">(.*?)<\/p>/s', $html, $lead);
+
+        $this->assertLessThanOrEqual(150, mb_strlen(strip_tags($lead[1])));
+    }
+
     public function test_a_known_country_is_folded_so_the_payment_methods_come_first(): void
     {
         $user = User::factory()->level(Level::A2)->create(['country' => 'TG', 'phone' => '+22890112233']);
