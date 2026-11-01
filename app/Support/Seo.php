@@ -212,26 +212,30 @@ final class Seo
      *
      * @return array<string, mixed>
      */
-    public static function offers(): array
+    public static function offers(?CountryPage $page = null): array
     {
-        $countries = array_values(array_map(fn (PaymentCountry $country) => ['@type' => 'Country', 'name' => $country->name], PaymentCountry::all()));
+        // Page d'un pays : le service de CE pays seulement, avec l'adresse de sa page ; sinon tous les pays de paiement.
+        $countries = $page !== null
+            ? [['@type' => 'Country', 'name' => $page->name]]
+            : array_values(array_map(fn (PaymentCountry $country) => ['@type' => 'Country', 'name' => $country->name], PaymentCountry::all()));
+        $url = $page !== null ? self::url(route('country', $page->slug, false)) : self::url(route('plans', [], false));
 
         return [
             '@context' => 'https://schema.org',
             '@type' => 'Service',
-            'name' => 'Cours d\'anglais oral en ligne avec '.Teachers::names(),
+            'name' => 'Cours d\'anglais oral en ligne'.($page !== null ? ' '.$page->in.' '.$page->name : '').' avec '.Teachers::names(),
             'serviceType' => 'Cours d\'anglais en ligne',
             'provider' => ['@id' => self::url().'#organisation'],
             'areaServed' => $countries,
             'availableLanguage' => ['French', 'English'],
-            'url' => self::url(route('plans', [], false)),
+            'url' => $url,
             'offers' => array_values(array_map(fn (Plan $plan) => [
                 '@type' => 'Offer',
                 'name' => $plan->name,
                 'description' => $plan->dailyMinutes.' minutes par jour, valable '.$plan->durationDays.' jours',
                 'price' => (string) $plan->price,
                 'priceCurrency' => 'XOF',
-                'url' => self::url(route('plans', [], false)),
+                'url' => $url,
                 'availability' => 'https://schema.org/InStock',
             ], Plan::all())),
         ];

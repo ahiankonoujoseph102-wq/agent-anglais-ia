@@ -82,6 +82,7 @@
         {!! $faqHtml !!}
         @push('head')
             {!! Seo::jsonLd(Seo::faq($faqHtml)) !!}
+            {!! Seo::jsonLd(Seo::offers($page)) !!}
         @endpush
     </section>
 

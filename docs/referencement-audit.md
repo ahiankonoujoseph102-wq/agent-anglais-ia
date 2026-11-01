@@ -46,3 +46,17 @@ Relevé fait sur le site EN LIGNE (requêtes comme Googlebot), puis dans le code
 ## 6. Ce qui dépend du temps et de la notoriété
 
 L'indexation des 25 pages, l'apparition sur la recherche « Talkami » et surtout la position sur des recherches générales (« cours d'anglais en ligne ») dépendent du temps, du nombre de liens extérieurs et du nombre de personnes qui cherchent et cliquent. Le code ne peut pas les forcer. Compter plusieurs semaines pour la marque, plusieurs mois pour les recherches générales, sans aucune garantie.
+
+## 7. Relevé du 1er novembre 2026 et gestes hors du site
+
+Relevé en ligne : 26 adresses dans le plan du site, toutes en 200 et indexables ; titres et descriptions uniques ; accueil de 21 Ko compressé, réponse en moins d'une seconde ; aucune erreur trouvée. Déjà fait par le fondateur (ne pas refaire) : Search Console (propriété vérifiée, plan du site envoyé), fiche d'établissement Google depuis le 27 octobre 2026.
+
+Corrigé dans le code : titres des pages pays avec la recherche en tête (« Apprendre l'anglais au Togo, en ligne à Lomé »…), données structurées `Service` propres à chaque pays (vrais prix, aucune note).
+
+À faire hors du site, dans l'ordre :
+1. **Search Console** → « Inspection de l'URL » → coller `https://talkami.net/apprendre-anglais/togo` → « Demander l'indexation » ; refaire avec les trois autres pages pays (les titres ont changé).
+2. **Search Console** → « Performances » : une fois par semaine, regarder les « Requêtes » (mots vraiment tapés) ; les envoyer à Claude pour écrire les guides qui y répondent.
+3. **Fiche d'établissement Google** : ajouter 3 à 5 vraies photos (bureau, fondateur, écran du téléphone pendant une séance), les horaires, la description, le lien `https://talkami.net/` ; demander aux élèves contents de laisser un avis Google (jamais en échange d'un cadeau).
+4. **Liens vers le site** : bio TikTok, description de la chaîne WhatsApp, page Facebook « Talkami », profil LinkedIn du fondateur (« Fondateur de Talkami », lien `https://talkami.net/a-propos`), description de chaque vidéo. Envoyer ensuite à Claude les liens Facebook et LinkedIn pour les ajouter aux données de « À propos ».
+5. **Annuaires et partenaires** : annuaires d'entreprises du Togo, écoles, associations d'étudiants, centres de formation qui acceptent un lien vers `https://talkami.net/`.
+6. **Bing Webmaster Tools** : se connecter avec le compte Google, « Importer depuis Google Search Console ».
