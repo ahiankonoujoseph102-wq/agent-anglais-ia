@@ -322,6 +322,7 @@ legend { font-weight: var(--fw-heavy); font-size: var(--fs-lg); margin-bottom: v
 .photo { display: block; width: 100%; height: 100%; object-fit: cover; }
 .credit-photo { display: grid; gap: var(--space-4); }
 .credit-photo .photo-frame { max-width: 220px; }
+.join-photo { max-width: 560px; margin-block: var(--space-3) var(--space-4); }
 .section-split { display: grid; gap: var(--space-5); align-items: center; margin-bottom: var(--space-6); }
 .section-split .section-head { margin-bottom: 0; }
 

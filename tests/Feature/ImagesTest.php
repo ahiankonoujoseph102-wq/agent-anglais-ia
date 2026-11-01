@@ -32,6 +32,24 @@ class ImagesTest extends TestCase
         $this->assertStringContainsString('Aucune séance pour le moment.', $html);
     }
 
+    public function test_the_ambassador_page_shows_one_light_photo_below_its_button(): void
+    {
+        $html = $this->get('/devenir-ambassadeur')->assertOk()->getContent();
+
+        $this->assertSame(1, substr_count($html, 'amis-telephone-480.webp'));
+        $this->assertStringContainsString('loading="lazy"', substr($html, strpos($html, 'amis-telephone-480.webp') - 300, 600));
+        // Sous le haut de page et son bouton : le bouton reste visible sans défiler.
+        $this->assertGreaterThan(strpos($html, 'ambassadeur-titre'), strpos($html, 'amis-telephone'));
+        $this->assertGreaterThan(strpos($html, 'ambassadeur-fait'), strpos($html, 'amis-telephone'));
+
+        foreach ([480 => 30, 960 => 70] as $width => $kilobytes) {
+            $this->assertLessThan($kilobytes * 1024, filesize(public_path("images/photos/amis-telephone-{$width}.webp")));
+        }
+
+        $this->assertStringContainsString('amis-telephone', file_get_contents(base_path('LICENCES-TIERS.md')));
+        $this->assertStringContainsString('amis-telephone', file_get_contents(base_path('docs/credits-images.md')));
+    }
+
     public function test_share_image_is_light_and_every_photo_is_credited(): void
     {
         [$width, $height] = getimagesize(public_path('images/partage-talkami.jpg'));

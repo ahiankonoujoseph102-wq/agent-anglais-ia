@@ -31,6 +31,14 @@ return [
         'source_url' => 'https://www.pexels.com/photo/people-on-the-table-reading-books-10744384/',
     ],
 
+    // Unsplash, licence gratuite (« Free to use under the Unsplash License », pas Unsplash+) vérifiée sur la page le 1er novembre 2026.
+    'amis-telephone' => [
+        'alt' => 'Deux amis assis à une table : l\'un montre quelque chose sur son téléphone à l\'autre',
+        'author' => 'Mugabi Owen',
+        'author_url' => 'https://unsplash.com/@spenz_official',
+        'source_url' => 'https://unsplash.com/photos/two-men-looking-at-a-smartphone-outdoors-smartphone-oCq3LW3rCD8',
+    ],
+
     'eleve-ecouteurs' => [
         'alt' => 'Une élève souriante, avec un casque audio, regarde son téléphone',
         'author' => 'Akinyemi Gbadamosi',

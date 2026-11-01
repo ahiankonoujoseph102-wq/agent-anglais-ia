@@ -54,6 +54,8 @@
 
     <section class="section reveal" aria-labelledby="ambassadeur-fait">
         <h2 id="ambassadeur-fait">Ce que vous faites</h2>
+        {{-- Une seule photo, sous le premier écran (chargée en approchant) : partager son lien, c'est d'abord montrer son téléphone à un proche. --}}
+        <figure class="photo-frame join-photo"><x-photo name="amis-telephone" /></figure>
         <ul class="check-list check-list-plain">
             <li><x-icon name="mic" /> Vous suivez vos séances avec {{ $teacher }} régulièrement.</li>
             <li><x-icon name="users" /> Vous parlez de {{ $platform }} autour de vous et partagez votre lien ou votre code.</li>
