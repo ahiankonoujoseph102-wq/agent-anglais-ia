@@ -544,6 +544,8 @@ TXT,
         'session_announce' => '[System] About one minute remains. Say « :announce_phrase » now, then finish what you are doing. Start nothing new.',
         'lesson_conclude' => '[System] About :seconds seconds remain. Call end_lesson now with the full report if you have not, then give your CONCLUSION once, ending with « :closing_phrase ».',
         'course_conclude' => '[System] About :seconds seconds remain. Give your CONCLUSION now, once, ending with « :closing_phrase ».',
+        // Avis des élèves : ajouté à la conclusion de la 3e séance du jour tenue, une seule fois, sans insister.
+        'review_ask' => ' In this conclusion, just before « :closing_phrase », add ONE short sentence in French, word for word: « Si nos séances vous aident, laissez votre avis dans Mon espace : cela aide d\'autres personnes à oser commencer, et vous recevez :minutes minutes offertes. » Say it once, never insist, never ask for a good rating.',
         'course_start' => '[System] The learner is connected and ready. Start the session now: welcome them in French, say it lasts at most :minutes minutes, give the title of their lesson, and ask what they want to do (understand the whole lesson, ask a precise question, or work on an exercise), then STOP and wait for their answer.',
         'trial_start' => '[System] The administrator is connected and ready. Start the 30-second sound check now.',
         'trial_warning' => '[System] About 10 seconds remain. Say goodbye in one short sentence.',

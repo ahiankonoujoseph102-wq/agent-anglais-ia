@@ -17,6 +17,13 @@
     @can('admin-route', 'admin.follow.index')
     <a href="{{ route('admin.follow.index') }}" @class(['active' => request()->routeIs('admin.follow.*')]) @if (request()->routeIs('admin.follow.*')) aria-current="page" @endif><x-icon name="chart" /> Suivi des élèves</a>
     @endcan
+    @can('admin-route', 'admin.reviews.index')
+    @php($pendingReviews = \App\Support\Reviews\Reviews::pendingCount())
+    <a href="{{ route('admin.reviews.index') }}" @class(['active' => request()->routeIs('admin.reviews.*')]) @if (request()->routeIs('admin.reviews.*')) aria-current="page" @endif>
+        <x-icon name="star" /> Avis
+        @if ($pendingReviews > 0)<span class="badge badge-alert">{{ $pendingReviews }}</span>@endif
+    </a>
+    @endcan
     @can('admin-route', 'admin.inactive.index')
     <a href="{{ route('admin.inactive.index') }}" @class(['active' => request()->routeIs('admin.inactive.*')]) @if (request()->routeIs('admin.inactive.*')) aria-current="page" @endif><x-icon name="user-off" /> Inactifs</a>
     @endcan

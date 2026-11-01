@@ -1,11 +1,11 @@
 {
     "assessment.old": {
-        "length": 91557,
-        "sha256": "a073d1e0f2b57b12b1c72b2026f648e1dee5f231de320466faaba70fcfea6621"
+        "length": 92947,
+        "sha256": "e3364928cec7038e0944b334311f66180f87631dc20c8ef8cf00b02972987fe4"
     },
     "assessment.new": {
-        "length": 90678,
-        "sha256": "5a41cb3179e86a95c3d56f8c4c79dd905e1cf31747f3e586cbc1dae7b230ad10"
+        "length": 92068,
+        "sha256": "9c5c20b5c22eedfdc182eeeacf7c7f9b6e990113951ac13f220f742333719436"
     },
     "lesson.A1.first": {
         "length": 89366,
@@ -20,8 +20,8 @@
         "sha256": "25547b4a36feef759499ae55d00810dfb6ed14aeafcf741ba82aad7f7b505e98"
     },
     "course.A2": {
-        "length": 86126,
-        "sha256": "fca267bad57afb3636df0b56ae83ea23bbd9b2a4f4a84879b36066b92bd3640f"
+        "length": 87516,
+        "sha256": "fee8496b105ad121c9d6892f763837940ae0f6e2e19abbff4fb0e527759d8f5c"
     },
     "level_test.B1": {
         "length": 64218,
@@ -36,20 +36,20 @@
         "sha256": "9f69218e51a3b64114d94be5df6f5ea9ed6b0db0beab319fa4553727dea64331"
     },
     "site_guide.all": {
-        "length": 23208,
-        "sha256": "883fcd35a12a4d53558d8c009a0ed5ddc44ed8944b6c47e3eb5c88b372de6f4d"
+        "length": 23899,
+        "sha256": "84629a9d68359594e5f65f954bd0ba0058eb62ad9b636e036c6e81556f1588c0"
     },
     "site_guide.assessment": {
-        "length": 20378,
-        "sha256": "0a7e11b42183e22e6761d166eed2f86353ac8e32a84f17e7827e7fe4727ca80b"
+        "length": 21069,
+        "sha256": "47ff8e3ec587c18bc15ed30e83f0790ce55d00b0056f98ee300b563d4f59f1f9"
     },
     "site_guide.lesson": {
         "length": 11488,
         "sha256": "4de2a228a273670cb6653566bf0722df1adc9079e76c1586e952ba214eb8bb74"
     },
     "site_guide.course": {
-        "length": 16553,
-        "sha256": "f193a93c89e32f1ddb5afefec79cac37460d4cb0a1b76aa42dd2e6ff9ee7b905"
+        "length": 17244,
+        "sha256": "865c72037c5284251408078ad64f772a50db94e215498ebc0d0bdc243981eb5e"
     },
     "site_guide.level_test": {
         "length": 9794,

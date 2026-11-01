@@ -72,6 +72,11 @@ final class Confirmation
             'message' => 'Son accès gratuit s\'arrête tout de suite, séance en cours comprise, et sa place se libère. Son code et ses mois déjà offerts sont gardés si vous le réintégrez.',
             'confirm' => 'Retirer du programme',
         ],
+        'review.hide' => [
+            'title' => 'Retirer cet avis du site ?',
+            'message' => 'Il ne sera plus visible sur la page des avis ni sur l\'accueil. Vous pourrez le publier de nouveau plus tard ; l\'élève garde ses minutes offertes.',
+            'confirm' => 'Retirer l\'avis',
+        ],
         'application.reject' => [
             'title' => 'Refuser cette candidature ?',
             'message' => 'La personne garde son compte. Pensez à la prévenir sur WhatsApp ; elle pourra poser une nouvelle candidature plus tard.',

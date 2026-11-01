@@ -120,6 +120,22 @@ class User extends Authenticatable
         return $this->hasOne(Assessment::class);
     }
 
+    /** Avis laissé par l'élève (un par compte). */
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
+    }
+
+    /**
+     * Minutes offertes (avis envoyé…).
+     *
+     * @return HasMany<TimeBonus, $this>
+     */
+    public function timeBonuses(): HasMany
+    {
+        return $this->hasMany(TimeBonus::class);
+    }
+
     /** Fiche d'ambassadeur (null : pas ambassadeur), active ou retirée. */
     public function ambassador(): HasOne
     {
@@ -420,7 +436,18 @@ class User extends Authenticatable
             return null;
         }
 
-        return max(0, $subscription->dailySeconds() - $this->secondsUsedToday($reserveOpen));
+        return max(0, $subscription->dailySeconds() + $this->bonusSecondsToday() - $this->secondsUsedToday($reserveOpen));
+    }
+
+    /**
+     * Minutes offertes comptées dans le temps du jour d'aujourd'hui (App\Support\Reviews\TimeBonuses), en secondes :
+     * celles attachées à aujourd'hui, et celles pas encore utilisées (attachées au jour de la prochaine séance).
+     */
+    public function bonusSecondsToday(): int
+    {
+        return (int) $this->timeBonuses()
+            ->where(fn ($query) => $query->whereNull('applied_on')->orWhereDate('applied_on', today()))
+            ->sum('seconds');
     }
 
     /**

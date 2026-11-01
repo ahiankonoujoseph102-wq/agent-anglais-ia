@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Assessment;
 use App\Support\CountryPage;
 use App\Support\Gemini\SiteGuide;
+use App\Support\Plan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -30,8 +31,13 @@ class FaqTest extends TestCase
         'Puis-je enregistrer ma séance en vidéo ?',
         'Où retrouver ma vidéo, et comment la partager ?',
         'Ma vidéo est-elle privée ?',
+        'Quelle formule choisir ?',
+        'À quoi sert la formule Semaine ?',
+        'Pourquoi la formule Essentiel est-elle recommandée ?',
+        'Pour qui est la formule Intensif ?',
         'Comment payer mon abonnement ?',
         'De quoi ai-je besoin (matériel, internet) ?',
+        'Puis-je donner mon avis ?',
         "Qu'est-ce que l'attestation de niveau ?",
     ];
 
@@ -69,6 +75,18 @@ class FaqTest extends TestCase
         $this->assertStringContainsString('reviennent aux séances suivantes', $faq);
         $this->assertStringContainsString('la phrase à retenir de la veille et votre devoir', $faq);
         $this->assertStringContainsString('des phrases des leçons passées', $faq);
+        // Quelle formule choisir : prix et temps par jour lus dans la configuration, la formule recommandée dite.
+        foreach (Plan::all() as $plan) {
+            $this->assertStringContainsString($plan->name.' ('.html_entity_decode(strip_tags($plan->formattedPrice()), ENT_QUOTES).' '.$plan->periodLabel().', '.$plan->dailyMinutes.' minutes par jour)', $faq);
+        }
+        $this->assertStringContainsString('la formule recommandée pour progresser avec régularité', $faq);
+        $faq = str_replace(["\u{202F}", "\u{00A0}"], ' ', $faq);
+        // Une question par formule : essayer, puis passer à la formule recommandée sans perdre de jour ; prix par jour
+        // comparés d'après la configuration ; deux fois plus de temps par jour avec la formule la plus longue.
+        $this->assertStringContainsString('C\'est la formule pour essayer : 2 000 FCFA pour 7 jours, 15 minutes par jour avec votre professeur, soit moins de 300 francs CFA par jour.', $faq);
+        $this->assertStringContainsString('elle commence quand votre semaine se termine, sans perdre aucun jour', $faq);
+        $this->assertStringContainsString('C\'est moins cher par jour que la formule Semaine (moins de 300 francs CFA par jour).', $faq);
+        $this->assertStringContainsString('Deux fois plus de temps chaque jour qu\'avec Essentiel', $faq);
         // PDF : la limite vient de la configuration.
         $this->assertStringContainsString('(jusqu\'à '.config('platform.courses.pdf_max_pages').' pages)', $faq);
     }

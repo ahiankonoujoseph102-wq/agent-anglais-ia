@@ -25,6 +25,7 @@ class AdminAlert extends Model
         'whatsapp_click' => 'Paiement demandé sur WhatsApp',
         'cost_high' => 'Coût élevé d\'un abonné',
         'ambassador_application' => 'Candidature d\'ambassadeur',
+        'review_pending' => 'Avis d\'élève à vérifier',
         'test' => 'Alerte d\'essai',
     ];
 

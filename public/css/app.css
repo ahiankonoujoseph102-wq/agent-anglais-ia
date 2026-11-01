@@ -2042,3 +2042,33 @@ body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260p
 .lesson-log { border-top: 1px solid var(--c-border); padding: var(--space-3) 0; }
 .lesson-log:first-of-type { border-top: 0; }
 .lesson-log p { margin: 0 0 var(--space-1); }
+
+/* Avis des élèves (/avis, accueil, « Mon espace », administration). Étoiles orange, jamais de vert. */
+.stars { display: inline-flex; gap: 2px; vertical-align: middle; }
+.stars .icon { width: 18px; height: 18px; color: var(--c-border); fill: currentColor; }
+.stars .icon.is-on { color: var(--c-accent); }
+.review-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); flex-wrap: wrap; }
+.review-body { margin: var(--space-3) 0; white-space: normal; overflow-wrap: anywhere; }
+.review-meta { margin: 0; }
+.review-reply { margin-top: var(--space-3); padding: var(--space-3); border-left: 3px solid var(--c-accent); background: var(--c-primary-soft); border-radius: var(--radius-sm); }
+.review-reply p { margin: 0; }
+.review-reply p + p { margin-top: var(--space-1); }
+.review-stats { display: flex; align-items: center; justify-content: center; gap: var(--space-2); flex-wrap: wrap; }
+.review-own { text-align: center; }
+.reviews-list { display: grid; gap: var(--space-3); }
+.reviews-list .card, .reviews-grid .card { margin: 0; }
+.reviews-grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.review-rules ul { padding-left: 1.2em; }
+.review-invite .icon { vertical-align: -3px; }
+.admin-review .actions { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+.admin-review textarea { width: 100%; }
+/* Choix de la note : cinq étoiles de 44 pixels ; ordre inversé dans le code pour colorer les étoiles avant celle choisie. */
+.star-picker { border: 0; padding: 0; margin: 0 0 var(--space-4); }
+.star-picker legend { font-weight: var(--fw-bold); margin-bottom: var(--space-2); }
+.star-choices { display: inline-flex; flex-direction: row-reverse; justify-content: flex-end; gap: var(--space-1); }
+.star-choices input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.star-choices label { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; cursor: pointer; color: var(--c-border); }
+.star-choices label .icon { width: 34px; height: 34px; fill: currentColor; }
+.star-choices input:checked ~ label, .star-choices label:hover, .star-choices label:hover ~ label { color: var(--c-accent); }
+.star-choices input:focus-visible + label { outline: 3px solid var(--c-focus); outline-offset: 2px; border-radius: var(--radius-sm); }
+.review-form textarea { width: 100%; }

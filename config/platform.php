@@ -330,6 +330,44 @@ return [
         'commission_days' => 90,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Avis des élèves
+    |--------------------------------------------------------------------------
+    |
+    | Un avis par compte (élève gratuit après son évaluation, élève abonné après
+    | une séance du jour). Publié tout de suite, sauf une note très basse ou un
+    | texte qui accroche une vérification automatique : il attend alors
+    | l'administrateur (alerte). Le professeur en parle UNE fois, à la fin de la
+    | 3e séance du jour. 15 minutes offertes pour tout avis, quelle que soit la note.
+    |
+    */
+    'reviews' => [
+        'min_characters' => 20,
+        'max_characters' => 500,
+        // Note jusqu'à laquelle l'avis attend l'administrateur (1 ou 2 étoiles : « très négatif »).
+        'hold_rating_at_most' => 2,
+        // Minutes offertes une seule fois par compte, pour tout avis envoyé : une journée de la formule Essentiel.
+        'bonus_minutes' => 15,
+        // Le professeur invite à laisser un avis à la fin de cette séance du jour tenue (une seule fois).
+        'teacher_ask_after_lessons' => 3,
+        // Bloc de l'accueil seulement à partir de ce nombre d'avis publiés ; note moyenne à partir de ce nombre.
+        'home_min' => 5,
+        'average_min' => 10,
+        'home_count' => 3,
+        'per_page' => 20,
+        // Mots qui font attendre l'administrateur (insultes, mots grossiers) : comparés sans accents, mots entiers.
+        'blocked_words' => [
+            'arnaque', 'arnaqueur', 'arnaqueurs', 'escroc', 'escrocs', 'escroquerie', 'voleur', 'voleurs',
+            'con', 'cons', 'connard', 'connards', 'connasse', 'salaud', 'salauds', 'salope', 'pute', 'putain',
+            'merde', 'merdique', 'nul', 'nuls', 'nulle', 'debile', 'idiot', 'idiots', 'imbecile', 'abruti',
+            'encule', 'enfoire', 'batard', 'fdp', 'ntm', 'tg', 'ta gueule',
+            'scam', 'scammer', 'fraud', 'thief', 'idiot', 'stupid', 'fuck', 'shit', 'bitch', 'bastard', 'asshole',
+        ],
+        // Marques : jamais sur une page publique (règle du site) ; un avis qui en cite une attend l'administrateur.
+        'brand_words' => ['google', 'gemini', 'openai', 'chatgpt', 'gpt', 'claude', 'anthropic', 'duolingo', 'babbel'],
+    ],
+
     'granted_access' => [
         // Durées proposées en un geste (jours) ; une durée au choix est aussi possible.
         'presets' => [1, 3, 7],
