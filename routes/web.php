@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ConversationController;
 use App\Http\Controllers\Admin\GrantedAccessController;
 use App\Http\Controllers\Admin\IconPreviewController;
 use App\Http\Controllers\Admin\InactiveLearnerController;
+use App\Http\Controllers\Admin\LearnerFollowController;
 use App\Http\Controllers\Admin\LiveTrialController;
 use App\Http\Controllers\Admin\OriginController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
@@ -232,6 +233,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('/inscrits', [UserController::class, 'index'])->name('users.index');
     Route::get('/inscrits/{user}', [UserController::class, 'show'])->name('users.show');
+    // Suivi des élèves (séance du jour, régularité, programme) et « Voir son espace » en lecture seule.
+    Route::get('/suivi', [LearnerFollowController::class, 'index'])->name('follow.index');
+    Route::post('/inscrits/{user}/voir-son-espace', [LearnerFollowController::class, 'start'])->name('users.view-as');
+    Route::post('/voir-son-espace/fin', [LearnerFollowController::class, 'stop'])->name('view-as.stop');
     Route::put('/inscrits/{user}/compte-de-test', [UserController::class, 'testAccount'])->name('users.test-account');
     // Rôle d'assistant : administrateur principal seulement (hors de AdminAccess::ASSISTANT_ROUTES).
     Route::post('/inscrits/{user}/assistant', [AssistantController::class, 'appoint'])->middleware('confirm:assistant.appoint')->name('users.assistant');

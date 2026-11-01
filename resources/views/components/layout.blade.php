@@ -148,6 +148,19 @@
         </div>
     </header>
 
+    {{-- « Voir son espace » de l'administration : toujours visible, avec la sortie. --}}
+    @if (\App\Support\Admin\ViewAs::active())
+        <div class="view-as-bar" role="status">
+            <div class="container">
+                <p><x-icon name="eye" /> <strong>Lecture seule</strong> : vous voyez l'espace de {{ \App\Support\Admin\ViewAs::learner()->name }}, tel qu'il le voit. Rien n'y est modifié.</p>
+                <form method="POST" action="{{ route('admin.view-as.stop') }}">
+                    @csrf
+                    <button type="submit" class="btn btn-accent">Revenir à l'administration</button>
+                </form>
+            </div>
+        </div>
+    @endif
+
     <main id="contenu">
         <div class="container {{ $narrow ? 'container-narrow' : '' }}">
             @if (session('status'))

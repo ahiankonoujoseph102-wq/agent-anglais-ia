@@ -29,6 +29,8 @@ final class AdminAccess
         'admin.payments.reject',
         'admin.users.index',
         'admin.users.show',
+        // Suivi des élèves (lecture). « Voir son espace » reste à l'administrateur principal.
+        'admin.follow.index',
         'admin.subscribers.index',
         'admin.inactive.index',
         'admin.inactive.whatsapp',

@@ -2024,3 +2024,21 @@ body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260p
 .lesson-reminders .reminders-time { margin-top: var(--space-3); }
 .lesson-reminders .reminders-push { margin-top: var(--space-3); }
 .lesson-reminders .alert { margin-bottom: var(--space-3); }
+
+/* « Voir son espace » de l'administration (lecture seule) : bandeau toujours visible, avec la sortie. */
+.view-as-bar { background: var(--c-primary); color: var(--c-on-dark); padding: var(--space-2) 0; }
+.view-as-bar .container { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.view-as-bar p { margin: 0; font-size: var(--fs-sm); }
+.view-as-bar form { margin: 0; }
+
+/* Suivi des élèves (administration) */
+.follow-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: var(--space-3); margin-bottom: var(--space-4); }
+.follow-counts .card { margin: 0; text-align: center; }
+.follow-counts strong { display: block; font-size: var(--fs-xl); color: var(--c-primary); }
+.today-done { color: var(--c-success); }
+.today-none { color: var(--c-danger); }
+.progress-line { height: 8px; border-radius: 999px; background: var(--c-primary-soft); overflow: hidden; }
+.progress-line > span { display: block; height: 100%; background: var(--c-accent); }
+.lesson-log { border-top: 1px solid var(--c-border); padding: var(--space-3) 0; }
+.lesson-log:first-of-type { border-top: 0; }
+.lesson-log p { margin: 0 0 var(--space-1); }
