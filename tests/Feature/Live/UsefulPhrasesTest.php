@@ -35,15 +35,17 @@ class UsefulPhrasesTest extends TestCase
         $phrases = WorkingTogether::phrases();
 
         $this->assertGreaterThanOrEqual(4, count($phrases));
-        $this->assertSame('Can you repeat, please?', $phrases[0]['en']);
+        $this->assertSame('I don\'t understand.', $phrases[0]['en']);
+        $this->assertSame('Can you repeat, please?', $phrases[1]['en']);
         $this->assertContains('Can you explain in French, please?', array_column($phrases, 'en'));
 
         foreach ($phrases as $phrase) {
             $this->assertNotSame('', $phrase['fr']);
         }
 
-        // La première phrase est celle que Teacher Joe cite dans son accueil.
-        $this->assertStringContainsString('« '.$phrases[0]['en'].' »', (string) config('teacher.working_together.lesson_first'));
+        // Les deux premières phrases sont celles que Teacher Joe cite dans son accueil.
+        $this->assertStringContainsString('« '.rtrim($phrases[0]['en'], '.').' »', (string) config('teacher.working_together.lesson_first'));
+        $this->assertStringContainsString('« '.$phrases[1]['en'].' »', (string) config('teacher.working_together.lesson_first'));
         $this->assertStringContainsString('written on their screen', (string) config('teacher.working_together.lesson_first'));
     }
 

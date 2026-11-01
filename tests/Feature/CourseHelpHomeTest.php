@@ -194,10 +194,10 @@ class CourseHelpHomeTest extends TestCase
         $course = TeacherSetup::instructions('course', $user, 10, ['lesson' => 'x', 'warning_seconds' => 90]);
 
         foreach ([$daily, $course] as $text) {
-            // Mal compris : s'arrêter, expliquer en français (débutants), vérifier, puis seulement « Répétez après moi ».
+            // Mal compris : s'arrêter, anglais plus simple, puis expliquer en français, vérifier, retour à l'anglais.
             $this->assertStringContainsString('« je ne comprends pas », « hein ? »', $text);
             $this->assertStringContainsString('At ONE sign, STOP the exercise', $text);
-            $this->assertStringContainsString('« Avez-vous compris ? » and WAIT', $text);
+            $this->assertStringContainsString('« Vous avez compris ? » and WAIT', $text);
             // N'entend pas / ne suit pas : ralentir nettement, et garder ce débit.
             $this->assertStringContainsString('slow down at once', $text);
             $this->assertStringContainsString('KEEP this slower pace until the end', $text);
@@ -210,7 +210,7 @@ class CourseHelpHomeTest extends TestCase
 
         // Séance orale : faire parler en anglais, le français seulement pour débloquer.
         $this->assertStringContainsString('in the DAILY LESSON the goal is to make the learner SPEAK English', $daily);
-        $this->assertStringContainsString('the EXPLANATIONS depend on the level', $daily);
+        $this->assertStringContainsString('the lesson is IN ENGLISH, at the learner\'s level', $daily);
 
         // « Mes cours » : le français est la langue principale ; détail complet de chaque point ; vérifications.
         $this->assertStringContainsString('French is the MAIN language of EXPLANATION', $course);
