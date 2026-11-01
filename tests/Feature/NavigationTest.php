@@ -45,7 +45,8 @@ class NavigationTest extends TestCase
         // Menu compact sans JavaScript (<details>) et navigation complète : mêmes liens ; le Menu propose en plus
         // « Installer l'application » (sur ordinateur : lien du pied de page).
         $this->assertSame(1, $xpath->query('//details[@data-menu]/summary')->length);
-        $this->assertSame(array_merge(array_slice($expected, 0, 6), ["Installer l'application", 'Déconnexion']), $this->labels($xpath, '//nav[contains(@class,"menu-panel")]//a | //nav[contains(@class,"menu-panel")]//button'));
+        // Le Menu propose aussi les avis (« Avis des élèves », ou « Donner mon avis » après l'évaluation).
+        $this->assertSame(array_merge(array_slice($expected, 0, 5), ['Avis des élèves', 'Aide', "Installer l'application", 'Déconnexion']), $this->labels($xpath, '//nav[contains(@class,"menu-panel")]//a | //nav[contains(@class,"menu-panel")]//button'));
         $this->assertSame($expected, $this->labels($xpath, '//nav[contains(@class,"nav-desktop")]//a | //nav[contains(@class,"nav-desktop")]//button'));
 
         // Barre du bas et page courante signalée partout.
