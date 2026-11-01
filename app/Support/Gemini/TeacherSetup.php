@@ -353,6 +353,8 @@ class TeacherSetup
             'warning' => (int) config('platform.lessons.warning_minutes_before_end'),
             // « Comment travailler avec moi » : accueil des premières séances (sinon première séance par défaut).
             'working_together' => $kind === 'course' ? WorkingTogether::course(1) : WorkingTogether::lesson(1),
+            // « Mes cours » : pratique et exercices en anglais d'abord à partir de B1 ; A1, A2 et niveau inconnu : français en filet de sécurité.
+            'course_practice' => (string) config('teacher.course_practice.'.(in_array($level, ['unknown', 'A1', 'A2'], true) ? 'beginner' : 'confident')),
             // Fin de l'évaluation : questions libres, conclusion et sa phrase fixe.
             'questions_minutes' => (int) ceil(Assessment::afterVerdictSeconds() / 60),
             'discovery_intro' => (string) config('platform.assessment.discovery_intro'),
