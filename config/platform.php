@@ -339,7 +339,7 @@ return [
     | une séance du jour). Publié tout de suite, sauf une note très basse ou un
     | texte qui accroche une vérification automatique : il attend alors
     | l'administrateur (alerte). Le professeur en parle UNE fois, à la fin de la
-    | 3e séance du jour. 5 minutes offertes pour tout avis, quelle que soit la note.
+    | 3e séance du jour. 15 minutes offertes pour tout avis, quelle que soit la note.
     |
     */
     'reviews' => [
@@ -347,8 +347,8 @@ return [
         'max_characters' => 500,
         // Note jusqu'à laquelle l'avis attend l'administrateur (1 ou 2 étoiles : « très négatif »).
         'hold_rating_at_most' => 2,
-        // Minutes offertes une seule fois par compte, pour tout avis envoyé.
-        'bonus_minutes' => 5,
+        // Minutes offertes une seule fois par compte, pour tout avis envoyé : une journée de la formule Essentiel.
+        'bonus_minutes' => 15,
         // Le professeur invite à laisser un avis à la fin de cette séance du jour tenue (une seule fois).
         'teacher_ask_after_lessons' => 3,
         // Bloc de l'accueil seulement à partir de ce nombre d'avis publiés ; note moyenne à partir de ce nombre.

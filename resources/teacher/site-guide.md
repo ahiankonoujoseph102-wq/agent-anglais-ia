@@ -151,7 +151,7 @@ Ne promets JAMAIS un revenu, un gain ni une somme par mois : la commission dépe
 
 ## Avis des élèves
 
-<!-- pour : assessment, lesson, course -->
+<!-- pour : assessment, course -->
 
 Si on te demande comment donner son avis : dans « Mon espace », carte « Votre avis compte », bouton « Donner mon avis » (après l'évaluation gratuite, ou après une séance avec une formule). Une note de 1 à 5 étoiles et quelques mots. Positif ou négatif, l'avis est publié tel quel sur la page « Avis des élèves » (lien en bas de chaque page), avec le prénom, l'initiale du nom, le pays et le niveau ; une note très basse ou un texte avec un lien, un numéro ou un mot grossier est d'abord vérifié par l'équipe. Pour le temps pris, l'élève reçoit :review_minutes minutes de séance offertes, une seule fois, QUELLE QUE SOIT sa note. Ne demande JAMAIS une bonne note et n'insiste jamais.
 

@@ -387,6 +387,24 @@
                         <summary><x-icon name="lock" /><span>Ma vidéo est-elle privée ?</span></summary>
                         <p>Oui. La vidéo est fabriquée et gardée sur votre téléphone : elle n'est jamais envoyée à {{ $platform }}, et notre équipe ne la voit pas. C'est vous qui décidez de la garder, de la partager ou de l'effacer. Avant de la publier, pensez qu'on y entend votre voix et que l'adresse du site est écrite en bas de l'image.</p>
                     </details>
+                    {{-- Quelle formule choisir : prix, temps par jour et durée lus dans config/platform.php (ordre de Plan::all()). --}}
+                    @php($faqPlans = \App\Support\Plan::all())
+                    @php($fewestMinutes = min(array_map(fn ($plan) => $plan->dailyMinutes, $faqPlans)))
+                    <details>
+                        <summary><x-icon name="target" /><span>Quelle formule choisir ?</span></summary>
+                        <p>Les formules donnent toutes la même méthode, le même programme et les mêmes professeurs : seuls le temps par jour et la durée changent.</p>
+                        <ul>
+                            @foreach ($faqPlans as $faqPlan)
+                                <li><strong>{{ $faqPlan->name }}</strong> ({{ $faqPlan->formattedPrice() }} {{ $faqPlan->periodLabel() }}, {{ $faqPlan->dailyMinutes }} minutes par jour) : {{ match (true) {
+                                    $faqPlan->period === 'week' => 'pour essayer la méthode pendant une semaine, avant de vous engager pour un mois',
+                                    $faqPlan->recommended => 'la formule recommandée pour progresser avec régularité, un peu chaque jour pendant tout un mois',
+                                    $faqPlan->dailyMinutes > $fewestMinutes => 'pour progresser plus vite, avec '.$faqPlan->dailyMinutes.' minutes par jour au lieu de '.$fewestMinutes.', donc plus de pratique chaque jour',
+                                    default => $faqPlan->badge ?? '',
+                                } }}.</li>
+                            @endforeach
+                        </ul>
+                        <p>Ce qui fait le plus progresser, c'est la régularité : mieux vaut un peu chaque jour que beaucoup de temps en temps. Vous pouvez commencer par une formule et en choisir une autre au renouvellement.</p>
+                    </details>
                     <details>
                         <summary><x-icon name="wallet" /><span>Comment payer mon abonnement ?</span></summary>
                         <p>Par Mobile Money, depuis votre téléphone : vous envoyez le montant exact au numéro affiché sur le site, puis la capture d'écran de la confirmation. Mêmes formules et mêmes prix dans tous les pays ; les moyens de paiement de chaque pays sont indiqués sous les formules.</p>
