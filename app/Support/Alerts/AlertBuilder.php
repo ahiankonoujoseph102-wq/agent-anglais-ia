@@ -11,6 +11,7 @@ use App\Support\Ambassadors\AmbassadorProgram;
 use App\Support\Countries;
 use App\Support\Live\CostWatch;
 use App\Support\Money;
+use App\Support\Reminders\SubscriptionReport;
 use Illuminate\Support\Carbon;
 
 /**
@@ -206,6 +207,34 @@ final class AlertBuilder
                 ['Heure', self::now()],
             ],
             tag: 'fin-abonnement-'.$subscription->id,
+        );
+    }
+
+    /**
+     * Formule payée terminée sans renouvellement : le site vient d'envoyer à l'élève son bilan ; l'administrateur
+     * reçoit le même bilan et un lien vers sa fiche (pour le relancer sur WhatsApp). Jamais le numéro.
+     */
+    public static function subscriptionEnded(Subscription $subscription, SubscriptionReport $report, string $push, string $mail): AlertMessage
+    {
+        $user = $subscription->user;
+        $channels = ['sent' => 'envoyé', 'failed' => 'en échec', 'no_email' => 'aucune adresse e-mail', 'quota' => 'limite des e-mails du jour atteinte', 'skipped' => 'non réglé', 'none' => 'aucun téléphone abonné'];
+
+        return new AlertMessage(
+            kind: 'subscription_ended',
+            title: 'Formule terminée : '.self::shortName($user),
+            body: self::fullName($user).' · '.$subscription->plan_name.' : bilan envoyé, pas encore de renouvellement.',
+            url: route('admin.subscribers.index', ['statut' => 'expires']).'#payants',
+            buttonLabel: 'Voir les abonnés',
+            details: [
+                ['Élève', self::fullName($user)],
+                ['Formule', $subscription->plan_name],
+                ['Bilan', implode(' ', $report->lines())],
+                ['Avis demandé', $report->inviteReview ? 'oui' : 'non (déjà donné, ou pas encore possible)'],
+                ['E-mail à l\'élève', $channels[$mail] ?? $mail],
+                ['Notification à l\'élève', $channels[$push] ?? $push],
+                ['Heure', self::now()],
+            ],
+            tag: 'formule-terminee-'.$subscription->id,
         );
     }
 

@@ -27,6 +27,7 @@ class AdminAlert extends Model
         'ambassador_application' => 'Candidature d\'ambassadeur',
         'review_pending' => 'Avis d\'élève à vérifier',
         'renewal_reminder' => 'Rappel de fin d\'abonnement envoyé à un élève',
+        'subscription_ended' => 'Bilan de fin de formule envoyé à un élève',
         'test' => 'Alerte d\'essai',
     ];
 

@@ -25,6 +25,9 @@ class LearnerReminder extends Model
     /** Veille du dernier jour d'un abonnement payé pas encore renouvelé : e-mail et notification. */
     public const RENEW = 'renew';
 
+    /** Formule payée terminée sans renouvellement : bilan et invitation à continuer (une fois par fin de formule). */
+    public const ENDED = 'ended';
+
     protected function casts(): array
     {
         return ['day' => 'date'];

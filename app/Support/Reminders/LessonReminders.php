@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
 use App\Mail\LessonReminderMail;
+use App\Mail\SubscriptionEndedMail;
 use App\Models\LearnerPushSubscription;
 use App\Models\LearnerReminder;
 use App\Models\Program;
@@ -254,7 +255,7 @@ final class LessonReminders
             }
         }
 
-        return $sent + $this->runRenewals($now);
+        return $sent + $this->runRenewals($now) + $this->runEndings($now);
     }
 
     /**
@@ -293,6 +294,112 @@ final class LessonReminders
         }
 
         return $sent;
+    }
+
+    /**
+     * Formule payée terminée sans renouvellement (dans les deux derniers jours) : UNE fois par fin de formule, entre
+     * renew_hour et renew_until_hour (heure du pays), bilan par e-mail et notification au nom du professeur, puis
+     * alerte de l'administrateur. Rien si l'élève a déjà un accès en cours, une formule plus longue ou un paiement
+     * en vérification.
+     */
+    private function runEndings(CarbonImmutable $now): int
+    {
+        $sent = 0;
+
+        $subscriptions = Subscription::query()->paid()->whereNull('ambassador_id')
+            ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Expired])
+            ->where('ends_at', '<=', $now)
+            ->where('ends_at', '>', $now->subDays(2))
+            ->whereHas('user', fn ($query) => $query->where('role', Role::Learner))
+            ->with('user')
+            ->get();
+
+        foreach ($subscriptions as $subscription) {
+            try {
+                $user = $subscription->user;
+                $local = $now->setTimezone(Countries::timezone($user->country));
+
+                if ($local->hour < (int) config('platform.reminders.renew_hour')
+                    || $local->hour >= (int) config('platform.reminders.renew_until_hour')
+                    || $user->activeSubscription !== null
+                    || $user->payments()->where('status', PaymentStatus::Pending)->exists()
+                    || $user->subscriptions()->paid()->whereKeyNot($subscription->id)->where('ends_at', '>', $subscription->ends_at)
+                        ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Provisional])->exists()) {
+                    continue;
+                }
+
+                $day = CarbonImmutable::parse($subscription->ends_at)->setTimezone(Countries::timezone($user->country))->toDateString();
+
+                if ($this->sendEnded($subscription, $day)) {
+                    $sent++;
+                }
+            } catch (Throwable $e) {
+                Log::warning('Bilan de fin de formule : envoi impossible.', ['reason' => Redact::reason($e->getMessage())]);
+            }
+        }
+
+        return $sent;
+    }
+
+    private function sendEnded(Subscription $subscription, string $day): bool
+    {
+        $user = $subscription->user;
+        $claimed = LearnerReminder::query()->insertOrIgnore([
+            'user_id' => $user->id, 'day' => $day, 'kind' => LearnerReminder::ENDED, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        if ($claimed === 0) {
+            return false;
+        }
+
+        $reminder = LearnerReminder::query()->where(['user_id' => $user->id, 'day' => $day, 'kind' => LearnerReminder::ENDED])->firstOrFail();
+        $teacher = Teachers::forUser($user);
+        $report = SubscriptionReport::for($subscription);
+        $message = self::endedMessage($subscription, $teacher);
+
+        $reminder->push_status = $this->push($user, $message + [
+            'url' => parse_url(Plan::find((string) $subscription->plan) ? route('payment.create', $subscription->plan) : route('payment.plans'), PHP_URL_PATH) ?: '/abonnement',
+            'tag' => 'fin-formule',
+        ]);
+
+        if (blank($user->email)) {
+            $reminder->mail_status = 'no_email';
+        } elseif (! MailQuota::configured()) {
+            $reminder->mail_status = 'skipped';
+        } elseif (! MailQuota::allowsReminder()) {
+            $reminder->mail_status = 'quota';
+        } else {
+            try {
+                Mail::to($user->email)->send(new SubscriptionEndedMail($subscription, $teacher, $report));
+                $reminder->mail_status = 'sent';
+            } catch (Throwable $e) {
+                $reminder->mail_status = 'failed';
+                $reminder->mail_error = mb_strimwidth(Redact::reason($e->getMessage()), 0, 200, '…');
+            }
+        }
+
+        $reminder->save();
+
+        try {
+            app(AdminAlerts::class)->send(AlertBuilder::subscriptionEnded($subscription, $report, (string) $reminder->push_status, (string) $reminder->mail_status));
+        } catch (Throwable $e) {
+            Log::warning('Alerte de fin de formule : envoi impossible.', ['reason' => Redact::reason($e->getMessage())]);
+        }
+
+        return true;
+    }
+
+    /**
+     * Notification de fin de formule, au nom du professeur.
+     *
+     * @return array{title: string, body: string}
+     */
+    public static function endedMessage(Subscription $subscription, Teacher $teacher): array
+    {
+        return [
+            'title' => 'Votre formule '.$subscription->plan_name.' est terminée',
+            'body' => 'Votre bilan vous attend dans vos e-mails. Continuons ensemble pour garder vos progrès ! '.$teacher->name(),
+        ];
     }
 
     /**
