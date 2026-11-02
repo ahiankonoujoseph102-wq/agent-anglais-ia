@@ -187,6 +187,36 @@ class ReviewsTest extends TestCase
         $this->get(route('dashboard'))->assertDontSee('Votre avis compte')->assertSee('Modifier mon avis');
     }
 
+    public function test_one_touch_on_a_star_opens_the_form_with_that_rating_and_ideas_to_start(): void
+    {
+        $user = $this->assessed();
+
+        $dashboard = $this->actingAs($user)->get('/espace')->assertOk()->getContent();
+        for ($i = 1; $i <= 5; $i++) {
+            $this->assertStringContainsString(e(route('reviews.edit', ['note' => $i])), $dashboard);
+        }
+
+        $form = $this->get(route('reviews.edit', ['note' => 4]))->assertOk();
+        $form->assertSee('id="note-4" value="4" checked', false)
+            ->assertSee('data-insert="Ce que j', false)
+            ->assertSee('Ce qui pourrait être mieux');
+        $this->assertStringContainsString('autofocus', $form->getContent());
+
+        // Une note hors de 1 à 5 n'est jamais choisie d'avance.
+        $this->get(route('reviews.edit', ['note' => 9]))->assertOk()->assertDontSee('checked', false);
+    }
+
+    public function test_the_end_of_a_lesson_invites_to_review_until_a_review_exists(): void
+    {
+        $user = $this->subscriber();
+        $this->heldLesson($user);
+
+        $this->actingAs($user)->get('/seance')->assertOk()->assertSee('Donner mon avis sur cette séance');
+
+        $this->send($user, 5);
+        $this->actingAs($user->fresh())->get('/seance')->assertOk()->assertDontSee('Donner mon avis sur cette séance');
+    }
+
     public function test_the_teacher_asks_once_at_the_end_of_the_third_session(): void
     {
         $user = $this->subscriber();

@@ -2,7 +2,10 @@
 @php
     $platform = config('platform.name');
     $max = (int) config('platform.reviews.max_characters');
-    $rating = (int) old('rating', $review?->rating);
+    // Note déjà choisie en touchant une étoile de l'invitation (?note=1 à 5) : il ne reste qu'à écrire.
+    $asked = (int) request()->query('note');
+    $rating = (int) old('rating', $review?->rating ?? ($asked >= 1 && $asked <= 5 ? $asked : 0));
+    $starters = ['Ce que j\'aime : ', 'Ce qui m\'aide le plus : ', 'Ce que j\'ai appris : ', 'Ce qui pourrait être mieux : '];
 @endphp
 
 <x-layout title="Mon avis" narrow>
@@ -28,7 +31,13 @@
         </fieldset>
 
         <label for="body">Votre avis</label>
-        <textarea id="body" name="body" rows="6" maxlength="{{ $max }}" required @class(['is-invalid' => $errors->has('body')]) aria-describedby="body-hint" placeholder="Qu'avez-vous pensé de vos séances ? Qu'est-ce qui vous aide ? Qu'est-ce qui pourrait être mieux ?">{{ old('body', $review?->body) }}</textarea>
+        {{-- Débuts de phrase à toucher (public/js/app.js, data-insert) : l'élève écrit la suite lui-même. --}}
+        <div class="review-starters" aria-label="Idées pour commencer">
+            @foreach ($starters as $starter)
+                <button type="button" class="chip" data-insert="{{ $starter }}" data-insert-target="body">{{ rtrim($starter, ' :') }}</button>
+            @endforeach
+        </div>
+        <textarea id="body" name="body" rows="6" maxlength="{{ $max }}" required @if ($asked && ! old('body') && ! $review) autofocus @endif @class(['is-invalid' => $errors->has('body')]) aria-describedby="body-hint" placeholder="Qu'avez-vous pensé de vos séances ? Qu'est-ce qui vous aide ? Qu'est-ce qui pourrait être mieux ?">{{ old('body', $review?->body) }}</textarea>
         <p class="hint small" id="body-hint">De {{ config('platform.reviews.min_characters') }} à {{ $max }} caractères. Pas de numéro de téléphone ni de lien.</p>
         @error('body')<p class="error">{{ $message }}</p>@enderror
 

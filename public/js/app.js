@@ -545,6 +545,28 @@ document.addEventListener('change', (event) => {
     }
 });
 
+// Début de phrase à toucher (data-insert, data-insert-target) : ajouté au texte, à la ligne, puis le curseur y va ;
+// l'élève écrit la suite lui-même (avis des élèves).
+document.addEventListener('click', (event) => {
+    const button = event.target.closest?.('[data-insert]');
+    const field = button ? document.getElementById(button.dataset.insertTarget) : null;
+
+    if (!field) {
+        return;
+    }
+
+    event.preventDefault();
+    const before = field.value.replace(/\s+$/, '');
+    const text = (before ? before + '\n' : '') + button.dataset.insert;
+
+    if (!field.maxLength || field.maxLength < 0 || text.length <= field.maxLength) {
+        field.value = text;
+    }
+
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+});
+
 /* ---------- Boutons d'envoi : « Envoi en cours… » et aucun double envoi ---------- */
 
 const BUSY_TIMEOUT = 30000;
