@@ -127,7 +127,7 @@ function attach(form) {
             button.dataset.idleHtml ??= button.innerHTML;
             button.classList.add('is-busy');
             button.setAttribute('aria-disabled', 'true');
-            button.innerHTML = `<span class="busy-spinner" aria-hidden="true"></span> ${form.dataset.busyLabel || 'Envoi en cours…'}`;
+            button.innerHTML = `<span class="busy-spinner" aria-hidden="true"></span> ${form.dataset.busyLabel || 'Un instant…'}`;
         }
 
         if (waiting) {

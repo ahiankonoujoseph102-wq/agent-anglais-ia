@@ -69,6 +69,7 @@ const ui = {
     waitNote: $('wait-note'), waitText: $('wait-text'), nudge: $('nudge'),
     interrupt: $('interrupt'), pause: $('pause'), mute: $('mute'), pauseNote: $('pause-note'),
     stageNotes: $('stage-notes'), subtitlesHome: $('subtitles-home'),
+    stageAlert: $('stage-alert'), stageAlertText: $('stage-alert-text'), stageAlertResume: $('stage-alert-resume'),
 };
 const teacherName = root.dataset.teacherName || 'Le professeur';
 
@@ -119,6 +120,23 @@ function placeBoard() {
 
 placeBoard();
 wideBoard?.addEventListener?.('change', placeBoard);
+
+/**
+ * La séance commence : le tableau s'ouvre aussi sur téléphone (replié avant, pour garder « Commencer » visible) ;
+ * l'élément dont parle le professeur y vient tout seul. Une seule fois : l'élève peut ensuite le replier.
+ */
+function openBoardOnce() {
+    if (boardEl && !state.boardOpened) {
+        state.boardOpened = true;
+        boardEl.open = true;
+
+        // Téléphone : Teacher Joe et le tableau ensemble dans l'écran, sans que l'élève ait à défiler.
+        if (!wideBoard?.matches) {
+            const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+            document.querySelector('.live-stage')?.scrollIntoView?.({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+        }
+    }
+}
 boardEl?.querySelector('[data-board-translations]')?.addEventListener('change', (event) => {
     boardEl.classList.toggle('show-translations', event.target.checked);
 });
@@ -465,10 +483,13 @@ const MESSAGES = {
     unavailable: WAIT.unavailable,
     reconnecting: WAIT.reconnecting,
     // Sans accord masculin ou féminin : le même texte pour Teacher Joe et Teacher Rose.
-    quota: `Beaucoup d'élèves parlent avec ${teacherName} en ce moment. Réessayez dans quelques minutes : votre temps non utilisé reste disponible.`,
+    // Jamais « limite » ni « fournisseur » pour l'élève : un petit problème de connexion, revenir dans deux minutes.
+    quota: `${teacherName} a un petit problème de connexion. Revenez dans deux minutes au plus : votre temps non utilisé reste disponible.`,
     pauseTooLong: 'La pause a duré trop longtemps : la conversation est terminée. Le temps déjà utilisé est décompté.',
     slow: WAIT.slow,
     stuck: WAIT.stuck,
+    stuckAuto: WAIT.stuck_auto ?? WAIT.stuck,
+    teacherDown: WAIT.teacher_down ?? WAIT.cut,
     nudged: WAIT.nudged,
     superseded: WAIT.superseded,
 };
@@ -841,6 +862,11 @@ function teacherSoundStarted(at, audioAt = Date.now()) {
     state.teacherSounding = true;
     hideWaitNote();
     state.nudgedAt = 0;
+    state.cueSentAt = 0;
+    state.teacherDown = false;
+    state.providerActivityAt = Date.now();
+    // Il parle de nouveau : les reconnexions automatiques sont de nouveau permises.
+    state.autoReconnects = 0;
     const record = state.turns.teacherSound(at);
 
     if (record) {
@@ -1367,6 +1393,7 @@ function playAudio(base64) {
     }
 
     state.awaitingSince = 0;
+    state.cueSentAt = 0;
     state.learnerHeardAt = 0;
     state.closing?.heard(clock());
     const { context, voice, sources, scheduler, resampler } = state.audio;
@@ -1610,27 +1637,84 @@ function watchTurn() {
     }
 
     const waiting = state.turns.waiting(now);
+    const stuckMs = (audioConfig.stuck_seconds ?? 20) * 1000;
+    // Réponse commencée puis plus rien (voix coupée au milieu d'une phrase) : comme une absence de réponse.
+    // Indication envoyée (reprise, préavis…) et aucune voix depuis : même chose.
+    const stalled = !teacherSpeaking() && ((state.generating && state.providerActivityAt > 0
+        && now - state.providerActivityAt >= stuckMs) || (state.cueSentAt > 0 && now - state.cueSentAt >= stuckMs));
 
-    if (waiting === 'thinking' && state.turns.warnOnce('thinking')) {
+    if (state.nudgedAt) {
+        // Relancé tout seul, toujours rien : le problème est de son côté, la connexion est rouverte.
+        if (now - state.nudgedAt >= (audioConfig.stuck_reconnect_seconds ?? 15) * 1000) {
+            forceReconnect();
+        }
+    } else if ((waiting === 'stuck' && state.turns.warnOnce('stuck')) || stalled) {
+        logEvent('no_answer', `${audioConfig.stuck_seconds ?? 20} secondes${stalled ? ', voix coupée' : ''}`);
+        autoNudge();
+    } else if (waiting === 'thinking' && state.turns.warnOnce('thinking')) {
         showWaitNote(MESSAGES.slow, false);
         logEvent('no_answer', `${audioConfig.no_answer_seconds ?? 8} secondes`);
-    } else if (waiting === 'stuck' && !state.nudgedAt && state.turns.warnOnce('stuck')) {
-        showWaitNote(MESSAGES.stuck, true);
-        logEvent('no_answer', `${audioConfig.stuck_seconds ?? 20} secondes`);
-    } else if (state.nudgedAt && now - state.nudgedAt > (audioConfig.stuck_seconds ?? 20) * 1000) {
-        // Relancé, toujours rien : le bouton revient.
-        state.nudgedAt = 0;
-        showWaitNote(MESSAGES.stuck, true);
     }
 }
 
+/**
+ * Aucune réponse : le site relance le professeur tout seul (l'élève n'a rien à chercher), avec un message SUR le
+ * professeur.
+ */
+function autoNudge() {
+    state.nudgedAt = Date.now();
+    state.providerActivityAt = Date.now();
+    state.awaitingSince = 0;
+    state.cueSentAt = 0;
+    showWaitNote(MESSAGES.stuckAuto, false);
+    logEvent('nudge', 'automatique');
+    sendText(state.config?.cues?.nudge);
+}
+
+/**
+ * Toujours rien après la relance : la connexion au professeur est fermée puis rouverte (reprise de la même
+ * conversation) ; après les essais automatiques, la séance s'arrête proprement (temps en pause, « Reprendre »).
+ */
+function forceReconnect() {
+    state.nudgedAt = 0;
+
+    // Déjà rouvert une fois sans qu'il reparle : inutile d'insister, la séance s'arrête proprement tout de suite.
+    if (state.teacherDown) {
+        state.autoReconnects = MAX_AUTO_RECONNECTS;
+    }
+
+    state.teacherDown = true;
+    state.generating = false;
+    logEvent('reconnect', 'aucune réponse du professeur');
+    const transport = state.transport;
+    transport?.close?.();
+    onClose({ reason: 'aucune réponse du professeur' });
+}
+
+/** Message affiché SUR le professeur (là où l'élève regarde) ; avec « Reprendre la séance » si la séance est arrêtée. */
+function stageAlert(text, resume = false) {
+    if (!ui.stageAlert) {
+        return;
+    }
+
+    ui.stageAlertText.textContent = text ?? '';
+    ui.stageAlertResume.hidden = !resume;
+    ui.stageAlert.hidden = !text;
+}
+
 function showWaitNote(text, withButton) {
-    ui.waitText.textContent = text;
+    // Sur le professeur, là où l'élève regarde (plus seulement dans la colonne des commandes, plus bas).
+    stageAlert(text);
     ui.nudge.hidden = !withButton;
-    ui.waitNote.hidden = false;
+    ui.waitNote.hidden = !withButton;
+    ui.waitText.textContent = withButton ? text : '';
 }
 
 function hideWaitNote() {
+    if (ui.stageAlert && !ui.stageAlert.hidden && ui.stageAlertResume.hidden) {
+        stageAlert('');
+    }
+
     if (ui.waitNote && !ui.waitNote.hidden) {
         ui.waitNote.hidden = true;
         ui.nudge.hidden = true;
@@ -1663,7 +1747,9 @@ async function connect({ planned = false, failed = null } = {}) {
         }
 
         // Aucun fournisseur ne répond : message clair et WhatsApp, jamais le nom d'un fournisseur.
-        const unavailable = result.status === 503 && MESSAGES.unavailable;
+        // Trop d'essais rapprochés (429) : jamais le message anglais du serveur, le même message simple que pour une
+        // coupure du professeur.
+        const unavailable = (result.status === 503 || result.status === 429) && MESSAGES.unavailable;
         const message = unavailable ? MESSAGES.unavailable : (result.data.quota ? MESSAGES.quota : (result.data.message || MESSAGES.network));
         document.getElementById('whatsapp-help')?.toggleAttribute('hidden', !unavailable);
 
@@ -1756,6 +1842,7 @@ function connectionFailed(message) {
     } else {
         setStatus('Connexion coupée');
         showError(`${message} ${MESSAGES.cutAgain}`);
+        stageAlert(state.teacherDown ? MESSAGES.teacherDown : `${message} ${MESSAGES.cutAgain}`, true);
         ui.resume.hidden = false;
     }
 }
@@ -1790,8 +1877,11 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
 
             setStatus('En conversation');
             showError('');
+            stageAlert('');
+            state.providerActivityAt = Date.now();
             setPhase('live');
             ui.intro.hidden = true;
+            openBoardOnce();
             ui.subtitles.hidden = false;
             ui.resume.hidden = true;
             ui.stop.hidden = false;
@@ -1829,6 +1919,7 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
 
         onAudio(base64) {
             if (current()) {
+                state.providerActivityAt = Date.now();
                 state.spoke = true;
                 playAudio(base64);
             }
@@ -1842,6 +1933,8 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             if (!current()) {
                 return;
             }
+
+            state.providerActivityAt = Date.now();
 
             state.spoke = true;
 
@@ -1866,6 +1959,8 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             if (!current()) {
                 return;
             }
+
+            state.providerActivityAt = Date.now();
 
             state.generating = true;
             state.turns.providerResponding(Date.now());
@@ -1948,6 +2043,8 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
                 return;
             }
 
+            state.providerActivityAt = Date.now();
+
             state.spoke = true;
             state.learnerLine = null;
 
@@ -1990,6 +2087,8 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
             if (!current()) {
                 return;
             }
+
+            state.providerActivityAt = Date.now();
 
             state.end.turnComplete(clock());
             state.closing?.turnComplete(clock());
@@ -2080,6 +2179,8 @@ function cue(text) {
 
     sendText(text);
     state.awaitingSince = Date.now();
+    // Gardé jusqu'à sa première voix (awaitingSince, lui, s'efface au bout de 12 secondes pour l'affichage).
+    state.cueSentAt = Date.now();
     renderTurn();
 }
 
@@ -2336,10 +2437,11 @@ function onClose(event) {
     heartbeat();
     logEvent('provider_error', `${state.transport?.provider ?? ''} : connexion fermée${event.code ? ` (${event.code})` : ''}${event.reason ? `, ${event.reason}` : ''}`.slice(0, 200));
 
+    // Fournisseur à sa limite en pleine séance : rien de technique pour l'élève ; la séance s'arrête proprement
+    // (temps en pause), message sur le professeur et « Reprendre la séance » dans deux minutes au plus.
     if (/quota|exhausted|rate limit/i.test(event.reason ?? '')) {
-        fail(MESSAGES.quota);
-
-        return;
+        state.teacherDown = true;
+        state.autoReconnects = MAX_AUTO_RECONNECTS;
     }
 
     stopPlayback();
@@ -2349,13 +2451,17 @@ function onClose(event) {
         state.turns.reset();
         logEvent('reconnect', 'automatique');
         setStatus(MESSAGES.reconnecting ?? 'Reconnexion…');
+        stageAlert(state.teacherDown ? MESSAGES.stuckAuto : MESSAGES.reconnecting);
         setTimeout(() => connect(), 1500);
 
         return;
     }
 
+    // La séance s'arrête proprement : le temps de la coupure est en pause, « Reprendre la séance » sur le professeur.
+    const message = state.teacherDown ? MESSAGES.teacherDown : MESSAGES.cut;
     setStatus('Connexion coupée');
-    showError(MESSAGES.cut);
+    showError(message);
+    stageAlert(message, true);
     ui.resume.hidden = false;
 }
 
@@ -2835,13 +2941,17 @@ ui.stop.addEventListener('click', async () => {
         finish('user');
     }
 });
-ui.resume.addEventListener('click', () => {
+function resumeSession() {
     ui.resume.hidden = true;
+    stageAlert(MESSAGES.reconnecting);
     state.autoReconnects = 0;
     state.turns.reset();
     logEvent('reconnect', 'bouton « Reprendre la séance »');
     connect();
-});
+}
+
+ui.resume.addEventListener('click', resumeSession);
+ui.stageAlertResume?.addEventListener('click', resumeSession);
 
 // Page fermée ou quittée : on prévient le serveur pour clore la conversation.
 window.addEventListener('pagehide', () => {

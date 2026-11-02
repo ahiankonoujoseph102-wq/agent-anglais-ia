@@ -833,6 +833,7 @@ html:not(.js) .teacher-news-later { display: none; }
 #record-time { font-variant-numeric: tabular-nums; }
 @keyframes recorder-blink { 50% { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { .recorder-dot { animation: none; } }
+.live-stage { position: relative; scroll-margin-top: 76px; }
 /* Paysage (téléphone couché) et ordinateur : le professeur à gauche, toujours entier à l'écran,
    les commandes à droite ; « Commencer » visible sans faire défiler. */
 @media (min-width: 900px), (orientation: landscape) and (max-height: 560px) {
@@ -1450,7 +1451,11 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .board-phase { flex: none; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--c-accent); color: var(--c-on-accent); font-size: var(--fs-xs); font-weight: var(--fw-heavy); }
 .board-now { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-sm); color: var(--c-on-dark-muted); }
 .board[open] .board-now { display: none; }
-.board-body { padding: 0 var(--space-3) var(--space-3); max-height: 42vh; overflow-y: auto; }
+.board-body { position: relative; padding: 0 var(--space-3) var(--space-3); max-height: 42vh; overflow-y: auto; }
+/* « Suivez au tableau » : en haut du tableau, pour que l'élève sache que ce que dit le professeur y est écrit. */
+.board-follow { display: flex; align-items: center; gap: 6px; margin: 0 0 var(--space-2); font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--c-accent); }
+.board-follow .icon { width: 14px; height: 14px; flex: none; animation: board-follow 1.6s ease-in-out infinite; }
+@keyframes board-follow { 50% { transform: translateY(3px); } }
 .board-title { color: var(--c-on-dark); font-size: var(--fs-lg); margin: 0 0 var(--space-2); }
 .board-heading { margin: var(--space-3) 0 var(--space-1); font-size: var(--fs-xs); font-weight: var(--fw-bold); text-transform: uppercase; letter-spacing: .06em; color: var(--c-accent); }
 .board-list, .board-words { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
@@ -1461,6 +1466,8 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 .board-item.is-seen { border-left-color: var(--c-on-dark-line); border-left-color: rgba(255, 255, 255, .45); }
 .board-item.is-lit { background: var(--c-accent); color: var(--c-on-accent); border-left-color: var(--c-surface); animation: board-lit var(--dur-slow) var(--ease); }
 .board-item.is-lit .board-fr { color: var(--c-on-accent); }
+/* Flèche devant l'élément dont parle le professeur : l'œil le trouve tout de suite. */
+.board-item.is-lit::before { content: ""; position: absolute; left: -11px; top: 50%; margin-top: -6px; border: 6px solid transparent; border-left: 7px solid var(--c-accent); }
 @keyframes board-lit { from { transform: scale(.98); } to { transform: none; } }
 .board[data-translations="discreet"] .board-fr { font-size: var(--fs-xs); opacity: .8; }
 .board[data-translations="hidden"] .board-fr { display: none; }
@@ -1472,7 +1479,21 @@ main [id], main h1, main h2 { scroll-margin-top: 84px; }
 @media (min-width: 900px), (orientation: landscape) and (max-height: 560px) {
     #board-wide .board-body { max-height: min(36vh, 320px); }
 }
-@media (prefers-reduced-motion: reduce) { .board-item.is-lit { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .board-item.is-lit, .board-follow .icon { animation: none; } }
+/* Téléphone pendant la séance : Teacher Joe un peu plus petit et le tableau ouvert dessous, les deux dans l'écran. */
+@media (max-width: 899px) and (min-height: 561px), (max-width: 899px) and (orientation: portrait) {
+    .live[data-phase="live"] .live-stage:has(#board-home .board) .teacher-3d .teacher3d-stage { height: clamp(150px, 27vh, 260px); height: clamp(150px, 27svh, 260px); }
+    .live[data-phase="live"] .live-stage:has(#board-home .board) .face { height: clamp(130px, 24vh, 225px); height: clamp(130px, 24svh, 225px); width: auto; }
+    .live[data-phase="live"] #board-home .board-body { max-height: 34vh; max-height: 34svh; }
+}
+
+/* Problème de connexion : le message s'affiche SUR le professeur, là où l'élève regarde (.live-stage est
+   positionné : relative sur téléphone, sticky sur grand écran). */
+.stage-alert { position: absolute; top: var(--space-2); left: var(--space-2); right: var(--space-2); z-index: 5; display: flex; gap: var(--space-2); align-items: flex-start; padding: var(--space-3); border-radius: var(--radius); background: var(--c-warning-soft); color: var(--c-warning); border: 1px solid var(--c-warning-line); box-shadow: var(--shadow); font-weight: var(--fw-bold); }
+.stage-alert[hidden] { display: none; }
+.stage-alert > .icon { flex: none; margin-top: 2px; }
+.stage-alert p { margin: 0; }
+.stage-alert .btn { margin-top: var(--space-2); }
 
 /* Accueil : « Comment se passe votre cours avec Teacher Joe ? » (section bleu nuit). Quatre temps en cartes compactes
    (numéro + texte), aperçu du Tableau (mêmes classes que la séance, sans script), deux points forts en une ligne. */
@@ -2083,6 +2104,17 @@ body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260p
 .star-choices input:checked ~ label, .star-choices label:hover, .star-choices label:hover ~ label { color: var(--c-accent); }
 .star-choices input:focus-visible + label { outline: 3px solid var(--c-focus); outline-offset: 2px; border-radius: var(--radius-sm); }
 .review-form textarea { width: 100%; }
+/* Étapes du formulaire d'avis (1, 2, 3) et note dite en clair. */
+.review-step { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-right: 6px; border-radius: 50%; background: var(--c-primary); color: var(--c-on-dark); font-size: var(--fs-xs); font-weight: var(--fw-heavy); vertical-align: 1px; }
+.review-scale { margin: 0 0 var(--space-2); }
+.review-step-line { margin: var(--space-3) 0 var(--space-2); font-weight: var(--fw-bold); }
+.star-chosen { margin: var(--space-2) 0 0; font-weight: var(--fw-bold); color: var(--c-accent-strong); }
+.star-chosen span { display: none; }
+.star-picker:not(:has(input:checked)) .star-chosen [data-for="0"],
+.star-picker:has(#note-1:checked) .star-chosen [data-for="1"], .star-picker:has(#note-2:checked) .star-chosen [data-for="2"],
+.star-picker:has(#note-3:checked) .star-chosen [data-for="3"], .star-picker:has(#note-4:checked) .star-chosen [data-for="4"],
+.star-picker:has(#note-5:checked) .star-chosen [data-for="5"] { display: inline; }
+.star-picker:not(:has(input:checked)) .star-chosen { color: var(--c-muted); font-weight: normal; }
 
 /* Bandeau de phrases qui défile (accueil) : seulement transform, en pause au survol ou au toucher ; immobile avec
    « réduire les animations » (on le fait alors défiler à la main). Jamais plus large que la page. */

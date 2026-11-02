@@ -25,6 +25,7 @@
         'instant_seconds' => (float) config('platform.live.instant_seconds'),
         'no_answer_seconds' => (float) config('platform.live.no_answer_seconds'),
         'stuck_seconds' => (float) config('platform.live.stuck_seconds'),
+        'stuck_reconnect_seconds' => (float) config('platform.live.stuck_reconnect_seconds'),
         'voice_stuck_seconds' => (float) config('platform.live.voice_stuck_seconds'),
         'voice_gap_hold_seconds' => (float) config('platform.live.voice_gap_hold_seconds'),
         'greeting_wait_seconds' => (float) config('platform.live.greeting_wait_seconds'),
@@ -133,6 +134,15 @@
                     <progress max="100" value="0" aria-hidden="true"></progress>
                 </div>
             </div>
+            {{-- Problème de connexion ou professeur qui ne répond plus : le message s'affiche SUR le professeur, là où
+                 l'élève regarde (jamais seulement plus bas dans la page). --}}
+            <div id="stage-alert" class="stage-alert" role="alert" hidden>
+                <x-icon name="wifi-off" />
+                <div>
+                    <p id="stage-alert-text"></p>
+                    <button type="button" id="stage-alert-resume" class="btn btn-accent" hidden><x-icon name="refresh" /> Reprendre la séance</button>
+                </div>
+            </div>
             <button type="button" id="teacher3d-toggle" class="btn btn-link teacher3d-toggle" hidden></button>
 
             @if ($mode === 'lesson')
@@ -142,7 +152,7 @@
 
             {{-- Séance du jour : le tableau, sous Teacher Joe sur téléphone (replié), déplacé à droite sur grand écran. --}}
             @if (! empty($board))
-                <div id="board-home"><x-live-board :board="$board" :translations="$boardTranslations ?? 'show'" /></div>
+                <div id="board-home"><x-live-board :board="$board" :translations="$boardTranslations ?? 'show'" :teacher-name="$teacherName" /></div>
             @else
                 {{-- Évaluation : le tableau de la mini-leçon personnelle y apparaît après le verdict (live-session.js). --}}
                 <div id="board-home"></div>

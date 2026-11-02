@@ -81,9 +81,10 @@ class SiteNavigationTest extends TestCase
     {
         $script = file_get_contents(public_path('js/app.js'));
 
-        // Un second toucher pendant l'envoi est ignoré, le bouton dit « Envoi en cours… ».
+        // Un second toucher pendant l'envoi est ignoré, le bouton dit « Un instant… » (jamais « Envoi en cours… »).
         $this->assertStringContainsString("if (form.dataset.busy) {\n        event.preventDefault();", $script);
-        $this->assertStringContainsString('Envoi en cours…', $script);
+        $this->assertStringContainsString('Un instant…', $script);
+        $this->assertStringNotContainsString("'Envoi en cours", $script);
         $this->assertStringContainsString("button.setAttribute('aria-disabled', 'true')", $script);
         // Après confirmation d'une action grave, le bouton passe aussi en « en cours ».
         $this->assertStringContainsString("markBusy(form, form.querySelector('button[type=\"submit\"], button:not([type])'));\n    form.submit();", $script);

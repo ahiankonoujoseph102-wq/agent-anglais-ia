@@ -102,7 +102,9 @@
                 </fieldset>
             @endif
 
-            <button type="submit" class="btn btn-accent btn-block btn-lg">{{ $step < $steps ? 'Continuer' : ($editing ? 'Enregistrer mes objectifs' : 'Construire mon programme') }} <x-icon name="arrow-right" /></button>
+            {{-- Attente nommée par ce qui se passe vraiment (jamais « Envoi en cours… ») : la construction du programme
+                 prend quelques secondes. --}}
+            <button type="submit" data-busy-label="{{ $step < $steps ? 'Un instant…' : ($editing ? 'Mise à jour de votre programme…' : 'Construction de votre programme…') }}" class="btn btn-accent btn-block btn-lg">{{ $step < $steps ? 'Continuer' : ($editing ? 'Enregistrer mes objectifs' : 'Construire mon programme') }} <x-icon name="arrow-right" /></button>
         </form>
 
         @if ($step > 1)

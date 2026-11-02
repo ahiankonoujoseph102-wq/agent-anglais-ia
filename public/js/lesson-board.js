@@ -253,6 +253,14 @@ export class BoardTracker {
 }
 
 /**
+ * Position du tableau (en pixels) qui place l'élément allumé au tiers haut de sa partie visible.
+ * Fonction pure, testée par tests/js/lesson-board.test.mjs.
+ */
+export function followTop(itemTop, itemHeight, viewHeight) {
+    return Math.round(itemTop - Math.max(0, (viewHeight - itemHeight) / 3));
+}
+
+/**
  * Affichage du tableau (#board) : étape en cours, élément allumé, éléments déjà vus.
  */
 export class BoardView {
@@ -293,6 +301,24 @@ export class BoardView {
         if (this.nowEl) {
             this.nowEl.textContent = el.dataset.say;
         }
+
+        this.follow(el);
+    }
+
+    /**
+     * L'élément dont parle le professeur vient tout seul au milieu du tableau : seul le tableau défile, jamais la page,
+     * et l'élève n'a rien à chercher. Saut direct avec « réduire les animations ».
+     */
+    follow(el) {
+        const body = el.closest?.('.board-body');
+
+        if (!body || typeof body.scrollTo !== 'function') {
+            return;
+        }
+
+        const top = Math.max(0, followTop(el.offsetTop, el.offsetHeight, body.clientHeight));
+        const reduce = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+        body.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
     }
 
     /** Change l'étape affichée ; vrai si elle a changé (la séance passe à un autre temps). */

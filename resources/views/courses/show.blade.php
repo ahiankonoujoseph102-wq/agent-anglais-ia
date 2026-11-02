@@ -56,7 +56,7 @@
                 </details>
             @endif
 
-            <form method="POST" action="{{ route('courses.part', $course) }}" class="course-part-form" data-long-submit data-timeout="{{ $partLimits['browser_timeout'] }}" data-busy-label="{{ $byParts ? 'Lecture de ces pages…' : 'Envoi en cours…' }}" novalidate>
+            <form method="POST" action="{{ route('courses.part', $course) }}" class="course-part-form" data-long-submit data-timeout="{{ $partLimits['browser_timeout'] }}" data-busy-label="{{ $byParts ? 'Lecture de ces pages…' : 'Un instant…' }}" novalidate>
                 @csrf
                 <div class="course-part-pages">
                     <x-input name="from" label="De la page" type="number" inputmode="numeric" min="1" :max="$course->page_count" />

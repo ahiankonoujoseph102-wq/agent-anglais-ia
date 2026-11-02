@@ -555,19 +555,25 @@ return [
         'instant_seconds' => 2,
         // Toujours aucune voix du professeur : « La connexion est un peu lente, Teacher Joe arrive… ».
         'no_answer_seconds' => 8,
-        // Toujours rien : message et bouton « Relancer Teacher Joe ».
+        // Toujours rien : le site relance Teacher Joe tout seul (message près du professeur, sans bouton à chercher).
         'stuck_seconds' => 20,
+        // Après la relance automatique, toujours aucune réponse pendant ce temps : la connexion est rouverte.
+        'stuck_reconnect_seconds' => 15,
         // Textes de l'attente et des coupures (marqueur :teacher). Jamais « réfléchit », « chargement » ni
         // « traitement », jamais un nom de fournisseur.
         'messages' => [
             'instant' => 'Un instant…',
             'slow' => 'La connexion est un peu lente, :teacher arrive…',
             'stuck' => ':teacher ne répond pas. Touchez « Relancer :teacher » pour reprendre.',
+            // Aucune réponse : le site le relance tout seul, puis rouvre la connexion (problème de son côté).
+            'stuck_auto' => 'Petit problème de connexion avec :teacher. Un instant, nous rétablissons la séance…',
             'nudged' => ':teacher va vous répondre…',
+            // Toujours rien après les relances : la séance est arrêtée proprement, sans perte de minutes.
+            'teacher_down' => ':teacher a un problème de connexion. Nous arrêtons la séance pour le moment : le temps de la coupure est mis en pause, vous ne perdez pas de minutes. Reprenez-la dans deux minutes au plus avec « Reprendre la séance ».',
             'reconnecting' => ':teacher revient, un instant…',
             'cut' => ':rule Vérifiez votre connexion internet, puis touchez « Reprendre la séance ».',
             'cut_again' => ':rule Touchez « Reprendre la séance » pour réessayer, ou relancez la séance un peu plus tard.',
-            'unavailable' => ':teacher n\'est pas joignable pour le moment. Réessayez dans quelques minutes, ou écrivez-nous sur WhatsApp.',
+            'unavailable' => ':teacher a un petit problème de connexion. Revenez dans deux minutes au plus, ou écrivez-nous sur WhatsApp.',
             // La même séance ouverte sur une autre page (App\Support\Live\LivePage) : cette page s'arrête.
             'superseded' => 'Cette séance est maintenant ouverte sur un autre écran ou dans un autre onglet : elle continue là-bas.',
         ],

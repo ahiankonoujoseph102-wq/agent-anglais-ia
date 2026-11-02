@@ -70,7 +70,7 @@ class ScreenMatchesTeacherTest extends TestCase
         $session = file_get_contents(public_path('js/live-session.js'));
 
         $this->assertStringNotContainsString('est très demandé', $session);
-        $this->assertStringContainsString("Beaucoup d'élèves parlent avec \${teacherName} en ce moment.", $session);
+        $this->assertStringContainsString('${teacherName} a un petit problème de connexion. Revenez dans deux minutes au plus', $session);
         // Après le niveau, le professeur fait d'abord la mini-leçon : le minuteur ne dit plus « Vos questions ».
         $this->assertStringContainsString("'Mini-leçon et questions'", $session);
     }

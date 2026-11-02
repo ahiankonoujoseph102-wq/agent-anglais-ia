@@ -20,17 +20,25 @@
         @method('PUT')
 
         <fieldset class="star-picker">
-            <legend>Votre note</legend>
+            <legend><span class="review-step">1</span> Touchez les étoiles pour donner votre note</legend>
+            <p class="small muted review-scale">1 étoile : pas content · 5 étoiles : très content</p>
             <div class="star-choices">
                 @for ($i = 5; $i >= 1; $i--)
                     <input type="radio" name="rating" id="note-{{ $i }}" value="{{ $i }}" @checked($rating === $i) required>
                     <label for="note-{{ $i }}" title="{{ $i }} sur 5"><x-icon name="star" /><span class="sr-only">{{ $i }} sur 5</span></label>
                 @endfor
             </div>
+            {{-- Note choisie, dite en clair (CSS :has, sans JavaScript). --}}
+            <p class="star-chosen" aria-hidden="true">
+                <span data-for="0">Aucune note choisie pour le moment.</span>
+                @foreach ([1 => 'pas content', 2 => 'peu content', 3 => 'moyen', 4 => 'content', 5 => 'très content'] as $value => $word)
+                    <span data-for="{{ $value }}">Votre note : {{ $value }} sur 5 ({{ $word }})</span>
+                @endforeach
+            </p>
             @error('rating')<p class="error">{{ $message }}</p>@enderror
         </fieldset>
 
-        <label for="body">Votre avis</label>
+        <label for="body"><span class="review-step">2</span> Écrivez votre avis en quelques mots</label>
         {{-- Débuts de phrase à toucher (public/js/app.js, data-insert) : l'élève écrit la suite lui-même. --}}
         <div class="review-starters" aria-label="Idées pour commencer">
             @foreach ($starters as $starter)
@@ -41,6 +49,7 @@
         <p class="hint small" id="body-hint">De {{ config('platform.reviews.min_characters') }} à {{ $max }} caractères. Pas de numéro de téléphone ni de lien.</p>
         @error('body')<p class="error">{{ $message }}</p>@enderror
 
+        <p class="review-step-line"><span class="review-step">3</span> Cochez la case, puis touchez le bouton orange</p>
         <label class="checkbox option">
             <input type="checkbox" name="consent" value="1" @checked(old('consent', $review !== null)) required>
             <span>J'accepte que mon avis soit publié sur {{ $platform }} avec mon prénom, l'initiale de mon nom, mon pays et mon niveau.</span>
