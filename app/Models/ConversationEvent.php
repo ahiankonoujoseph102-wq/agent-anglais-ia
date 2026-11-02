@@ -19,6 +19,7 @@ class ConversationEvent extends Model
         'reconnect' => 'Reconnexion',
         'provider_error' => 'Erreur ou coupure du fournisseur',
         'mic_silent' => 'Alerte « Nous ne vous entendons pas »',
+        'mic_call_mode' => 'Mode appel du micro (annulation d\'écho)',
         'gate_closed' => 'Micro fermé',
         'gate_opened' => 'Micro rouvert',
         'gate_safety' => 'Micro rouvert par sécurité',

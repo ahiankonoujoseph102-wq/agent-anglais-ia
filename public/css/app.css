@@ -2140,3 +2140,7 @@ body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260p
 .board-review { margin-top: var(--space-2); }
 .board-review .board-body { max-height: none; overflow: visible; }
 .board-review .board-title { font-size: var(--fs-md); }
+
+/* « Mode appel » du micro (Android) : lien de 44 pixels de haut sous le témoin du micro. */
+.call-mode { display: inline-flex; align-items: center; min-height: 44px; text-align: left; flex: 1 1 100%; }
+#call-mode-note { margin: 0; flex: 1 1 100%; }
