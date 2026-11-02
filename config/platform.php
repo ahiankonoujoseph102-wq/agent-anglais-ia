@@ -526,6 +526,17 @@ return [
         'echo_cancellation_android' => in_array(env('LIVE_ECHO_CANCELLATION_ANDROID'), [true, '1', 'on', 'yes'], true),
         // Sans aucun son capté pendant ce temps alors que c'est à l'apprenant de parler : message.
         'silent_mic_seconds' => 8,
+        // Micro trop faible (public/js/mic-input.js, MicBoost) : volume du micro remonté automatiquement d'après
+        // les crêtes de la VOIX de l'apprenant (gain 1 pour une voix normale), jusqu'à `max` fois, sans jamais
+        // porter le bruit de fond au-dessus de `noise_ceiling` ; limiteur ensuite (aucune saturation).
+        // LIVE_MIC_BOOST=false le coupe.
+        'mic_boost' => [
+            'enabled' => ! in_array(env('LIVE_MIC_BOOST'), [false, '0', 'off', 'no'], true),
+            'max' => 24,
+            'target' => 0.05,
+            'floor' => 0.0002,
+            'noise_ceiling' => 0.006,
+        ],
         // Fin de tour (public/js/turn-watch.js) : la voix de l'apprenant, mesurée dans le navigateur, est finie
         // depuis ce temps et le fournisseur n'a ni clos le tour ni commencé à répondre (bruit de fond, longue
         // réponse) : le navigateur signale lui-même la fin du tour, en envoyant un VRAI silence que la détection du

@@ -1,7 +1,7 @@
 // Micro de l'apprenant (public/js/mic-input.js). Lancé par tests/Feature/JavaScriptTest.php.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { listMicrophones, micLabel, rms, meterLevel, SilenceWatch } from '../../public/js/mic-input.js';
+import { listMicrophones, micLabel, rms, meterLevel, SilenceWatch, MicBoost } from '../../public/js/mic-input.js';
 
 const mic = (deviceId, label, kind = 'audioinput') => ({ deviceId, label, kind });
 
@@ -62,4 +62,50 @@ test('pas d\'alerte quand le professeur parle, en pause ou micro coupé', () => 
     for (let t = 0; t < 20; t += 0.5) {
         assert.equal(watch.update(t, 0, t % 4 < 2), false);
     }
+});
+
+// Simule une séance : bruit de fond, puis parole, à 30 mesures par seconde.
+function run(boost, { noise, speech, seconds = 6, listening = true }) {
+    let gain = boost.gain;
+    for (let i = 0; i < seconds * 30; i++) {
+        const t = (boost.last ?? 0) + 1 / 30;
+        const talking = Math.floor(i / 30) % 2 === 1;
+        gain = boost.update(t, talking ? speech : noise, listening);
+    }
+    return gain;
+}
+
+test('voix normale : le micro garde son volume', () => {
+    const boost = new MicBoost();
+    assert.equal(run(boost, { noise: 0.002, speech: 0.08 }), 1);
+});
+
+test('voix très faible : le micro est remonté, sans dépasser le maximum', () => {
+    const boost = new MicBoost({ max: 24, target: 0.05 });
+    const gain = run(boost, { noise: 0.0001, speech: 0.002 });
+    assert.ok(gain > 10, `gain ${gain}`);
+    assert.ok(gain <= 24);
+});
+
+test('le bruit de fond seul ne fait jamais monter le volume', () => {
+    const boost = new MicBoost();
+    assert.equal(run(boost, { noise: 0.001, speech: 0.001 }), 1);
+});
+
+test('le bruit de fond remonté reste sous le plafond', () => {
+    const boost = new MicBoost({ max: 24, target: 0.05, noiseCeiling: 0.006 });
+    const gain = run(boost, { noise: 0.001, speech: 0.004 });
+    assert.ok(gain * 0.001 <= 0.006 + 1e-9, `gain ${gain}`);
+});
+
+test('rien ne change en dehors du tour de l\'apprenant', () => {
+    const boost = new MicBoost();
+    assert.equal(run(boost, { noise: 0.0001, speech: 0.002, listening: false }), 1);
+});
+
+test('voix qui redevient forte : le volume redescend aussitôt', () => {
+    const boost = new MicBoost();
+    run(boost, { noise: 0.0001, speech: 0.002 });
+    const gain = boost.update(boost.last + 0.03, 0.2, true);
+    assert.ok(gain <= 1.0001, `gain ${gain}`);
 });

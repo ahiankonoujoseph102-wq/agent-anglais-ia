@@ -46,4 +46,20 @@ class CallModeTest extends TestCase
         $this->assertStringContainsString("const CALL_MODE = 'call-mode';", $js);
         $this->assertArrayHasKey('mic_call_mode', ConversationEvent::KINDS);
     }
+
+    public function test_a_too_weak_microphone_is_turned_up_automatically(): void
+    {
+        $html = $this->actingAs(User::factory()->create())->get('/evaluation')->assertOk()->getContent();
+        $this->assertStringContainsString('"mic_boost":{"max":24', $html);
+
+        $js = file_get_contents(public_path('js/live-session.js'));
+        // Gain automatique puis limiteur, AVANT le bus du micro (envoi, témoin, vidéo) ; un changement de micro le garde.
+        $this->assertStringContainsString('source.connect(micBoost).connect(micLimiter).connect(micBus);', $js);
+        $this->assertStringContainsString('source.connect(micBoost);', $js);
+        $this->assertArrayHasKey('mic_boost', ConversationEvent::KINDS);
+
+        config(['platform.live.mic_boost.enabled' => false]);
+        $html = $this->get('/evaluation')->getContent();
+        $this->assertStringContainsString('"mic_boost":null', $html);
+    }
 }
