@@ -62,6 +62,7 @@ class WelcomeController extends Controller
             'firstName' => $texts['first_name'],
             'firstVisit' => ! $request->boolean('reecouter'),
             'planName' => $texts['plan'],
+            'trial' => $texts['trial'] ?? false,
             'teacher' => $current,
             'teachers' => $teachers,
             'current' => $teachers[$current->key],

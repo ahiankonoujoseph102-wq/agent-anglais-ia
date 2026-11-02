@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AmbassadorController as AdminAmbassadorController
 use App\Http\Controllers\Admin\AssessmentController as AdminAssessmentController;
 use App\Http\Controllers\Admin\AssistantController;
 use App\Http\Controllers\Admin\ConversationController;
+use App\Http\Controllers\Admin\FollowUpController;
 use App\Http\Controllers\Admin\GrantedAccessController;
 use App\Http\Controllers\Admin\IconPreviewController;
 use App\Http\Controllers\Admin\InactiveLearnerController;
@@ -37,6 +38,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Course\CourseReviewController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FollowUpOptOutController;
 use App\Http\Controllers\GuideController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Live\AssessmentController;
@@ -55,6 +57,7 @@ use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\TeacherChoiceController;
+use App\Http\Controllers\TrialController;
 use App\Http\Controllers\WebAppController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Middleware\EnsurePasswordIsChanged;
@@ -118,6 +121,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/mot-de-passe-oublie', [PasswordController::class, 'forgot'])->name('password.forgot');
 });
 
+// « Ne plus recevoir ces e-mails » : lien signé des e-mails de relance, sans connexion (App\Support\Reminders\FollowUps).
+Route::get('/e-mails/relances/{user}/arret', [FollowUpOptOutController::class, 'show'])->middleware('signed')->name('follow-ups.stop');
+Route::post('/e-mails/relances/{user}/arret', [FollowUpOptOutController::class, 'store'])->middleware(['signed', 'throttle:10,1'])->name('follow-ups.stop.store');
+
 Route::middleware('auth')->group(function () {
     Route::post('/deconnexion', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
@@ -126,6 +133,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/mot-de-passe/nouveau', [PasswordController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 
     Route::get('/espace', DashboardController::class)->name('dashboard');
+    // Séance d'essai gratuite : une fois par compte, après l'évaluation (App\Support\Trial).
+    Route::post('/essai-gratuit', [TrialController::class, 'store'])->middleware('throttle:5,1')->name('trial.claim');
     // Choix du professeur (« Mon espace ») : seulement les professeurs prêts (config/teachers.php).
     Route::post('/espace/professeur', [TeacherChoiceController::class, 'update'])->middleware('throttle:30,1')->name('teacher.choose');
     // Suivi des élèves : heure des séances, téléphones abonnés aux rappels, e-mail ajouté depuis l'écran de la séance.
@@ -242,6 +251,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/inscrits/{user}', [UserController::class, 'show'])->name('users.show');
     // Suivi des élèves (séance du jour, régularité, programme) et « Voir son espace » en lecture seule.
     Route::get('/suivi', [LearnerFollowController::class, 'index'])->name('follow.index');
+    // Relances : inscrits sans formule payée, par étape, avec le message WhatsApp prêt et l'état des e-mails.
+    Route::get('/relances', [FollowUpController::class, 'index'])->name('follow-ups.index');
+    Route::get('/relances/{user}/whatsapp', [FollowUpController::class, 'whatsapp'])->name('follow-ups.whatsapp');
     // Avis des élèves : à vérifier, publiés, retirés ; publier, retirer, répondre (jamais modifier le texte).
     Route::get('/avis', [AdminReviewController::class, 'index'])->name('reviews.index');
     Route::post('/avis/{review}/publier', [AdminReviewController::class, 'publish'])->name('reviews.publish');

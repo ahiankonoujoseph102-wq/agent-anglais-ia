@@ -27,6 +27,10 @@ abstract class TestCase extends BaseTestCase
         // enregistrent un verdict ou un bilan sans attendre les minutes d'une vraie séance.
         config(['platform.live.refuse_early_end' => false]);
 
+        // Séance d'essai gratuite et relances : vérifiées par tests/Feature/TrialTest.php et FollowUpsTest.php ;
+        // les autres tests gardent le parcours d'avant (évaluation, puis formule).
+        config(['platform.trial.enabled' => false, 'platform.follow_ups.enabled' => false]);
+
         // Messages vocaux préparés un paragraphe par demande (le faux son des tests ne se recoupe pas) ; les demandes
         // groupées sont vérifiées par tests/Feature/WelcomeFastTest.php avec un vrai WAV.
         config(['platform.speech.group_characters' => 0]);

@@ -11,6 +11,7 @@ use App\Support\Reviews\TimeBonuses;
 use App\Support\Seo;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
+use App\Support\Trial;
 
 /**
  * Fiche de connaissance du site donnée au professeur (resources/teacher/site-guide.md).
@@ -63,6 +64,10 @@ class SiteGuide
             ':operators' => self::operators(),
             // Avis des élèves : minutes offertes lues dans la configuration.
             ':review_minutes' => (string) intdiv(TimeBonuses::seconds(), 60),
+            // Séance d'essai gratuite : durée et validité lues dans la configuration (App\Support\Trial).
+            ':trial_text' => Trial::enabled()
+                ? 'Après l\'évaluation gratuite, un élève qui n\'a jamais payé peut faire UNE séance d\'essai gratuite : '.Trial::minutes().' minutes de vrai cours EN TOUT, à utiliser dans les '.Trial::validity().' (bouton orange « Commencer mon essai gratuit » sur la page de résultat ou dans « Mon espace »). Il répond aux 4 petites questions, son programme est construit, puis il fait la séance du jour avec toi ; il peut aussi essayer « Mes cours », sur le même temps. « Mon espace » affiche « Essai gratuit : encore … ». Une fois le temps utilisé, l\'essai se termine et « Mon espace » propose les formules : pour continuer, il choisit une formule. Une seule fois par compte : n\'en promets jamais un second.'
+                : 'Il n\'y a pas de séance d\'essai gratuite : après l\'évaluation, l\'élève choisit une formule pour commencer ses séances.',
             // Programme d'ambassadeurs : formule, durées et pourcentage lus dans la configuration.
             ':ambassador_page' => preg_replace('#^https?://#', '', Seo::url(route('ambassador.join', [], false))),
             ':ambassador_plan' => (string) Plan::find((string) config('platform.ambassadors.plan'))?->name,

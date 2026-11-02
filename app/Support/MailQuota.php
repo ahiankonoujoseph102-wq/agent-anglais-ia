@@ -7,6 +7,7 @@ use App\Models\CourseReview;
 use App\Models\LearnerInvitation;
 use App\Models\LearnerReminder;
 use App\Models\LessonVideo;
+use App\Support\Reminders\FollowUps;
 
 /**
  * Limite d'envoi d'e-mails du jour (offre gratuite de Brevo : mail.daily_limit, 300 par jour), UN seul compteur pour
@@ -64,7 +65,8 @@ class MailQuota
 
     public static function usedToday(): int
     {
-        return self::reviewsToday() + self::invitationsToday() + self::alertsToday() + self::videosToday() + self::remindersToday();
+        return self::reviewsToday() + self::invitationsToday() + self::alertsToday() + self::videosToday() + self::remindersToday()
+            + FollowUps::sentToday();
     }
 
     /**

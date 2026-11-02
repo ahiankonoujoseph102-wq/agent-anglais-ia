@@ -14,6 +14,7 @@ use App\Support\Speech\SpeechProviders;
 use App\Support\Speech\VoiceMessage;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
+use App\Support\Trial;
 use App\Support\Videos\PresentationScripts;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
@@ -73,7 +74,9 @@ class WelcomeMessage
         $period ??= Greeting::period($user);
         $words = Greeting::words($period);
         $firstName = Greeting::firstName($user->name);
-        $planName = Plan::find($subscription->plan)?->name ?? $subscription->plan_name;
+        // Séance d'essai gratuite : son propre message (jamais une formule payée annoncée).
+        $trial = $subscription->isTrial();
+        $planName = $trial ? Trial::NOTE : (Plan::find($subscription->plan)?->name ?? $subscription->plan_name);
 
         $opening = strtr((string) config('teacher.welcome.opening'), [
             ':greeting' => $words['fr'], ':english' => $words['en'], ':name' => $firstName,
@@ -83,11 +86,12 @@ class WelcomeMessage
             'period' => $period,
             'first_name' => $firstName,
             'opening' => $opening,
-            'paragraphs' => self::paragraphs($planName, (int) $subscription->daily_minutes, $user->activeProgram()->exists(), $teacher),
+            'paragraphs' => self::paragraphs($planName, (int) $subscription->daily_minutes, $user->activeProgram()->exists(), $teacher, $trial),
             'plan' => $planName,
+            'trial' => $trial,
             'teacher' => $teacher,
             // Paragraphe où le professeur se présente : extrait de sa voix sur la page de bienvenue.
-            'introduction' => self::namedParagraphs($planName, (int) $subscription->daily_minutes, $user->activeProgram()->exists(), $teacher)['teacher'] ?? null,
+            'introduction' => self::namedParagraphs($planName, (int) $subscription->daily_minutes, $user->activeProgram()->exists(), $teacher, $trial)['teacher'] ?? null,
         ];
     }
 
@@ -97,9 +101,9 @@ class WelcomeMessage
      *
      * @return list<string>
      */
-    private static function paragraphs(string $planName, int $dailyMinutes, bool $programReady, Teacher $teacher): array
+    private static function paragraphs(string $planName, int $dailyMinutes, bool $programReady, Teacher $teacher, bool $trial = false): array
     {
-        return array_values(self::namedParagraphs($planName, $dailyMinutes, $programReady, $teacher));
+        return array_values(self::namedParagraphs($planName, $dailyMinutes, $programReady, $teacher, $trial));
     }
 
     /**
@@ -107,10 +111,15 @@ class WelcomeMessage
      *
      * @return array<string, string>
      */
-    private static function namedParagraphs(string $planName, int $dailyMinutes, bool $programReady, Teacher $teacher): array
+    private static function namedParagraphs(string $planName, int $dailyMinutes, bool $programReady, Teacher $teacher, bool $trial = false): array
     {
         // Paragraphes propres au professeur (accords au féminin) ; jamais un paragraphe en plus.
         $paragraphs = array_replace((array) config('teacher.welcome.paragraphs', []), array_intersect_key($teacher->welcomeParagraphs(), (array) config('teacher.welcome.paragraphs', [])));
+
+        // Séance d'essai gratuite : ses paragraphes remplacent ceux de même nom (même ordre, jamais un en plus).
+        if ($trial) {
+            $paragraphs = array_replace($paragraphs, array_intersect_key((array) config('teacher.welcome.trial_paragraphs', []), $paragraphs));
+        }
 
         if ($programReady && isset($paragraphs['questionnaire'])) {
             $paragraphs['questionnaire'] = (string) config('teacher.welcome.program_ready');
@@ -122,6 +131,8 @@ class WelcomeMessage
             ':plan' => $planName,
             ':daily_duration' => Duration::format($dailyMinutes * 60),
             ':course_minutes' => Duration::format((int) config('platform.courses.max_session_minutes') * 60),
+            ':valid_hours' => Trial::validity(),
+            ':interrupt' => $teacher->theTeacher(),
         ];
 
         $paragraphs = array_map(fn (string $text) => strtr($text, $replace), $paragraphs);
@@ -170,11 +181,22 @@ class WelcomeMessage
         $messages = [];
 
         foreach ([false, true] as $programReady) {
-            foreach ($plans as $plan) {
+            // Séance d'essai gratuite : son message vient juste après celui de la formule recommandée (la plupart des
+            // nouveaux élèves commencent par l'essai).
+            $trialPlan = Trial::enabled() ? new Plan(key: 'trial', name: Trial::NOTE, dailyMinutes: Trial::minutes(), price: 0, period: '', durationDays: 0) : null;
+            $plansHere = $plans;
+
+            if ($trialPlan !== null) {
+                $first = array_slice($plansHere, 0, 1, true);
+                $plansHere = $first + ['trial' => $trialPlan] + $plansHere;
+            }
+
+            foreach ($plansHere as $plan) {
+                $isTrial = $plan->key === 'trial';
                 $pieces = [];
                 $position = 0;
 
-                foreach (self::namedParagraphs($plan->name, $plan->dailyMinutes, $programReady, $teacher) as $name => $text) {
+                foreach (self::namedParagraphs($plan->name, $plan->dailyMinutes, $programReady, $teacher, $isTrial) as $name => $text) {
                     $position++;
                     $name = $programReady && $name === 'questionnaire' ? 'program_ready' : $name;
                     $pieces[] = ['label' => "Bienvenue, paragraphe {$position} ({$name}, {$plan->name})".self::of($teacher), 'text' => $text];
@@ -350,7 +372,9 @@ class WelcomeMessage
      */
     public static function queueOpening(User $user): void
     {
-        if ($user->welcomed_at !== null) {
+        $seen = $user->activeSubscription?->isTrial() ? $user->trial_welcomed_at : $user->welcomed_at;
+
+        if ($seen !== null) {
             return;
         }
 

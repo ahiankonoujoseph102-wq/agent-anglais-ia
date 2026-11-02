@@ -217,6 +217,17 @@ return [
             'courses' => 'Si vous êtes élève ou étudiant, il y a aussi « Mes cours », dans le menu. Vous photographiez votre leçon ou votre exercice d\'anglais de l\'école, de l\'université ou de votre formation, je vous l\'explique, je réponds à vos questions et je vous guide pour faire vous-même l\'exercice. Une explication dure :course_minutes au plus, et elle prend simplement sur votre temps du jour. C\'est uniquement pour l\'anglais.',
             'closing' => 'Tout est clair ? Alors, c\'est parti ! En anglais : « Let\'s start! » Cela veut dire : c\'est parti ! Touchez le bouton orange, et nous commençons ensemble.',
         ],
+        // Séance d'essai gratuite (App\Support\Trial) : ces paragraphes remplacent ceux de même nom (jamais de formule
+        // payée annoncée, jamais « votre temps revient chaque jour »). :daily_duration = temps de l'essai en tout,
+        // :valid_hours = sa validité, :interrupt = « le professeur » ou « la professeure ».
+        'trial_paragraphs' => [
+            'congratulations' => 'Bienvenue sur :platform, et merci de nous faire confiance pour votre séance d\'essai gratuite !',
+            'listen' => 'Écoutez-moi bien, s\'il vous plaît : en quelques minutes, je vous explique comment profiter pleinement de votre essai.',
+            'lesson' => 'Deuxième étape : votre séance d\'essai avec moi. Vous avez :daily_duration de cours offertes, à utiliser dans les :valid_hours. Je vous enseigne d\'abord la leçon au tableau, nous la pratiquons ensemble, puis vous parlez, et nous terminons par un résumé. Installez-vous dans un endroit calme, gardez votre téléphone près de la bouche, et parlez à voix haute. N\'ayez pas peur de vous tromper : c\'est en parlant que l\'on progresse. En anglais, on dit : « Don\'t be shy ! » Cela veut dire : n\'ayez pas peur !',
+            'lesson_rules' => 'Dans « Mon espace », vous voyez toujours le temps qu\'il vous reste. Quand il est écoulé, la séance s\'arrête toute seule. Pendant que je parle, vous pouvez m\'interrompre avec le bouton « Interrompre :interrupt ». Si la connexion est coupée, reprenez votre séance dès que possible : le temps de la coupure est mis en pause, vous ne perdez pas de minutes.',
+            'courses' => 'Si vous êtes élève ou étudiant, essayez aussi « Mes cours », dans le menu. Vous photographiez votre leçon ou votre exercice d\'anglais de l\'école, de l\'université ou de votre formation, je vous l\'explique et je vous guide pour faire vous-même l\'exercice. Cela prend simplement sur votre temps d\'essai. C\'est uniquement pour l\'anglais.',
+            'closing' => 'Après votre essai, si vous voulez continuer chaque jour avec moi, vous choisirez simplement une formule dans « Mon espace ». Tout est clair ? Alors, c\'est parti ! En anglais : « Let\'s start! » Cela veut dire : c\'est parti ! Touchez le bouton orange, et nous commençons ensemble.',
+        ],
         // Remplace « questionnaire » quand le programme personnel est déjà construit.
         'program_ready' => 'Première étape : votre programme personnel. Il est déjà prêt, construit avec vos réponses, et adapté à votre objectif et à votre rythme. Vous le retrouvez dans « Programme ».',
     ],
@@ -557,6 +568,9 @@ TXT,
         'email_saved' => '[System] The learner has just saved their e-mail address on the screen. Thank them in ONE short sentence in French (« Merci, c\'est enregistré ! »), then continue exactly where you were.',
         // Première séance d'une formule payée (LessonController::isFirstPaidLesson), ajoutée à lesson_start.
         'first_paid_lesson' => ' then, in French, ONE sentence to congratulate and thank them for choosing :platform (« Félicitations … et merci de votre confiance ! », with their first name if you know it), then TWO short sentences on how the lesson goes (I teach you first, we practise, then you talk, and we finish with a summary),',
+        // Séance d'essai gratuite (App\Support\Trial) : présentée au premier tour, et rappelée dans la conclusion.
+        'trial_lesson' => ' then, in French, TWO short sentences: this is their FREE TRIAL lesson of :minutes minutes, to discover how a real lesson goes (I teach you with the board on the screen, we practise, then you talk, and we finish with a summary), and with « Mes cours » in the menu they can also have their school English lesson explained, on the same time,',
+        'trial_conclude' => ' This was their FREE TRIAL session: in this conclusion, just before « :closing_phrase », add in French, word for word: « C\'était votre séance d\'essai gratuite. Pour continuer chaque jour avec moi, choisissez une formule dans Mon espace : votre programme vous attend. » Say it once, warmly, without pressure.',
         // Fin de séance (séance du jour et « Mes cours ») : envoyées d'après le temps restant, quand il ne parle pas.
         'session_announce' => '[System] About one minute remains. Say « :announce_phrase » now, then finish what you are doing. Start nothing new.',
         'lesson_conclude' => '[System] About :seconds seconds remain. Call end_lesson now with the full report if you have not, then give your CONCLUSION once, ending with « :closing_phrase ».',

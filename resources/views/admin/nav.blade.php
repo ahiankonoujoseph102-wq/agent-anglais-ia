@@ -24,6 +24,9 @@
         @if ($pendingReviews > 0)<span class="badge badge-alert">{{ $pendingReviews }}</span>@endif
     </a>
     @endcan
+    @can('admin-route', 'admin.follow-ups.index')
+    <a href="{{ route('admin.follow-ups.index') }}" @class(['active' => request()->routeIs('admin.follow-ups.*')]) @if (request()->routeIs('admin.follow-ups.*')) aria-current="page" @endif><x-icon name="mail" /> Relances</a>
+    @endcan
     @can('admin-route', 'admin.inactive.index')
     <a href="{{ route('admin.inactive.index') }}" @class(['active' => request()->routeIs('admin.inactive.*')]) @if (request()->routeIs('admin.inactive.*')) aria-current="page" @endif><x-icon name="user-off" /> Inactifs</a>
     @endcan

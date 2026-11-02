@@ -43,7 +43,29 @@
             </p>
             <a href="{{ route('payment.show', $pendingPayment) }}" class="btn btn-lg btn-block">Suivre mon paiement <x-icon name="arrow-right" /></a>
         @elseif (! $subscription)
-            @if ($expiredSubscription?->isGranted())
+            @if ($trialOffer)
+                {{-- Séance d'essai gratuite : après l'évaluation, une fois par compte (App\Support\Trial). --}}
+                <h2 id="next-step-title">{{ \App\Support\Trial::minutes() }} minutes de cours offertes</h2>
+                <p>
+                    @if ($user->level)
+                        Votre niveau : {{ $user->level->value }} ({{ $user->level->label() }}).
+                    @endif
+                    Découvrez un vrai cours avec {{ $myTeacher->name() }} avant de choisir : votre programme, la leçon au tableau,
+                    la pratique à l'oral et l'aide à vos cours d'anglais. Gratuit, une fois par compte, à utiliser dans les {{ \App\Support\Trial::validity() }}.
+                </p>
+                <form method="POST" action="{{ route('trial.claim') }}">
+                    @csrf
+                    <button type="submit" class="btn btn-accent btn-lg btn-block btn-next"><x-icon name="gift" /> Commencer mon essai gratuit</button>
+                </form>
+                <a href="{{ route('payment.plans') }}">Voir les formules</a>
+            @elseif ($expiredSubscription?->isTrial())
+                <h2 id="next-step-title">Votre essai gratuit est terminé</h2>
+                <p>
+                    Merci d'avoir essayé un cours avec {{ $myTeacher->name() }}. Pour continuer chaque jour, choisissez une formule :
+                    votre niveau, votre programme et vos erreurs à revoir vous attendent, là où vous les avez laissés.
+                </p>
+                <a href="{{ route('payment.plans') }}" class="btn btn-accent btn-lg btn-block">Choisir ma formule <x-icon name="arrow-right" /></a>
+            @elseif ($expiredSubscription?->isGranted())
                 <h2 id="next-step-title">Votre accès offert est terminé</h2>
                 <p>
                     Votre accès offert à la formule {{ $expiredSubscription->plan_name }} a pris fin le
@@ -106,6 +128,19 @@
                     <p><strong>Devoir :</strong> {{ $lastLesson->homework }}</p>
                 @endif
             @endif
+        @endif
+
+        {{-- Séance d'essai en cours : temps restant, jusqu'à quand, et ce qu'elle permet de découvrir. --}}
+        @if ($trial)
+            <p class="next-card-note">
+                <x-icon name="gift" />
+                <span>
+                    <strong>Essai gratuit : {{ $trialLeft > 0 ? 'encore '.\App\Support\Duration::format($trialLeft) : 'temps utilisé' }}</strong>,
+                    jusqu'au {{ \App\Support\Duration::at($trial->ends_at, false) }}. À découvrir : la séance du jour au tableau, et
+                    « Mes cours » (menu) pour une leçon d'anglais de l'école. Ce temps est partagé entre les deux.
+                    <a href="{{ route('payment.plans') }}">Voir les formules</a>
+                </span>
+            </p>
         @endif
 
         {{-- Accès offert : jusqu'à quand, avec quelle formule. --}}
