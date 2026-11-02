@@ -153,11 +153,10 @@ class LearnerFollowUpTest extends TestCase
     }
 
     /**
-     * Demande du fondateur (2 novembre 2026) : un accès OFFERT reçoit aussi les rappels de séance (e-mail et
-     * notification) ; la séance d'essai gratuite, non (elle a ses propres relances). L'e-mail reste facultatif
-     * pour un accès offert.
+     * Demande du fondateur (2 novembre 2026) : un accès OFFERT et une séance d'essai gratuite reçoivent aussi les
+     * rappels de séance (e-mail et notification). L'e-mail reste facultatif pour eux.
      */
-    public function test_a_granted_access_gets_reminders_but_not_a_free_trial(): void
+    public function test_a_granted_access_and_a_free_trial_get_reminders(): void
     {
         $granted = User::factory()->level(Level::A1)->create(['email' => 'c@example.test', 'country' => 'TG', 'welcomed_at' => now()]);
         AccessGrant::offer($granted, User::factory()->admin()->create(), Plan::find('essentiel'), 7, null);
@@ -165,17 +164,29 @@ class LearnerFollowUpTest extends TestCase
         $this->device($granted);
 
         $trial = User::factory()->level(Level::A1)->create(['email' => 'd@example.test', 'country' => 'TG']);
-        Subscription::factory()->for($trial)->forPlan('essentiel')->create(['is_trial' => true, 'granted_days' => 2, 'price' => 0]);
+        Subscription::factory()->for($trial)->forPlan('essentiel')->create(['is_trial' => true, 'granted_days' => 2, 'price' => 0, 'ends_at' => now()->addHours(40)]);
         $this->buildProgram($trial, Level::A1);
 
         $this->remind();
 
-        $this->assertSame([$granted->id], LearnerReminder::query()->pluck('user_id')->all());
+        $this->assertEqualsCanonicalizing([$granted->id, $trial->id], LearnerReminder::query()->pluck('user_id')->all());
         Mail::assertSent(LessonReminderMail::class, fn ($mail) => $mail->hasTo('c@example.test'));
-        $this->assertCount(1, $this->push->sent);
+        Mail::assertSent(LessonReminderMail::class, fn ($mail) => $mail->hasTo('d@example.test')
+            && str_contains($mail->render(), 'C\'est votre séance d\'essai gratuite : il vous reste 15 minutes de cours offertes')
+            && str_contains($mail->render(), 'vous avez commencé votre séance d\'essai gratuite'));
         $this->assertFalse(LessonReminders::follows($granted->fresh()));
         $this->assertTrue(LessonReminders::remindable($granted->fresh()));
-        $this->assertFalse(LessonReminders::remindable($trial->fresh()));
+        $this->assertTrue(LessonReminders::remindable($trial->fresh()));
+
+        // Essai pas fait deux heures après : la relance parle des minutes offertes et de leur date limite.
+        $this->travelTo(CarbonImmutable::parse('2026-11-04 20:03:00', 'Africa/Lome'));
+        $this->remind();
+        Mail::assertSent(LessonReminderMail::class, fn ($mail) => $mail->hasTo('d@example.test')
+            && $mail->envelope()->subject === 'Vos minutes de cours offertes vous attendent'
+            && str_contains($mail->render(), 'Il vous reste 15 minutes de cours offertes, à utiliser avant le'));
+
+        // Jamais de remarque « séance manquée » pendant un essai.
+        $this->assertSame('', LessonReminders::sessionNote($trial->fresh()));
     }
 
     /**
