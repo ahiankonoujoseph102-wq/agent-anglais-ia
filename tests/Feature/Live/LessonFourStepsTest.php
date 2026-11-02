@@ -3,6 +3,7 @@
 namespace Tests\Feature\Live;
 
 use App\Enums\Level;
+use App\Models\ConversationEvent;
 use App\Models\LessonBoard;
 use App\Models\Subscription;
 use App\Models\User;
@@ -165,6 +166,32 @@ class LessonFourStepsTest extends TestCase
         $this->assertStringContainsString('you are in STEP 3 (conversation: the role play)', $data['cues']['pause_phases']['conversation']);
         $this->assertStringContainsString("say « Now, let's talk! » and start the role play", $data['cues']['conversation']);
         $this->assertStringContainsString("Start STEP 4 now with « Let's sum up! »", $data['cues']['warning']);
+    }
+
+    /**
+     * Séance réelle du 2 novembre 2026 : bilan à la quatrième minute et « À demain ! » à la huitième d'une séance de
+     * quinze minutes. Le professeur n'a pas d'horloge : le navigateur le ramène à l'étape prévue.
+     */
+    public function test_the_screen_can_bring_the_teacher_back_when_he_ends_too_early(): void
+    {
+        $data = $this->actingAs($this->learner(Level::A1))->postJson('/seance/connexion')->assertOk()->json();
+
+        $this->assertSame(['À demain', 'See you', "On va s'arrêter ici", 'Goodbye'], $data['phases']['endings']);
+        $this->assertStringContainsString('Too early: the lesson is NOT over, about :left minutes remain.', $data['cues']['too_early']['lesson']);
+        $this->assertStringContainsString('then go on with STEP 3 (conversation: the role play)', $data['cues']['too_early']['conversation']);
+        $this->assertArrayHasKey('early_step', ConversationEvent::KINDS);
+    }
+
+    public function test_the_teacher_praises_only_complete_sentences_and_uses_the_real_learner(): void
+    {
+        $text = TeacherSetup::instructions('lesson', $this->learner(Level::A1), 15, ['context' => '']);
+
+        $this->assertStringContainsString('Speak ONLY English and French, never another language', $text);
+        $this->assertStringContainsString('"Perfect!" or "Exactly!" only on a right and COMPLETE sentence', $text);
+        $this->assertStringContainsString('their REAL name (never "Kofi"); ASK their facts', $text);
+        $this->assertStringContainsString('YOU HAVE NO CLOCK: never sum up or say goodbye before the website tells you', $text);
+        $this->assertStringContainsString('Never more than two "Repeat after me" in a row', $text);
+        $this->assertStringContainsString('"We say: I don\'t understand."', $text);
     }
 
     public function test_openai_receives_exactly_the_same_four_step_instructions(): void

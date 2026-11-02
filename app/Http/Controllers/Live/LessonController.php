@@ -215,12 +215,16 @@ class LessonController extends Controller
             'resume_phases' => self::phaseCues('lesson_resume'),
             'pause_phases' => self::phaseCues('lesson_pause_resume'),
             'conversation' => TeacherSetup::cue('lesson_conversation'),
+            // Bilan ou au revoir bien avant l'heure : retour à l'étape prévue (« :left » = minutes restantes, navigateur).
+            'too_early' => self::phaseCues('lesson_too_early'),
         ], $warningMinutes * 60, $resumed) + [
             // Écran : étape en cours d'après les phrases de passage du professeur, sinon d'après le temps écoulé.
             'phases' => [
                 'phrases' => (array) config('platform.lessons.phase_phrases'),
                 'starts' => LessonPlan::starts($plan),
                 'merged' => $plan['merged'],
+                // Au revoir dit bien avant le bilan : le navigateur ramène le professeur à la leçon.
+                'endings' => (array) config('platform.lessons.early_endings'),
                 // Durée accordée à la séance : temps écoulé = durée − temps restant.
                 'total' => $lesson->allowed_seconds,
             ],

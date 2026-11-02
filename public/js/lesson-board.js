@@ -85,14 +85,21 @@ export class BoardTracker {
         this.raw = '';
         this.detected = 0;
         this.current = null;
+        this.endingFrom = 0;
+        this.endingSaid = false;
+        this.corrections = 0;
         this.configure(phases);
     }
 
-    configure({ phrases = {}, starts = {}, merged = false } = {}) {
+    configure({ phrases = {}, starts = {}, merged = false, endings = [], early_margin = 60, max_corrections = 3 } = {}) {
         this.phrases = Object.fromEntries(Object.entries(phrases).map(([phase, phrase]) => [phase, normalizeSpeech(phrase)]));
-        this.phraseFrom = Object.fromEntries(Object.keys(this.phrases).map((phase) => [phase, 0]));
+        this.phraseFrom ??= {};
+        this.phraseFrom = Object.fromEntries(Object.keys(this.phrases).map((phase) => [phase, this.phraseFrom[phase] ?? 0]));
         this.starts = starts;
         this.merged = merged;
+        this.endings = endings.map((phrase) => normalizeSpeech(phrase)).filter(Boolean);
+        this.earlyMargin = early_margin;
+        this.maxCorrections = max_corrections;
     }
 
     /**
@@ -110,6 +117,16 @@ export class BoardTracker {
             if (at >= 0) {
                 this.phraseFrom[phase] = at + 1;
                 this.detected = Math.max(this.detected, PHASES.indexOf(phase));
+            }
+        }
+
+        // Au revoir (« À demain », « See you ») : noté, pour ramener le professeur à la leçon s'il est trop tôt.
+        for (const ending of this.endings) {
+            const at = complete.indexOf(` ${ending} `, this.endingFrom);
+
+            if (at >= 0) {
+                this.endingFrom = at + 1;
+                this.endingSaid = true;
             }
         }
 
@@ -159,10 +176,9 @@ export class BoardTracker {
     }
 
     /**
-     * Étape en cours : la plus avancée entre celle annoncée par le professeur et celle du temps écoulé (avec un
-     * retard toléré, sauf pour le bilan, déclenché à l'heure par l'indication de fin).
+     * Étape prévue par le temps seul (avec le retard toléré), sans tenir compte de ce que dit le professeur.
      */
-    phase(elapsed) {
+    timeIndex(elapsed) {
         let byTime = 0;
 
         PHASES.forEach((phase, index) => {
@@ -173,7 +189,49 @@ export class BoardTracker {
             }
         });
 
-        let index = Math.max(this.detected, byTime);
+        return byTime;
+    }
+
+    /**
+     * Le professeur saute une étape trop tôt (« Let's sum up! » à la quatrième minute) ou dit au revoir bien avant le
+     * bilan : renvoie l'étape où il doit revenir (d'après le temps), sinon null. Il n'a pas d'horloge : le site, si.
+     * Au plus quelques fois par séance, jamais pendant le bilan prévu.
+     */
+    earlyMove(elapsed) {
+        if (this.corrections >= this.maxCorrections) {
+            return null;
+        }
+
+        const summary = this.starts?.summary;
+
+        if (typeof summary !== 'number' || elapsed >= summary - this.earlyMargin) {
+            this.endingSaid = false;
+
+            return null;
+        }
+
+        const expected = this.timeIndex(elapsed);
+        const jumped = this.detected > expected && typeof this.starts?.[PHASES[this.detected]] === 'number'
+            && this.starts[PHASES[this.detected]] - elapsed > this.earlyMargin;
+
+        if (!jumped && !this.endingSaid) {
+            return null;
+        }
+
+        // L'écran revient à l'étape prévue ; la phrase de passage pourra être reconnue plus tard, à son heure.
+        this.detected = Math.min(this.detected, expected);
+        this.endingSaid = false;
+        this.corrections += 1;
+
+        return PHASES[this.merged && expected === 1 ? 0 : expected];
+    }
+
+    /**
+     * Étape en cours : la plus avancée entre celle annoncée par le professeur et celle du temps écoulé (avec un
+     * retard toléré, sauf pour le bilan, déclenché à l'heure par l'indication de fin).
+     */
+    phase(elapsed) {
+        let index = Math.max(this.detected, this.timeIndex(elapsed));
 
         // Séance courte : leçon et pratique ne font qu'un.
         if (this.merged && index === 1) {

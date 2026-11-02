@@ -119,6 +119,10 @@ return [
             'conversation' => "Now, let's talk!",
             'summary' => "Let's sum up!",
         ],
+        // Au revoir dit bien avant le bilan prévu (séance du 2 novembre 2026 : « On va s'arrêter ici… À demain ! » à
+        // la huitième minute d'une séance de quinze) : le navigateur ramène le professeur à l'étape prévue
+        // (indication teacher.cues.lesson_too_early, au plus trois fois par séance).
+        'early_endings' => ['À demain', 'See you', "On va s'arrêter ici", 'Goodbye'],
     ],
 
     /*
