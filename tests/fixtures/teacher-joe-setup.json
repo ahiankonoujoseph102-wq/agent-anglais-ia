@@ -1,39 +1,39 @@
 {
     "assessment.old": {
-        "length": 97101,
-        "sha256": "d612a4052a229d563933ef654deab7be585babe49a93cc06bb6868d22ec6e68c"
+        "length": 97345,
+        "sha256": "110737832147ed94dd25eb264e69a21701ab6979234c9fe054f450a0b3b55d73"
     },
     "assessment.new": {
-        "length": 95948,
-        "sha256": "97372a713f371223599a7278d8a36b80e203a2c2be1b6516baa1ead71e0e0dec"
+        "length": 96192,
+        "sha256": "0ea999ad3a225d9b1002dfd0a2ced95b530b12cfc9c32a46b697847b8189cfdc"
     },
     "lesson.A1.first": {
-        "length": 94136,
-        "sha256": "2b6db128602816f22c280f1da1c0579c26a37915913714325e9b64736fdff7b9"
+        "length": 94380,
+        "sha256": "565206c065263a807518bc811dab652cea15729d631d745925e7126f12c58c9e"
     },
     "lesson.B2.later": {
-        "length": 92075,
-        "sha256": "cf7dc4c7066a651ab45a0a3347203f30a63d7bcb9278058c66968c778f4d342d"
+        "length": 92319,
+        "sha256": "f89b94e3c90def1d8c731405dca680c2f87675a02374abc9a76dee8b6d149129"
     },
     "lesson.without_programme": {
-        "length": 93324,
-        "sha256": "c0066e177b393e8740940da6208dccf2a3987c89718c2718ace6b9c98e322e1f"
+        "length": 93568,
+        "sha256": "ef790ae76cc884cc5588b9ccea07b56c7e6f6c19553d74443475e88366f4eb91"
     },
     "course.A2": {
-        "length": 92790,
-        "sha256": "33764ba02ce14438a11cf68d6e3620b2c6791e46764495f5370bea429205f79d"
+        "length": 93034,
+        "sha256": "e504f332aa51d8bc695a94eab3a8df5564e1e68f46ebdef7fa4bc7b4a4b1b935"
     },
     "level_test.B1": {
-        "length": 69632,
-        "sha256": "115f641e437dd674858f0cb383b01bfc1104ef7dafa68fd9cd903083185aa6fe"
+        "length": 69876,
+        "sha256": "0318bf55c18bbebb0a0ef9cf031b68deb1fb0c269b0e7f60bc1bb6e9af8d434e"
     },
     "trial": {
-        "length": 41983,
-        "sha256": "5be3af6ecbcc83c2abb453b5742795c4e709c80bbfc20882706393d88bef6e83"
+        "length": 42227,
+        "sha256": "7577e2065870076fcf4b6bca73270a736b9098b9e2c5e4801a916d205ab54efb"
     },
     "lesson.A1.chosen_voice": {
-        "length": 94136,
-        "sha256": "89661bd707f393d95d7155531c5b76d13da982c28831c49337198e1a608d0f77"
+        "length": 94380,
+        "sha256": "68bb2065cb9dfcd29312715a4043d8d8ef9b4d8e81b74aabed3c898630a6544a"
     },
     "site_guide.all": {
         "length": 24277,
