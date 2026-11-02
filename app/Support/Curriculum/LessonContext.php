@@ -131,7 +131,12 @@ class LessonContext
         if ($previous?->summary) {
             $lines[] = '- Summary: '.$previous->summary;
             $lines[] = '- Homework given: '.($previous->homework ?: 'none');
-            $lines[] = '- Use them for the CONTINUITY part of the WARM-UP, after the greeting exchange: the learner recalls the sentence to remember (one question per turn), then tells you about the homework.';
+            $lines[] = '- Use them for the CONTINUITY part of the WARM-UP, after the greeting exchange: the learner recalls the sentence to remember (one question per turn), then the HOMEWORK CHECK.';
+
+            if (filled($previous->homework)) {
+                // Vérifier vraiment le devoir (demande du fondateur, 2 novembre 2026), deux minutes au plus.
+                $lines[] = '- HOMEWORK CHECK (two minutes at most, one question per turn): ask them to SAY their homework now. Done: listen to all of it, correct one or two real mistakes (they say the sentence again), praise precisely what was right, then go on. Not done: no reproach; one short piece of advice in French (« Le mieux : le faire juste après la séance, cinq minutes suffisent. »), then do it TOGETHER now in one minute (two short sentences they say, with your help), then go on.';
+            }
         } else {
             $lines[] = '- None: this is the first lesson of the programme (no warm-up today).';
         }

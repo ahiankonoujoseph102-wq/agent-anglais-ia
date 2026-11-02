@@ -2211,7 +2211,9 @@ async function handleFunctionCall(call) {
             + `<p>${escapeHtml(args.summary)}</p>`
             + (args.lesson_status === 'repeat' ? '<p><strong>Cette leçon sera reprise à la prochaine séance.</strong></p>' : '')
             + (errors ? `<h3>Erreurs à revoir</h3><ul>${errors}</ul>` : '')
-            + (args.homework ? `<h3>Devoir</h3><p>${escapeHtml(args.homework)}</p>` : ''));
+            + (args.homework ? `<h3>Devoir</h3><p>${escapeHtml(args.homework)}</p>` : '')
+            // Où retrouver le devoir, le tableau et les erreurs à revoir (platform.lessons.find_note).
+            + (state.config.session_end?.find_note ? `<p class="muted small">${escapeHtml(state.config.session_end.find_note)}</p>` : ''));
 
         if (!result.ok) {
             response = { result: 'error', message: result.data.message ?? 'not saved' };
@@ -2476,7 +2478,9 @@ function closingCue(step) {
     }
 
     logEvent('session_end', step === 'announce' ? 'fin : une minute' : 'fin : conclusion');
-    sendText(text);
+    // L'élève enregistre la séance (ou a une vidéo prête) : le professeur lui rappelle de la télécharger pour réviser.
+    const recordingNote = step === 'conclude' && (recording.recorder || recording.url) ? (state.config.session_end?.recording ?? '') : '';
+    sendText(text + recordingNote);
     state.awaitingSince = Date.now();
     renderTurn();
 }

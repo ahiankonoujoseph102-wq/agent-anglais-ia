@@ -126,6 +126,10 @@
                 <p>{{ $lastLesson->summary }}</p>
                 @if ($lastLesson->homework)
                     <p><strong>Devoir :</strong> {{ $lastLesson->homework }}</p>
+                    <p class="muted small">À dire à {{ $lastLesson->teacher()->name() }} au début de votre prochaine séance.</p>
+                @endif
+                @if ($lastLesson->program_lesson_id)
+                    <p><a href="{{ route('lessons.history', ['reviser' => $lastLesson->id]) }}#seance-{{ $lastLesson->id }}"><x-icon name="list" /> Réviser le tableau de ma dernière séance</a></p>
                 @endif
             @endif
         @endif

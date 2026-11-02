@@ -119,7 +119,7 @@ class TeacherSetup
                         ],
                         'homework' => [
                             'type' => 'STRING',
-                            'description' => 'One small homework for the next lesson, in French.',
+                            'description' => 'One small homework, in French: something to prepare and SAY at the start of the next lesson (never only written).',
                         ],
                         'errors' => [
                             'type' => 'ARRAY',
@@ -259,6 +259,7 @@ class TeacherSetup
             'announce_phrase' => (string) config('platform.live.session_end.announce_phrase'),
             'stop_phrase' => (string) config('platform.live.session_end.stop_phrase'),
             'closing_phrase' => (string) config('platform.live.session_end.closing_phrase'),
+            'find_note' => (string) config('platform.lessons.find_note'),
         ];
     }
 

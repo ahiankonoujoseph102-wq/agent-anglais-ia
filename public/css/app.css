@@ -2135,3 +2135,8 @@ body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260p
     .audience-tab .audience-tab-bar { animation: none !important; }
     .audience-follow-inner { transition: none; }
 }
+
+/* Tableau d'une séance gardé pour réviser (« Mes séances », <x-review-board>) : déplié en entier, rien ne s'allume. */
+.board-review { margin-top: var(--space-2); }
+.board-review .board-body { max-height: none; overflow: visible; }
+.board-review .board-title { font-size: var(--fs-md); }

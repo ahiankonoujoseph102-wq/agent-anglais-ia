@@ -6,7 +6,7 @@
 <x-layout title="Mes séances">
     <div class="page-head rise">
         <h1>Mes séances</h1>
-        <p class="muted">Vos bilans de séance : résumés, devoirs, notes et erreurs à revoir.</p>
+        <p class="muted">Vos bilans de séance : résumés, devoirs, tableaux à réviser, notes et erreurs à revoir.</p>
     </div>
 
     {{-- Rien encore (aucune séance, aucune erreur) : l'état vide et son bouton passent en premier. --}}
@@ -56,7 +56,7 @@
 
     <h2 class="next-step">Historique</h2>
     @forelse ($lessons as $lesson)
-        <article class="card lesson-card reveal">
+        <article class="card lesson-card reveal" id="seance-{{ $lesson->id }}">
             <h3>
                 {{ $lesson->date->translatedFormat('l j F Y') }}
                 <span class="badge badge-muted"><x-icon name="clock" /> {{ Duration::formatPrecise($lesson->used_seconds) }}</span>
@@ -77,6 +77,10 @@
             @endif
             @if ($lesson->homework)
                 <p><strong>Devoir :</strong> {{ $lesson->homework }}</p>
+                <p class="muted small">À dire à {{ $lesson->teacher()->name() }} au début de la séance suivante.</p>
+            @endif
+            @if ($boards->has($lesson->id))
+                <x-review-board :board="$boards[$lesson->id]" :open="(int) request()->query('reviser') === $lesson->id" />
             @endif
             @if ($lesson->reported_at)
                 <ul class="scores">

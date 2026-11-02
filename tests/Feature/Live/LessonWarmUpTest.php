@@ -64,7 +64,9 @@ class LessonWarmUpTest extends TestCase
         $this->assertStringContainsString('then a SHORT reminder (one or two sentences) of the key point', $text);
         $this->assertStringContainsString('(3) Only then, in a new turn: today\'s topic', $text);
         $this->assertStringContainsString('the first word as a clue if needed', $text);
-        $this->assertStringContainsString('ONE question on the homework (no reproach if not done)', $text);
+        // Devoir vérifié pour de bon (HomeworkAndRevisionTest), sans reproche s'il n'est pas fait.
+        $this->assertStringContainsString('then the HOMEWORK CHECK (see PREVIOUS LESSON)', $text);
+        $this->assertStringContainsString('Not done: no reproach', $text);
         $this->assertStringContainsString('- Summary: "I am from Lomé." = Je viens de Lomé.', $text);
         $this->assertStringContainsString('- Homework given: Dites trois phrases sur votre ville.', $text);
         $this->assertStringContainsString('Use them for the CONTINUITY part of the WARM-UP, after the greeting exchange', $text);
