@@ -106,20 +106,20 @@ class BeginnerUnderstandingTest extends TestCase
     public function test_beginners_get_more_time_before_the_teacher_speaks_again(): void
     {
         // Avant : 1 000 millisecondes en A1, A2 et à l'évaluation ; 800 ailleurs.
-        $this->assertSame(2500, TeacherSetup::silenceMs('A1'));
-        $this->assertSame(2000, TeacherSetup::silenceMs('A2'));
-        $this->assertSame(1200, TeacherSetup::silenceMs('B1'));
-        $this->assertSame(1800, TeacherSetup::silenceMs('unknown'));
+        $this->assertSame(1200, TeacherSetup::silenceMs('A1'));
+        $this->assertSame(1000, TeacherSetup::silenceMs('A2'));
+        $this->assertSame(800, TeacherSetup::silenceMs('B1'));
+        $this->assertSame(1000, TeacherSetup::silenceMs('unknown'));
         $this->assertSame(800, TeacherSetup::silenceMs('B2'));
         $this->assertSame(800, TeacherSetup::silenceMs('C2'));
 
-        // Le navigateur ne signale jamais la fin du tour avant ce silence (A1 : 2,5 + 1,5 secondes).
+        // Le navigateur ne signale jamais la fin du tour avant ce silence (A1 : 1,2 + 0,5 seconde, jamais moins de 2).
         $user = User::factory()->level(Level::A1)->create(['name' => 'Kossi', 'welcomed_at' => now()]);
         Subscription::factory()->for($user)->forPlan('essentiel')->create();
         $this->buildProgram($user, Level::A1);
         $html = $this->actingAs($user)->get('/seance')->assertOk()->getContent();
         preg_match("/data-audio='([^']+)'/", $html, $match);
         $audio = json_decode(html_entity_decode($match[1], ENT_QUOTES), true);
-        $this->assertSame(4, (int) $audio['end_of_turn_seconds']);
+        $this->assertEquals(2, $audio['end_of_turn_seconds']);
     }
 }

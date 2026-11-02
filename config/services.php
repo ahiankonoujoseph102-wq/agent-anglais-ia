@@ -200,12 +200,15 @@ return [
         'silence_ms' => [
             // 1er novembre 2026 (vidéo d'un élève débutant) : il disait son numéro par petits groupes de chiffres, avec
             // 3 à 5 secondes entre deux groupes ; Teacher Rose reprenait la parole 1,1 à 2,4 secondes après lui et le
-            // coupait. Avant : 1 000 millisecondes en A1, A2 et à l'évaluation, 800 ailleurs.
-            'A1' => (int) env('LIVE_A1_SILENCE_MS', 2500),
-            'A2' => (int) env('LIVE_BEGINNER_SILENCE_MS', 2000),
-            'B1' => (int) env('LIVE_B1_SILENCE_MS', 1200),
-            // Évaluation gratuite (niveau inconnu) : presque comme un débutant.
-            'unknown' => (int) env('LIVE_ASSESSMENT_SILENCE_MS', 1800),
+            // coupait. Valeurs alors portées à 2 500 (A1), 2 000 (A2), 1 200 (B1), 1 800 (évaluation).
+            // 2 novembre 2026 (élèves en ligne : professeurs « très lents, pas réactifs ») : chaque silence s'ajoutait
+            // au délai de réponse ; ramenés près des valeurs d'avant. La patience avec un débutant passe par les
+            // consignes (« laisser le temps de répondre »), pas par un long silence avant chaque réponse.
+            'A1' => (int) env('LIVE_A1_SILENCE_MS', 1200),
+            'A2' => (int) env('LIVE_BEGINNER_SILENCE_MS', 1000),
+            'B1' => (int) env('LIVE_B1_SILENCE_MS', 800),
+            // Évaluation gratuite (niveau inconnu) : comme un débutant.
+            'unknown' => (int) env('LIVE_ASSESSMENT_SILENCE_MS', 1000),
             'default' => (int) env('LIVE_SILENCE_MS', 800),
         ],
     ],
