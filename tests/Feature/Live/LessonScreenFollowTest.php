@@ -3,7 +3,6 @@
 namespace Tests\Feature\Live;
 
 use App\Enums\Level;
-use App\Models\Lesson;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -95,7 +94,7 @@ class LessonScreenFollowTest extends TestCase
     public function test_the_review_form_explains_the_stars_step_by_step(): void
     {
         $user = $this->learner();
-        Lesson::factory()->for($user)->create(['used_seconds' => 600, 'allowed_seconds' => 900, 'status' => 'completed']);
+        $user->assessment()->create(['allowed_seconds' => 300, 'used_seconds' => 300, 'level' => 'A1', 'status' => 'completed']);
 
         $html = $this->actingAs($user)->get('/mon-avis?note=4')->assertOk()->getContent();
         $this->assertStringContainsString('Touchez les étoiles pour donner votre note', $html);
