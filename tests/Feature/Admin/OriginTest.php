@@ -29,7 +29,7 @@ class OriginTest extends TestCase
 
     private function register(): User
     {
-        $this->post('/inscription', ['name' => 'Kossi Mensah', 'phone' => '90 12 34 56', 'password' => 'motdepasse'])->assertRedirect(route('dashboard'));
+        $this->post('/inscription', ['name' => 'Kossi Mensah', 'phone' => '90 12 34 56', 'email' => 'kossi@exemple.tg', 'password' => 'motdepasse'])->assertRedirect(route('dashboard'));
         $user = User::query()->latest('id')->firstOrFail();
         auth()->logout();
 

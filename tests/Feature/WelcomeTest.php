@@ -104,7 +104,7 @@ class WelcomeTest extends TestCase
 
     public function test_registration_keeps_the_previous_path_without_welcome_page(): void
     {
-        $this->post('/inscription', ['name' => 'Koffi Mensah', 'phone' => '+22890123456', 'password' => 'motdepasse', 'password_confirmation' => 'motdepasse'])
+        $this->post('/inscription', ['name' => 'Koffi Mensah', 'phone' => '+22890123456', 'email' => 'koffi@exemple.tg', 'password' => 'motdepasse', 'password_confirmation' => 'motdepasse'])
             ->assertRedirect(route('dashboard'));
 
         $this->get(route('dashboard'))->assertOk()

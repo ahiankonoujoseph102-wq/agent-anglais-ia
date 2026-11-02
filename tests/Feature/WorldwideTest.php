@@ -50,6 +50,7 @@ class WorldwideTest extends TestCase
             'name' => 'Awa Nguema',
             'country' => $country,
             'phone' => $typed,
+            'email' => 'awa@exemple.cm',
             'password' => 'motdepasse',
             'password_confirmation' => 'motdepasse',
         ])->assertRedirect(route('dashboard'));
@@ -70,7 +71,7 @@ class WorldwideTest extends TestCase
         $this->assertSame('+22670123456', PhoneNumber::normalize('+226 70 12 34 56', 'CM'));
 
         $this->post('/inscription', [
-            'name' => 'Kossi', 'country' => 'TG', 'phone' => '90 12 34 56',
+            'name' => 'Kossi', 'country' => 'TG', 'phone' => '90 12 34 56', 'email' => 'kossi@exemple.tg',
             'password' => 'motdepasse', 'password_confirmation' => 'motdepasse',
         ])->assertRedirect(route('dashboard'));
 

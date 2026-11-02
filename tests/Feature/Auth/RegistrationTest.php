@@ -20,6 +20,7 @@ class RegistrationTest extends TestCase
         return array_merge([
             'name' => 'Kossi Mensah',
             'phone' => '90 12 34 56',
+            'email' => 'kossi.mensah@exemple.tg',
             'password' => 'motdepasse',
         ], $overrides);
     }

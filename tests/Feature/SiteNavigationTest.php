@@ -140,7 +140,7 @@ class SiteNavigationTest extends TestCase
 
     public function test_the_main_path_is_unchanged(): void
     {
-        $this->post('/inscription', ['name' => 'Koffi Mensah', 'phone' => '+22890123456', 'password' => 'motdepasse', 'password_confirmation' => 'motdepasse'])
+        $this->post('/inscription', ['name' => 'Koffi Mensah', 'phone' => '+22890123456', 'email' => 'koffi@exemple.tg', 'password' => 'motdepasse', 'password_confirmation' => 'motdepasse'])
             ->assertRedirect(route('dashboard'));
         $this->get(route('dashboard'))->assertOk()->assertSee('Passez votre évaluation gratuite');
         $this->assertStringNotContainsString('jours de travail', file_get_contents(resource_path('views/dashboard.blade.php')));

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Support\EmailAddress;
 use App\Support\PhoneNumber;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,25 +26,31 @@ class OptionalEmailTest extends TestCase
         return array_merge([
             'name' => 'Kossi Mensah',
             'phone' => '90 12 34 56',
+            'email' => 'kossi.mensah@exemple.tg',
             'password' => 'motdepasse',
             'password_confirmation' => 'motdepasse',
         ], $overrides);
     }
 
-    public function test_registration_shows_the_optional_email_field(): void
+    public function test_registration_shows_the_required_email_field_unfolded(): void
     {
-        $this->get('/inscription')
-            ->assertOk()
-            ->assertSee('Adresse e-mail')
-            ->assertSee('type="email"', false)
-            ->assertSee(self::HINT);
+        $html = $this->get('/inscription')->assertOk()->getContent();
+
+        $this->assertStringContainsString('Adresse e-mail', $html);
+        $this->assertStringContainsString('type="email"', $html);
+        $this->assertStringContainsString(EmailAddress::REGISTER_HINT, $html);
+        // Visible tout de suite : avant le bloc replié du code ambassadeur.
+        $this->assertLessThan(strpos($html, 'Facultatif : code ambassadeur'), strpos($html, 'name="email"'));
+        $this->assertStringNotContainsString('Facultatif : e-mail', $html);
     }
 
-    public function test_learner_can_register_without_an_email(): void
+    public function test_registration_requires_an_email(): void
     {
-        $this->post('/inscription', $this->registration(['email' => '  ']))->assertRedirect(route('dashboard'));
+        $this->post('/inscription', $this->registration(['email' => '  ']))
+            ->assertSessionHasErrors(['email' => 'Ajoutez votre adresse e-mail. Exemple : prenom.nom@exemple.com.']);
 
-        $this->assertNull(User::firstOrFail()->email);
+        $this->assertSame(0, User::count());
+        $this->assertGuest();
     }
 
     public function test_email_is_stored_in_lowercase(): void
