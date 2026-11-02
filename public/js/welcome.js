@@ -300,7 +300,14 @@ async function run() {
 
     /* ---------- Lecture ---------- */
 
+    let nextShown = false;
+
     function showNext() {
+        if (nextShown) {
+            return;
+        }
+
+        nextShown = true;
         ui.next.classList.add('is-shown');
         ui.next.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
         ui.next.focus({ preventScroll: true });
@@ -598,7 +605,28 @@ async function run() {
             }
         }
 
+        // Dernière phrase du message (« Touchez le bouton orange… ») : le bouton arrive TOUT DE SUITE, pendant
+        // qu'elle est dite, et la page descend jusqu'à lui.
+        if (current && isLastSentence(current)) {
+            showNext();
+        }
+
+        // Filet de sécurité : sur certains téléphones, la fin du dernier son n'est pas signalée (« onended »).
+        const lastItem = play.timeline.at(-1);
+
+        if (lastItem?.last && !skipped && now >= lastItem.end + 0.4) {
+            finish();
+
+            return;
+        }
+
         raf = requestAnimationFrame(follow);
+    }
+
+    function isLastSentence(sentence) {
+        const lastItem = play.timeline.at(-1);
+
+        return Boolean(lastItem?.last) && sentences[lastItem.index].spans.at(-1) === sentence;
     }
 
     // Repli : bouche du visage simple d'après le volume de la voix.
