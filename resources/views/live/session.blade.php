@@ -9,6 +9,7 @@
     $audio = [
         'echo_cancellation' => (bool) config('platform.live.echo_cancellation'),
         'echo_cancellation_android' => (bool) config('platform.live.echo_cancellation_android'),
+        'noise_suppression_android' => (bool) config('platform.live.noise_suppression_android'),
         'voice_gain' => (float) config('platform.live.voice_gain'),
         'silent_mic_seconds' => (int) config('platform.live.silent_mic_seconds'),
         'mic_boost' => config('platform.live.mic_boost.enabled') ? [
@@ -239,13 +240,6 @@
                     <span>Micro utilisé</span>
                     <select id="mic-select"></select>
                 </label>
-                {{-- Android : « mode appel » (micro avec annulation d'écho) si le professeur n'entend pas l'apprenant. --}}
-                <button type="button" id="call-mode" class="btn-link small call-mode" hidden
-                    data-on="{{ $teacherName }} ne vous entend pas ? Passer en mode appel"
-                    data-off="Revenir au son normal">Passer en mode appel</button>
-                <p id="call-mode-note" class="muted small" hidden
-                    data-text="Mode appel activé : votre micro est réglé comme pour un appel. La voix peut être un peu moins forte : montez le volume du téléphone."
-                    data-auto="Votre micro n'entendait rien : le mode appel est activé. Parlez à nouveau. La voix peut être un peu moins forte : montez le volume du téléphone."></p>
             </div>
 
             <div id="mic-warning" class="alert alert-warning" role="alert" hidden>
