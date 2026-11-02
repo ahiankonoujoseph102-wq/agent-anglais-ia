@@ -98,8 +98,12 @@ class TeacherSetupTest extends TestCase
             $this->assertStringContainsString('the learner must know what it MEANS, WHEN to use it (the situation), and, after a mistake, the DIFFERENCE with what they said and WHY', $text);
             $this->assertStringContainsString('START FROM WHAT THE LEARNER KNOWS', $text);
             $this->assertStringContainsString('ERRORS TO REVIEW', $text);
-            // Vérifier en anglais : « Do you understand? » en A1 et A2 (attendre la réponse), puis une petite question d'usage.
-            $this->assertStringContainsString('CHECK UNDERSTANDING in English: A1 and A2 (and after any difficulty): "Do you understand?" and WAIT', $text);
+            // Chaque phrase nouvelle (A1 à B1) : « Do you understand this sentence? », puis l'élève la traduit en français ;
+            // faux ou non : explication en français, étape par étape (demande du fondateur, 2 novembre 2026).
+            $this->assertStringContainsString('CHECK THE MEANING OF EVERY NEW SENTENCE (A1 to B1, and at any level after a difficulty)', $text);
+            $this->assertStringContainsString('after they repeat it: "Do you understand this sentence?"', $text);
+            $this->assertStringContainsString('"Can you tell me what it means in French? I just want to make sure you understand."', $text);
+            $this->assertStringContainsString('explain it in FRENCH, STEP BY STEP', $text);
             $this->assertStringContainsString('false friend', $text);
             $this->assertStringContainsString('break it slowly into syllables, say it at normal speed, then the whole sentence', $text);
             $this->assertStringContainsString('ONE gentle funny remark OR a tiny invented story', $text);

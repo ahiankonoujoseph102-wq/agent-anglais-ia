@@ -41,8 +41,12 @@ class TeacherCorrectionTest extends TestCase
             $this->assertStringContainsString('Never let a wrong form pass as right to please the learner. If they insist, stay warm and accurate', $text, $kind);
             // Pendant la parole libre : pas d'interruption pour les petites fautes, retour à la fin de la conversation.
             $this->assertStringContainsString('DURING FREE CONVERSATION (STEP 3): let the learner speak, do NOT interrupt for small mistakes', $text, $kind);
-            // Vérifier : « Avez-vous compris ? » (A1, A2), puis une petite question qui fait utiliser.
-            $this->assertStringContainsString('ONE tiny question that makes them USE or CHOOSE it', $text, $kind);
+            // Vérifier : l'élève dit le sens en français (A1 à B1), une petite question qui fait utiliser ensuite (B2 et plus).
+            $this->assertStringContainsString('Can you tell me what it means in French?', $text, $kind);
+            $this->assertStringContainsString('B2 and above: ONE tiny question that makes them use it', $text, $kind);
+            // Des phrases complètes, jamais « yes » ou « no » seuls (demande du fondateur, 2 novembre 2026).
+            $this->assertStringContainsString('never accept "Yes", "No", "I did" or one word', $text, $kind);
+            $this->assertStringContainsString('let THEM finish', $text, $kind);
             // Une seule règle de correction : la règle générale renvoie à HOW TO CORRECT.
             $this->assertStringContainsString('Mistakes: follow HOW TO CORRECT when it is given below', $text, $kind);
             $this->assertSame(1, substr_count($text, 'HOW TO CORRECT (daily lesson'), $kind);
@@ -55,6 +59,9 @@ class TeacherCorrectionTest extends TestCase
 
         $this->assertStringContainsString('PITFALL OF THE DAY', $text);
         $this->assertStringContainsString('by CONTRAST', $text);
+        // La phrase française est la vraie phrase française, jamais l'anglais fautif appelé « français ».
+        $this->assertStringContainsString('starting from the REAL French sentence', $text);
+        $this->assertStringContainsString('never call the wrong English "French"', $text);
         $this->assertStringContainsString('the same contrast at most twice more in the lesson', $text);
         // Retour sur la langue à la fin de la conversation : une réussite, puis une ou deux erreurs expliquées, redites mieux.
         $this->assertStringContainsString('LANGUAGE FEEDBACK (the last minute of this step, before the summary): first ONE thing they said well', $text);
