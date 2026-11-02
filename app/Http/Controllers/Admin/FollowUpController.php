@@ -52,6 +52,9 @@ class FollowUpController extends Controller
             'sentToday' => FollowUps::sentToday(),
             'pending' => LearnerMail::query()->where('status', LearnerMail::PENDING)->count(),
             'enabled' => FollowUps::enabled(),
+            'salesPending' => LearnerMail::query()->where('status', LearnerMail::PENDING)->whereIn('campaign', LearnerMail::SALES)->count(),
+            'salesToday' => FollowUps::salesSentToday(),
+            'lapsedSent' => LearnerMail::query()->whereIn('campaign', LearnerMail::LAPSED)->where('status', LearnerMail::SENT)->where('sent_at', '>=', now()->subDays(30))->count(),
         ]);
     }
 
