@@ -33,6 +33,10 @@ final class SessionEnd
             'closing_phrase' => (string) $end['closing_phrase'],
             'announce' => TeacherSetup::cue('session_announce'),
             'conclude' => TeacherSetup::cue($kind === 'lesson' ? 'lesson_conclude' : 'course_conclude', ['seconds' => $conclude]).$note,
+            // Séance du jour : rappel de télécharger la vidéo si l'élève enregistre (ajouté par le navigateur), et où
+            // retrouver le devoir et la révision (écrit sous le devoir sur l'écran de fin).
+            'recording' => $kind === 'lesson' ? TeacherSetup::cue('recording_conclude') : '',
+            'find_note' => $kind === 'lesson' ? (string) config('platform.lessons.find_note') : '',
         ];
     }
 }

@@ -67,8 +67,9 @@ class LessonTest extends TestCase
             // Le jeton vaut pour toute la séance (30 minutes) et une marge d'une minute : aucun renouvellement en route.
             ->assertJsonPath('token_expires_in', 1800 + 60)
             ->assertJsonPath('warning_seconds', 120)
-            // Première séance de cette formule payée : félicitations et déroulé en deux phrases (FirstPaidLessonTest).
-            ->assertJsonPath('cues.start', '[System] The learner is connected and ready. Say your FIRST TURN now, and only it: greet the learner, announce that the lesson lasts 30 minutes (exactly this number, never another one),'.TeacherSetup::cue('first_paid_lesson').' follow HOW TO WORK WITH ME, then ask how they are today and STOP: wait for their answer. Greeting, duration and question in simple ENGLISH; only HOW TO WORK WITH ME (and any French note below) in French. Do not announce the topic and do not teach anything in this turn. Then follow the WARM-UP, one question per turn.');
+            // Première séance de cette formule payée : félicitations et déroulé en deux phrases (FirstPaidLessonTest),
+            // puis, aux premières séances, la phrase sur « Enregistrer ma séance » (HomeworkAndRevisionTest).
+            ->assertJsonPath('cues.start', '[System] The learner is connected and ready. Say your FIRST TURN now, and only it: greet the learner, announce that the lesson lasts 30 minutes (exactly this number, never another one),'.TeacherSetup::cue('first_paid_lesson').TeacherSetup::cue('recording_tip').' follow HOW TO WORK WITH ME, then ask how they are today and STOP: wait for their answer. Greeting, duration and question in simple ENGLISH; only HOW TO WORK WITH ME (and any French note below) in French. Do not announce the topic and do not teach anything in this turn. Then follow the WARM-UP, one question per turn.');
 
         Http::assertSent(function (Request $request) {
             $instructions = $request['bidiGenerateContentSetup']['systemInstruction']['parts'][0]['text'];

@@ -28,6 +28,7 @@ use App\Support\Live\WorkingTogether;
 use App\Support\Reminders\LessonReminders;
 use App\Support\Reviews\ReviewAsk;
 use App\Support\Reviews\TimeBonuses;
+use App\Support\SessionRecording;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
 use App\Support\Text\TextProviders;
@@ -202,7 +203,7 @@ class LessonController extends Controller
                     // Séance d'essai gratuite : le professeur la présente en deux phrases (cours, tableau, « Mes cours »).
                     (bool) $lesson->subscription?->isTrial() && ! $resumed => TeacherSetup::cue('trial_lesson', ['minutes' => Trial::minutes()]),
                     default => '',
-                },
+                }.($resumed ? '' : self::recordingTip($user, $lesson)),
                 // Passage de relais : APRÈS l'échange de salutations (partie « continuité » de l'échauffement).
                 'handoff_note' => self::handoffNote($user, $lesson, $teacher).'.',
                 // Suivi de l'élève payant, en français et avant l'échauffement : e-mail à ajouter, programme peu suivi.
@@ -327,6 +328,19 @@ class LessonController extends Controller
      * nouveau professeur, après l'échange de salutations, fait un court rapport de cette séance (résumé, erreurs à
      * revoir) et pose une ou deux questions, une à la fois. Rien sans séance précédente, avec le même professeur, ou sans rien à rapporter.
      */
+    /**
+     * Aux premières séances du jour (« comment travailler avec moi »), une phrase en français sur « Enregistrer ma
+     * séance » : réécouter la séance pour réviser. Rien ensuite (le bouton reste à l'écran), ni sans enregistrement.
+     */
+    private static function recordingTip(User $user, Lesson $lesson): string
+    {
+        if (! SessionRecording::enabled('lesson') || ! WorkingTogether::isFirst(WorkingTogether::lessonNumber($user, $lesson))) {
+            return '';
+        }
+
+        return TeacherSetup::cue('recording_tip');
+    }
+
     private static function handoffNote(User $user, Lesson $lesson, Teacher $teacher): string
     {
         $last = $user->lessons()

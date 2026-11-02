@@ -114,6 +114,9 @@ return [
         'early_end_extra_minutes' => 3,
         // Phrases de passage d'un temps à l'autre de la séance du jour, dites MOT POUR MOT par le professeur
         // (config/teacher.php → lesson) : l'écran les reconnaît dans sa transcription et affiche la phase en cours.
+        // Où retrouver le devoir et la révision : dit par le professeur dans sa conclusion (cues.lesson_conclude) et
+        // écrit sous le devoir sur l'écran de fin de séance.
+        'find_note' => 'Votre devoir est dans Mon espace, carte « Dernière séance ». Le tableau de la séance et vos erreurs à revoir sont dans Mes séances.',
         'phase_phrases' => [
             'practice' => "Now, let's practice!",
             'conversation' => "Now, let's talk!",
