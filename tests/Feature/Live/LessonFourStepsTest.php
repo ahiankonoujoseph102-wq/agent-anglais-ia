@@ -84,10 +84,10 @@ class LessonFourStepsTest extends TestCase
         $this->assertStringContainsString('show its MEANING with a simple English example or situation', $text);
         $this->assertStringContainsString('then "Your turn: …"', $text);
         $this->assertStringContainsString('never move on, and never start STEP 2 or STEP 3, while it is not understood.', $text);
-        // En anglais, au niveau de l'élève ; vérifier AVANT « Repeat after me » ; le français seulement par l'échelle.
+        // En anglais, au niveau de l'élève ; après « Repeat after me », l'élève dit le sens en français (sinon explication).
         $this->assertStringContainsString('IN ENGLISH, at the learner\'s level', $text);
-        $this->assertStringContainsString('"Do you understand?" (A1 and A2) and WAIT', $text);
-        $this->assertStringContainsString('Only once the meaning is clear: "Repeat after me: …".', $text);
+        $this->assertStringContainsString('then "Repeat after me: …", then CHECK THE MEANING OF EVERY NEW SENTENCE', $text);
+        $this->assertLessThan(strpos($text, 'then CHECK THE MEANING OF EVERY NEW SENTENCE (HOW YOU TEACH'), strpos($text, 'say WHEN to use it, then "Repeat after me'));
         $this->assertStringContainsString('EVERY item ends with the learner speaking', $text);
         $this->assertStringContainsString("STEP 2 — GUIDED PRACTICE. Start with this exact sentence: « Now, let's practice! »", $text);
         $this->assertStringContainsString('at least one short exercise where the learner makes their OWN sentence', $text);
