@@ -23,19 +23,25 @@
                     @else
                         <p style="margin:0 0 20px;font-size:16px;line-height:1.5;">Touchez le bouton ci-dessous : nous vous expliquons comment renouveler.</p>
                     @endif
+                @elseif ($missed && $trial)
+                    <p style="margin:0 0 12px;font-size:16px;line-height:1.5;">Votre séance d'essai gratuite était prévue aujourd'hui à {{ $time }}. Il vous reste {{ $trial['left'] }} de cours offertes, à utiliser avant le {{ $trial['until'] }}.</p>
+                    <p style="margin:0 0 20px;font-size:16px;line-height:1.5;">Venez découvrir un vrai cours : la leçon au tableau, la pratique à l'oral et vos corrections. Je vous attends !</p>
                 @elseif ($missed)
                     <p style="margin:0 0 12px;font-size:16px;line-height:1.5;">Nous ne nous sommes pas vus aujourd'hui pour votre séance de {{ $time }}. Ce n'est pas grave : il vous reste encore du temps aujourd'hui.</p>
                     <p style="margin:0 0 20px;font-size:16px;line-height:1.5;">Quelques minutes chaque jour, c'est ce qui fait vraiment progresser. Je vous attends !</p>
                 @else
                     <p style="margin:0 0 12px;font-size:16px;line-height:1.5;">Votre séance d'anglais commence à {{ $time }}, dans {{ $minutes }} minutes.</p>
                     <p style="margin:0 0 20px;font-size:16px;line-height:1.5;">Installez-vous dans un coin calme, avec votre téléphone chargé. À tout à l'heure !</p>
+                    @if ($trial)
+                        <p style="margin:0 0 20px;font-size:16px;line-height:1.5;">C'est votre séance d'essai gratuite : il vous reste {{ $trial['left'] }} de cours offertes, à utiliser avant le {{ $trial['until'] }}.</p>
+                    @endif
                 @endif
                 <a href="{{ $url }}" style="display:block;text-align:center;background:#FF7A1A;color:#0E2A5C;text-decoration:none;font-weight:bold;font-size:17px;padding:14px 18px;border-radius:12px;">{{ $renew ? 'Renouveler mon abonnement' : 'Commencer ma séance' }}</a>
                 <p style="margin:20px 0 0;font-size:15px;line-height:1.5;">{{ $teacherName }}</p>
                 @if ($renew)
                 <p style="margin:16px 0 0;font-size:13px;line-height:1.5;color:#51607F;">Vous recevez ce message parce que votre abonnement à {{ config('platform.name') }} se termine demain. Rien n'est prélevé automatiquement : vous choisissez de renouveler, ou non.@if (filled($whatsapp)) Une question : WhatsApp {{ $whatsapp }}.@endif</p>
                 @else
-                <p style="margin:16px 0 0;font-size:13px;line-height:1.5;color:#51607F;">Vous recevez ce rappel parce que vous êtes abonné à {{ config('platform.name') }} et que votre programme prévoit une séance aujourd'hui à {{ $time }}. Vous pouvez changer cette heure dans « Mon espace », carte « Heure de mes séances ».@if (filled($whatsapp)) Une question : WhatsApp {{ $whatsapp }}.@endif</p>
+                <p style="margin:16px 0 0;font-size:13px;line-height:1.5;color:#51607F;">Vous recevez ce rappel parce que @if ($trial)vous avez commencé votre séance d'essai gratuite sur {{ config('platform.name') }}@else vous êtes abonné à {{ config('platform.name') }}@endif et que votre programme prévoit une séance aujourd'hui à {{ $time }}. Vous pouvez changer cette heure dans « Mon espace », carte « Heure de mes séances ».@if (filled($whatsapp)) Une question : WhatsApp {{ $whatsapp }}.@endif</p>
                 @endif
             </td></tr>
         </table>

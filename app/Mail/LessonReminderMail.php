@@ -21,7 +21,9 @@ class LessonReminderMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: LessonReminders::message($this->kind, $this->teacher, $this->time)['title']);
+        $trial = $this->kind === LearnerReminder::MISSED && LessonReminders::trialFacts($this->user) !== null;
+
+        return new Envelope(subject: $trial ? 'Vos minutes de cours offertes vous attendent' : LessonReminders::message($this->kind, $this->teacher, $this->time)['title']);
     }
 
     public function content(): Content
@@ -38,6 +40,7 @@ class LessonReminderMail extends Mailable
             'endsAt' => $subscription?->ends_at,
             'methods' => $renew ? LessonReminders::paymentMethods($this->user) : null,
             'minutes' => (int) config('platform.reminders.soon_minutes'),
+            'trial' => $renew ? null : LessonReminders::trialFacts($this->user),
             'url' => $renew ? LessonReminders::renewUrl($this->user) : route('lesson.show'),
         ]);
     }

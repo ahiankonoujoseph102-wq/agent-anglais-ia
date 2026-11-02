@@ -20,6 +20,7 @@ use App\Support\Alerts\Redact;
 use App\Support\Alerts\WebPushTransport;
 use App\Support\Countries;
 use App\Support\DailyTime;
+use App\Support\Duration;
 use App\Support\Gemini\TeacherSetup;
 use App\Support\Live\WorkingTogether;
 use App\Support\MailQuota;
@@ -27,6 +28,7 @@ use App\Support\PaymentCountry;
 use App\Support\Plan;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
+use App\Support\Trial;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -39,7 +41,7 @@ use Throwable;
  *
  * Élève suivi (follows : e-mail obligatoire, fin d'abonnement) : un abonnement payé en cours (définitif ou accès
  * provisoire ; ni accès offert, ni mois d'ambassadeur), jamais l'équipe. Rappels de séance et séances manquées
- * (remindable) : accès payé OU offert, jamais la séance d'essai. Rappels : seulement avec un programme actif qui a une heure de séance, les jours
+ * (remindable) : accès payé, offert ou séance d'essai (rappels seulement). Rappels : seulement avec un programme actif qui a une heure de séance, les jours
  * de travail choisis, à l'heure du pays de l'élève (platform.reminders). Notifications gratuites (Web Push) ;
  * e-mails dans la limite gratuite de Brevo, avec une réserve pour le reste (MailQuota::allowsReminder).
  */
@@ -62,8 +64,8 @@ final class LessonReminders
 
     /**
      * Élève qui reçoit les rappels de séance et dont le professeur relève les séances manquées : un accès en cours
-     * payé (définitif ou provisoire) OU offert par l'équipe (accès offert, mois d'ambassadeur) ; jamais la séance
-     * d'essai gratuite (elle a ses propres relances), jamais l'équipe. Demande du fondateur, 2 novembre 2026.
+     * payé (définitif ou provisoire) OU offert par l'équipe (accès offert, mois d'ambassadeur) OU séance
+     * d'essai gratuite (rappels seulement, jamais la remarque sur une séance manquée), jamais l'équipe. Demande du fondateur, 2 novembre 2026.
      */
     public static function remindable(?User $user): bool
     {
@@ -74,8 +76,29 @@ final class LessonReminders
         $subscription = $user->activeSubscription;
 
         return $subscription !== null
-            && in_array($subscription->status, [SubscriptionStatus::Active, SubscriptionStatus::Provisional], true)
-            && ! $subscription->isTrial();
+            && in_array($subscription->status, [SubscriptionStatus::Active, SubscriptionStatus::Provisional], true);
+    }
+
+    /** Séance d'essai gratuite en cours : rappels oui, remarque sur une séance manquée non (essai d'une seule séance). */
+    public static function onTrial(User $user): bool
+    {
+        return (bool) $user->activeSubscription?->isTrial();
+    }
+
+    /**
+     * Essai : minutes de cours encore libres (« 10 minutes ») et date limite (« 4 novembre à 17 heures 30 »).
+     *
+     * @return array{left: string, until: string}|null
+     */
+    public static function trialFacts(User $user): ?array
+    {
+        $trial = $user->activeSubscription;
+
+        if (! $trial?->isTrial()) {
+            return null;
+        }
+
+        return ['left' => Duration::format(Trial::secondsLeft($trial, false)), 'until' => Duration::at($trial->ends_at, false)];
     }
 
     /** Abonné payant sans adresse e-mail : le professeur la demande au début de la séance. */
@@ -205,7 +228,7 @@ final class LessonReminders
      */
     public static function sessionNote(User $user): string
     {
-        if (! self::remindable($user)) {
+        if (! self::remindable($user) || self::onTrial($user)) {
             return '';
         }
 
@@ -316,8 +339,8 @@ final class LessonReminders
 
         $users = User::query()
             ->where('role', Role::Learner)
-            // Accès payé ou offert (mois d'ambassadeur compris), jamais la seule séance d'essai gratuite.
-            ->whereHas('subscriptions', fn ($query) => $query->where('is_trial', false)
+            // Accès payé, offert (mois d'ambassadeur compris) ou séance d'essai gratuite.
+            ->whereHas('subscriptions', fn ($query) => $query
                 ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Provisional])
                 ->where('ends_at', '>', $now))
             ->whereHas('programs', fn ($query) => $query->where('is_active', true)->whereNotNull('study_time'))
@@ -556,6 +579,12 @@ final class LessonReminders
         $teacher = Teachers::forUser($user);
         $renew = $kind === LearnerReminder::RENEW;
         $message = self::message($kind, $teacher, $renew ? '' : self::timeLabel($time));
+
+        // Séance d'essai pas encore faite : la relance rappelle les minutes offertes et leur date limite.
+        if ($kind === LearnerReminder::MISSED && ($facts = self::trialFacts($user)) !== null) {
+            $message['title'] = 'Vos minutes de cours offertes vous attendent';
+            $message['body'] = "Il vous reste {$facts['left']} de cours offertes, à utiliser avant le {$facts['until']}. Touchez ici pour faire votre séance avec {$teacher->name()}.";
+        }
 
         $reminder->push_status = $this->push($user, $message + ($renew
             ? ['url' => parse_url(self::renewUrl($user), PHP_URL_PATH) ?: '/abonnement', 'tag' => 'renouvellement']
