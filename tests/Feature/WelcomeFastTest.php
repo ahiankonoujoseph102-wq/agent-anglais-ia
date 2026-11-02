@@ -281,4 +281,15 @@ class WelcomeFastTest extends TestCase
 
         $this->assertStringContainsString('female teacher', $rose);
     }
+
+    public function test_the_orange_button_comes_with_the_last_sentence_without_scrolling(): void
+    {
+        $js = file_get_contents(public_path('js/welcome.js'));
+
+        // Le bouton arrive pendant la dernière phrase (« Touchez le bouton orange… »), une seule fois.
+        $this->assertStringContainsString('if (current && isLastSentence(current)) {', $js);
+        $this->assertStringContainsString('if (nextShown) {', $js);
+        // Fin du message même si le téléphone ne signale pas la fin du dernier son.
+        $this->assertStringContainsString('now >= lastItem.end + 0.4', $js);
+    }
 }
