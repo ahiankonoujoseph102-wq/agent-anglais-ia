@@ -7,11 +7,14 @@ use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
 use App\Models\Payment;
 use App\Models\Subscription;
+use App\Support\Duration;
 use App\Support\Greeting;
 use App\Support\Origins;
 use App\Support\Plan;
+use App\Support\Reminders\FollowUps;
 use App\Support\Reminders\SubscriptionReport;
 use App\Support\Teachers\Teachers;
+use App\Support\Trial;
 use App\Support\WhatsApp;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -36,6 +39,8 @@ final class Subscribers
         'paid' => 'Abonnés payants',
         'ambassador' => 'Ambassadeurs (mois gratuit)',
         'granted' => 'Accès offerts (démonstrations, membres fondateurs…)',
+        // Séance d'essai gratuite prise par l'élève lui-même après l'évaluation (App\Support\Trial) : jamais un revenu.
+        'trial' => 'Essais gratuits',
     ];
 
     /** Payant, mois gratuit d'un ambassadeur, ou autre accès offert par l'équipe. */
@@ -43,6 +48,7 @@ final class Subscribers
     {
         return match (true) {
             $subscription->ambassador_id !== null => 'ambassador',
+            $subscription->isTrial() => 'trial',
             $subscription->granted_days !== null => 'granted',
             default => 'paid',
         };
@@ -80,7 +86,7 @@ final class Subscribers
      * Chiffres du haut de la page : abonnés payants actifs (au total, par formule, dont en vérification),
      * ambassadeurs et accès offerts actifs (à part), somme encaissée ce mois-ci.
      *
-     * @return array{paid: int, by_plan: array<string, array{name: string, count: int}>, provisional: int, ambassador: int, granted: int, month_total: int}
+     * @return array{paid: int, by_plan: array<string, array{name: string, count: int}>, provisional: int, ambassador: int, granted: int, trial: int, month_total: int}
      */
     public static function totals(): array
     {
@@ -101,6 +107,7 @@ final class Subscribers
             'provisional' => $paid->filter(fn (Subscription $s) => $s->status === SubscriptionStatus::Provisional)->count(),
             'ambassador' => $current($groups['ambassador'])->count(),
             'granted' => $current($groups['granted'])->count(),
+            'trial' => $current($groups['trial'])->count(),
             // Même calcul que « Historique » : paiements validés pendant le mois en cours.
             'month_total' => (int) Payment::query()
                 ->where('status', PaymentStatus::Validated)
@@ -189,6 +196,23 @@ final class Subscribers
     }
 
     /** La fin est assez proche pour une relance (même délai que le rappel de « Mon espace »). */
+    /**
+     * Essai gratuit : temps de cours encore libre (sur ses minutes EN TOUT) et date limite pour l'utiliser. La date
+     * de fin n'est qu'une limite : l'essai se termine plus tôt dès que ses minutes sont prises.
+     *
+     * @return array{left: string, until: string, used_up: bool}
+     */
+    public static function trialState(Subscription $subscription): array
+    {
+        $left = self::isRunning($subscription) ? Trial::secondsLeft($subscription, false) : 0;
+
+        return [
+            'left' => $left > 0 ? Duration::format($left) : 'aucune minute',
+            'until' => Duration::at($subscription->ends_at, false),
+            'used_up' => $left <= 0,
+        ];
+    }
+
     public static function endsSoon(Subscription $subscription): bool
     {
         $days = self::daysLeft($subscription);
@@ -225,6 +249,11 @@ final class Subscribers
 
         if ($group === 'ambassador') {
             return $hello;
+        }
+
+        // Essai gratuit : le même message que la page « Relances » pour l'étape de l'élève.
+        if ($group === 'trial') {
+            return FollowUps::whatsappMessage($subscription->user);
         }
 
         if ($days === null && $group === 'paid') {

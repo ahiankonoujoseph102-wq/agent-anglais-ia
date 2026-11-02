@@ -2,6 +2,7 @@
     use App\Support\Admin\Subscribers;
     use App\Support\Money;
     use App\Support\PhoneNumber;
+    use App\Support\Trial;
 @endphp
 <x-layout title="Abonnés payants">
     @include('admin.nav')
@@ -29,8 +30,8 @@
         </div>
         <div class="stat">
             <div class="label">À part (gratuit)</div>
-            <div class="value">{{ $totals['ambassador'] + $totals['granted'] }}</div>
-            <div class="detail">Ambassadeurs : {{ $totals['ambassador'] }} · Accès offerts : {{ $totals['granted'] }}</div>
+            <div class="value">{{ $totals['ambassador'] + $totals['granted'] + $totals['trial'] }}</div>
+            <div class="detail">Ambassadeurs : {{ $totals['ambassador'] }} · Accès offerts : {{ $totals['granted'] }} · Essais gratuits : {{ $totals['trial'] }}</div>
         </div>
     </div>
 
@@ -60,8 +61,11 @@
         @php
             $rows = $groups[$group];
         @endphp
-        <section class="subscribers-group" id="{{ $group === 'paid' ? 'payants' : ($group === 'ambassador' ? 'ambassadeurs' : 'acces-offerts') }}">
+        <section class="subscribers-group" id="{{ ['paid' => 'payants', 'ambassador' => 'ambassadeurs', 'granted' => 'acces-offerts', 'trial' => 'essais'][$group] }}">
             <h2>{{ $title }} ({{ $rows->count() }})</h2>
+            @if ($group === 'trial')
+                <p class="muted small">L'élève prend lui-même son essai après l'évaluation gratuite : {{ Trial::minutes() }} minutes de cours en tout, une seule fois par compte, à utiliser dans les {{ Trial::validHours() }} heures. La date de fin est seulement la limite : l'essai se termine dès que ses minutes sont prises.</p>
+            @endif
 
             @if ($rows->isEmpty())
                 <div class="card empty-state"><span class="icon-bubble"><x-icon name="users" /></span><p>Aucun abonnement dans cette liste.</p></div>
@@ -101,8 +105,17 @@
                                 </td>
                                 <td data-label="Début">{{ $subscription->starts_at->format('d/m/Y') }}</td>
                                 <td data-label="Fin">{{ $subscription->ends_at->format('d/m/Y') }}</td>
-                                <td data-label="Jours restants">
-                                    @if ($days === null)
+                                <td data-label="{{ $group === 'trial' ? 'Temps de cours restant' : 'Jours restants' }}">
+                                    @if ($group === 'trial')
+                                        @php
+                                            $trial = Subscribers::trialState($subscription);
+                                        @endphp
+                                        @if ($days === null || $trial['used_up'])
+                                            <span class="muted">Essai terminé</span>
+                                        @else
+                                            {{ $trial['left'] }}<br><span class="muted small">à utiliser avant le {{ $trial['until'] }}</span>
+                                        @endif
+                                    @elseif ($days === null)
                                         <span class="muted">Terminé</span>
                                     @elseif ($days === 0)
                                         <span class="badge badge-alert">Se termine aujourd'hui</span>
@@ -126,7 +139,7 @@
                                 <td data-label="Provenance">{{ Subscribers::origin($subscription) }}</td>
                                 <td>
                                     <a class="btn btn-whatsapp" href="{{ Subscribers::whatsappUrl($subscription) }}" target="_blank" rel="noopener">
-                                        {{ $group !== 'ambassador' && ($soon || $days === null) ? 'Relancer sur WhatsApp' : 'Écrire sur WhatsApp' }}
+                                        {{ $group === 'trial' || ($group !== 'ambassador' && ($soon || $days === null)) ? 'Relancer sur WhatsApp' : 'Écrire sur WhatsApp' }}
                                     </a>
                                 </td>
                             </tr>
