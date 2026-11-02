@@ -186,10 +186,10 @@ class LessonFourStepsTest extends TestCase
     {
         $text = TeacherSetup::instructions('lesson', $this->learner(Level::A1), 15, ['context' => '']);
 
-        $this->assertStringContainsString('Speak ONLY English and French, never another language', $text);
+        $this->assertStringContainsString('Speak ONLY English and French (another language you hear', $text);
         $this->assertStringContainsString('"Perfect!" or "Exactly!" only on a right and COMPLETE sentence', $text);
         $this->assertStringContainsString('their REAL name (never "Kofi"); ASK their facts', $text);
-        $this->assertStringContainsString('YOU HAVE NO CLOCK: never sum up or say goodbye before the website tells you', $text);
+        $this->assertStringContainsString('YOU HAVE NO CLOCK: never sum up or say goodbye before the website says so', $text);
         $this->assertStringContainsString('Never more than two "Repeat after me" in a row', $text);
         $this->assertStringContainsString('"We say: I don\'t understand."', $text);
     }
