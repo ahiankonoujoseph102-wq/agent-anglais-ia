@@ -10,6 +10,9 @@ class EmailAddress
     /** Texte d'aide sous le champ (inscription et compte). */
     public const HINT = 'Facultatif. Pour recevoir vos documents de révision par e-mail.';
 
+    /** Texte d'aide à l'inscription : l'adresse y est obligatoire (décision du fondateur, 2 novembre 2026). */
+    public const REGISTER_HINT = 'Pour recevoir vos rappels, vos documents de révision et nos messages.';
+
     /** Texte d'aide pour un abonné payant : l'adresse est obligatoire (rappels de séance). */
     public const REQUIRED_HINT = 'Obligatoire pour les abonnés : pour recevoir vos rappels de séance et vos documents de révision.';
 
@@ -38,6 +41,7 @@ class EmailAddress
     public static function messages(): array
     {
         return [
+            'email.required' => 'Ajoutez votre adresse e-mail. Exemple : prenom.nom@exemple.com.',
             'email.email' => 'Cette adresse e-mail n\'est pas valide. Exemple : prenom.nom@exemple.com.',
             'email.max' => 'Cette adresse e-mail est trop longue.',
             'email.unique' => 'Cette adresse e-mail est déjà utilisée par un autre compte.',

@@ -150,7 +150,8 @@ class CourseReviewMailTest extends TestCase
     public function test_the_email_field_now_says_what_it_is_for(): void
     {
         $this->assertSame('Facultatif. Pour recevoir vos documents de révision par e-mail.', EmailAddress::HINT);
-        $this->get(route('register'))->assertOk()->assertSee(EmailAddress::HINT);
+        // Inscription : adresse obligatoire (relances, rappels).
+        $this->get(route('register'))->assertOk()->assertSee(EmailAddress::REGISTER_HINT);
         // Abonné payant : l'adresse devient obligatoire (rappels de séance, LearnerFollowUpTest).
         $this->actingAs($this->learner())->get(route('account.edit'))->assertOk()->assertSee(EmailAddress::REQUIRED_HINT);
     }

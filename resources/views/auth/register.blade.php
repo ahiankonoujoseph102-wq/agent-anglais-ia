@@ -34,17 +34,18 @@
             </details>
             <x-input name="phone" label="Numéro de téléphone" type="tel" inputmode="tel" autocomplete="tel" required
                      hint="Exemple : 90 12 34 56" />
+            {{-- Obligatoire (décision du fondateur, 2 novembre 2026) : rappels, relances et documents de révision. --}}
+            <x-input name="email" label="Adresse e-mail" type="email" inputmode="email" autocomplete="email" required
+                     :hint="\App\Support\EmailAddress::REGISTER_HINT" />
             {{-- Un seul champ : le bouton « œil » permet de vérifier ce qui a été tapé. --}}
             <x-input name="password" label="Mot de passe" type="password" autocomplete="new-password" required
                      hint="8 caractères minimum." />
 
-            {{-- Facultatif et replié : e-mail (documents de révision) et code ambassadeur. Ouvert et rempli quand la
-                 personne est arrivée par le lien d'un ambassadeur (elle le voit et peut le changer), ou en cas d'erreur. --}}
+            {{-- Facultatif et replié : code ambassadeur. Ouvert et rempli quand la personne est arrivée par le lien
+                 d'un ambassadeur (elle le voit et peut le changer), ou en cas d'erreur. --}}
             @php($ambassadorCode = old('ambassador_code', $suggestedCode ?? null))
-            <details class="optional-field ambassador-field" @if (filled($ambassadorCode) || filled(old('email')) || $errors->hasAny(['email', 'ambassador_code'])) open @endif>
-                <summary>Facultatif : e-mail, code ambassadeur</summary>
-                <x-input name="email" label="Adresse e-mail" type="email" inputmode="email" autocomplete="email"
-                         :hint="\App\Support\EmailAddress::HINT" />
+            <details class="optional-field ambassador-field" @if (filled($ambassadorCode) || $errors->has('ambassador_code')) open @endif>
+                <summary>Facultatif : code ambassadeur</summary>
                 <x-input name="ambassador_code" label="Code ambassadeur" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20"
                          :value="$ambassadorCode" hint="Facultatif. Tapez le code que vous a donné la personne qui vous a parlé de nous." />
             </details>

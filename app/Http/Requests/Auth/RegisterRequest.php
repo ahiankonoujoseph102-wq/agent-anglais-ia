@@ -38,7 +38,9 @@ class RegisterRequest extends FormRequest
             'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{7,14}$/', 'unique:users,phone'],
             // Tous les pays du monde, ou « Autre pays » ; absent (ancien formulaire) : déduit de l'indicatif.
             'country' => ['nullable', 'string', Rule::in([...array_keys(Countries::all()), Countries::OTHER])],
-            'email' => EmailAddress::rules(),
+            // Obligatoire à l'inscription (rappels, relances, documents de révision) ; reste facultative pour les
+            // comptes plus anciens (« Mon compte »).
+            'email' => ['required', ...array_slice(EmailAddress::rules(), 1)],
             // Aucune confirmation : un seul champ, avec le bouton « œil » pour vérifier ce qui a été tapé.
             'password' => ['required', Password::min(8)],
             'ambassador_code' => ['nullable', 'string', 'max:20', function (string $attribute, mixed $value, \Closure $fail) {

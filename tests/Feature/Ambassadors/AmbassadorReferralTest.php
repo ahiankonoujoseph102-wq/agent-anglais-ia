@@ -37,7 +37,7 @@ class AmbassadorReferralTest extends TestCase
     /** @param array<string, mixed> $data */
     private function register(array $data = [])
     {
-        return $this->post('/inscription', $data + ['name' => 'Ama Koffi', 'phone' => '91 23 45 67', 'password' => 'motdepasse']);
+        return $this->post('/inscription', $data + ['name' => 'Ama Koffi', 'phone' => '91 23 45 67', 'email' => 'ama.koffi@exemple.tg', 'password' => 'motdepasse']);
     }
 
     private function newUser(): User
@@ -102,7 +102,7 @@ class AmbassadorReferralTest extends TestCase
     {
         $ambassador = $this->ambassador();
 
-        $this->get('/inscription')->assertSee('Facultatif : e-mail, code ambassadeur')->assertDontSee('value="'.$ambassador->code.'"', false);
+        $this->get('/inscription')->assertSee('Facultatif : code ambassadeur')->assertDontSee('value="'.$ambassador->code.'"', false);
         $this->withLink($ambassador)->get('/inscription')->assertSee('value="'.$ambassador->code.'"', false)->assertSee('<details class="optional-field ambassador-field"  open', false);
     }
 
@@ -164,7 +164,7 @@ class AmbassadorReferralTest extends TestCase
 
         // Une seconde inscription depuis le même réseau : signalée aussi.
         $this->post('/deconnexion');
-        $this->post('/inscription', ['name' => 'Yao', 'phone' => '92 00 00 01', 'password' => 'motdepasse', 'ambassador_code' => $ambassador->code]);
+        $this->post('/inscription', ['name' => 'Yao', 'phone' => '92 00 00 01', 'email' => 'yao@exemple.tg', 'password' => 'motdepasse', 'ambassador_code' => $ambassador->code]);
         $this->assertContains('shared_network', User::query()->where('phone', '+22892000001')->firstOrFail()->referral->flags);
     }
 

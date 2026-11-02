@@ -72,22 +72,23 @@ class PublicPagesActionFirstTest extends TestCase
     {
         $html = $this->get('/inscription')->assertOk()->getContent();
 
-        // Pays replié (Togo choisi d'avance), e-mail et code ambassadeur repliés ensemble ; tous les champs restent envoyés.
+        // Pays replié (Togo choisi d'avance), e-mail obligatoire et visible, code ambassadeur replié ; tous les champs restent envoyés.
         $this->assertStringContainsString('<details class="optional-field country-field" >', $html);
         $this->assertStringContainsString('Pas au Togo ? Choisir votre pays', $html);
         $this->assertStringContainsString('<option value="TG" selected', $html);
-        $this->assertStringContainsString('Facultatif : e-mail, code ambassadeur', $html);
+        $this->assertStringContainsString('Facultatif : code ambassadeur', $html);
         foreach (['name="name"', 'name="country"', 'name="phone"', 'name="password"', 'name="email"', 'name="ambassador_code"'] as $field) {
             $this->assertStringContainsString($field, $html);
         }
         // Les champs obligatoires passent avant les champs repliés, et le bouton juste après.
-        $this->assertLessThan(strpos($html, 'name="email"'), strpos($html, 'name="password"'));
+        $this->assertLessThan(strpos($html, 'name="password"'), strpos($html, 'name="email"'));
+        $this->assertLessThan(strpos($html, 'name="ambassador_code"'), strpos($html, 'name="password"'));
         $this->assertLessThan(strpos($html, 'Créer mon compte</button>'), strpos($html, 'name="ambassador_code"'));
     }
 
     public function test_another_country_or_an_error_opens_the_folded_fields(): void
     {
-        $this->post('/inscription', ['name' => 'Kofi', 'country' => 'CM', 'phone' => '', 'password' => 'x', 'email' => 'pas-une-adresse'])
+        $this->post('/inscription', ['name' => 'Kofi', 'country' => 'CM', 'phone' => '', 'password' => 'x', 'email' => 'pas-une-adresse', 'ambassador_code' => 'INCONNU99'])
             ->assertSessionHasErrors();
 
         $html = $this->get('/inscription')->getContent();
@@ -98,7 +99,7 @@ class PublicPagesActionFirstTest extends TestCase
 
     public function test_registration_still_works_with_the_folded_country(): void
     {
-        $this->post('/inscription', ['name' => 'Afi Mensah', 'country' => 'TG', 'phone' => '90 12 34 56', 'password' => 'mot-de-passe-solide'])
+        $this->post('/inscription', ['name' => 'Afi Mensah', 'country' => 'TG', 'phone' => '90 12 34 56', 'email' => 'afi@exemple.tg', 'password' => 'mot-de-passe-solide'])
             ->assertRedirect(route('dashboard'));
 
         $this->assertSame('+22890123456', User::firstOrFail()->phone);
