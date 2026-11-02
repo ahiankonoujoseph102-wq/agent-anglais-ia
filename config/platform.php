@@ -413,6 +413,18 @@ return [
         'trial_ended_after_hours' => 2,
         // On ne relance plus quelqu'un inscrit depuis plus longtemps que ceci (jours), sauf la campagne « offer ».
         'max_age_days' => 60,
+        // Relances pour pousser à choisir une formule (après l'essai, et anciens abonnés sans renouvellement) : au plus
+        // per_day e-mails par jour d'envoi, un jour sur every_days (jamais chaque jour), les plus anciens d'abord.
+        'sales' => [
+            'per_day' => (int) env('LEARNER_SALES_PER_DAY', 10),
+            'every_days' => 2,
+            // Jours après la fin de l'essai : deuxième et troisième relance (la première, le bilan, part 2 heures après).
+            'trial_ended_days' => [4, 10],
+            // Jours après la fin d'une formule payée : trois relances (le bilan part le jour de la fin), puis plus rien.
+            'lapsed_days' => [3, 10, 21],
+            // Ancien abonné dont la formule est finie depuis plus longtemps : plus aucune relance automatique.
+            'lapsed_max_days' => 60,
+        ],
     ],
 
     'granted_access' => [

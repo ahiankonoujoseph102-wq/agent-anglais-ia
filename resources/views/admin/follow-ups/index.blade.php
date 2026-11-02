@@ -11,6 +11,12 @@
         <div class="alert alert-warning" role="status"><x-icon name="alert" /><div>Les e-mails de relance sont désactivés (LEARNER_FOLLOW_UPS).</div></div>
     @endunless
     <p class="muted small">E-mails de relance envoyés aujourd'hui : {{ $sentToday }} · en attente : {{ $pending }}</p>
+    <p class="muted small">
+        Relances pour choisir une formule (après l'essai, et anciens abonnés dont la formule est finie : trois relances espacées, puis plus rien) :
+        {{ config('platform.follow_ups.sales.per_day') }} au plus par jour d'envoi, un jour sur {{ config('platform.follow_ups.sales.every_days') }}.
+        Aujourd'hui : {{ $salesToday }} · en attente : {{ $salesPending }} · anciens abonnés relancés sur 30 jours : {{ $lapsedSent }}.
+        Chaque heure, un résumé des e-mails partis vers les élèves est envoyé à l'adresse des alertes.
+    </p>
 
     <nav class="tabs" aria-label="Étapes">
         <a href="{{ route('admin.follow-ups.index') }}" @class(['active' => $filter === null])>Tous ({{ $counts->sum() }})</a>

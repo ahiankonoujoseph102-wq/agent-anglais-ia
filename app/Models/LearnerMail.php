@@ -25,7 +25,39 @@ class LearnerMail extends Model
     /** Séance d'essai terminée sans formule. */
     public const TRIAL_ENDED = 'trial_ended';
 
-    public const CAMPAIGNS = [self::OFFER, self::NO_ASSESSMENT, self::NO_TRIAL, self::TRIAL_ENDED];
+    /** Essai terminé, deuxième et troisième relance (quelques jours après), si aucune formule n'est choisie. */
+    public const TRIAL_ENDED_2 = 'trial_ended_2';
+
+    public const TRIAL_ENDED_3 = 'trial_ended_3';
+
+    /** Ancien abonné payant dont la formule est terminée sans renouvellement : trois relances espacées, puis plus rien. */
+    public const LAPSED_1 = 'lapsed_1';
+
+    public const LAPSED_2 = 'lapsed_2';
+
+    public const LAPSED_3 = 'lapsed_3';
+
+    public const CAMPAIGNS = [
+        self::OFFER, self::NO_ASSESSMENT, self::NO_TRIAL, self::TRIAL_ENDED,
+        self::TRIAL_ENDED_2, self::TRIAL_ENDED_3, self::LAPSED_1, self::LAPSED_2, self::LAPSED_3,
+    ];
+
+    /** Relances « commerciales » : un petit nombre par jour d'envoi, un jour sur platform.follow_ups.sales.every_days. */
+    public const SALES = [self::TRIAL_ENDED_2, self::TRIAL_ENDED_3, self::LAPSED_1, self::LAPSED_2, self::LAPSED_3];
+
+    public const LAPSED = [self::LAPSED_1, self::LAPSED_2, self::LAPSED_3];
+
+    public const CAMPAIGN_LABELS = [
+        self::OFFER => 'Lancement de l\'offre',
+        self::NO_ASSESSMENT => 'Évaluation à passer',
+        self::NO_TRIAL => 'Essai à commencer',
+        self::TRIAL_ENDED => 'Fin de l\'essai (bilan)',
+        self::TRIAL_ENDED_2 => 'Après l\'essai, deuxième relance',
+        self::TRIAL_ENDED_3 => 'Après l\'essai, dernière relance',
+        self::LAPSED_1 => 'Formule terminée, première relance',
+        self::LAPSED_2 => 'Formule terminée, deuxième relance',
+        self::LAPSED_3 => 'Formule terminée, dernière relance',
+    ];
 
     public const PENDING = 'pending';
 

@@ -21,6 +21,13 @@
                     <p style="margin:0 0 12px;font-size:16px;line-height:1.5;">{{ $line }}</p>
                 @endforeach
                 <a href="{{ $url }}" style="display:block;text-align:center;background:#FF7A1A;color:#0E2A5C;text-decoration:none;font-weight:bold;font-size:17px;padding:14px 18px;border-radius:12px;margin-top:8px;">{{ $button }}</a>
+                @if ($links !== [])
+                    <p style="margin:18px 0 0;font-size:15px;line-height:1.7;">
+                        @foreach ($links as $link)
+                            <a href="{{ $link['url'] }}" style="color:#0E2A5C;font-weight:bold;">{{ $link['label'] }}</a>@if (! $loop->last)<br>@endif
+                        @endforeach
+                    </p>
+                @endif
                 @if ($review)
                     <p style="margin:20px 0 0;font-size:15px;line-height:1.5;">{{ \Illuminate\Support\Str::before($review, route('reviews.edit')) }}<a href="{{ $reviewUrl }}" style="color:#0E2A5C;font-weight:bold;">Donner mon avis</a>{{ \Illuminate\Support\Str::after($review, route('reviews.edit')) }}</p>
                 @endif

@@ -2,10 +2,13 @@
 
 namespace App\Support\Reminders;
 
+use App\Enums\Goal;
+use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
 use App\Mail\FollowUpMail;
 use App\Models\LearnerMail;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Support\Duration;
 use App\Support\LearnerName;
@@ -15,6 +18,8 @@ use App\Support\Plan;
 use App\Support\Redact;
 use App\Support\Teachers\Teachers;
 use App\Support\Trial;
+use App\Support\Videos\SiteVideos;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
@@ -22,7 +27,10 @@ use Throwable;
 
 /**
  * Relances des inscrits qui n'ont pas encore de formule payée : un e-mail par étape (inscrit sans évaluation,
- * évaluation sans essai, essai terminé sans formule) et le lancement de l'offre (learners:offer-trial). Chaque
+ * évaluation sans essai, essai terminé sans formule, puis deux relances espacées après l'essai) et le lancement de
+ * l'offre (learners:offer-trial) ; et des anciens abonnés payants dont la formule est finie sans renouvellement
+ * (trois relances espacées, puis plus rien). Les relances « commerciales » (LearnerMail::SALES) partent par petits
+ * lots : platform.follow_ups.sales.per_day par jour d'envoi, un jour sur every_days, jamais chaque jour. Chaque
  * campagne part UNE fois par compte, jamais deux e-mails de relance à moins de platform.follow_ups.gap_hours heures,
  * jamais à qui a demandé à ne plus en recevoir. Textes écrits par le code (aucun modèle d'intelligence artificielle).
  * Sans adresse e-mail : noté « no_email », l'équipe relance sur WhatsApp depuis « Relances » de l'administration.
@@ -128,7 +136,7 @@ final class FollowUps
                 }
             });
 
-        return $queued;
+        return $queued + self::queueLapsed();
     }
 
     /**
@@ -138,12 +146,144 @@ final class FollowUps
     {
         $fresh = User::query()->find($user->id);
 
+        if (self::stage($fresh) === self::STAGE_TRIAL_ENDED) {
+            $ended = Trial::latest($fresh)?->ends_at;
+            [$second, $third] = array_map('intval', (array) $config['sales']['trial_ended_days']);
+
+            return $ended === null ? null : self::nextInSequence($user, [
+                LearnerMail::TRIAL_ENDED => $ended->lte(now()->subHours((int) $config['trial_ended_after_hours'])),
+                LearnerMail::TRIAL_ENDED_2 => $ended->lte(now()->subDays($second)),
+                LearnerMail::TRIAL_ENDED_3 => $ended->lte(now()->subDays($third)),
+            ]);
+        }
+
         return match (self::stage($fresh)) {
             self::STAGE_NO_ASSESSMENT => $user->created_at->lte(now()->subHours((int) $config['no_assessment_after_hours'])) ? LearnerMail::NO_ASSESSMENT : null,
             self::STAGE_NO_TRIAL => ($user->assessment?->ended_at ?? $user->assessment?->created_at)?->lte(now()->subHours((int) $config['no_trial_after_hours'])) ? LearnerMail::NO_TRIAL : null,
-            self::STAGE_TRIAL_ENDED => Trial::latest($fresh)?->ends_at->lte(now()->subHours((int) $config['trial_ended_after_hours'])) ? LearnerMail::TRIAL_ENDED : null,
             default => null,
         };
+    }
+
+    /**
+     * Prochaine relance d'une suite : la première pas encore préparée, si son délai est passé et que les précédentes
+     * l'ont été (jamais la troisième sans la deuxième).
+     *
+     * @param  array<string, bool>  $steps  campagne => délai passé
+     */
+    private static function nextInSequence(User $user, array $steps): ?string
+    {
+        foreach ($steps as $campaign => $due) {
+            if ($user->learnerMails->where('campaign', $campaign)->isEmpty()) {
+                return $due ? $campaign : null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Ancien abonné payant : dernière formule payée (ni accès offert, ni mois d'ambassadeur, ni formule refusée), finie,
+     * sans accès en cours ni paiement en vérification ; null sinon (jamais l'équipe).
+     */
+    public static function lapsedSubscription(User $user): ?Subscription
+    {
+        if ($user->role !== Role::Learner || $user->activeSubscription()->exists()
+            || $user->payments()->where('status', PaymentStatus::Pending)->exists()) {
+            return null;
+        }
+
+        $last = $user->subscriptions()->paid()->whereNull('ambassador_id')
+            ->where('status', '!=', SubscriptionStatus::Cancelled->value)
+            ->latest('ends_at')->first();
+
+        return $last !== null && $last->ends_at->isPast() ? $last : null;
+    }
+
+    /** Relances dues des anciens abonnés (trois, espacées, après le bilan de fin de formule). */
+    private static function queueLapsed(): int
+    {
+        $config = (array) config('platform.follow_ups.sales');
+        $days = array_map('intval', (array) $config['lapsed_days']);
+        $maxDays = (int) $config['lapsed_max_days'];
+        $queued = 0;
+
+        User::query()
+            ->where('role', Role::Learner->value)
+            ->whereNull('follow_up_opt_out_at')
+            ->whereHas('subscriptions', fn ($query) => $query->paid()->whereNull('ambassador_id')
+                ->where('status', '!=', SubscriptionStatus::Cancelled->value)
+                ->where('ends_at', '<=', now())
+                ->where('ends_at', '>', now()->subDays($maxDays)))
+            ->with('learnerMails')
+            ->orderBy('id')
+            ->chunkById(200, function ($users) use ($days, $maxDays, &$queued) {
+                foreach ($users as $user) {
+                    $last = self::lapsedSubscription($user);
+
+                    if ($last === null || $last->ends_at->lt(now()->subDays($maxDays))) {
+                        continue;
+                    }
+
+                    // Une suite d'une formule plus ancienne (l'élève avait repris puis arrêté de nouveau) : on recommence.
+                    $old = $user->learnerMails->whereIn('campaign', LearnerMail::LAPSED)
+                        ->filter(fn (LearnerMail $mail) => $mail->created_at->lt($last->starts_at));
+
+                    if ($old->isNotEmpty()) {
+                        LearnerMail::query()->whereKey($old->modelKeys())->delete();
+                        $user->load('learnerMails');
+                    }
+
+                    $campaign = self::nextInSequence($user, [
+                        LearnerMail::LAPSED_1 => $last->ends_at->lte(now()->subDays($days[0])),
+                        LearnerMail::LAPSED_2 => $last->ends_at->lte(now()->subDays($days[1])),
+                        LearnerMail::LAPSED_3 => $last->ends_at->lte(now()->subDays($days[2])),
+                    ]);
+
+                    if ($campaign !== null) {
+                        $user->learnerMails()->firstOrCreate(['campaign' => $campaign], ['status' => LearnerMail::PENDING]);
+                        $queued++;
+                    }
+                }
+            });
+
+        return $queued;
+    }
+
+    /** Relances commerciales parties aujourd'hui, réussies ou non. */
+    public static function salesSentToday(): int
+    {
+        return LearnerMail::query()
+            ->whereIn('campaign', LearnerMail::SALES)
+            ->whereIn('status', [LearnerMail::SENT, LearnerMail::FAILED])
+            ->where('sent_at', '>=', today())
+            ->count();
+    }
+
+    /**
+     * Jour d'envoi des relances commerciales ? Jamais chaque jour : un jour sur every_days (le jour même d'un envoi
+     * déjà commencé compte), au plus per_day e-mails ce jour-là.
+     */
+    public static function salesDayOpen(): bool
+    {
+        $config = (array) config('platform.follow_ups.sales');
+        $today = self::salesSentToday();
+
+        if ($today >= (int) $config['per_day']) {
+            return false;
+        }
+
+        if ($today > 0) {
+            return true;
+        }
+
+        $last = LearnerMail::query()
+            ->whereIn('campaign', LearnerMail::SALES)
+            ->whereIn('status', [LearnerMail::SENT, LearnerMail::FAILED])
+            ->where('sent_at', '<', today())
+            ->max('sent_at');
+
+        return $last === null
+            || CarbonImmutable::parse($last)->startOfDay()->lte(today()->subDays(max(1, (int) $config['every_days'])));
     }
 
     /** E-mails de relance partis aujourd'hui, réussis ou non. */
@@ -175,31 +315,62 @@ final class FollowUps
             return $result;
         }
 
-        $pending = LearnerMail::query()
+        $batch = (int) config('platform.follow_ups.batch');
+        $regular = LearnerMail::query()
             ->where('status', LearnerMail::PENDING)
-            ->whereIn('campaign', LearnerMail::CAMPAIGNS)
+            ->whereIn('campaign', array_values(array_diff(LearnerMail::CAMPAIGNS, LearnerMail::SALES)))
             ->orderBy('id')
-            ->limit((int) config('platform.follow_ups.batch') * 3)
+            ->limit($batch * 3)
             ->get();
         $sent = 0;
 
-        foreach ($pending as $mail) {
-            if ($sent >= (int) config('platform.follow_ups.batch') || ! self::allowsMail()) {
+        foreach ($regular as $mail) {
+            if ($sent >= $batch || ! self::allowsMail()) {
                 break;
             }
 
-            $user = User::query()->find($mail->user_id);
-            $outcome = $user === null ? LearnerMail::SKIPPED : self::deliver($mail, $user);
+            $sent += self::sendOne($mail, $result);
+        }
 
-            if ($outcome === null) {
-                continue;
+        // Relances commerciales : les plus anciennes d'abord, un petit lot les jours d'envoi seulement.
+        if (! self::salesDayOpen()) {
+            return $result;
+        }
+
+        $sales = LearnerMail::query()
+            ->where('status', LearnerMail::PENDING)
+            ->whereIn('campaign', LearnerMail::SALES)
+            ->orderBy('id')
+            ->limit((int) config('platform.follow_ups.sales.per_day') * 3)
+            ->get();
+
+        foreach ($sales as $mail) {
+            if (! self::salesDayOpen() || ! self::allowsMail()) {
+                break;
             }
 
-            $result[$outcome === LearnerMail::NO_EMAIL ? 'no_email' : $outcome]++;
-            $sent += $outcome === LearnerMail::SENT || $outcome === LearnerMail::FAILED ? 1 : 0;
+            self::sendOne($mail, $result);
         }
 
         return $result;
+    }
+
+    /**
+     * @param  array{sent: int, no_email: int, skipped: int, failed: int}  $result
+     * @return int 1 si un e-mail est parti (réussi ou non)
+     */
+    private static function sendOne(LearnerMail $mail, array &$result): int
+    {
+        $user = User::query()->find($mail->user_id);
+        $outcome = $user === null ? LearnerMail::SKIPPED : self::deliver($mail, $user);
+
+        if ($outcome === null) {
+            return 0;
+        }
+
+        $result[$outcome === LearnerMail::NO_EMAIL ? 'no_email' : $outcome]++;
+
+        return $outcome === LearnerMail::SENT || $outcome === LearnerMail::FAILED ? 1 : 0;
     }
 
     /** Envoie un e-mail ; renvoie son nouvel état, ou null pour le garder en attente (une autre relance trop récente). */
@@ -207,7 +378,11 @@ final class FollowUps
     {
         $content = self::content($mail->campaign, $user);
 
-        if ($content === null || $user->follow_up_opt_out_at !== null || ! self::prospects()->whereKey($user->id)->exists()) {
+        $targeted = in_array($mail->campaign, LearnerMail::LAPSED, true)
+            ? self::lapsedSubscription($user) !== null
+            : self::prospects()->whereKey($user->id)->exists();
+
+        if ($content === null || $user->follow_up_opt_out_at !== null || ! $targeted) {
             $mail->forceFill(['status' => LearnerMail::SKIPPED])->save();
 
             return LearnerMail::SKIPPED;
@@ -231,6 +406,7 @@ final class FollowUps
         }
 
         try {
+            $content['label'] = LearnerMail::CAMPAIGN_LABELS[$mail->campaign] ?? $mail->campaign;
             Mail::to($user->email)->send(new FollowUpMail($user, $content, self::stopUrl($user)));
             $mail->forceFill(['status' => LearnerMail::SENT, 'sent_at' => now(), 'error' => null])->save();
 
@@ -297,6 +473,8 @@ final class FollowUps
             LearnerMail::NO_ASSESSMENT => $stage === self::STAGE_NO_ASSESSMENT ? ['subject' => 'Votre évaluation orale gratuite vous attend'] + $evaluation : null,
             LearnerMail::NO_TRIAL => $stage === self::STAGE_NO_TRIAL ? ['subject' => "Vos {$minutes} minutes de cours offertes vous attendent"] + $trial : null,
             LearnerMail::TRIAL_ENDED => $stage === self::STAGE_TRIAL_ENDED ? self::trialEnded($user, $from) : null,
+            LearnerMail::TRIAL_ENDED_2, LearnerMail::TRIAL_ENDED_3 => $stage === self::STAGE_TRIAL_ENDED ? self::afterTrial($campaign, $user, $from) : null,
+            LearnerMail::LAPSED_1, LearnerMail::LAPSED_2, LearnerMail::LAPSED_3 => self::lapsed($campaign, $user),
             default => null,
         };
 
@@ -308,7 +486,7 @@ final class FollowUps
             array_unshift($body['lines'], "{$platform} s'est beaucoup amélioré : vous pouvez maintenant choisir votre professeur, {$teachers}, et chaque séance suit une vraie méthode (leçon, pratique, conversation, bilan).");
         }
 
-        return $body + ['review' => null];
+        return $body + ['review' => null, 'links' => []];
     }
 
     /**
@@ -331,6 +509,151 @@ final class FollowUps
             'url' => route('payment.plans'),
             'review' => $report->reviewInvitation(),
         ];
+    }
+
+    /**
+     * Deuxième et dernière relance après l'essai : pourquoi continuer, d'après l'objectif de la personne, puis les formules.
+     *
+     * @return array<string, mixed>
+     */
+    private static function afterTrial(string $campaign, User $user, string $from): array
+    {
+        $teacher = Teachers::forUser($user)->name();
+        $level = $user->level ? ' (niveau '.$user->level->value.', '.$user->level->label().')' : '';
+
+        if ($campaign === LearnerMail::TRIAL_ENDED_2) {
+            return [
+                'subject' => "Votre anglais, la suite avec {$teacher} ?",
+                'title' => 'Pourquoi continuer maintenant',
+                'lines' => [
+                    "Il y a quelques jours, vous avez découvert un vrai cours avec {$teacher}{$level}.",
+                    self::goalLine($user),
+                    self::regularityLine($teacher),
+                    $from,
+                ],
+                'button' => 'Choisir ma formule',
+                'url' => route('payment.plans'),
+                'review' => null,
+                'links' => self::promoLinks(),
+            ];
+        }
+
+        return [
+            'subject' => "Un dernier message de {$teacher}",
+            'title' => 'Votre place vous attend toujours',
+            'lines' => [
+                'C\'est notre dernier message à ce sujet : nous ne voulons pas vous déranger.',
+                'Votre compte'.($user->level ? ', votre niveau ('.$user->level->value.')' : '').' et ce que vous avez commencé sont gardés : avec une formule, vous reprenez là où vous vous êtes arrêté.',
+                'Une question avant de choisir ? Écrivez-nous sur WhatsApp : nous vous répondons.',
+                $from,
+            ],
+            'button' => 'Choisir ma formule',
+            'url' => route('payment.plans'),
+            'review' => null,
+            'links' => [],
+        ];
+    }
+
+    /**
+     * Relances d'un ancien abonné dont la formule est finie sans renouvellement (null : plus d'actualité).
+     *
+     * @return array<string, mixed>|null
+     */
+    private static function lapsed(string $campaign, User $user): ?array
+    {
+        $subscription = self::lapsedSubscription($user);
+
+        if ($subscription === null) {
+            return null;
+        }
+
+        $teacher = Teachers::forUser($user)->name();
+        $report = SubscriptionReport::for($subscription);
+        $plan = Plan::find((string) $subscription->plan);
+        $methods = LessonReminders::paymentMethods($user);
+        $pay = $plan !== null
+            ? 'Pour reprendre, renouvelez votre formule '.$plan->name.' ('.Money::format($plan->price).') depuis votre téléphone'.($methods ? ', par '.$methods : '').' ; rien n\'est prélevé automatiquement.'
+            : 'Pour reprendre, choisissez une formule depuis votre téléphone ; rien n\'est prélevé automatiquement.';
+        $button = $plan !== null ? 'Renouveler ma formule '.$plan->name : 'Choisir ma formule';
+        $url = $plan !== null ? route('payment.create', $plan->key) : route('payment.plans');
+        $facts = array_values(array_filter($report->lines(), fn (string $line) => ! str_starts_with($line, 'À retenir')));
+        $errors = array_values(array_filter($report->lines(), fn (string $line) => str_starts_with($line, 'À retenir')));
+
+        return match ($campaign) {
+            LearnerMail::LAPSED_1 => [
+                'subject' => 'On reprend vos séances ?',
+                'title' => "Vos séances avec {$teacher} vous attendent",
+                'lines' => array_merge(
+                    ['Votre formule '.$subscription->plan_name.' s\'est terminée il y a quelques jours.'],
+                    array_slice($facts, 0, 2),
+                    [$report->encouragement(), $pay],
+                ),
+                'button' => $button, 'url' => $url, 'review' => null, 'links' => [],
+            ],
+            LearnerMail::LAPSED_2 => [
+                'subject' => 'Ne laissez pas vos progrès s\'arrêter',
+                'title' => 'Votre anglais, où en êtes-vous ?',
+                'lines' => array_merge(
+                    [self::goalLine($user), self::regularityLine($teacher)],
+                    array_slice($errors, 0, 1),
+                    [$pay],
+                ),
+                'button' => $button, 'url' => $url, 'review' => null, 'links' => self::promoLinks(),
+            ],
+            default => [
+                'subject' => "Un dernier message de {$teacher}",
+                'title' => 'Vous êtes toujours le bienvenu',
+                'lines' => [
+                    'C\'est notre dernier message à ce sujet : nous ne voulons pas vous déranger.',
+                    'Votre niveau, votre programme et vos erreurs à revoir sont gardés : vous reprenez là où vous vous êtes arrêté.',
+                    'Une question, ou un souci avec le paiement ? Écrivez-nous sur WhatsApp : nous vous répondons.',
+                    $pay,
+                ],
+                'button' => $button, 'url' => $url, 'review' => null, 'links' => [],
+            ],
+        };
+    }
+
+    /** Pourquoi l'anglais, d'après l'objectif choisi au questionnaire (sinon les raisons les plus courantes). */
+    private static function goalLine(User $user): string
+    {
+        $goal = $user->activeProgram()->first()?->goal;
+
+        return $goal instanceof Goal
+            ? 'Vous nous avez dit vouloir : « '.$goal->label().' ». Votre programme personnel est construit pour cela, leçon après leçon.'
+            : 'L\'anglais ouvre des portes : un meilleur travail, des études ou un stage, des clients et des visiteurs anglophones, et surtout la confiance de parler sans gêne.';
+    }
+
+    private static function regularityLine(string $teacher): string
+    {
+        return "Ce qui fait vraiment progresser, c'est la régularité : quelques minutes par jour à l'oral, depuis votre téléphone, à l'heure qui vous arrange. {$teacher} vous corrige avec patience, sans gêne ni jugement.";
+    }
+
+    /**
+     * Liens vers nos vidéos (« Vos questions, mes réponses » quand sa version du site est prête, TikTok, chaîne
+     * WhatsApp), montrés sous le bouton de certaines relances.
+     *
+     * @return list<array{label: string, url: string}>
+     */
+    public static function promoLinks(): array
+    {
+        $links = [];
+        $key = config('videos.presentations.site.plans_link');
+        $video = $key ? app(SiteVideos::class)->find((string) $key) : null;
+
+        if ($video !== null) {
+            $links[] = ['label' => 'Regarder la vidéo « '.$video->title.' »', 'url' => route('how').'#'.$video->key];
+        }
+
+        if (filled(config('platform.contact.tiktok'))) {
+            $links[] = ['label' => 'Nos leçons en vidéo sur TikTok', 'url' => (string) config('platform.contact.tiktok')];
+        }
+
+        if (filled(config('platform.contact.whatsapp_channel'))) {
+            $links[] = ['label' => 'La chaîne WhatsApp de '.config('platform.name'), 'url' => (string) config('platform.contact.whatsapp_channel')];
+        }
+
+        return $links;
     }
 
     /**
