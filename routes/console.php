@@ -63,8 +63,8 @@ Schedule::command('videos:mail')->everyMinute()->withoutOverlapping(10)->onOneSe
 
 // Suivi des élèves payants : rappels avant la séance du jour et relance d'une séance manquée (notification et e-mail).
 Schedule::command('learners:remind')->everyMinute()->withoutOverlapping(5)->onOneServer();
-// Relances des inscrits sans formule payée (évaluation, séance d'essai, fin d'essai) : un petit lot chaque heure.
-Schedule::command('learners:follow-up')->hourly()->between('8:00', '20:00')->withoutOverlapping(10)->onOneServer();
+// Relances des inscrits sans formule payée (évaluation, séance d'essai, fin d'essai) : un lot chaque heure, de 6 heures à 20 heures.
+Schedule::command('learners:follow-up')->hourly()->between('6:00', '20:00')->withoutOverlapping(10)->onOneServer();
 
 // Résumé au fondateur des e-mails partis vers les élèves (relances, rappels, bilans…) : un e-mail par heure au plus.
 Schedule::command('mail:digest')->hourly()->withoutOverlapping(10)->onOneServer();
