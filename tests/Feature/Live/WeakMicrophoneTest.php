@@ -30,14 +30,18 @@ class WeakMicrophoneTest extends TestCase
         $this->assertStringContainsString("localStorage.removeItem('call-mode')", $js);
     }
 
-    public function test_noise_suppression_is_off_on_android_by_default(): void
+    public function test_android_uses_the_normal_call_audio_by_default(): void
     {
+        // Comme un appel ou Google Meet : annulation d'écho et réduction de bruit, voix au volume normal.
         $html = $this->actingAs(User::factory()->create())->get('/evaluation')->getContent();
-        $this->assertStringContainsString('"noise_suppression_android":false', $html);
+        $this->assertStringContainsString('"echo_cancellation_android":true', $html);
+        $this->assertStringContainsString('"noise_suppression_android":true', $html);
+        $this->assertStringContainsString('"voice_gain":1', $html);
 
         $js = file_get_contents(public_path('js/live-session.js'));
         $this->assertStringContainsString('noiseSuppression: NOISE_SUPPRESSION,', $js);
-        $this->assertStringContainsString('IS_ANDROID ? audioConfig.noise_suppression_android ?? false : true', $js);
+        $this->assertStringContainsString('audioConfig.echo_cancellation_android ?? true', $js);
+        $this->assertStringContainsString('IS_ANDROID ? audioConfig.noise_suppression_android ?? true : true', $js);
     }
 
     public function test_a_too_weak_microphone_is_turned_up_automatically(): void
