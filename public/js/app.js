@@ -8,7 +8,7 @@
  *   - fenêtre de confirmation intégrée des actions graves (jamais de fenêtre du navigateur) ;
  *   - navigation automatique : un lien vers une partie de la page y descend et met le focus sur son titre,
  *     une page revenue avec des erreurs met le focus sur le premier champ à corriger, un bouton d'envoi
- *     passe à « Envoi en cours… » et un second toucher est ignoré.
+ *     passe à « Un instant… » et un second toucher est ignoré.
  */
 
 const script = document.querySelector('script[data-sw]');
@@ -567,7 +567,7 @@ document.addEventListener('click', (event) => {
     field.setSelectionRange(field.value.length, field.value.length);
 });
 
-/* ---------- Boutons d'envoi : « Envoi en cours… » et aucun double envoi ---------- */
+/* ---------- Boutons d'envoi : « Un instant… » et aucun double envoi ---------- */
 
 const BUSY_TIMEOUT = 30000;
 
@@ -582,7 +582,7 @@ function markBusy(form, button) {
         // la page montre elle-même l'attente.
         if (!('busyKeep' in button.dataset)) {
             button.dataset.idleHtml = button.innerHTML;
-            button.innerHTML = '<span class="busy-spinner" aria-hidden="true"></span> ' + (button.dataset.busyLabel || 'Envoi en cours…');
+            button.innerHTML = '<span class="busy-spinner" aria-hidden="true"></span> ' + (button.dataset.busyLabel || 'Un instant…');
         }
     }
 

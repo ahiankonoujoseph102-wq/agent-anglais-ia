@@ -52,7 +52,7 @@ class LiveLayoutTest extends TestCase
         $this->assertSame('La connexion est un peu lente, Teacher Joe arrive…', $audio['messages']['slow']);
         $this->assertSame('Teacher Joe ne répond pas. Touchez « Relancer Teacher Joe » pour reprendre.', $audio['messages']['stuck']);
         $this->assertSame('Teacher Joe revient, un instant…', $audio['messages']['reconnecting']);
-        $this->assertSame('Teacher Joe n\'est pas joignable pour le moment. Réessayez dans quelques minutes, ou écrivez-nous sur WhatsApp.', $audio['messages']['unavailable']);
+        $this->assertSame('Teacher Joe a un petit problème de connexion. Revenez dans deux minutes au plus, ou écrivez-nous sur WhatsApp.', $audio['messages']['unavailable']);
         $this->assertStringContainsString('Reprendre la séance', $html);
         $this->assertStringContainsString('id="whatsapp-help"', $html);
     }

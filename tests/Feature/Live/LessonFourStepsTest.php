@@ -80,14 +80,13 @@ class LessonFourStepsTest extends TestCase
 
         $this->assertStringContainsString('A REAL TEACHER TEACHES FIRST, THEN PRACTICES, THEN LETS THE LEARNER TALK FREELY.', $text);
         $this->assertStringContainsString('Never start with a topic you have not taught.', $text);
-        $this->assertStringContainsString('STEP 1 — LESSON. Teach the board ONE ITEM AT A TIME, in small, lively pieces, never a monologue', $text);
-        $this->assertStringContainsString('show its MEANING with a simple English example or situation', $text);
-        $this->assertStringContainsString('then "Your turn: …"', $text);
+        $this->assertStringContainsString('STEP 1 — LESSON. Teach the board ONE ITEM AT A TIME, in small, lively pieces, never a monologue or a drill', $text);
+        $this->assertStringContainsString('EXPLAIN it briefly, in English at the learner\'s level (A1 and A2: its meaning also in a few French words)', $text);
+        $this->assertStringContainsString('never a list of verbs to repeat', $text);
+        $this->assertStringContainsString('(5) "Your turn: …"', $text);
         $this->assertStringContainsString('never move on, and never start STEP 2 or STEP 3, while it is not understood.', $text);
-        // En anglais, au niveau de l'élève ; après « Repeat after me », l'élève dit le sens en français (sinon explication).
-        $this->assertStringContainsString('IN ENGLISH, at the learner\'s level', $text);
-        $this->assertStringContainsString('then "Repeat after me: …", then CHECK THE MEANING OF EVERY NEW SENTENCE', $text);
-        $this->assertLessThan(strpos($text, 'then CHECK THE MEANING OF EVERY NEW SENTENCE (HOW YOU TEACH'), strpos($text, 'say WHEN to use it, then "Repeat after me'));
+        // Expliquer, vérifier la compréhension, PUIS faire répéter (jamais l'inverse).
+        $this->assertLessThan(strpos($text, '(4) only then "Repeat after me: …"'), strpos($text, '(3) "Do you understand?", then UNDERSTAND BEFORE REPEATING'));
         $this->assertStringContainsString('EVERY item ends with the learner speaking', $text);
         $this->assertStringContainsString("STEP 2 — GUIDED PRACTICE. Start with this exact sentence: « Now, let's practice! »", $text);
         $this->assertStringContainsString('at least one short exercise where the learner makes their OWN sentence', $text);

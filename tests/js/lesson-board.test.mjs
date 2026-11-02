@@ -146,3 +146,27 @@ test('au plus trois corrections par séance', () => {
     board.feed('See you! ');
     assert.equal(board.earlyMove(70), null);
 });
+
+test("l'élément allumé vient tout seul au tiers haut du tableau (seul le tableau défile)", async () => {
+    const { followTop } = await import('../../public/js/lesson-board.js');
+    // Tableau de 300 pixels de haut, élément de 30 pixels à 600 pixels du haut : placé à 90 pixels du haut visible.
+    assert.equal(followTop(600, 30, 300), 510);
+    // Élément tout en haut : jamais une position négative après Math.max (faite par l'appelant).
+    assert.ok(followTop(10, 30, 300) < 0);
+    // Élément plus haut que le tableau : son début reste visible.
+    assert.equal(followTop(400, 500, 300), 400);
+});
+
+test('light() fait défiler le tableau, jamais la page', () => {
+    const calls = [];
+    const body = { scrollTo: (options) => calls.push(options), clientHeight: 300 };
+    const el = {
+        dataset: { boardItem: 'p1', say: 'Hello' }, offsetTop: 600, offsetHeight: 30,
+        classList: { add() {}, remove() {} }, closest: (selector) => (selector === '.board-body' ? body : null),
+    };
+    const root = { querySelector: () => null, querySelectorAll: (selector) => (selector === '[data-board-item]' ? [el] : []) };
+    const view = new BoardView(root);
+    view.light('p1');
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].top, 510);
+});

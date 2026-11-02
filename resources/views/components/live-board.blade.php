@@ -1,11 +1,12 @@
 {{--
     TABLEAU de la séance du jour (App\Support\Curriculum\LessonBoards) : étape en cours (Leçon, Pratique, Conversation,
     Bilan) et éléments qui s'allument quand Teacher Joe en parle (public/js/lesson-board.js). Téléphone : sous Teacher Joe,
-    replié (la ligne du haut montre l'étape et l'élément en cours) ; ordinateur et téléphone couché : dans la colonne de
+    replié avant la séance, OUVERT dès qu'elle commence (live-session.js) ; l'élément dont il parle vient tout seul au
+    milieu du tableau, avec une flèche (aucun défilement à faire) ; ordinateur et téléphone couché : dans la colonne de
     droite, ouvert. Traductions : visibles en A1 et A2, discrètes en B1, masquées ensuite (case « Voir les traductions »).
     En bas : le piège du jour des francophones (programme officiel).
 --}}
-@props(['board', 'translations' => 'show'])
+@props(['board', 'translations' => 'show', 'teacherName' => config('avatar.model.name')])
 
 <details id="board" class="board" data-translations="{{ $translations }}" data-phase="lesson">
     <summary class="board-head">
@@ -14,6 +15,7 @@
         <span class="board-now" data-board-now aria-live="polite"></span>
     </summary>
     <div class="board-body">
+        <p class="board-follow"><x-icon name="chevron-down" /> Suivez au tableau : ce que dit {{ $teacherName }} s'allume en orange.</p>
         <h2 class="board-title" lang="en">{{ $board['title'] }}</h2>
 
         @if ($translations !== 'show')

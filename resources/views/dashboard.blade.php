@@ -175,6 +175,10 @@
     {{-- Où en est l'apprenant dans le parcours : sous la prochaine étape, pour que son bouton reste dans le premier écran. --}}
     <x-stepper :labels="['Évaluation', 'Formule', 'Programme', 'Séances']" :current="$journeyStep" label="Votre parcours" />
 
+    {{-- Avis : élève qui peut en laisser un et ne l'a pas encore fait (minutes offertes pour tout avis). Juste sous la
+         prochaine étape (demande du fondateur, 2 novembre 2026 : il fallait défiler pour le trouver). --}}
+    <x-review-invite class="rise" />
+
     {{-- Club des abonnés : abonné payant actif seulement, juste sous la prochaine étape (le plus visible sans lui
          prendre sa place). --}}
     <x-club-invite class="rise" />
@@ -182,8 +186,6 @@
     {{-- Abonné payant avec un programme : heure de ses séances, rappels sur ce téléphone, e-mail à ajouter. --}}
     <x-lesson-reminders class="rise" />
 
-    {{-- Avis : élève qui peut en laisser un et ne l'a pas encore fait (minutes offertes pour tout avis). --}}
-    <x-review-invite class="rise" />
 
     {{-- Niveau validé il y a moins de 14 jours : on le fête juste après la prochaine étape, attestation à portée de main. --}}
     @php

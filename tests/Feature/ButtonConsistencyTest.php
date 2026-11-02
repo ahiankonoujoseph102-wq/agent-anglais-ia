@@ -40,7 +40,7 @@ class ButtonConsistencyTest extends TestCase
         Subscription::factory()->for($user)->forPlan('essentiel')->create();
         $this->actingAs($user);
         $this->assertStringContainsString('class="btn btn-accent btn-block btn-lg">Enregistrer</button>', $this->get('/compte')->getContent());
-        $this->assertStringContainsString('<button type="submit" class="btn btn-accent btn-block btn-lg">Continuer', $this->get('/programme/questionnaire/1')->getContent());
+        $this->assertStringContainsString('class="btn btn-accent btn-block btn-lg">Continuer', $this->get('/programme/questionnaire/1')->getContent());
     }
 
     public function test_dashboard_never_shows_two_identical_buttons_for_two_different_actions(): void
