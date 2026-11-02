@@ -8,6 +8,7 @@ use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Duration;
 use App\Support\Gemini\WelcomeMessage;
 use App\Support\Reviews\TimeBonuses;
 use App\Support\Trial;
@@ -191,5 +192,30 @@ class TrialTest extends TestCase
         // Une séance en cours n'est jamais coupée par la fin de l'essai.
         $this->assertFalse(Trial::expireIfUsed($user->fresh()));
         $this->assertSame(0, Subscription::query()->paid()->count());
+    }
+
+    /**
+     * « Abonnés payants » (signalé par le fondateur, 2 novembre 2026) : un essai rangé dans « Accès offerts » avec
+     * « 2 jours restants » faisait croire à un accès donné par l'équipe. Il a sa propre liste, avec le temps de cours
+     * restant et la date limite ; et plus de « : » seul devant le bouton WhatsApp sur téléphone.
+     */
+    public function test_the_subscribers_page_shows_trials_apart_with_the_course_time_left(): void
+    {
+        $this->travelTo(now()->setTime(7, 35));
+        $user = $this->assessed();
+        $user->forceFill(['name' => 'Fidèle'])->save();
+        Trial::claim($user);
+        $this->lesson($user->fresh(), 300);
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->get('/admin/abonnes')->assertOk()
+            ->assertSeeInOrder(['Accès offerts (démonstrations, membres fondateurs…) (0)', 'Essais gratuits (1)', 'Fidèle', 'Essai gratuit'])
+            ->assertSee('Temps de cours restant')
+            ->assertSee('10 minutes')
+            ->assertSee('à utiliser avant le '.Duration::at(now()->addHours(Trial::validHours()), false))
+            ->assertSee('Essais gratuits : 1')
+            ->assertSee('Relancer sur WhatsApp');
+
+        $this->assertStringContainsString('.table td[data-label]::before', (string) file_get_contents(public_path('css/app.css')));
     }
 }

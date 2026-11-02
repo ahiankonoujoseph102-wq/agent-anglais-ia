@@ -896,7 +896,8 @@ html:not(.js) .teacher-news-later { display: none; }
     .table, .table tbody, .table tr, .table td { display: block; width: 100%; }
     .table tr { border: 1px solid var(--c-border); border-radius: var(--radius); margin-bottom: 10px; padding: 8px 0; }
     .table td { border: 0; padding: 4px 14px; }
-    .table td::before { content: attr(data-label) " : "; color: var(--c-muted); font-size: var(--fs-sm); }
+    /* Cellule sans étiquette (bouton) : pas de « : » seul devant. */
+    .table td[data-label]::before { content: attr(data-label) " : "; color: var(--c-muted); font-size: var(--fs-sm); }
 }
 .payment-grid { display: grid; gap: var(--space-4); }
 .proof img { display: block; width: 100%; max-height: 420px; object-fit: contain; background: var(--c-bg-warm); border-radius: var(--radius); }
