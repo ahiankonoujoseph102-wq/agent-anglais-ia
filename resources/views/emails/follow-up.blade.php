@@ -20,6 +20,14 @@
                 @foreach ($lines as $line)
                     <p style="margin:0 0 12px;font-size:16px;line-height:1.5;">{{ $line }}</p>
                 @endforeach
+                @if ($stars !== [])
+                    <p style="margin:4px 0 6px;font-size:15px;line-height:1.5;">Touchez une étoile pour commencer :</p>
+                    <p style="margin:0 0 12px;font-size:34px;line-height:1.2;letter-spacing:6px;">
+                        @foreach ($stars as $index => $starUrl)
+                            <a href="{{ $starUrl }}" title="{{ $index + 1 }} sur 5" style="color:#FF7A1A;text-decoration:none;">&#9733;</a>
+                        @endforeach
+                    </p>
+                @endif
                 <a href="{{ $url }}" style="display:block;text-align:center;background:#FF7A1A;color:#0E2A5C;text-decoration:none;font-weight:bold;font-size:17px;padding:14px 18px;border-radius:12px;margin-top:8px;">{{ $button }}</a>
                 @if ($links !== [])
                     <p style="margin:18px 0 0;font-size:15px;line-height:1.7;">

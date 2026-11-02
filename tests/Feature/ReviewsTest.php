@@ -217,9 +217,16 @@ class ReviewsTest extends TestCase
         $this->actingAs($user->fresh())->get('/seance')->assertOk()->assertDontSee('Donner mon avis sur cette séance');
     }
 
-    public function test_the_teacher_asks_once_at_the_end_of_the_third_session(): void
+    public function test_the_teacher_asks_at_the_end_of_the_first_and_the_third_session(): void
     {
         $user = $this->subscriber();
+        $first = $user->lessons()->create([
+            'subscription_id' => $user->activeSubscription->id, 'date' => today(), 'allowed_seconds' => 900,
+            'used_seconds' => 0, 'started_at' => now(), 'status' => LessonStatus::InProgress,
+        ]);
+        $this->assertStringContainsString('laissez votre avis dans Mon espace', ReviewAsk::note($user, $first));
+        $first->delete();
+
         $this->heldLesson($user);
         $this->heldLesson($user);
         $third = $user->lessons()->create([
@@ -233,7 +240,9 @@ class ReviewsTest extends TestCase
         $this->assertStringContainsString('laissez votre avis', SessionEnd::client('lesson', 900, $note)['conclude']);
 
         // Pas à la 2e ni à la 4e séance, ni après un avis.
-        $this->assertSame('', ReviewAsk::note($this->subscriber('Yao Kodjo'), $third));
+        $yao = $this->subscriber('Yao Kodjo');
+        $this->heldLesson($yao);
+        $this->assertSame('', ReviewAsk::note($yao, $third));
         $this->heldLesson($user);
         $this->assertSame('', ReviewAsk::note($user, $third));
     }

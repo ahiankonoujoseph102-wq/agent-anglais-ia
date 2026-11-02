@@ -37,10 +37,23 @@ class LearnerMail extends Model
 
     public const LAPSED_3 = 'lapsed_3';
 
+    /**
+     * Invitation à laisser un avis (App\Support\Reviews\ReviewInvitations) : tout élève qui peut en laisser un (même
+     * abonné), quelques heures après sa première expérience, puis un rappel quelques jours après ; plus rien dès
+     * qu'il a laissé un avis. Jamais une demande de bonne note.
+     */
+    public const REVIEW_1 = 'review_1';
+
+    public const REVIEW_2 = 'review_2';
+
     public const CAMPAIGNS = [
         self::OFFER, self::NO_ASSESSMENT, self::NO_TRIAL, self::TRIAL_ENDED,
         self::TRIAL_ENDED_2, self::TRIAL_ENDED_3, self::LAPSED_1, self::LAPSED_2, self::LAPSED_3,
+        self::REVIEW_1, self::REVIEW_2,
     ];
+
+    /** Invitations à laisser un avis : leur propre petit lot par jour (platform.reviews.emails_per_day). */
+    public const REVIEWS = [self::REVIEW_1, self::REVIEW_2];
 
     /** Relances « commerciales » : un petit nombre par jour d'envoi, un jour sur platform.follow_ups.sales.every_days. */
     public const SALES = [self::TRIAL_ENDED_2, self::TRIAL_ENDED_3, self::LAPSED_1, self::LAPSED_2, self::LAPSED_3];
@@ -57,6 +70,8 @@ class LearnerMail extends Model
         self::LAPSED_1 => 'Formule terminée, première relance',
         self::LAPSED_2 => 'Formule terminée, deuxième relance',
         self::LAPSED_3 => 'Formule terminée, dernière relance',
+        self::REVIEW_1 => 'Invitation à laisser un avis',
+        self::REVIEW_2 => 'Rappel : laisser un avis',
     ];
 
     public const PENDING = 'pending';

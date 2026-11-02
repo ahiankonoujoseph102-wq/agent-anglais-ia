@@ -42,6 +42,7 @@ class FollowUpMail extends Mailable
             'url' => $this->body['url'],
             'review' => $this->body['review'] ?? null,
             'links' => $this->body['links'] ?? [],
+            'stars' => $this->body['stars'] ?? [],
             'reviewUrl' => route('reviews.edit'),
             'stopUrl' => $this->stopUrl,
         ]);

@@ -15,6 +15,11 @@
         Relances pour choisir une formule (après l'essai, et anciens abonnés dont la formule est finie : trois relances espacées, puis plus rien) :
         {{ config('platform.follow_ups.sales.per_day') }} au plus par jour d'envoi, un jour sur {{ config('platform.follow_ups.sales.every_days') }}.
         Aujourd'hui : {{ $salesToday }} · en attente : {{ $salesPending }} · anciens abonnés relancés sur 30 jours : {{ $lapsedSent }}.
+    </p>
+    <p class="muted small">
+        Invitations à laisser un avis (tout élève qui a passé son évaluation ou fait une séance, sans avis encore : une
+        quelques heures après, un rappel {{ config('platform.reviews.email_reminder_days') }} jours plus tard, puis rien) :
+        {{ config('platform.reviews.emails_per_day') }} au plus par jour. Aujourd'hui : {{ $reviewsToday }} · en attente : {{ $reviewsPending }}.
         Chaque heure, un résumé des e-mails partis vers les élèves est envoyé à l'adresse des alertes.
     </p>
 

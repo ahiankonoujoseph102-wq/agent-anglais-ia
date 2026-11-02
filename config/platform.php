@@ -367,8 +367,14 @@ return [
         'hold_rating_at_most' => 2,
         // Minutes offertes une seule fois par compte, pour tout avis envoyé : une journée de la formule Essentiel.
         'bonus_minutes' => 15,
-        // Le professeur invite à laisser un avis à la fin de cette séance du jour tenue (une seule fois).
-        'teacher_ask_after_lessons' => 3,
+        // Le professeur invite à laisser un avis à la fin de ces séances du jour tenues (la 1re : souvent la séance
+        // d'essai ; puis la 3e), seulement tant que l'élève n'a pas laissé d'avis.
+        'teacher_ask_after_lessons' => [1, 3],
+        // Invitations par e-mail (App\Support\Reviews\ReviewInvitations, envoyées par learners:follow-up) : la première
+        // quelques heures après la première expérience (évaluation ou séance), un rappel quelques jours après, puis rien.
+        'email_after_hours' => 3,
+        'email_reminder_days' => 5,
+        'emails_per_day' => (int) env('REVIEW_EMAILS_PER_DAY', 40),
         // Bloc de l'accueil seulement à partir de ce nombre d'avis publiés ; note moyenne à partir de ce nombre.
         'home_min' => 1,
         'average_min' => 10,
