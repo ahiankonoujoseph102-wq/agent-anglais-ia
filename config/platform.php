@@ -524,6 +524,9 @@ return [
         // « false », « 0 », « off » ou « no » la coupent, « true », « 1 », « on » ou « yes » l'activent.
         'echo_cancellation' => ! in_array(env('LIVE_ECHO_CANCELLATION'), [false, '0', 'off', 'no'], true),
         'echo_cancellation_android' => in_array(env('LIVE_ECHO_CANCELLATION_ANDROID'), [true, '1', 'on', 'yes'], true),
+        // Réduction de bruit du navigateur sur Android : coupée par défaut (sur certains téléphones, elle efface
+        // une voix faible comme si c'était du bruit). « true », « 1 », « on » ou « yes » la remettent.
+        'noise_suppression_android' => in_array(env('LIVE_NOISE_SUPPRESSION_ANDROID'), [true, '1', 'on', 'yes'], true),
         // Sans aucun son capté pendant ce temps alors que c'est à l'apprenant de parler : message.
         'silent_mic_seconds' => 8,
         // Micro trop faible (public/js/mic-input.js, MicBoost) : volume du micro remonté automatiquement d'après
@@ -532,7 +535,7 @@ return [
         // LIVE_MIC_BOOST=false le coupe.
         'mic_boost' => [
             'enabled' => ! in_array(env('LIVE_MIC_BOOST'), [false, '0', 'off', 'no'], true),
-            'max' => 24,
+            'max' => 40,
             'target' => 0.05,
             'floor' => 0.0002,
             'noise_ceiling' => 0.006,
