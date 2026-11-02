@@ -38,6 +38,8 @@ class FollowUpSeriesTest extends TestCase
             'platform.trial.enabled' => true,
             'platform.follow_ups.enabled' => true,
             'platform.follow_ups.sales.per_day' => 2,
+            // Les invitations à laisser un avis ont leurs propres tests (ReviewInvitationsTest).
+            'platform.reviews.emails_per_day' => 0,
             'alerts.emails' => ['fondateur@example.test'],
             'mail.default' => 'smtp',
             'mail.from.address' => 'equipe@example.test',

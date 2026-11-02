@@ -16,6 +16,7 @@ use App\Support\MailQuota;
 use App\Support\Money;
 use App\Support\Plan;
 use App\Support\Redact;
+use App\Support\Reviews\ReviewInvitations;
 use App\Support\Teachers\Teachers;
 use App\Support\Trial;
 use App\Support\Videos\SiteVideos;
@@ -136,7 +137,7 @@ final class FollowUps
                 }
             });
 
-        return $queued + self::queueLapsed();
+        return $queued + self::queueLapsed() + ReviewInvitations::queue();
     }
 
     /**
@@ -296,6 +297,16 @@ final class FollowUps
             ->count();
     }
 
+    /** Invitations à laisser un avis parties aujourd'hui. */
+    public static function reviewsSentToday(): int
+    {
+        return LearnerMail::query()
+            ->whereIn('campaign', LearnerMail::REVIEWS)
+            ->whereIn('status', [LearnerMail::SENT, LearnerMail::FAILED])
+            ->where('sent_at', '>=', today())
+            ->count();
+    }
+
     public static function allowsMail(): bool
     {
         return self::sentToday() < (int) config('platform.follow_ups.daily_emails')
@@ -318,7 +329,7 @@ final class FollowUps
         $batch = (int) config('platform.follow_ups.batch');
         $regular = LearnerMail::query()
             ->where('status', LearnerMail::PENDING)
-            ->whereIn('campaign', array_values(array_diff(LearnerMail::CAMPAIGNS, LearnerMail::SALES)))
+            ->whereIn('campaign', array_values(array_diff(LearnerMail::CAMPAIGNS, LearnerMail::SALES, LearnerMail::REVIEWS)))
             ->orderBy('id')
             ->limit($batch * 3)
             ->get();
@@ -330,6 +341,23 @@ final class FollowUps
             }
 
             $sent += self::sendOne($mail, $result);
+        }
+
+        // Invitations à laisser un avis : leur propre petit lot par jour, les plus récentes expériences d'abord.
+        $reviews = LearnerMail::query()
+            ->where('status', LearnerMail::PENDING)
+            ->whereIn('campaign', LearnerMail::REVIEWS)
+            ->orderByDesc('id')
+            ->limit($batch * 3)
+            ->get();
+        $reviewsSent = 0;
+
+        foreach ($reviews as $mail) {
+            if ($reviewsSent >= $batch || self::reviewsSentToday() >= (int) config('platform.reviews.emails_per_day') || ! self::allowsMail()) {
+                break;
+            }
+
+            $reviewsSent += self::sendOne($mail, $result);
         }
 
         // Relances commerciales : les plus anciennes d'abord, un petit lot les jours d'envoi seulement.
@@ -378,9 +406,11 @@ final class FollowUps
     {
         $content = self::content($mail->campaign, $user);
 
-        $targeted = in_array($mail->campaign, LearnerMail::LAPSED, true)
-            ? self::lapsedSubscription($user) !== null
-            : self::prospects()->whereKey($user->id)->exists();
+        $targeted = match (true) {
+            in_array($mail->campaign, LearnerMail::LAPSED, true) => self::lapsedSubscription($user) !== null,
+            in_array($mail->campaign, LearnerMail::REVIEWS, true) => ReviewInvitations::wanted($user),
+            default => self::prospects()->whereKey($user->id)->exists(),
+        };
 
         if ($content === null || $user->follow_up_opt_out_at !== null || ! $targeted) {
             $mail->forceFill(['status' => LearnerMail::SKIPPED])->save();
@@ -433,6 +463,10 @@ final class FollowUps
      */
     public static function content(string $campaign, User $user): ?array
     {
+        if (in_array($campaign, LearnerMail::REVIEWS, true)) {
+            return ReviewInvitations::content($campaign, $user);
+        }
+
         $stage = self::stage($user);
         $teachers = Teachers::names();
         $minutes = Trial::minutes();
