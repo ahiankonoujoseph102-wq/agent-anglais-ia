@@ -15,6 +15,13 @@
         @if ($minutes > 0)
             <p class="small"><x-icon name="gift" /> Merci du temps pris : <strong>{{ $minutes }} minutes de séance offertes</strong>, quelle que soit votre note{{ $user->activeSubscription === null ? ', ajoutées à votre première séance avec une formule' : '' }}.</p>
         @endif
+        {{-- Une étoile touchée ouvre le formulaire avec cette note déjà choisie : il ne reste qu'à écrire quelques mots. --}}
+        <p class="small review-invite-ask">Touchez une étoile pour commencer :</p>
+        <div class="review-invite-stars" role="group" aria-label="Votre note, de 1 à 5">
+            @for ($i = 1; $i <= 5; $i++)
+                <a href="{{ route('reviews.edit', ['note' => $i]) }}" title="{{ $i }} sur 5"><x-icon name="star" /><span class="sr-only">{{ $i }} sur 5</span></a>
+            @endfor
+        </div>
         <a class="btn btn-outline btn-block" href="{{ route('reviews.edit') }}"><x-icon name="star" /> Donner mon avis</a>
     </section>
 @endif
