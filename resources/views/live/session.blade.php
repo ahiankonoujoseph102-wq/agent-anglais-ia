@@ -233,6 +233,13 @@
                     <span>Micro utilisé</span>
                     <select id="mic-select"></select>
                 </label>
+                {{-- Android : « mode appel » (micro avec annulation d'écho) si le professeur n'entend pas l'apprenant. --}}
+                <button type="button" id="call-mode" class="btn-link small call-mode" hidden
+                    data-on="{{ $teacherName }} ne vous entend pas ? Passer en mode appel"
+                    data-off="Revenir au son normal">Passer en mode appel</button>
+                <p id="call-mode-note" class="muted small" hidden
+                    data-text="Mode appel activé : votre micro est réglé comme pour un appel. La voix peut être un peu moins forte : montez le volume du téléphone."
+                    data-auto="Votre micro n'entendait rien : le mode appel est activé. Parlez à nouveau. La voix peut être un peu moins forte : montez le volume du téléphone."></p>
             </div>
 
             <div id="mic-warning" class="alert alert-warning" role="alert" hidden>

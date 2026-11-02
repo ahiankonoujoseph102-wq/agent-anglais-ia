@@ -54,6 +54,8 @@ const { listeningText } = await import(root.dataset.answerHint);
 // Secondes, pour la fin automatique.
 const clock = () => performance.now() / 1000;
 const MIC_PREFERENCE = 'mic-device';
+// « Mode appel » : micro ouvert avec l'annulation d'écho (comme avant le son plus fort sur Android), gardé sur ce téléphone.
+const CALL_MODE = 'call-mode';
 const urls = JSON.parse(root.dataset.urls);
 const mode = root.dataset.mode;
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
@@ -64,6 +66,7 @@ const ui = {
     intro: $('intro'), status: $('status'), timer: $('timer'), timerLabel: $('timer-label'), error: $('error'),
     subtitles: $('subtitles'), outcome: $('outcome'), mouth: $('mouth'),
     turn: $('turn'), turnText: $('turn-text'), controls: $('controls'), plans: $('plans-offer'),
+    callMode: $('call-mode'), callModeNote: $('call-mode-note'),
     micPanel: $('mic-panel'), micLevel: $('mic-level'), micChoice: $('mic-choice'), micSelect: $('mic-select'), micWarning: $('mic-warning'),
     waitNote: $('wait-note'), waitText: $('wait-text'), nudge: $('nudge'),
     interrupt: $('interrupt'), pause: $('pause'), mute: $('mute'), pauseNote: $('pause-note'),
@@ -1074,9 +1077,39 @@ function saveMicrophone(id) {
 }
 
 // Annulation d'écho : coupée par défaut sur Android (elle y passe le téléphone en mode appel, voix bien plus basse).
-const ECHO_CANCELLATION = /Android/i.test(navigator.userAgent ?? '')
+const IS_ANDROID = /Android/i.test(navigator.userAgent ?? '');
+const ECHO_CANCELLATION = IS_ANDROID
     ? audioConfig.echo_cancellation_android ?? false
     : audioConfig.echo_cancellation;
+
+/**
+ * « Mode appel » choisi sur ce téléphone (ou passé tout seul quand le micro n'entendait rien) : le micro est
+ * ouvert avec l'annulation d'écho, comme un appel. Sur certains téléphones (Pixel), le micro reste muet sans
+ * elle quand la voix sort fort du haut-parleur.
+ */
+function callModeSaved() {
+    try {
+        return localStorage.getItem(CALL_MODE) === 'on';
+    } catch {
+        return false;
+    }
+}
+
+function saveCallMode(on) {
+    try {
+        if (on) {
+            localStorage.setItem(CALL_MODE, 'on');
+        } else {
+            localStorage.removeItem(CALL_MODE);
+        }
+    } catch { /* stockage indisponible : le choix vaut pour cette page */ }
+}
+
+let callMode = !ECHO_CANCELLATION && callModeSaved();
+
+function echoCancellation() {
+    return ECHO_CANCELLATION || callMode;
+}
 
 /**
  * Ouvre le micro. L'annulation d'écho est réglable (config platform.live.echo_cancellation, et
@@ -1088,7 +1121,7 @@ const ECHO_CANCELLATION = /Android/i.test(navigator.userAgent ?? '')
 async function openMicrophone(deviceId, exact) {
     const audio = {
         channelCount: 1,
-        echoCancellation: ECHO_CANCELLATION,
+        echoCancellation: echoCancellation(),
         noiseSuppression: true,
         autoGainControl: true,
     };
@@ -1101,7 +1134,7 @@ async function openMicrophone(deviceId, exact) {
     const settings = stream.getAudioTracks()[0]?.getSettings?.() ?? {};
     console.debug('Micro : réglages obtenus', settings);
 
-    if (ECHO_CANCELLATION && settings.echoCancellation === false) {
+    if (echoCancellation() && settings.echoCancellation === false) {
         console.warn('Micro : annulation d\'écho indisponible, le demi-duplex reste seul actif.');
     }
 
@@ -1166,6 +1199,40 @@ async function switchMicrophone(id) {
     ui.micWarning.hidden = true;
     state.audio.silence.quietSince = null;
     refreshMicrophones();
+}
+
+/**
+ * Passe en « mode appel » (ou en revient) sans couper la conversation : le même micro est rouvert avec (ou sans)
+ * l'annulation d'écho, seule la source du bus change. Automatique une fois par séance quand le micro n'entend
+ * rien pendant le tour de l'apprenant ; ensuite gardé sur ce téléphone.
+ */
+async function setCallMode(on, automatic = false) {
+    if (ECHO_CANCELLATION || callMode === on) {
+        return;
+    }
+
+    callMode = on;
+    saveCallMode(on);
+    renderCallMode(automatic);
+    logEvent('mic_call_mode', on ? (automatic ? 'mode appel : automatique' : 'mode appel : choisi') : 'mode appel : retiré');
+
+    if (!state.audio || state.ending) {
+        return;
+    }
+
+    const id = state.audio.stream.getAudioTracks()[0]?.getSettings?.().deviceId ?? savedMicrophone();
+    await switchMicrophone(id || undefined);
+}
+
+function renderCallMode(automatic = false) {
+    if (!ui.callMode || ECHO_CANCELLATION || !IS_ANDROID) {
+        return;
+    }
+
+    ui.callMode.hidden = false;
+    ui.callMode.textContent = callMode ? ui.callMode.dataset.off : ui.callMode.dataset.on;
+    ui.callModeNote.hidden = !callMode;
+    ui.callModeNote.textContent = automatic ? ui.callModeNote.dataset.auto : ui.callModeNote.dataset.text;
 }
 
 /**
@@ -1523,6 +1590,12 @@ function updateMicMeter() {
 
         if (warn) {
             logEvent('mic_silent');
+
+            // Android sans annulation d'écho : le micro de certains téléphones reste muet. Mode appel, une fois.
+            if (IS_ANDROID && !echoCancellation() && !state.callModeTried) {
+                state.callModeTried = true;
+                setCallMode(true, true);
+            }
         }
     }
 
@@ -2789,6 +2862,8 @@ if (emailForm) {
     });
 }
 ui.micSelect.addEventListener('change', () => switchMicrophone(ui.micSelect.value));
+ui.callMode?.addEventListener('click', () => setCallMode(!callMode));
+renderCallMode();
 // « Terminer » avant la fin : fenêtre de confirmation intégrée (public/js/app.js), jamais de fenêtre du navigateur.
 ui.stop.addEventListener('click', async () => {
     const answer = window.askConfirmation ? await window.askConfirmation(JSON.parse(root.dataset.stopConfirm)) : true;

@@ -107,7 +107,9 @@ class VoiceConversationTest extends TestCase
         // Le navigateur choisit le réglage d'Android d'après l'appareil.
         $script = file_get_contents(public_path('js/live-session.js'));
         $this->assertStringContainsString('/Android/i.test(navigator.userAgent', $script);
-        $this->assertStringContainsString('echoCancellation: ECHO_CANCELLATION', $script);
+        // Réglage d'Android, sauf « mode appel » choisi ou passé tout seul (CallModeTest).
+        $this->assertStringContainsString('return ECHO_CANCELLATION || callMode;', $script);
+        $this->assertStringContainsString('echoCancellation: echoCancellation(),', $script);
     }
 
     public function test_empty_or_explicit_environment_values_are_read_safely(): void
