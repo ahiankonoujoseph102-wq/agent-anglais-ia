@@ -3,7 +3,7 @@
 @props(['user' => auth()->user()])
 @php
     use App\Support\Reminders\LessonReminders;
-    $program = LessonReminders::follows($user) ? $user->activeProgram()->first() : null;
+    $program = LessonReminders::remindable($user) ? $user->activeProgram()->first() : null;
     $time = $program ? LessonReminders::studyTime($user) : null;
     $teacherName = \App\Support\Teachers\Teachers::forUser($user)->name();
     $pushReady = \App\Support\Alerts\WebPushTransport::configured();

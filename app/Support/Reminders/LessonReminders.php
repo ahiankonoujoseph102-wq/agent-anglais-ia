@@ -37,8 +37,9 @@ use Throwable;
  * Suivi des élèves PAYANTS, comme un vrai professeur : rappels avant la séance du jour, relance d'une séance
  * manquée, e-mail à ajouter et programme peu suivi dits au début de la séance (en français).
  *
- * Élève suivi : un abonnement payé en cours (définitif ou accès provisoire ; ni accès offert, ni mois
- * d'ambassadeur), jamais l'équipe. Rappels : seulement avec un programme actif qui a une heure de séance, les jours
+ * Élève suivi (follows : e-mail obligatoire, fin d'abonnement) : un abonnement payé en cours (définitif ou accès
+ * provisoire ; ni accès offert, ni mois d'ambassadeur), jamais l'équipe. Rappels de séance et séances manquées
+ * (remindable) : accès payé OU offert, jamais la séance d'essai. Rappels : seulement avec un programme actif qui a une heure de séance, les jours
  * de travail choisis, à l'heure du pays de l'élève (platform.reminders). Notifications gratuites (Web Push) ;
  * e-mails dans la limite gratuite de Brevo, avec une réserve pour le reste (MailQuota::allowsReminder).
  */
@@ -57,6 +58,24 @@ final class LessonReminders
             && in_array($subscription->status, [SubscriptionStatus::Active, SubscriptionStatus::Provisional], true)
             && $subscription->granted_days === null
             && $subscription->ambassador_id === null;
+    }
+
+    /**
+     * Élève qui reçoit les rappels de séance et dont le professeur relève les séances manquées : un accès en cours
+     * payé (définitif ou provisoire) OU offert par l'équipe (accès offert, mois d'ambassadeur) ; jamais la séance
+     * d'essai gratuite (elle a ses propres relances), jamais l'équipe. Demande du fondateur, 2 novembre 2026.
+     */
+    public static function remindable(?User $user): bool
+    {
+        if ($user === null || $user->role !== Role::Learner) {
+            return false;
+        }
+
+        $subscription = $user->activeSubscription;
+
+        return $subscription !== null
+            && in_array($subscription->status, [SubscriptionStatus::Active, SubscriptionStatus::Provisional], true)
+            && ! $subscription->isTrial();
     }
 
     /** Abonné payant sans adresse e-mail : le professeur la demande au début de la séance. */
@@ -96,9 +115,7 @@ final class LessonReminders
 
         $days = array_map('intval', $program->study_days ?: []);
         $from = today()->subDays((int) config('platform.reminders.missed_days'));
-        $subscriptions = $user->subscriptions()->paid()->whereNull('ambassador_id')
-            ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Expired, SubscriptionStatus::Provisional])
-            ->get(['starts_at', 'ends_at']);
+        $subscriptions = self::coveringSubscriptions($user);
         $held = $user->lessons()
             ->where('date', '>=', $from->toDateString())
             ->where('used_seconds', '>=', WorkingTogether::heldSeconds())
@@ -123,6 +140,59 @@ final class LessonReminders
         return $missed;
     }
 
+    /**
+     * Accès qui comptent pour les séances manquées : payés ou offerts (mois d'ambassadeur compris), jamais la
+     * séance d'essai gratuite ni un accès refusé.
+     */
+    private static function coveringSubscriptions(User $user)
+    {
+        return $user->subscriptions()
+            ->where('is_trial', false)
+            ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Expired, SubscriptionStatus::Provisional])
+            ->get(['starts_at', 'ends_at']);
+    }
+
+    /**
+     * Dernière séance manquée : le DERNIER jour de travail du programme avant aujourd'hui, couvert toute la journée
+     * par un accès, sans séance du jour tenue ce jour-là ni depuis. Renvoie ce jour, sinon null.
+     */
+    public static function lastMissedDay(User $user): ?CarbonImmutable
+    {
+        $program = $user->activeProgram()->first();
+        $days = array_map('intval', $program?->study_days ?: []);
+
+        if ($program === null || $days === []) {
+            return null;
+        }
+
+        $day = CarbonImmutable::today()->subDay();
+
+        for ($i = 0; $i < 7 && ! in_array($day->dayOfWeekIso, $days, true); $i++) {
+            $day = $day->subDay();
+        }
+
+        $end = $day->endOfDay();
+
+        if (! in_array($day->dayOfWeekIso, $days, true) || $program->created_at->gt($end)
+            || ! self::coveringSubscriptions($user)->contains(fn ($subscription) => $subscription->starts_at->lte($day) && $subscription->ends_at->gte($end))) {
+            return null;
+        }
+
+        $heldSince = $user->lessons()
+            ->where('date', '>=', $day->toDateString())
+            ->where('date', '<', CarbonImmutable::today()->toDateString())
+            ->where('used_seconds', '>=', WorkingTogether::heldSeconds())
+            ->exists();
+
+        return $heldSince ? null : $day;
+    }
+
+    /** « hier », sinon « lundi », « mardi »… (jour de la séance manquée, dans la semaine écoulée). */
+    public static function dayLabel(CarbonImmutable $day): string
+    {
+        return $day->isSameDay(CarbonImmutable::yesterday()) ? 'hier' : $day->locale('fr')->dayName;
+    }
+
     public static function missesOften(User $user): bool
     {
         return self::missedDays($user) >= (int) config('platform.reminders.missed_threshold');
@@ -135,21 +205,31 @@ final class LessonReminders
      */
     public static function sessionNote(User $user): string
     {
-        if (! self::follows($user)) {
+        if (! self::remindable($user)) {
             return '';
         }
 
         $parts = [];
 
-        if (blank($user->email)) {
+        if (self::follows($user) && blank($user->email)) {
             $parts[] = TeacherSetup::cue('followup_email');
         }
 
         $key = 'missed-talk:'.$user->id;
+        $missedDay = self::lastMissedDay($user);
+        $missedKey = $missedDay !== null ? 'missed-day:'.$user->id.':'.$missedDay->toDateString() : null;
 
+        // Programme peu suivi (plusieurs séances manquées) : la conversation complète, une fois par semaine au plus.
         if (self::missesOften($user) && ! Cache::has($key)) {
             $parts[] = TeacherSetup::cue('followup_missed');
             Cache::put($key, true, now()->addDays((int) config('platform.reminders.missed_days')));
+        } elseif ($missedKey !== null && ! Cache::has($missedKey)) {
+            // Une seule séance manquée : le professeur le dit simplement, conseille la régularité, puis la leçon.
+            $parts[] = TeacherSetup::cue('followup_missed_once', ['day' => self::dayLabel($missedDay)]);
+        }
+
+        if ($missedKey !== null) {
+            Cache::put($missedKey, true, now()->addDays(8));
         }
 
         // Avant-dernier et dernier jour d'un abonnement payé pas encore renouvelé : en dernier, juste avant la leçon.
@@ -236,7 +316,8 @@ final class LessonReminders
 
         $users = User::query()
             ->where('role', Role::Learner)
-            ->whereHas('subscriptions', fn ($query) => $query->paid()->whereNull('ambassador_id')
+            // Accès payé ou offert (mois d'ambassadeur compris), jamais la seule séance d'essai gratuite.
+            ->whereHas('subscriptions', fn ($query) => $query->where('is_trial', false)
                 ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Provisional])
                 ->where('ends_at', '>', $now))
             ->whereHas('programs', fn ($query) => $query->where('is_active', true)->whereNotNull('study_time'))
@@ -409,7 +490,7 @@ final class LessonReminders
      */
     private function dueKind(User $user, CarbonImmutable $now): ?array
     {
-        if (! self::follows($user)) {
+        if (! self::remindable($user)) {
             return null;
         }
 
