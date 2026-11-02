@@ -72,7 +72,7 @@ class LiveVoiceSample
             ],
             'systemInstruction' => ['parts' => [['text' => $instructions]]],
         ];
-        $keys = array_values(array_filter([LiveProviders::GEMINI, LiveProviders::GEMINI2], fn (string $name) => LiveProviders::hasKey($name)));
+        $keys = array_values(array_filter([LiveProviders::GEMINI, LiveProviders::GEMINI2, LiveProviders::GEMINI3], fn (string $name) => LiveProviders::hasKey($name)));
 
         if ($keys === []) {
             throw new GeminiUnavailable('Clé GEMINI_API_KEY absente.');
