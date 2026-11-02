@@ -32,7 +32,7 @@ const { TokenTally, geminiUsage, openAiUsage } = await import(root.dataset.token
 // Lecture propre de la voix (décodage, programmation bout à bout, rééchantillonnage continu).
 const { VOICE_RATE, decodePcm16, StreamResampler, VoiceScheduler, fadeIn } = await import(root.dataset.pcmAudio);
 // Micro : liste « Micro utilisé », témoin de niveau, alerte de silence.
-const { listMicrophones, rms, meterLevel, SilenceWatch } = await import(root.dataset.micInput);
+const { listMicrophones, rms, meterLevel, SilenceWatch, MicBoost } = await import(root.dataset.micInput);
 // Rendu de la voix du professeur : son actuel, ou « voix plus nette » (Réglages ; App\Support\Live\VoiceClarity).
 const { buildVoiceChain } = await import(root.dataset.voiceClarity);
 // Réglages audio de la page (config/platform.php → live).
@@ -1014,7 +1014,15 @@ async function setupAudio() {
     // Bus du micro : la capture, le témoin et le professeur 3D y restent branchés
     // quand l'apprenant change de micro (seule la source change).
     const micBus = context.createGain();
-    source.connect(micBus);
+    // Micro trop faible : gain automatique (MicBoost), puis limiteur pour ne jamais saturer.
+    const micBoost = context.createGain();
+    const micLimiter = context.createDynamicsCompressor();
+    micLimiter.threshold.value = -6;
+    micLimiter.knee.value = 0;
+    micLimiter.ratio.value = 20;
+    micLimiter.attack.value = 0.003;
+    micLimiter.release.value = 0.1;
+    source.connect(micBoost).connect(micLimiter).connect(micBus);
     const micAnalyser = context.createAnalyser();
     micAnalyser.fftSize = 1024;
     micBus.connect(micAnalyser);
@@ -1045,10 +1053,11 @@ async function setupAudio() {
     output.connect(delay).connect(analyser).connect(context.destination);
 
     state.audio = {
-        context, stream, source, micBus, micAnalyser, output, voice, analyser, voiceAnalyser,
+        context, stream, source, micBus, micBoost, micAnalyser, output, voice, analyser, voiceAnalyser,
         micSamples: new Float32Array(micAnalyser.fftSize),
         voiceSamples: new Float32Array(voiceAnalyser.fftSize),
         silence: new SilenceWatch({ seconds: audioConfig.silent_mic_seconds }),
+        boost: audioConfig.mic_boost ? new MicBoost(audioConfig.mic_boost) : null,
         scheduler: new VoiceScheduler({ sampleRate: context.sampleRate }),
         // Contexte à une autre fréquence que la voix : rééchantillonnage continu par nos soins.
         resampler: context.sampleRate === VOICE_RATE ? null : new StreamResampler(VOICE_RATE, context.sampleRate),
@@ -1183,12 +1192,12 @@ async function switchMicrophone(id) {
         return;
     }
 
-    const { context, micBus } = state.audio;
+    const { context, micBoost } = state.audio;
     const old = state.audio.stream;
     const source = context.createMediaStreamSource(stream);
 
     state.audio.source.disconnect();
-    source.connect(micBus);
+    source.connect(micBoost);
     state.audio.source = source;
     state.audio.stream = stream;
     stream.getAudioTracks().forEach((track) => { track.enabled = !state.muted; });
@@ -1576,9 +1585,24 @@ function trackAudibleVoice() {
  * son pendant le tour de l'apprenant).
  */
 function updateMicMeter() {
-    const { micAnalyser, micSamples, silence, context } = state.audio;
+    const { micAnalyser, micSamples, silence, context, boost, micBoost } = state.audio;
     micAnalyser.getFloatTimeDomainData(micSamples);
     const level = state.muted ? 0 : rms(micSamples);
+
+    // Gain automatique d'un micro trop faible : d'après le niveau AVANT le gain, pendant le tour de l'apprenant.
+    if (boost) {
+        const turn = !state.muted && !state.paused && state.connected && !state.ending && micOpen() && !teacherAudible();
+        const gain = boost.update(context.currentTime, level / Math.max(micBoost.gain.value, 1), turn);
+
+        if (Math.abs(gain - micBoost.gain.value) > 0.01) {
+            micBoost.gain.setTargetAtTime(gain, context.currentTime, 0.05);
+        }
+
+        if (gain >= 2 && !state.boostLogged) {
+            state.boostLogged = true;
+            logEvent('mic_boost', `micro faible : volume remonté (×${Math.round(gain)})`);
+        }
+    }
 
     ui.micLevel.style.transform = `scaleX(${meterLevel(level).toFixed(3)})`;
 

@@ -122,3 +122,64 @@ export class SilenceWatch {
         return now - this.quietSince >= this.seconds;
     }
 }
+
+/**
+ * Micro trop faible : volume du micro remonté automatiquement (mesuré sur la VOIX, jamais sur le bruit de fond).
+ * Certains téléphones (mode appel, micro bas) envoient une voix si faible que le fournisseur ne la détecte
+ * qu'en criant. Le gain suit les crêtes de parole de l'apprenant pendant son tour : une voix normale garde
+ * le gain 1 ; une voix très faible est remontée jusqu'à `max` fois, sans jamais porter le bruit de fond
+ * au-dessus de `noiseCeiling` (sinon le fournisseur prendrait le bruit pour de la parole).
+ */
+export class MicBoost {
+    constructor({ max = 24, target = 0.05, floor = 0.0002, noiseCeiling = 0.006, noiseWindow = 6, peakHalfLife = 12 } = {}) {
+        Object.assign(this, { max, target, floor, noiseCeiling, noiseWindow, peakHalfLife });
+        this.gain = 1;
+        this.peak = 0;
+        this.noise = null;
+        this.noiseAt = 0;
+        this.last = null;
+    }
+
+    /**
+     * @param {number} now        secondes
+     * @param {number} raw        niveau du micro AVANT le gain (rms)
+     * @param {boolean} listening c'est à l'apprenant de parler (micro ouvert, ni pause ni micro coupé)
+     * @return {number} gain à appliquer
+     */
+    update(now, raw, listening) {
+        const dt = this.last === null ? 0 : Math.max(0, Math.min(1, now - this.last));
+        this.last = now;
+
+        if (!listening || !(raw >= 0)) {
+            return this.gain;
+        }
+
+        // Bruit de fond : plus petit niveau récent (remonte lentement si le bruit change).
+        if (this.noise === null || raw < this.noise || now - this.noiseAt > this.noiseWindow) {
+            this.noise = this.noise === null || raw < this.noise ? raw : this.noise * 1.5;
+            this.noiseAt = now;
+        }
+
+        this.peak *= Math.pow(0.5, dt / this.peakHalfLife);
+
+        // Parole : nettement au-dessus du bruit de fond.
+        if (raw > Math.max(this.floor, 3 * this.noise)) {
+            this.peak = Math.max(this.peak, raw);
+        }
+
+        if (this.peak <= this.floor) {
+            return this.gain;
+        }
+
+        let wanted = Math.min(this.max, Math.max(1, this.target / this.peak));
+
+        if (this.noise > 0) {
+            wanted = Math.min(wanted, Math.max(1, this.noiseCeiling / this.noise));
+        }
+
+        // Monte doucement (deux fois plus par seconde au plus), redescend aussitôt.
+        this.gain = wanted < this.gain ? wanted : Math.min(wanted, this.gain * Math.pow(2, dt) + 0.0001);
+
+        return this.gain;
+    }
+}
