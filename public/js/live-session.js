@@ -2403,6 +2403,16 @@ function tick() {
             showPhaseNote(phase);
         }
 
+        // Le professeur n'a pas d'horloge : bilan ou au revoir bien trop tôt, le site le ramène à l'étape prévue.
+        const back = state.connected && !state.paused && !teacherSpeaking() && !state.generating
+            && state.config.cues?.too_early ? board.tracker.earlyMove(elapsed) : null;
+
+        if (back && state.config.cues.too_early[back]) {
+            board.view.setPhase(board.tracker.phase(elapsed), state.config.phases?.merged);
+            logEvent('early_step', `étape trop tôt : retour à ${back}`);
+            cue(state.config.cues.too_early[back].replace(':left', String(Math.max(1, Math.round(remainingSeconds() / 60)))));
+        }
+
         if (!board.nudged && state.connected && !state.paused && state.config.cues?.conversation
             && board.tracker.needsConversationNudge(elapsed) && !teacherSpeaking() && !state.generating) {
             board.nudged = true;

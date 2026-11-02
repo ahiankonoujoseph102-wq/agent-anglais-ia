@@ -107,3 +107,42 @@ test('le tableau dit quand la séance passe à un autre temps (pas au premier af
     assert.equal(view.setPhase('practice'), false);
     assert.equal(view.setPhase('summary'), true);
 });
+
+// Séance réelle du 2 novembre 2026 : « Let's sum up! » à la quatrième minute, « À demain ! » à la huitième.
+test('un bilan annoncé bien trop tôt ramène le professeur à l\'étape prévue', () => {
+    const board = new BoardTracker(items, { ...phases, endings: ['À demain', 'See you'] });
+
+    board.feed("Fantastic! Let's sum up! You can now greet guests. ");
+    assert.equal(board.phase(240), 'summary');
+    assert.equal(board.earlyMove(240), 'lesson');
+    assert.equal(board.phase(240), 'lesson');
+    // Une seule fois pour ce bilan-là.
+    assert.equal(board.earlyMove(250), null);
+
+    // Au revoir bien avant le bilan : retour à l'étape prévue par le temps (ici la conversation).
+    board.feed("On va s'arrêter ici pour aujourd'hui. À demain ! ");
+    assert.equal(board.earlyMove(480 + 100), 'conversation');
+    assert.equal(board.earlyMove(480 + 110), null);
+});
+
+test('le bilan et l\'au revoir à leur heure ne sont jamais corrigés', () => {
+    const board = new BoardTracker(items, { ...phases, endings: ['À demain'] });
+
+    board.feed("Now, let's practice! ");
+    assert.equal(board.earlyMove(290), null);
+    board.feed("Let's sum up! À demain ! ");
+    assert.equal(board.earlyMove(760), null);
+    assert.equal(board.earlyMove(800), null);
+});
+
+test('au plus trois corrections par séance', () => {
+    const board = new BoardTracker(items, { ...phases, endings: ['See you'] });
+
+    for (let i = 0; i < 3; i += 1) {
+        board.feed('See you! ');
+        assert.equal(board.earlyMove(60 + i), 'lesson');
+    }
+
+    board.feed('See you! ');
+    assert.equal(board.earlyMove(70), null);
+});

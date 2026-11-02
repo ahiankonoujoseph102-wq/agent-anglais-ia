@@ -29,6 +29,7 @@ class ConversationEvent extends Model
         'pause' => 'Pause',
         'resume' => 'Reprise après la pause',
         'session_end' => 'Fin de séance (indication du site)',
+        'early_step' => 'Professeur ramené à l\'étape prévue (bilan ou au revoir trop tôt)',
     ];
 
     /**
