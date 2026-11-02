@@ -1,39 +1,39 @@
 {
     "assessment.old": {
         "length": 97345,
-        "sha256": "110737832147ed94dd25eb264e69a21701ab6979234c9fe054f450a0b3b55d73"
+        "sha256": "9d51b5709bf9c175e55aa56c89edc3c5412cffd8421807007cd381010aba282d"
     },
     "assessment.new": {
         "length": 96192,
-        "sha256": "0ea999ad3a225d9b1002dfd0a2ced95b530b12cfc9c32a46b697847b8189cfdc"
+        "sha256": "2f996b734c45ca7942c92cc751e488bd735351ac986887349358d75cb6c026a4"
     },
     "lesson.A1.first": {
         "length": 94574,
-        "sha256": "17cc5021fd8e49031b764cdd0b4bbfa6402eebb098578bc072987d8ab92a5035"
+        "sha256": "454c4a2ab909897fd9da6159c9b0bf029518132370521b9dd5c3187f6db6a760"
     },
     "lesson.B2.later": {
         "length": 92513,
         "sha256": "f5b94af91f6f98af96365cec8219f7417a026c2786ee839b9297596fc001696a"
     },
     "lesson.without_programme": {
-        "length": 93762,
-        "sha256": "bf8e5eb4db87bbaffd6e41670aca4c322f4c20de5cc6e08ab8140ff8711c9ea2"
+        "length": 93760,
+        "sha256": "55a0d16342b1a6aaf417e9f90596e7c4ba6a991182624031769e4cb88014b9b8"
     },
     "course.A2": {
         "length": 93310,
-        "sha256": "b544236616d181b64b60a8baf0282830988703d87223eb68eadda3f48186ae8b"
+        "sha256": "fa22215e536cd61147b11346f7550ce9ac0aa73e885fe8f3bab7636b79805943"
     },
     "level_test.B1": {
-        "length": 69876,
-        "sha256": "0318bf55c18bbebb0a0ef9cf031b68deb1fb0c269b0e7f60bc1bb6e9af8d434e"
+        "length": 69874,
+        "sha256": "80948511e51e92dea333bc5962976b5ad5432f00c076e94ce83d34f7b0ef6fb9"
     },
     "trial": {
         "length": 42227,
-        "sha256": "7577e2065870076fcf4b6bca73270a736b9098b9e2c5e4801a916d205ab54efb"
+        "sha256": "a62acd915cd8f92989535db3b7c5ff25c6a8e8c937ce2be4779680c362c36a7b"
     },
     "lesson.A1.chosen_voice": {
         "length": 94574,
-        "sha256": "d5bb08456f71ef5a33309eef492a4435dfc9b3d382560ee3e9c351b992fa6df3"
+        "sha256": "20683ab4dbb5c05d79c29d5e3259ffbd1ffa33fff4a846f1185c419d82853959"
     },
     "site_guide.all": {
         "length": 24277,

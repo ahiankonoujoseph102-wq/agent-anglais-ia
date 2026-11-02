@@ -1636,6 +1636,11 @@ function watchTurn() {
         endMicStream();
     }
 
+    // L'élève parle : une indication envoyée avant n'est pas « sans réponse » (il répondra après lui).
+    if (state.turns.turn?.micActive && state.cueSentAt > 0) {
+        state.cueSentAt = now;
+    }
+
     const waiting = state.turns.waiting(now);
     const stuckMs = (audioConfig.stuck_seconds ?? 20) * 1000;
     // Réponse commencée puis plus rien (voix coupée au milieu d'une phrase) : comme une absence de réponse.
