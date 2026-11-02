@@ -200,7 +200,8 @@ class CourseSessionController extends Controller
             'start' => TeacherSetup::cue('course_start', ['minutes' => (int) ceil($allowedSeconds / 60)]),
             'resume' => TeacherSetup::cue('resume'),
         ], $warning, $resumed) + [
-            'session_end' => SessionEnd::client('course', (int) $session->allowed_seconds),
+            'session_end' => SessionEnd::client('course', (int) $session->allowed_seconds,
+                $user->activeSubscription?->isTrial() ? TeacherSetup::cue('trial_conclude') : ''),
         ]);
     }
 

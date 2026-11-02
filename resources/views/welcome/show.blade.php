@@ -41,8 +41,14 @@
         @endif
 
         <div class="welcome-head">
-            <h1>Félicitations, {{ $firstName }} ! <span aria-hidden="true">🎉</span></h1>
-            <p class="welcome-lead">Votre formule {{ $planName }} est activée</p>
+            @if ($trial)
+                {{-- Séance d'essai gratuite : jamais « formule activée » ni « Félicitations » pour un achat. --}}
+                <h1>Bienvenue, {{ $firstName }} ! <span aria-hidden="true">🎉</span></h1>
+                <p class="welcome-lead">Votre séance d'essai gratuite est ouverte : {{ \App\Support\Trial::minutes() }} minutes de cours offertes</p>
+            @else
+                <h1>Félicitations, {{ $firstName }} ! <span aria-hidden="true">🎉</span></h1>
+                <p class="welcome-lead">Votre formule {{ $planName }} est activée</p>
+            @endif
         </div>
 
         @if ($hasChoice)

@@ -28,7 +28,15 @@
 
     // LA SUITE à la fin de la conversation (<x-next-step>, montrée par live-session.js, avant le résumé) :
     // UN bouton orange, une phrase qui dit ce qui attend l'élève, les retours en liens discrets.
-    $next = match ($mode) {
+    // Séance d'essai gratuite en cours (séance du jour, « Mes cours ») : la suite propose les formules.
+    $onTrial = in_array($mode, ['lesson', 'course'], true) && auth()->user()?->activeSubscription?->isTrial();
+    $next = match (true) {
+        $onTrial => ['title' => 'Séance d\'essai terminée. Bravo !', 'text' => 'Pour continuer chaque jour avec '.$teacherName.', choisissez une formule : votre programme et votre résumé vous attendent.', 'href' => route('payment.plans'), 'label' => 'Choisir ma formule', 'icon' => null],
+        // Évaluation d'un élève qui n'a jamais payé ni essayé : son résultat, puis la séance d'essai gratuite.
+        $mode === 'assessment' && ! auth()->user()?->activeSubscription && auth()->user() && \App\Support\Trial::enabled() && \App\Support\Trial::neverPaidNorTried(auth()->user())
+            => ['title' => 'Évaluation terminée', 'text' => 'Votre niveau est enregistré. Découvrez maintenant un vrai cours : '.\App\Support\Trial::minutes().' minutes offertes avec '.$teacherName.'.', 'href' => $urls['done'], 'label' => 'Voir mon résultat et mon essai gratuit', 'icon' => null],
+        default => null,
+    } ?? match ($mode) {
         'assessment' => auth()->user()?->activeSubscription
             ? ['title' => 'Évaluation terminée', 'text' => 'Votre niveau est enregistré : retrouvez votre programme dans votre espace.', 'href' => route('dashboard'), 'label' => 'Aller à mon espace', 'icon' => null]
             : ['title' => 'Évaluation terminée', 'text' => 'Choisissez votre formule pour commencer votre programme avec '.$teacherName.'.', 'href' => route('payment.plans'), 'label' => 'Choisir ma formule', 'icon' => null],

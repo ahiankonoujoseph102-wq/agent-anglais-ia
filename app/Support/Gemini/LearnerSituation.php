@@ -47,9 +47,11 @@ class LearnerSituation
         }
 
         if ($user->exists && $subscription = $user->activeSubscription()->first()) {
-            $lines[] = $subscription->isGranted()
+            $lines[] = $subscription->isTrial()
+                ? 'Séance d\'essai gratuite en cours, jusqu\'au '.$subscription->ends_at->format('d/m/Y').' (ce n\'est pas un abonnement payé ; pour continuer ensuite, il choisira une formule).'
+                : ($subscription->isGranted()
                 ? 'Accès offert par l\'équipe : formule '.$subscription->plan_name.', jusqu\'au '.$subscription->ends_at->format('d/m/Y').' (ce n\'est pas un abonnement payé).'
-                : 'Formule active : '.$subscription->plan_name.', jusqu\'au '.$subscription->ends_at->format('d/m/Y').'.';
+                : 'Formule active : '.$subscription->plan_name.', jusqu\'au '.$subscription->ends_at->format('d/m/Y').'.');
         }
 
         return implode("\n", $lines);

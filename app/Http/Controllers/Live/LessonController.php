@@ -31,6 +31,7 @@ use App\Support\Reviews\TimeBonuses;
 use App\Support\Teachers\Teacher;
 use App\Support\Teachers\Teachers;
 use App\Support\Text\TextProviders;
+use App\Support\Trial;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -196,7 +197,12 @@ class LessonController extends Controller
             'start' => TeacherSetup::cue('lesson_start', [
                 'minutes' => $minutes,
                 'duration_note' => self::durationNote($minutes, $subscription?->daily_minutes ?? $minutes),
-                'welcome_note' => self::isFirstPaidLesson($lesson) ? TeacherSetup::cue('first_paid_lesson') : '',
+                'welcome_note' => match (true) {
+                    self::isFirstPaidLesson($lesson) => TeacherSetup::cue('first_paid_lesson'),
+                    // Séance d'essai gratuite : le professeur la présente en deux phrases (cours, tableau, « Mes cours »).
+                    (bool) $lesson->subscription?->isTrial() && ! $resumed => TeacherSetup::cue('trial_lesson', ['minutes' => Trial::minutes()]),
+                    default => '',
+                },
                 // Passage de relais : APRÈS l'échange de salutations (partie « continuité » de l'échauffement).
                 'handoff_note' => self::handoffNote($user, $lesson, $teacher).'.',
                 // Suivi de l'élève payant, en français et avant l'échauffement : e-mail à ajouter, programme peu suivi.
@@ -220,7 +226,9 @@ class LessonController extends Controller
             ],
             // Fin de séance : annonce d'une minute, puis UNE conclusion, d'après le temps restant.
             // À la fin de la 3e séance tenue, sans avis encore laissé : une phrase pour inviter à donner son avis.
-            'session_end' => SessionEnd::client('lesson', (int) $lesson->allowed_seconds, ReviewAsk::note($user, $lesson)),
+            'session_end' => SessionEnd::client('lesson', (int) $lesson->allowed_seconds, $lesson->subscription?->isTrial()
+                ? TeacherSetup::cue('trial_conclude')
+                : ReviewAsk::note($user, $lesson)),
         ]);
     }
 

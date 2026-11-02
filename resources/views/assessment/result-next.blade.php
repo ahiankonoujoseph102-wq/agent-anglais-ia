@@ -11,8 +11,24 @@
         default => ['Retrouvez votre programme dans votre espace.', route('dashboard'), 'Aller à mon espace'],
     };
 @endphp
+@php
+    // Séance d'essai gratuite : la première suite proposée à qui n'a jamais payé ni essayé (App\Support\Trial).
+    $trialOffer = ! $hasSubscription && $level !== null && auth()->user() && \App\Support\Trial::eligible(auth()->user());
+@endphp
 <div class="result-next" id="suite">
-    <p class="result-next-text">{{ $nextText }}</p>
-    <a class="btn btn-accent btn-lg btn-next" href="{{ $nextHref }}">{{ $nextLabel }} <x-icon name="arrow-right" /></a>
+    @if ($trialOffer)
+        <p class="result-next-text">
+            Essayez maintenant un vrai cours avec {{ \App\Support\Teachers\Teachers::forUser(auth()->user())->name() }} :
+            {{ \App\Support\Trial::minutes() }} minutes offertes, une fois par compte, à utiliser dans les {{ \App\Support\Trial::validity() }}.
+        </p>
+        <form method="POST" action="{{ route('trial.claim') }}">
+            @csrf
+            <button type="submit" class="btn btn-accent btn-lg btn-next"><x-icon name="gift" /> Commencer mon essai gratuit</button>
+        </form>
+        <p><a href="#formules">Voir les formules</a></p>
+    @else
+        <p class="result-next-text">{{ $nextText }}</p>
+        <a class="btn btn-accent btn-lg btn-next" href="{{ $nextHref }}">{{ $nextLabel }} <x-icon name="arrow-right" /></a>
+    @endif
     <x-install-hint />
 </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\LessonStatus;
 use App\Enums\PaymentStatus;
+use App\Support\Trial;
 use App\Support\WelcomeFlow;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,18 +28,22 @@ class DashboardController extends Controller
         // Jamais passée, réinitialisée par l'administrateur ou en cours : elle passe avant tout le reste.
         $needsAssessment = $canTakeAssessment;
 
+        // Séance d'essai dont le temps est pris : terminée tout de suite, la carte propose alors les formules.
+        Trial::expireIfUsed($user);
         $subscription = $user->activeSubscription;
+        $trial = $subscription?->isTrial() ? $subscription : null;
         $latestSubscription = $user->latestSubscription;
         $latestPayment = $user->latestPayment;
 
         // Accès offert par l'administrateur : « Accès offert jusqu'au … », et un message discret le jour de la fin et la veille.
-        $granted = $subscription?->isGranted() ? $subscription : null;
+        $granted = $subscription?->isGranted() && $trial === null ? $subscription : null;
         $grantEnding = $granted !== null
             && $granted->ends_at->copy()->startOfDay()->lte(now()->addDays((int) config('platform.granted_access.reminder_days'))->startOfDay());
 
         // Rappel de renouvellement (abonnement payé) : fin proche et aucun abonnement suivant déjà payé.
         $renewalDue = $subscription !== null
             && $granted === null
+            && $trial === null
             && $latestSubscription?->is($subscription)
             && $subscription->ends_at->lte(now()->addDays((int) config('payment.renewal_reminder_days')));
 
@@ -75,6 +80,10 @@ class DashboardController extends Controller
             'expiredSubscription' => $subscription === null ? $latestSubscription : null,
             'renewalDue' => $renewalDue,
             'granted' => $granted,
+            // Séance d'essai gratuite : proposée (évaluation passée, jamais payé ni essayé), en cours, ou terminée.
+            'trialOffer' => $subscription === null && Trial::eligible($user),
+            'trial' => $trial,
+            'trialLeft' => $trial !== null ? min(Trial::secondsLeft($trial, false), (int) $user->remainingSecondsToday(false)) : null,
             'grantEnding' => $grantEnding,
             'pendingPayment' => $latestPayment?->status === PaymentStatus::Pending ? $latestPayment : null,
             'rejectedPayment' => $latestPayment?->status === PaymentStatus::Rejected ? $latestPayment : null,

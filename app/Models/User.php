@@ -11,6 +11,7 @@ use App\Enums\SubscriptionStatus;
 use App\Support\Countries;
 use App\Support\DailyTime;
 use App\Support\EmailAddress;
+use App\Support\Trial;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -55,6 +56,8 @@ class User extends Authenticatable
             'role' => Role::class,
             'must_change_password' => 'boolean',
             'welcomed_at' => 'datetime',
+            'follow_up_opt_out_at' => 'datetime',
+            'trial_welcomed_at' => 'datetime',
             // « Compte de test » : jamais rempli par un formulaire de l'apprenant (non fillable), seulement par l'administration.
             'is_test_account' => 'boolean',
         ];
@@ -124,6 +127,16 @@ class User extends Authenticatable
     public function review(): HasOne
     {
         return $this->hasOne(Review::class);
+    }
+
+    /**
+     * E-mails de relance (App\Support\Reminders\FollowUps) et messages WhatsApp préparés par l'équipe.
+     *
+     * @return HasMany<LearnerMail, $this>
+     */
+    public function learnerMails(): HasMany
+    {
+        return $this->hasMany(LearnerMail::class);
     }
 
     /**
@@ -434,6 +447,13 @@ class User extends Authenticatable
 
         if ($subscription === null) {
             return null;
+        }
+
+        // Séance d'essai gratuite : son temps EN TOUT (platform.trial.minutes), jamais les minutes offertes.
+        if ($subscription->isTrial()) {
+            $subscription->setRelation('user', $this);
+
+            return min(max(0, $subscription->dailySeconds() - $this->secondsUsedToday($reserveOpen)), Trial::secondsLeft($subscription, $reserveOpen));
         }
 
         return max(0, $subscription->dailySeconds() + $this->bonusSecondsToday() - $this->secondsUsedToday($reserveOpen));

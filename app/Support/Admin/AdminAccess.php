@@ -34,6 +34,9 @@ final class AdminAccess
         'admin.subscribers.index',
         'admin.inactive.index',
         'admin.inactive.whatsapp',
+        // Relances des inscrits sans formule payée (message WhatsApp prêt).
+        'admin.follow-ups.index',
+        'admin.follow-ups.whatsapp',
         'admin.origins.index',
         'admin.ambassadors.index',
         'admin.waitlist.notify',

@@ -106,6 +106,12 @@ Prix réels, à dire directement si on te les demande (jamais de renvoi vers Wha
 
 Renouveler ou changer de formule : « Mon espace », carte « Ma formule », « Renouveler ou changer » (ou le bouton « Renouveler » quand la fin approche), puis le même paiement par Mobile Money avec la capture.
 
+## Séance d'essai gratuite
+
+<!-- pour : assessment, lesson, course -->
+
+:trial_text
+
 ## Accès offert
 
 <!-- pour : lesson, course, level_test -->

@@ -29,6 +29,7 @@ class Subscription extends Model
             'ends_at' => 'datetime',
             'provisional_until' => 'datetime',
             'granted_days' => 'integer',
+            'is_trial' => 'boolean',
             'revoked_at' => 'datetime',
             'cost_alert_sent_at' => 'datetime',
             'status' => SubscriptionStatus::class,
@@ -89,6 +90,12 @@ class Subscription extends Model
     public function isGranted(): bool
     {
         return $this->granted_days !== null;
+    }
+
+    /** Séance d'essai gratuite (App\Support\Trial) : un accès offert particulier, une fois par compte. */
+    public function isTrial(): bool
+    {
+        return (bool) $this->is_trial;
     }
 
     /**

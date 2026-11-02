@@ -36,6 +36,11 @@ final class TimeBonuses
     /** Une NOUVELLE séance s'ouvre : les minutes pas encore utilisées sont attachées à aujourd'hui. */
     public static function pin(User $user): void
     {
+        // Séance d'essai gratuite : les minutes offertes restent pour la première séance avec une vraie formule.
+        if ($user->activeSubscription?->isTrial()) {
+            return;
+        }
+
         $user->timeBonuses()->whereNull('applied_on')->update(['applied_on' => today()]);
     }
 

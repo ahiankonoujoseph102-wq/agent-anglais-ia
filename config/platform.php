@@ -382,6 +382,39 @@ return [
         'brand_words' => ['google', 'gemini', 'openai', 'chatgpt', 'gpt', 'claude', 'anthropic', 'duolingo', 'babbel'],
     ],
 
+    /*
+    | Séance d'essai gratuite (App\Support\Trial) : après l'évaluation, UNE fois par compte, pour un élève qui n'a
+    | jamais payé ni essayé. Un accès ordinaire (programme, séance du jour, « Mes cours ») de `minutes` minutes EN
+    | TOUT, valable `valid_hours` heures, sans paiement et jamais un revenu. `plan` : formule dont l'essai prend les
+    | réglages (temps par jour). TRIAL_ENABLED=false retire l'offre partout.
+    */
+    'trial' => [
+        'enabled' => (bool) env('TRIAL_ENABLED', true),
+        'minutes' => 15,
+        'valid_hours' => 48,
+        'plan' => 'essentiel',
+    ],
+
+    /*
+    | E-mails de relance des inscrits qui n'ont pas encore d'abonnement payé (App\Support\Reminders\FollowUps,
+    | `learners:follow-up`, chaque heure). Chaque campagne part UNE fois par compte, jamais deux e-mails de relance à
+    | moins de `gap_hours` heures, jamais à qui a cliqué « Ne plus recevoir ces e-mails ». `daily_emails` : au plus
+    | par jour (dans la limite partagée de mail.daily_limit, toujours `mail_reserve` gardés pour le reste).
+    */
+    'follow_ups' => [
+        'enabled' => (bool) env('LEARNER_FOLLOW_UPS', true),
+        'daily_emails' => 120,
+        'mail_reserve' => 100,
+        'batch' => 20,
+        'gap_hours' => 48,
+        // Délais (heures) : inscrit sans évaluation, évaluation sans essai, essai terminé sans formule.
+        'no_assessment_after_hours' => 24,
+        'no_trial_after_hours' => 24,
+        'trial_ended_after_hours' => 2,
+        // On ne relance plus quelqu'un inscrit depuis plus longtemps que ceci (jours), sauf la campagne « offer ».
+        'max_age_days' => 60,
+    ],
+
     'granted_access' => [
         // Durées proposées en un geste (jours) ; une durée au choix est aussi possible.
         'presets' => [1, 3, 7],
