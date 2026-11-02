@@ -1083,18 +1083,19 @@ function saveMicrophone(id) {
     } catch { /* stockage indisponible : le choix vaut pour cette page */ }
 }
 
-// Annulation d'écho : coupée par défaut sur Android (elle y passe le téléphone en mode appel, voix bien plus basse).
+// Annulation d'écho : activée par défaut partout, Android compris (platform.live.echo_cancellation_android) :
+// comme un appel, la voix sort au volume normal du téléphone et le micro entend l'apprenant.
 const IS_ANDROID = /Android/i.test(navigator.userAgent ?? '');
 const ECHO_CANCELLATION = IS_ANDROID
-    ? audioConfig.echo_cancellation_android ?? false
+    ? audioConfig.echo_cancellation_android ?? true
     : audioConfig.echo_cancellation;
 
 // Ancien « mode appel » (2 novembre 2026), retiré : il passait la voix au volume d'appel sans aider le micro.
 try { localStorage.removeItem('call-mode'); } catch { /* stockage indisponible */ }
 
-// Réduction de bruit : coupée par défaut sur Android (platform.live.noise_suppression_android) : sur certains
-// téléphones, elle prend une voix faible pour du bruit et l'efface.
-const NOISE_SUPPRESSION = IS_ANDROID ? audioConfig.noise_suppression_android ?? false : true;
+// Réduction de bruit : activée par défaut partout (platform.live.noise_suppression_android permet de la couper
+// sur Android).
+const NOISE_SUPPRESSION = IS_ANDROID ? audioConfig.noise_suppression_android ?? true : true;
 
 function echoCancellation() {
     return ECHO_CANCELLATION;

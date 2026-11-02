@@ -498,9 +498,10 @@ return [
         // Le temps continue pendant une pause ; au-delà de cette durée, la conversation se termine.
         'pause_max_seconds' => 120,
         // Volume de la voix du professeur (1 = tel quel). Un limiteur empêche toute saturation.
-        // LIVE_VOICE_GAIN (l'ancienne GEMINI_VOICE_GAIN est encore lue) ; absente, vide ou nulle : 2,5 (une voix
-        // muette n'est jamais voulue).
-        'voice_gain' => (float) (env('LIVE_VOICE_GAIN') ?: env('GEMINI_VOICE_GAIN')) ?: 2.5,
+        // LIVE_VOICE_GAIN (l'ancienne GEMINI_VOICE_GAIN est encore lue) ; absente, vide ou nulle : 1 (volume normal :
+        // l'apprenant le règle avec les boutons de son téléphone ; une voix forcée plus forte, 2,5 jusqu'au
+        // 2 novembre 2026, sortait comme un haut-parleur et empêchait le micro de l'entendre).
+        'voice_gain' => (float) (env('LIVE_VOICE_GAIN') ?: env('GEMINI_VOICE_GAIN')) ?: 1.0,
         // « Voix plus nette » (App\Support\Live\VoiceClarity, public/js/voice-clarity.js) : même voix, rendu plus net
         // dans le téléphone. Activé dans « Réglages » seulement (désactivé par défaut). Mesuré le 31 octobre 2026
         // dans Chromium (voix de synthèse anglaise et française) : aucun échantillon saturé quel que soit le niveau
@@ -518,15 +519,15 @@ return [
             'compressor_knee' => 12,
             'compressor_ratio' => 3,
         ],
-        // Annulation d'écho du navigateur. Sur Android, Chrome passe alors le téléphone en mode « communication » :
-        // la voix suit le volume d'APPEL, souvent bien plus bas. Le demi-duplex (micro fermé pendant la voix du
-        // professeur) empêche déjà l'écho : coupée par défaut sur Android, gardée ailleurs. Seules les valeurs
-        // « false », « 0 », « off » ou « no » la coupent, « true », « 1 », « on » ou « yes » l'activent.
+        // Annulation d'écho du navigateur, PARTOUT par défaut, Android compris (comme un appel ou Google Meet :
+        // la voix sort au volume normal du téléphone, réglé par ses boutons, et le micro entend l'apprenant).
+        // Du 30 octobre au 2 novembre 2026, elle était coupée sur Android : la voix sortait comme un haut-parleur
+        // et le micro n'entendait plus l'apprenant. Seules les valeurs « false », « 0 », « off » ou « no » la coupent.
         'echo_cancellation' => ! in_array(env('LIVE_ECHO_CANCELLATION'), [false, '0', 'off', 'no'], true),
-        'echo_cancellation_android' => in_array(env('LIVE_ECHO_CANCELLATION_ANDROID'), [true, '1', 'on', 'yes'], true),
-        // Réduction de bruit du navigateur sur Android : coupée par défaut (sur certains téléphones, elle efface
-        // une voix faible comme si c'était du bruit). « true », « 1 », « on » ou « yes » la remettent.
-        'noise_suppression_android' => in_array(env('LIVE_NOISE_SUPPRESSION_ANDROID'), [true, '1', 'on', 'yes'], true),
+        'echo_cancellation_android' => ! in_array(env('LIVE_ECHO_CANCELLATION_ANDROID'), [false, '0', 'off', 'no'], true),
+        // Réduction de bruit du navigateur sur Android : activée par défaut, comme ailleurs (réglage normal d'un
+        // appel). « false », « 0 », « off » ou « no » la coupent.
+        'noise_suppression_android' => ! in_array(env('LIVE_NOISE_SUPPRESSION_ANDROID'), [false, '0', 'off', 'no'], true),
         // Sans aucun son capté pendant ce temps alors que c'est à l'apprenant de parler : message.
         'silent_mic_seconds' => 8,
         // Micro trop faible (public/js/mic-input.js, MicBoost) : volume du micro remonté automatiquement d'après

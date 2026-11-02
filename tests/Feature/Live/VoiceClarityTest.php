@@ -38,8 +38,8 @@ class VoiceClarityTest extends TestCase
         $learner = User::factory()->create();
         $audio = $this->audio($learner);
         $this->assertSame('classic', $audio['voice_mode']);
-        // Le son actuel garde son volume d'avant.
-        $this->assertSame(2.5, $audio['voice_gain']);
+        // Le son actuel : volume normal (réglé par les boutons du téléphone).
+        $this->assertEquals(1, $audio['voice_gain']);
         $this->assertSame(config('platform.live.voice_clarity'), $audio['voice_clear']);
 
         // Un élève ne peut ni forcer le nouveau son, ni voir le lien de comparaison.
