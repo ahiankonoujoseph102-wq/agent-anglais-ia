@@ -4,7 +4,7 @@
     <h1>Relances des inscrits</h1>
     <p class="muted">
         Inscrits qui n'ont pas encore de formule payée ({{ $limit }} plus récents). Les e-mails partent tout seuls, une fois par étape
-        (entre 8 heures et 20 heures) ; pour ceux qui n'ont pas d'adresse e-mail, touchez « Écrire sur WhatsApp » : le message est déjà écrit.
+        (entre 6 heures et 20 heures) ; pour ceux qui n'ont pas d'adresse e-mail, touchez « Écrire sur WhatsApp » : le message est déjà écrit.
         Une relance WhatsApp par étape suffit : n'insistez pas.
     </p>
     @unless ($enabled)

@@ -403,9 +403,10 @@ return [
     */
     'follow_ups' => [
         'enabled' => (bool) env('LEARNER_FOLLOW_UPS', true),
-        'daily_emails' => 120,
-        'mail_reserve' => 100,
-        'batch' => 20,
+        // Décision du fondateur (2 novembre 2026) : 180 par jour, surtout le matin (lots de 30 chaque heure dès 6 heures).
+        'daily_emails' => (int) env('LEARNER_FOLLOW_UPS_PER_DAY', 180),
+        'mail_reserve' => 80,
+        'batch' => 30,
         'gap_hours' => 48,
         // Délais (heures) : inscrit sans évaluation, évaluation sans essai, essai terminé sans formule.
         'no_assessment_after_hours' => 24,

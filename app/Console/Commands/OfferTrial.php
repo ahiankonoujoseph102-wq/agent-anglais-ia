@@ -64,7 +64,7 @@ class OfferTrial extends Command
             });
         }
 
-        $this->info("C'est lancé : {$targets->count()} compte(s) peuvent refaire leur évaluation gratuite ; les e-mails partent par lots chaque heure, entre 8 heures et 20 heures.");
+        $this->info("C'est lancé : {$targets->count()} compte(s) peuvent refaire leur évaluation gratuite ; les e-mails partent par lots chaque heure, entre 6 heures et 20 heures.");
 
         return self::SUCCESS;
     }
