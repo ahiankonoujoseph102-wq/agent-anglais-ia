@@ -1,63 +1,63 @@
 {
     "assessment.old": {
-        "length": 96995,
-        "sha256": "fab3a82b50e3c08af52fdf079e1525223db8ec7028a3c9e4ed064f7f566f3ead"
+        "length": 97057,
+        "sha256": "efcb0235d115c313d9009c83b3c2b9ab8548be6c6969352d75e3425260c68c79"
     },
     "assessment.new": {
-        "length": 95842,
-        "sha256": "52ee273c70a1e56827dc302d9ec151b4306dfea1b51fbede2bc7e809e3002705"
+        "length": 95904,
+        "sha256": "43b142b5655157b5dcd200aa011acc94d6bf1238d4275b2e79783b162939d119"
     },
     "lesson.A1.first": {
-        "length": 94136,
-        "sha256": "b2350d2c54400bb97b463be6bc6bafefda812bb2ba4077b91546677706aabf4f"
+        "length": 94198,
+        "sha256": "a67d8acab86d6b89729eefcde8d7b7fa855da1e416036343d1460e441f172013"
     },
     "lesson.B2.later": {
-        "length": 92075,
-        "sha256": "c2bb74871eacb7552fbe3fdd0dab8451015f6c2a60f15b18dc1ff161e07d99da"
+        "length": 92137,
+        "sha256": "ee9a1efa3dcde5efe6c5c7a7f1762e097de65b40eb5f70feae0e0a35570b6bc6"
     },
     "lesson.without_programme": {
-        "length": 93324,
-        "sha256": "21477382ef629fe434eab97a67caaf40829bba5a326000d63ba6f8b000c4de6b"
+        "length": 93386,
+        "sha256": "723ccbdadf40a6d1f1d91b1ad4d23cd845856ae3c1e00c51452b57606720d46e"
     },
     "course.A2": {
-        "length": 91906,
-        "sha256": "70c7f8e7f247fef27b7c96a1474842b923e8e7a01710f8059c3f584af2d48dd1"
+        "length": 91968,
+        "sha256": "5abd4b27546ebdbef833cba24371ba31646ffcbfbacc2fd49b847cd87674f0a7"
     },
     "level_test.B1": {
-        "length": 69526,
-        "sha256": "ac8e31d2d6601547d1150597f5fe4def444615c8620688a68be3b11e01db0881"
+        "length": 69588,
+        "sha256": "d3abba0456242cde2710958f37cb026b541d0db68aa87fcc5d5adee930bf372c"
     },
     "trial": {
-        "length": 41877,
-        "sha256": "b5a72efedad8dc6df8364a079350a7b76db01de962283042701b4a783f080f06"
+        "length": 41939,
+        "sha256": "3fa74e64c5f5c6209044cc37aa10d4fbd6c1451cade64a51ffcbcd3fa179a9d3"
     },
     "lesson.A1.chosen_voice": {
-        "length": 94136,
-        "sha256": "c0df8efd3228849b28188604d3e461a64c5f3116716d47bc0b2d6c26c9a30c68"
+        "length": 94198,
+        "sha256": "64463178362f6865d21c521243fec8a57b33f71f953f2b64f0ae84a7504c8e99"
     },
     "site_guide.all": {
-        "length": 24224,
-        "sha256": "699c9e1a092c10ddb54f50977f3f005cd473c92fe6a16acb6c304946e16c7f55"
+        "length": 24255,
+        "sha256": "48077865a7222d6e5f917c38d27835a49e8ded02703feb6ab3be6ac753735680"
     },
     "site_guide.assessment": {
-        "length": 21394,
-        "sha256": "de0bc0d227d08faef2d9bf0e3fdfc38a31ca7dd5c93beb0973fb65cf8a660316"
+        "length": 21425,
+        "sha256": "6e86cd83f5f68f461ee10566537720a03c770296fee0f974cddd47d454100301"
     },
     "site_guide.lesson": {
-        "length": 11813,
-        "sha256": "1353b9065382daff756279c29196885e84a4929e7ad1906e13fb4020048dae40"
+        "length": 11844,
+        "sha256": "b23d00d21b8df780e2f9e66e5905aa732d0145641ed05a8a0dd121a0d397d565"
     },
     "site_guide.course": {
-        "length": 17569,
-        "sha256": "0be86e9a254b6acca0e8d647e8198e3af1e705a80b2604a602af5f46d88cbc7d"
+        "length": 17600,
+        "sha256": "f11ddcacf1997e9666181d380cc484980b68e24eb38592163b693882b72a437f"
     },
     "site_guide.level_test": {
-        "length": 9972,
-        "sha256": "d9975b15d4764072db159f9e56f14aa845837f9d1373a49cee18a1577081ef2e"
+        "length": 10003,
+        "sha256": "0e463072d0152e5bf3620a82332fc6688c17af215cf364cb6ac89bf57de99b47"
     },
     "site_guide.trial": {
-        "length": 7142,
-        "sha256": "5ed6530f39755ddea3819a7a237c5d3f49a7a8275ed16a177e96648430430187"
+        "length": 7173,
+        "sha256": "e6a4e307593f7183c12027c287dd3c9f9831f4a48fe3eb74b92392ee57e631f8"
     },
     "cue.lesson_start": {
         "length": 515,

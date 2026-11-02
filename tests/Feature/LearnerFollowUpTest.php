@@ -139,21 +139,88 @@ class LearnerFollowUpTest extends TestCase
         $this->assertDatabaseMissing('learner_reminders', ['user_id' => $done->id]);
     }
 
-    public function test_no_reminder_on_a_day_off_without_a_time_or_for_a_granted_access(): void
+    public function test_no_reminder_on_a_day_off_or_without_a_time(): void
     {
         $dayOff = $this->learner('a@example.test', ['study_days' => [1, 2]]);
         $noTime = $this->learner('b@example.test', ['study_time' => null]);
-        $granted = User::factory()->level(Level::A1)->create(['email' => 'c@example.test', 'country' => 'TG']);
-        AccessGrant::offer($granted, User::factory()->admin()->create(), Plan::find('essentiel'), 7, null);
-        $this->buildProgram($granted, Level::A1);
 
         $this->remind();
 
         Mail::assertNothingSent();
         $this->assertSame(0, LearnerReminder::query()->count());
-        $this->assertFalse(LessonReminders::follows($granted->fresh()));
         $this->assertTrue(LessonReminders::follows($dayOff));
         $this->assertNull(LessonReminders::studyTime($noTime));
+    }
+
+    /**
+     * Demande du fondateur (2 novembre 2026) : un accès OFFERT reçoit aussi les rappels de séance (e-mail et
+     * notification) ; la séance d'essai gratuite, non (elle a ses propres relances). L'e-mail reste facultatif
+     * pour un accès offert.
+     */
+    public function test_a_granted_access_gets_reminders_but_not_a_free_trial(): void
+    {
+        $granted = User::factory()->level(Level::A1)->create(['email' => 'c@example.test', 'country' => 'TG', 'welcomed_at' => now()]);
+        AccessGrant::offer($granted, User::factory()->admin()->create(), Plan::find('essentiel'), 7, null);
+        $this->buildProgram($granted, Level::A1);
+        $this->device($granted);
+
+        $trial = User::factory()->level(Level::A1)->create(['email' => 'd@example.test', 'country' => 'TG']);
+        Subscription::factory()->for($trial)->forPlan('essentiel')->create(['is_trial' => true, 'granted_days' => 2, 'price' => 0]);
+        $this->buildProgram($trial, Level::A1);
+
+        $this->remind();
+
+        $this->assertSame([$granted->id], LearnerReminder::query()->pluck('user_id')->all());
+        Mail::assertSent(LessonReminderMail::class, fn ($mail) => $mail->hasTo('c@example.test'));
+        $this->assertCount(1, $this->push->sent);
+        $this->assertFalse(LessonReminders::follows($granted->fresh()));
+        $this->assertTrue(LessonReminders::remindable($granted->fresh()));
+        $this->assertFalse(LessonReminders::remindable($trial->fresh()));
+    }
+
+    /**
+     * Une séance manquée (même une seule) : à la séance suivante, avant l'échauffement, le professeur le dit en
+     * français, conseille de ne plus la manquer, puis fait la leçon. Une fois par séance manquée.
+     */
+    public function test_a_single_missed_lesson_is_mentioned_once_at_the_next_lesson(): void
+    {
+        $user = $this->learner();
+        $user->activeProgram()->first()->forceFill(['created_at' => now()->subDays(10)])->save();
+        // Tous les jours de travail : tenue lundi 2 et mardi... manquée seulement hier (mardi 3).
+        foreach (['2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01', '2026-11-02'] as $date) {
+            $this->heldLesson($user, $date);
+        }
+
+        $this->assertSame('2026-11-03', LessonReminders::lastMissedDay($user)?->toDateString());
+        $this->assertFalse(LessonReminders::missesOften($user));
+
+        $start = $this->actingAs($user)->postJson('/seance/connexion')->assertOk()->json('cues.start');
+        $this->assertStringContainsString('« Vous avez manqué votre séance hier. »', $start);
+        $this->assertStringContainsString('try not to miss it again', $start);
+        $this->assertStringContainsString('« Heure de mes séances »', $start);
+        $this->assertStringNotContainsString('ne suivez pas souvent', $start);
+
+        // Une seule fois pour cette séance manquée.
+        $this->assertSame('', LessonReminders::sessionNote($user->fresh()));
+    }
+
+    public function test_nothing_is_said_when_the_last_lesson_was_held_or_on_a_granted_access_it_is_said_too(): void
+    {
+        $user = $this->learner();
+        $user->activeProgram()->first()->forceFill(['created_at' => now()->subDays(10)])->save();
+        $this->heldLesson($user, '2026-11-03');
+        $this->assertNull(LessonReminders::lastMissedDay($user));
+
+        $granted = User::factory()->level(Level::A1)->create(['email' => 'g@example.test', 'country' => 'TG', 'welcomed_at' => now()]);
+        $this->travelTo(now()->subDays(5));
+        AccessGrant::offer($granted, User::factory()->admin()->create(), Plan::find('essentiel'), 30, null);
+        $this->buildProgram($granted, Level::A1);
+        $this->travelBack();
+        $this->travelTo(CarbonImmutable::parse('2026-11-04 17:30:00', 'Africa/Lome'));
+
+        // Accès offert, aucune séance depuis cinq jours : ses jours manqués comptent aussi (message « programme peu suivi »).
+        $this->assertGreaterThanOrEqual(3, LessonReminders::missedDays($granted->fresh()));
+        $this->assertStringContainsString('(PROGRAMME)', LessonReminders::sessionNote($granted->fresh()));
     }
 
     public function test_reminder_emails_keep_a_reserve_for_reviews_alerts_and_videos(): void
