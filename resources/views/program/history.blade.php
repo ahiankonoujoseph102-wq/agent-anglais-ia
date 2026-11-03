@@ -81,6 +81,9 @@
             @endif
             @if ($boards->has($lesson->id))
                 <x-review-board :board="$boards[$lesson->id]" :open="(int) request()->query('reviser') === $lesson->id" />
+                @if (\App\Support\Practice\PracticeAudio::enabled())
+                    <a href="{{ route('practice.show', $lesson) }}" class="btn btn-outline btn-block practice-link"><x-icon name="headphones" /> Réviser à voix haute</a>
+                @endif
             @endif
             @if ($lesson->reported_at)
                 <ul class="scores">

@@ -51,6 +51,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\Program\AttestationController;
 use App\Http\Controllers\Program\LessonHistoryController;
+use App\Http\Controllers\Program\PracticeController;
 use App\Http\Controllers\Program\ProgramAnswersController;
 use App\Http\Controllers\Program\ProgramController;
 use App\Http\Controllers\ReminderController;
@@ -191,6 +192,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/programme/{program}/objectifs/{step}', [ProgramAnswersController::class, 'update'])->whereNumber(['program', 'step'])->name('program.answers.update');
     Route::get('/programme/unites/{number}', [ProgramController::class, 'unit'])->whereNumber('number')->name('program.unit');
     Route::get('/mes-seances', LessonHistoryController::class)->name('lessons.history');
+    // « Réviser à voix haute » : écouter, répéter, s'enregistrer (dans le navigateur) et comparer.
+    Route::get('/mes-seances/reviser', [PracticeController::class, 'latest'])->name('practice.latest');
+    Route::get('/mes-seances/{lesson}/reviser', [PracticeController::class, 'show'])->whereNumber('lesson')->name('practice.show');
+    Route::get('/mes-seances/{lesson}/reviser/etat', [PracticeController::class, 'status'])->whereNumber('lesson')->middleware('throttle:30,1')->name('practice.status');
+    Route::get('/mes-seances/{lesson}/reviser/voix/{index}', [PracticeController::class, 'audio'])->whereNumber(['lesson', 'index'])->middleware('throttle:120,1')->name('practice.audio');
     Route::get('/attestations/{attestation}/telecharger', [AttestationController::class, 'download'])->name('attestation.download');
 
     // Bilan oral de fin de niveau.

@@ -590,6 +590,28 @@ return [
     ],
 
     /*
+    | « Réviser à voix haute » (après une séance du jour) : l'élève écoute chaque phrase, mot et verbe du tableau de
+    | SA leçon (voix du professeur, gardée et partagée : une même phrase n'est demandée qu'une fois), la réécoute plus
+    | lentement, s'enregistre et compare. L'enregistrement reste dans le navigateur, jamais envoyé. Aucun temps du jour
+    | consommé. Voix pas encore prête : la voix anglaise du téléphone en attendant.
+    */
+    'practice' => [
+        'enabled' => (bool) env('PRACTICE_ENABLED', true),
+        // Éléments du tableau gardés (phrases, puis mots, puis verbes).
+        'max_items' => 14,
+        // Caractères au plus par demande de synthèse (plusieurs éléments en une demande, audio recoupé au silence).
+        'group_characters' => 1500,
+        // Pause après un échec de préparation (secondes) : aucune nouvelle demande pour ce tableau pendant ce temps.
+        'retry_after' => 600,
+        // Durée maximale d'un enregistrement de l'élève (secondes).
+        'record_seconds' => 12,
+        // Vitesse de « Plus lentement » (lecture ralentie sans changer la hauteur de la voix).
+        'slow_rate' => 0.75,
+        'style' => 'Say this in clear, natural AMERICAN English, like a friendly teacher modeling the sentence for a learner '
+            .'to repeat: calm, warm, well articulated, a little slower than normal conversation, with a short pause after each sentence.',
+    ],
+
+    /*
     | « Enregistrer ma séance » : vidéo de la séance (Teacher Joe, sa voix et celle de l'apprenant) fabriquée
     | ENTIÈREMENT dans le navigateur (public/js/session-recorder.js), jamais envoyée au serveur. Format vertical
     | 9:16, MP4 si le navigateur sait le faire, sinon WebM. Mention discrète en bas : l'adresse du site (APP_URL).
