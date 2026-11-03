@@ -382,7 +382,7 @@
             </details>
             <details>
                 <summary><x-icon name="help" /><span>Puis-je poser mes questions en français ?</span></summary>
-                <p>Oui, à tout moment. Le cours se fait en anglais simple, à votre niveau : si vous ne comprenez pas, dites « I don't understand » et {{ $teacher }} réexplique plus simplement, puis en français si besoin, avant de revenir à l'anglais. Vous pouvez aussi lui demander de répéter ou de parler plus lentement : les phrases utiles sont écrites sur votre écran pendant la séance (« Can you repeat, please? », « Can you explain in French, please? »). Et vous avez le droit de vous tromper : c'est en parlant qu'on progresse.</p>
+                <p>Oui, à tout moment. Le cours se fait en anglais simple, à votre niveau : si vous ne comprenez pas, dites « I don't understand » et {{ $teacher }} réexplique plus simplement, puis en français si besoin, avant de revenir à l'anglais. Pour parler de votre vie, il vous laisse souvent répondre d'abord en français, puis vous aide à dire la même chose en anglais, avec vos vrais mots. Vous pouvez aussi lui demander de répéter ou de parler plus lentement : les phrases utiles sont écrites sur votre écran pendant la séance (« Can you repeat, please? », « Can you explain in French, please? »). Et vous avez le droit de vous tromper : c'est en parlant qu'on progresse.</p>
             </details>
             <details>
                 <summary><x-icon name="check-circle" /><span>Comment {{ $teacher }} corrige-t-il mes erreurs ?</span></summary>
