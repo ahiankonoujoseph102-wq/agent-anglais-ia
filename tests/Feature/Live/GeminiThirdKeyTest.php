@@ -37,7 +37,7 @@ class GeminiThirdKeyTest extends TestCase
             'services.gemini.key_2' => 'cle-gemini-2',
             'services.gemini.key_3' => 'cle-gemini-3',
             'services.openai.key' => null,
-            'services.live.providers' => ['gemini', 'openai', 'gemini2', 'gemini3'],
+            'services.live.providers' => ['gemini', 'gemini2', 'gemini3', 'openai'],
         ]);
         $this->freezeSecond();
 
@@ -81,14 +81,14 @@ class GeminiThirdKeyTest extends TestCase
         $this->assertSame('gemini3', Lesson::query()->whereBelongsTo($user)->value('live_provider'));
     }
 
-    public function test_an_old_provider_list_still_uses_the_third_key_at_the_end(): void
+    public function test_an_old_provider_list_still_uses_the_third_key_before_openai(): void
     {
         config(['services.live.providers' => ['gemini', 'openai', 'gemini2']]);
 
-        $this->assertSame(['gemini', 'openai', 'gemini2', 'gemini3'], LiveProviders::configured());
+        $this->assertSame(['gemini', 'gemini2', 'gemini3', 'openai'], LiveProviders::configured());
 
         config(['services.gemini.key_3' => null]);
-        $this->assertSame(['gemini', 'openai', 'gemini2'], LiveProviders::configured());
+        $this->assertSame(['gemini', 'gemini2', 'openai'], LiveProviders::configured());
     }
 
     public function test_the_diagnostic_shows_the_third_key_without_ever_showing_it(): void

@@ -186,10 +186,10 @@ return [
     ],
 
     // Séances orales en direct (évaluation, séance du jour, « Mes cours », bilan de niveau) : ordre des
-    // fournisseurs (« gemini,openai,gemini2,gemini3 » par défaut : Gemini clé principale, OpenAI, puis Gemini deuxième et troisième clé).
+    // fournisseurs (« gemini,gemini2,gemini3,openai » par défaut : les trois clés Gemini, puis OpenAI, toujours en dernier).
     // Le fournisseur est choisi au DÉBUT de la séance ; un fournisseur sans clé est ignoré.
     'live' => [
-        'providers' => array_values(array_filter(array_map('trim', explode(',', strtolower((string) env('LIVE_PROVIDERS', 'gemini,openai,gemini2,gemini3')))))),
+        'providers' => array_values(array_filter(array_map('trim', explode(',', strtolower((string) env('LIVE_PROVIDERS', 'gemini,gemini2,gemini3,openai')))))),
         // Après une limite (429, limite du jour) ou une clé refusée, le fournisseur est mis de côté pendant ce temps.
         'pause_seconds' => 300,
         // Une séance peut changer de fournisseur seulement dans ce délai après son début (rien n'a été dit).

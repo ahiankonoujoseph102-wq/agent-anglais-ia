@@ -77,10 +77,10 @@ class LiveConnection
         }
 
         if ($current === null) {
-            $providers = LiveProviders::ordered($failed !== null ? [$failed] : []) ?: LiveProviders::ordered();
+            $providers = LiveProviders::ordered($failed !== null ? LiveProviders::unreachable($failed) : []) ?: LiveProviders::ordered();
         } elseif ($failed === $current && $conversation->canSwitchProvider()) {
             // Rien n'a été dit : la séance peut encore commencer chez le fournisseur suivant (s'il y en a un).
-            $providers = LiveProviders::ordered([$current]) ?: [$current];
+            $providers = LiveProviders::ordered(LiveProviders::unreachable($current)) ?: [$current];
         } else {
             // En cours de séance : le même fournisseur. Le suivant seulement s'il REFUSE la reconnexion (jamais pour
             // une simple lenteur ni un réseau d'apprenant) ; le navigateur lui redonne les derniers échanges.

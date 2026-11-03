@@ -7,9 +7,10 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * Fournisseurs des séances orales en direct, dans l'ordre de config/services.php → live.providers
- * (LIVE_PROVIDERS, « gemini,openai,gemini2,gemini3 » par défaut : « gemini2 » et « gemini3 » = Gemini avec la
- * deuxième et la troisième clé, GEMINI_API_KEY_2 et GEMINI_API_KEY_3, même modèle et même voix ; « gemini3 » est
- * ajouté à la fin quand sa clé est réglée mais qu'une ancienne liste LIVE_PROVIDERS ne le nomme pas). Un nom inconnu est ignoré ; un fournisseur sans clé n'est
+ * (LIVE_PROVIDERS, « gemini,gemini2,gemini3,openai » par défaut : « gemini2 » et « gemini3 » = Gemini avec la
+ * deuxième et la troisième clé, GEMINI_API_KEY_2 et GEMINI_API_KEY_3, même modèle et même voix). Décision du fondateur
+ * (2 novembre 2026) : les clés Gemini d'abord, OpenAI TOUJOURS en dernier, même avec une ancienne liste
+ * LIVE_PROVIDERS ; « gemini3 » est ajouté quand sa clé est réglée mais que la liste ne le nomme pas. Un nom inconnu est ignoré ; un fournisseur sans clé n'est
  * jamais utilisé (OpenAI sans OPENAI_API_KEY : simplement ignoré). Après une limite ou une clé refusée, un
  * fournisseur est mis de côté quelques minutes (live.pause_seconds) : les séances suivantes commencent
  * directement chez le suivant, sans attendre un nouveau refus.
@@ -101,12 +102,17 @@ final class LiveProviders
     {
         $names = array_values(array_unique(array_map('strtolower', (array) config('services.live.providers', []))));
 
-        // Troisième clé réglée mais absente d'une liste LIVE_PROVIDERS écrite avant elle : ajoutée en dernier secours.
+        // Troisième clé réglée mais absente d'une liste LIVE_PROVIDERS écrite avant elle : ajoutée après les autres clés.
         if (self::hasKey(self::GEMINI3) && ! in_array(self::GEMINI3, $names, true)) {
             $names[] = self::GEMINI3;
         }
 
-        return array_values(array_filter($names, fn (string $name) => isset(self::LABELS[$name])));
+        $names = array_values(array_filter($names, fn (string $name) => isset(self::LABELS[$name])));
+
+        // OpenAI (payant) toujours après toutes les clés Gemini (gratuites).
+        $gemini = array_values(array_filter($names, fn (string $name) => self::isGemini($name)));
+
+        return [...$gemini, ...array_values(array_diff($names, $gemini))];
     }
 
     /**
@@ -138,6 +144,17 @@ final class LiveProviders
         }
 
         return [...$ready, ...$paused];
+    }
+
+    /**
+     * Fournisseurs à écarter quand le NAVIGATEUR n'a pas pu joindre $failed : toutes les clés Gemini passent par le
+     * même service de Google, une autre clé n'y changerait rien.
+     *
+     * @return list<string>
+     */
+    public static function unreachable(string $failed): array
+    {
+        return self::isGemini($failed) ? [self::GEMINI, self::GEMINI2, self::GEMINI3] : [$failed];
     }
 
     public static function isPaused(string $name): bool
