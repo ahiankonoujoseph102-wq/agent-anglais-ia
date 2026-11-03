@@ -118,8 +118,14 @@
                 @endif
             @else
                 {{-- Temps du jour épuisé : rien à lancer, la suite est de relire sa dernière séance. --}}
-                <p>{{ \App\Support\DailyTime::EXHAUSTED }} En attendant, relisez votre dernière séance et votre devoir.</p>
-                <a href="{{ route('lessons.history') }}" class="btn btn-lg btn-block btn-next"><x-icon name="book" /> Revoir ma dernière séance</a>
+                @if ($lastLesson?->program_lesson_id && $lastLesson->started_at && \App\Support\Practice\PracticeAudio::enabled())
+                    {{-- La révision à voix haute ne prend rien sur le temps du jour : c'est la suite toute trouvée. --}}
+                    <p>{{ \App\Support\DailyTime::EXHAUSTED }} En attendant, révisez à voix haute les phrases de votre dernière séance : cela ne prend rien sur votre temps.</p>
+                    <a href="{{ route('practice.show', $lastLesson) }}" class="btn btn-lg btn-block btn-next"><x-icon name="headphones" /> Réviser à voix haute</a>
+                @else
+                    <p>{{ \App\Support\DailyTime::EXHAUSTED }} En attendant, relisez votre dernière séance et votre devoir.</p>
+                    <a href="{{ route('lessons.history') }}" class="btn btn-lg btn-block btn-next"><x-icon name="book" /> Revoir ma dernière séance</a>
+                @endif
             @endif
             @if ($lastLesson?->summary)
                 <h3 class="next-step">Dernière séance</h3>
@@ -130,6 +136,9 @@
                 @endif
                 @if ($lastLesson->program_lesson_id)
                     <p><a href="{{ route('lessons.history', ['reviser' => $lastLesson->id]) }}#seance-{{ $lastLesson->id }}"><x-icon name="list" /> Réviser le tableau de ma dernière séance</a></p>
+                    @if ($lastLesson->started_at && \App\Support\Practice\PracticeAudio::enabled())
+                        <p><a href="{{ route('practice.show', $lastLesson) }}"><x-icon name="headphones" /> Réviser à voix haute (écouter, répéter, vous enregistrer)</a></p>
+                    @endif
                 @endif
             @endif
         @endif

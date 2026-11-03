@@ -40,6 +40,7 @@
         </ul>
         <p><strong>Votre voix n'est jamais enregistrée.</strong> Seul le texte de la conversation est gardé.</p>
         <p>Si vous touchez « Enregistrer ma séance », la vidéo (avec votre voix et celle de {{ $teacher }}) est fabriquée et gardée sur votre téléphone uniquement : elle n'est jamais envoyée à {{ $platform }}. C'est vous qui décidez de la garder, de la partager ou de l'effacer.</p>
+        <p>De même, dans « Réviser à voix haute », votre enregistrement reste dans la page de votre téléphone, le temps de le réécouter : il n'est jamais envoyé ni gardé par {{ $platform }}.</p>
     </section>
 
     <section class="card privacy rise" aria-labelledby="privacy-use" style="--i: 2">

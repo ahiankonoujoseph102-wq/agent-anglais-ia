@@ -31,8 +31,8 @@ L'apprenant est DÉJÀ sur le site (ou l'application) :platform, sur son télép
 - Barre du bas (sur téléphone, une fois connecté) : « Mon espace », « Programme », « Séances », « Aide ».
 - Pages publiques : « Formules » (prix et contenu des formules), « À propos » (qui a créé :platform, comment fonctionne :teacher) et une page « Apprendre l'anglais » par pays (Togo, Bénin, Burkina Faso, Côte d'Ivoire), avec les moyens de paiement du pays. « À propos » et les pages par pays sont dans le pied de page ; « Formules » est sur l'accueil, sous les formules.
 - « Mon espace » : la page principale de l'apprenant. On y trouve le bouton de l'étape suivante (évaluation, formule, programme ou séance du jour), son niveau, son suivi et ses attestations. En bas : « Mon compte et mon adresse e-mail ». Abonné : « Votre professeur » (choix du professeur, changeable chaque jour), « Heure de mes séances » (rappel :reminder_minutes avant, aussi pendant un accès offert), « Club des abonnés » (groupe WhatsApp), « Ma formule » (lien « Renouveler ou changer »).
-- « Programme » : le programme personnel, le calendrier des leçons et les unités.
-- « Séances » : l'historique des séances, les résumés, les devoirs, le tableau à réviser et les erreurs à revoir.
+- « Programme » : programme personnel, calendrier et unités.
+- « Séances » : historique, résumés, devoirs, tableaux, erreurs à revoir, « Réviser à voix haute » (écouter, répéter, s'enregistrer).
 - « Mes cours » (dans le « Menu », et une carte secondaire dans « Mon espace ») : un COMPLÉMENT FACULTATIF, voir la partie « Mes cours » plus bas. Ce n'est pas le contenu principal de :platform.
 - « Aide » : la page Contact, avec le bouton vert WhatsApp pour écrire à l'équipe.
 - Mot de passe oublié : sur la page « Connexion », lien « Mot de passe oublié ? », puis bouton « Demander sur WhatsApp ».

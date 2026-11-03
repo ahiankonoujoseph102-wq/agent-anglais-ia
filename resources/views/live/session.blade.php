@@ -178,6 +178,10 @@
                 <x-next-step hidden :title="$next['title']" :text="$next['text']" :href="$next['href']" :label="$next['label']" :icon="$next['icon']">
                     @if ($nextBack)<a href="{{ $nextBack['href'] }}">{{ $nextBack['label'] }}</a>@endif
                     @if ($installHint)<x-install-hint :teacher-name="$teacherName" />@endif
+                    {{-- Fin de la séance du jour : réviser tout de suite à voix haute (rien sur le temps du jour). --}}
+                    @if ($mode === 'lesson' && \App\Support\Practice\PracticeAudio::enabled())
+                        <p class="small"><x-icon name="headphones" /> <a href="{{ route('practice.latest') }}">Réviser à voix haute ce que vous venez d'apprendre</a></p>
+                    @endif
                     {{-- Fin d'une séance : le bon moment pour un avis (élève qui n'en a pas encore laissé). --}}
                     @if (in_array($mode, ['lesson', 'course'], true) && \App\Support\Reviews\Reviews::shouldInvite(auth()->user()))
                         <p class="small"><x-icon name="star" /> <a href="{{ route('reviews.edit') }}">Donner mon avis sur cette séance</a>@if (($reviewMinutes = intdiv(\App\Support\Reviews\TimeBonuses::seconds(), 60)) > 0) : {{ $reviewMinutes }} minutes offertes, quelle que soit votre note.@endif</p>

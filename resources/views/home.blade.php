@@ -390,7 +390,7 @@
             </details>
             <details>
                 <summary><x-icon name="history" /><span>Vais-je oublier ce que j'ai appris ?</span></summary>
-                <p>{{ $teacher }} vous aide à retenir. Au début de chaque séance, il vous redemande la phrase à retenir de la veille et votre devoir. Pendant la pratique, il vous fait retrouver des phrases des leçons passées (de la veille, de quelques jours, de la semaine d'avant) et revoit vos erreurs. Le plus efficace reste de pratiquer un peu chaque jour.</p>
+                <p>{{ $teacher }} vous aide à retenir. Au début de chaque séance, il vous redemande la phrase à retenir de la veille et votre devoir. Pendant la pratique, il vous fait retrouver des phrases des leçons passées (de la veille, de quelques jours, de la semaine d'avant) et revoit vos erreurs. Après chaque séance, « Réviser à voix haute » vous fait réécouter les phrases du tableau avec sa voix, les répéter, vous enregistrer et comparer, sans rien prendre sur votre temps du jour. Le plus efficace reste de pratiquer un peu chaque jour.</p>
             </details>
             <details class="faq-more">
                 <summary class="faq-more-toggle">Voir les autres questions</summary>
