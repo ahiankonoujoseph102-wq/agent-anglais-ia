@@ -76,42 +76,48 @@ class GeminiSecondKeyTest extends TestCase
             ->values()->all();
     }
 
-    public function test_the_default_order_is_gemini_then_openai_then_the_second_gemini_key(): void
+    public function test_the_gemini_keys_come_first_and_openai_always_last(): void
     {
-        $this->assertStringContainsString("'gemini,openai,gemini2,gemini3'", (string) file_get_contents(config_path('services.php')));
+        $this->assertStringContainsString("'gemini,gemini2,gemini3,openai'", (string) file_get_contents(config_path('services.php')));
         $this->assertSame('Gemini (deuxième clé)', LiveProviders::label('gemini2'));
         $this->assertSame('GEMINI_API_KEY_2', LiveProviders::keyVariable('gemini2'));
-        $this->assertSame(['gemini', 'openai', 'gemini2'], LiveProviders::ordered());
+        // Même une ancienne liste LIVE_PROVIDERS qui met OpenAI avant la deuxième clé : OpenAI passe en dernier.
+        $this->assertSame(['gemini', 'gemini2', 'openai'], LiveProviders::ordered());
     }
 
-    public function test_main_key_limited_then_openai_limited_the_lesson_starts_with_the_second_key(): void
+    public function test_main_key_limited_the_lesson_starts_with_the_second_key_before_openai(): void
     {
-        // Clé principale limitée : la séance commence chez OpenAI…
-        $this->actingAs($user = $this->subscriber())->postJson('/seance/connexion')->assertOk()->assertJsonPath('provider', 'openai');
-        $this->assertTrue(LiveProviders::isPaused('gemini'));
+        $this->openaiCall = 201;
 
-        // … qui refuse l'appel (crédit épuisé) : le navigateur redemande, la MÊME séance part chez la deuxième clé.
-        $this->actingAs($user)->postJson('/seance/connexion', ['failed' => 'openai'])
+        $this->actingAs($user = $this->subscriber())->postJson('/seance/connexion')
             ->assertOk()
             ->assertJsonPath('provider', 'gemini2')
             ->assertJsonStructure(['websocket_url', 'setup']);
 
-        $this->assertSame(1, Lesson::query()->whereBelongsTo($user)->count());
+        $this->assertTrue(LiveProviders::isPaused('gemini'));
         $this->assertSame('gemini2', Lesson::query()->whereBelongsTo($user)->value('live_provider'));
         $this->assertSame(['principale', 'deuxième'], $this->keysSent());
-        $this->assertFalse(LiveProviders::isPaused('gemini2'));
-
-        // Gemini et OpenAI mis de côté : la séance suivante commence directement avec la deuxième clé.
-        LiveProviders::pause('openai');
-        $this->actingAs($this->subscriber())->postJson('/seance/connexion')->assertOk()->assertJsonPath('provider', 'gemini2');
-        $this->assertSame(['principale', 'deuxième', 'deuxième'], $this->keysSent());
+        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), 'realtime/calls'));
     }
 
-    public function test_openai_available_comes_before_the_second_key(): void
+    public function test_openai_is_used_only_when_both_gemini_keys_are_at_their_limit(): void
     {
         $this->openaiCall = 201;
+        $this->gemini[self::SECOND_KEY] = 429;
 
         $this->actingAs($this->subscriber())->postJson('/seance/connexion')->assertOk()->assertJsonPath('provider', 'openai');
+        $this->assertSame(['principale', 'deuxième'], $this->keysSent());
+    }
+
+    public function test_a_browser_that_cannot_reach_gemini_goes_straight_to_openai(): void
+    {
+        $this->openaiCall = 201;
+        $this->gemini[self::MAIN_KEY] = 200;
+
+        $this->actingAs($user = $this->subscriber())->postJson('/seance/connexion')->assertOk()->assertJsonPath('provider', 'gemini');
+
+        // Le téléphone n'a pas pu joindre Gemini : une autre clé Gemini passerait par le même service, OpenAI prend le relais.
+        $this->actingAs($user)->postJson('/seance/connexion', ['failed' => 'gemini'])->assertOk()->assertJsonPath('provider', 'openai');
         $this->assertSame(['principale'], $this->keysSent());
     }
 
