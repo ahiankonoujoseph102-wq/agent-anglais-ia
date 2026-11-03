@@ -61,7 +61,7 @@ class TeacherPaceTest extends TestCase
     public function test_the_pace_by_level_is_very_slow_then_slow_to_moderate_then_natural(): void
     {
         foreach (['A1', 'A2'] as $level) {
-            $this->assertStringContainsString('SLOW and very articulated (about two words per second), a small pause between sentences', config("teacher.pace.levels.{$level}"));
+            $this->assertStringContainsString('VERY SLOW and very articulated (under two words per second, like dictating), a small pause between sentences', config("teacher.pace.levels.{$level}"));
             $this->assertStringContainsString('A short pause after each key word and after each model sentence', config("teacher.pace.levels.{$level}"));
         }
 

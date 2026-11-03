@@ -58,8 +58,8 @@ class LessonWarmUpTest extends TestCase
         $this->assertStringContainsString('WARM-UP (about two minutes at most), a real conversation, ONE question per turn', $text);
         // D'abord comment il va (réponse attendue), une ou deux petites questions, puis ce qu'il a retenu de la veille.
         $this->assertStringContainsString('react naturally ("I\'m fine too!"', $text);
-        $this->assertStringContainsString('ONE or TWO more small, easy questions about their life to put them at ease, one per turn', $text);
-        $this->assertStringContainsString('("What did you do today?")', $text);
+        $this->assertStringContainsString('Then ONE or TWO small questions about their life, one per turn (A1 to B1: FRENCH FIRST, THEN ENGLISH', $text);
+        $this->assertStringContainsString('what they did last night).', $text);
         $this->assertStringContainsString('(2) CONTINUITY, only if PREVIOUS LESSON below gives a summary (even if it was with another teacher)', $text);
         $this->assertStringContainsString('then a SHORT reminder (one or two sentences) of the key point', $text);
         $this->assertStringContainsString('(3) Only then, in a new turn: today\'s topic', $text);
