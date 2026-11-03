@@ -52,6 +52,9 @@ return [
         // Deuxième clé Gemini (autre compte Google, donc autre projet et autre limite), SEULEMENT pour les séances en
         // direct : fournisseur « gemini2 » de LIVE_PROVIDERS, essayé après OpenAI. Absente : simplement ignorée.
         'key_2' => env('GEMINI_API_KEY_2'),
+        // Troisième clé Gemini (encore un autre compte Google) : fournisseur « gemini3 » des séances en direct, après
+        // la deuxième clé, et dernier secours de la synthèse vocale. Absente : simplement ignorée.
+        'key_3' => env('GEMINI_API_KEY_3'),
         // Modèle audio natif de l'API Live (voir ai.google.dev/gemini-api/docs/models).
         'live_model' => env('GEMINI_LIVE_MODEL', 'gemini-3.8-live'),
         // Version de l'API pour les jetons éphémères et la connexion « Constrained ».
@@ -183,10 +186,10 @@ return [
     ],
 
     // Séances orales en direct (évaluation, séance du jour, « Mes cours », bilan de niveau) : ordre des
-    // fournisseurs (« gemini,openai,gemini2 » par défaut : Gemini clé principale, OpenAI, puis Gemini deuxième clé).
+    // fournisseurs (« gemini,openai,gemini2,gemini3 » par défaut : Gemini clé principale, OpenAI, puis Gemini deuxième et troisième clé).
     // Le fournisseur est choisi au DÉBUT de la séance ; un fournisseur sans clé est ignoré.
     'live' => [
-        'providers' => array_values(array_filter(array_map('trim', explode(',', strtolower((string) env('LIVE_PROVIDERS', 'gemini,openai,gemini2')))))),
+        'providers' => array_values(array_filter(array_map('trim', explode(',', strtolower((string) env('LIVE_PROVIDERS', 'gemini,openai,gemini2,gemini3')))))),
         // Après une limite (429, limite du jour) ou une clé refusée, le fournisseur est mis de côté pendant ce temps.
         'pause_seconds' => 300,
         // Une séance peut changer de fournisseur seulement dans ce délai après son début (rien n'a été dit).

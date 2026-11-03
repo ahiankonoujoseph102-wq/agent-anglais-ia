@@ -7,8 +7,9 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * Fournisseurs des séances orales en direct, dans l'ordre de config/services.php → live.providers
- * (LIVE_PROVIDERS, « gemini,openai,gemini2 » par défaut : « gemini2 » = Gemini avec la deuxième clé, GEMINI_API_KEY_2,
- * même modèle et même voix). Un nom inconnu est ignoré ; un fournisseur sans clé n'est
+ * (LIVE_PROVIDERS, « gemini,openai,gemini2,gemini3 » par défaut : « gemini2 » et « gemini3 » = Gemini avec la
+ * deuxième et la troisième clé, GEMINI_API_KEY_2 et GEMINI_API_KEY_3, même modèle et même voix ; « gemini3 » est
+ * ajouté à la fin quand sa clé est réglée mais qu'une ancienne liste LIVE_PROVIDERS ne le nomme pas). Un nom inconnu est ignoré ; un fournisseur sans clé n'est
  * jamais utilisé (OpenAI sans OPENAI_API_KEY : simplement ignoré). Après une limite ou une clé refusée, un
  * fournisseur est mis de côté quelques minutes (live.pause_seconds) : les séances suivantes commencent
  * directement chez le suivant, sans attendre un nouveau refus.
@@ -22,7 +23,10 @@ final class LiveProviders
     /** Gemini avec la deuxième clé (autre compte Google, donc autre limite). */
     public const GEMINI2 = 'gemini2';
 
-    public const LABELS = [self::GEMINI => 'Gemini', self::OPENAI => 'OpenAI', self::GEMINI2 => 'Gemini (deuxième clé)'];
+    /** Gemini avec la troisième clé (encore un autre compte Google, autre limite). */
+    public const GEMINI3 = 'gemini3';
+
+    public const LABELS = [self::GEMINI => 'Gemini', self::OPENAI => 'OpenAI', self::GEMINI2 => 'Gemini (deuxième clé)', self::GEMINI3 => 'Gemini (troisième clé)'];
 
     /**
      * @return list<string>
@@ -43,6 +47,7 @@ final class LiveProviders
             self::GEMINI => filled(config('services.gemini.key')),
             self::OPENAI => filled(config('services.openai.key')),
             self::GEMINI2 => filled(config('services.gemini.key_2')),
+            self::GEMINI3 => filled(config('services.gemini.key_3')),
             default => false,
         };
     }
@@ -50,7 +55,7 @@ final class LiveProviders
     /** Gemini Live, quelle que soit la clé (même modèle, même voix, même chemin dans le navigateur). */
     public static function isGemini(string $name): bool
     {
-        return in_array($name, [self::GEMINI, self::GEMINI2], true);
+        return in_array($name, [self::GEMINI, self::GEMINI2, self::GEMINI3], true);
     }
 
     /** Clé Gemini de ce fournisseur (jamais affichée), ou null. */
@@ -59,6 +64,7 @@ final class LiveProviders
         $key = match ($name) {
             self::GEMINI => config('services.gemini.key'),
             self::GEMINI2 => config('services.gemini.key_2'),
+            self::GEMINI3 => config('services.gemini.key_3'),
             default => null,
         };
 
@@ -71,6 +77,7 @@ final class LiveProviders
         return match ($name) {
             self::OPENAI => 'OPENAI_API_KEY',
             self::GEMINI2 => 'GEMINI_API_KEY_2',
+            self::GEMINI3 => 'GEMINI_API_KEY_3',
             default => 'GEMINI_API_KEY',
         };
     }
@@ -92,7 +99,12 @@ final class LiveProviders
      */
     public static function configured(): array
     {
-        $names = array_unique(array_map('strtolower', (array) config('services.live.providers', [])));
+        $names = array_values(array_unique(array_map('strtolower', (array) config('services.live.providers', []))));
+
+        // Troisième clé réglée mais absente d'une liste LIVE_PROVIDERS écrite avant elle : ajoutée en dernier secours.
+        if (self::hasKey(self::GEMINI3) && ! in_array(self::GEMINI3, $names, true)) {
+            $names[] = self::GEMINI3;
+        }
 
         return array_values(array_filter($names, fn (string $name) => isset(self::LABELS[$name])));
     }

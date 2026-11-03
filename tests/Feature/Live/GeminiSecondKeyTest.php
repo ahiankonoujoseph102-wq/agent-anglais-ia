@@ -78,7 +78,7 @@ class GeminiSecondKeyTest extends TestCase
 
     public function test_the_default_order_is_gemini_then_openai_then_the_second_gemini_key(): void
     {
-        $this->assertStringContainsString("'gemini,openai,gemini2'", (string) file_get_contents(config_path('services.php')));
+        $this->assertStringContainsString("'gemini,openai,gemini2,gemini3'", (string) file_get_contents(config_path('services.php')));
         $this->assertSame('Gemini (deuxième clé)', LiveProviders::label('gemini2'));
         $this->assertSame('GEMINI_API_KEY_2', LiveProviders::keyVariable('gemini2'));
         $this->assertSame(['gemini', 'openai', 'gemini2'], LiveProviders::ordered());

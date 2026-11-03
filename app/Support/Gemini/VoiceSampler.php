@@ -211,7 +211,7 @@ class VoiceSampler
             try {
                 $wav = $this->request($voice, $text, $style, $timeout, $key);
             } catch (SpeechFailed $e) {
-                SpeechLog::failure($e, $label.(count($keys) > 1 ? ($index === 0 ? ' (clé principale)' : ' (deuxième clé)') : ''));
+                SpeechLog::failure($e, $label.(count($keys) > 1 ? (' ('.(['clé principale', 'deuxième clé', 'troisième clé'][$index] ?? 'autre clé').')') : ''));
                 $failure = $e;
 
                 if ($e->kind === SpeechFailed::QUOTA_DAILY) {
@@ -235,13 +235,13 @@ class VoiceSampler
 
     /**
      * Clés Gemini de la synthèse vocale, dans l'ordre : principale (GEMINI_API_KEY), puis la deuxième
-     * (GEMINI_API_KEY_2) si elle est réglée. Liste vide : aucune clé.
+     * (GEMINI_API_KEY_2) et la troisième (GEMINI_API_KEY_3) si elles sont réglées. Liste vide : aucune clé.
      *
      * @return list<string>
      */
     public static function keys(): array
     {
-        return array_values(array_filter([config('services.gemini.key'), config('services.gemini.key_2')], fn ($key) => filled($key)));
+        return array_values(array_filter([config('services.gemini.key'), config('services.gemini.key_2'), config('services.gemini.key_3')], fn ($key) => filled($key)));
     }
 
     /** Échec qui vaut la peine d'essayer l'autre clé (autre projet Google, autre limite). */
