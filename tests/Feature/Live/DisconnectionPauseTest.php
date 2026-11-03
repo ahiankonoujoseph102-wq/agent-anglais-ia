@@ -26,7 +26,10 @@ class DisconnectionPauseTest extends TestCase
     {
         parent::setUp();
 
-        config(['services.gemini.key' => 'cle-secrete-du-serveur', 'services.gemini.token_minutes' => 5]);
+        // Réglage par défaut : 3 minutes de coupure au plus par séance (vérifié ici) ;
+        // les scénarios ci-dessous gardent leur plafond de 10 minutes.
+        $this->assertSame(180, config('platform.live.disconnect_pause_max_seconds'));
+        config(['services.gemini.key' => 'cle-secrete-du-serveur', 'services.gemini.token_minutes' => 5, 'platform.live.disconnect_pause_max_seconds' => 600]);
         Http::fake(['*/auth_tokens' => Http::response(['name' => 'auth_tokens/jeton456'])]);
         $this->freezeSecond();
     }
