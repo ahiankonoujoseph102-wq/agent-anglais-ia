@@ -21,6 +21,7 @@ use App\Support\DailyTime;
 use App\Support\Gemini\GeminiUnavailable;
 use App\Support\Gemini\LiveConnection;
 use App\Support\Gemini\TeacherSetup;
+use App\Support\Live\LessonRejoin;
 use App\Support\Live\LiveEarlyEnd;
 use App\Support\Live\LivePage;
 use App\Support\Live\SessionEnd;
@@ -194,8 +195,13 @@ class LessonController extends Controller
 
         $warningMinutes = (int) config('platform.lessons.warning_minutes_before_end');
 
+        // Séance reprise (page rouverte, ou même leçon après une séance interrompue aujourd'hui) : le professeur
+        // continue là où on s'était arrêté, jamais un nouveau début de leçon.
+        $minutesLeft = $resumed ? max(1, (int) ceil($lesson->remainingSeconds() / 60)) : $minutes;
+        $rejoin = LessonRejoin::cue(LessonRejoin::previous($user, $resumed ? $lesson : null, $programLesson), $minutesLeft);
+
         return response()->json($live->attach($lesson, $token, $setup, [
-            'start' => TeacherSetup::cue('lesson_start', [
+            'start' => $rejoin ?? TeacherSetup::cue('lesson_start', [
                 'minutes' => $minutes,
                 'duration_note' => self::durationNote($minutes, $subscription?->daily_minutes ?? $minutes),
                 'welcome_note' => match (true) {
