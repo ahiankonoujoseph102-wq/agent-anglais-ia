@@ -72,7 +72,10 @@ class FrenchQuestionEnglishAnswerTest extends TestCase
         $this->assertStringContainsString('« Très bien. Maintenant, dites-le en anglais. »', $coaching);
         $this->assertStringContainsString('From B2: simple English, never with the answer\'s words.', $coaching);
         $this->assertStringContainsString('« Comment dit-on « … » en anglais ? »', (string) config('teacher.lesson'));
-        $this->assertStringContainsString('(at every level, in French, from its meaning:', (string) config('teacher.lesson'));
+        // Rappel de la veille : d'abord une question ouverte en anglais, puis le test en français.
+        $this->assertStringContainsString('first ONE open question in simple, slow ENGLISH: "What did you learn in our last lesson?"', (string) config('teacher.lesson'));
+        $this->assertStringContainsString('then TEST them, at every level IN FRENCH', (string) config('teacher.lesson'));
+        $this->assertStringContainsString('« Répondez d\'abord en français. »', $coaching);
         $this->assertStringContainsString('asked in FRENCH', (string) config('teacher.assessment_next_step'));
     }
 

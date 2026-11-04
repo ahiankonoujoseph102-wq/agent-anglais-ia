@@ -354,7 +354,8 @@ L'export anonymisé des conversations n'était pas disponible dans la session de
 
 **Décisions** (consignes `teacher.coaching`, `teacher.lesson`, `teacher.pace`, mini-leçon de l'évaluation, `LessonContext`, pour Teacher Joe et Teacher Rose, élèves à l'essai comme payants) :
 - vérification du sens : une petite question en français à laquelle l'élève répond en anglais avec la phrase apprise (« Si vous voulez savoir le prix d'une chose au marché, que dites-vous en anglais ? »), jamais « What does it mean in French? » ;
-- rappel de la séance d'avant (à tous les niveaux) et révision espacée : « Comment dit-on « C'est combien ? » en anglais ? » ;
+- rappel de la séance d'avant : d'abord UNE question ouverte en anglais simple (« What did you learn in our last lesson? »), l'élève répond comme il peut ; puis, pour le tester, le professeur parle en français (« Comment dit-on « C'est combien ? » en anglais ? »), à tous les niveaux ; même chose pour la révision espacée ;
+- questions sur sa vie : le professeur demande clairement « Répondez d'abord en français. », écoute, puis « Très bien. Maintenant, dites-le en anglais. » ;
 - « Your turn » de la leçon et de la mini-leçon de l'évaluation : une question en français, la réponse en anglais ;
 - débit : lent, chaque mot articulé, une idée à la fois, moins de deux mots par seconde en A1 et A2 (comme une dictée) ; mots simples, aucun mot technique, un exemple tiré de la vie de l'élève ;
 - phrases plus longues : une fois la phrase juste, l'élève y ajoute un mot, une raison ou un moment ; félicité précisément ;
