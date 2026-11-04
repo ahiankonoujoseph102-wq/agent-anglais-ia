@@ -70,7 +70,7 @@ class FrenchQuestionEnglishAnswerTest extends TestCase
         $coaching = (string) config('teacher.coaching');
         $this->assertStringContainsString('ASK IN FRENCH, ANSWER IN ENGLISH, NEVER THE REVERSE', $coaching);
         $this->assertStringContainsString('« Très bien. Maintenant, dites-le en anglais. »', $coaching);
-        $this->assertStringContainsString('From B2, the question may be in simple English, but never with the words of the answer.', $coaching);
+        $this->assertStringContainsString('From B2: simple English, never with the answer\'s words.', $coaching);
         $this->assertStringContainsString('« Comment dit-on « … » en anglais ? »', (string) config('teacher.lesson'));
         $this->assertStringContainsString('(at every level, in French, from its meaning:', (string) config('teacher.lesson'));
         $this->assertStringContainsString('asked in FRENCH', (string) config('teacher.assessment_next_step'));
