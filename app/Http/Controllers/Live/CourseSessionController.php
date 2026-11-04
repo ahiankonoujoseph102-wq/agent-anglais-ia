@@ -17,6 +17,7 @@ use App\Support\Gemini\TeacherSetup;
 use App\Support\Live\LivePage;
 use App\Support\Live\SessionEnd;
 use App\Support\Live\WorkingTogether;
+use App\Support\Reviews\ReviewAsk;
 use App\Support\Reviews\TimeBonuses;
 use App\Support\Teachers\Teachers;
 use Illuminate\Http\JsonResponse;
@@ -201,7 +202,7 @@ class CourseSessionController extends Controller
             'resume' => TeacherSetup::cue('resume'),
         ], $warning, $resumed) + [
             'session_end' => SessionEnd::client('course', (int) $session->allowed_seconds,
-                $user->activeSubscription?->isTrial() ? TeacherSetup::cue('trial_conclude') : ''),
+                ($user->activeSubscription?->isTrial() ? TeacherSetup::cue('trial_conclude') : '').ReviewAsk::note($user)),
         ]);
     }
 

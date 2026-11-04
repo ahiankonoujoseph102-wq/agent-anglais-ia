@@ -41,11 +41,11 @@ class TeacherCorrectionTest extends TestCase
             $this->assertStringContainsString('Never let a wrong form pass as right to please the learner. If they insist, stay warm and accurate', $text, $kind);
             // Pendant la parole libre : pas d'interruption pour les petites fautes, retour à la fin de la conversation.
             $this->assertStringContainsString('DURING FREE CONVERSATION (STEP 3): let the learner speak, do NOT interrupt for small mistakes', $text, $kind);
-            // Vérifier : l'élève dit le sens en français (A1 à B1), une petite question qui fait utiliser ensuite (B2 et plus).
-            $this->assertStringContainsString('What does it mean in French?', $text, $kind);
+            // Vérifier : une petite question en français, l'élève répond en anglais (A1 à B1) ; B2 et plus : une question qui fait utiliser.
+            $this->assertStringContainsString('ONE tiny question IN FRENCH that they answer IN ENGLISH', $text, $kind);
             $this->assertStringContainsString('B2 and above: ONE tiny question that makes them use it', $text, $kind);
             // Des phrases complètes, jamais « yes » ou « no » seuls (demande du fondateur, 2 novembre 2026).
-            $this->assertStringContainsString('LISTEN, then « Maintenant, dites-le en anglais. »', $text, $kind);
+            $this->assertStringContainsString('LISTEN, then « Très bien. Maintenant, dites-le en anglais. »', $text, $kind);
             $this->assertStringContainsString('build THEIR sentence with them piece by piece', $text, $kind);
             // Une seule règle de correction : la règle générale renvoie à HOW TO CORRECT.
             $this->assertStringContainsString('Mistakes: follow HOW TO CORRECT when it is given below', $text, $kind);

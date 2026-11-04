@@ -89,8 +89,8 @@ class TeacherPaceTest extends TestCase
         $this->assertStringContainsString('KEEP this slower pace until the end', $rules);
         // Pauses courtes : une longue fait croire à l'élève que c'est son tour (et la sécurité du micro tient la voix pour finie).
         $this->assertStringContainsString('Pauses between your sentences stay short (about one second)', $rules);
-        // Débutants : lent, environ deux mots par seconde ; on laisse le temps de répondre (1er novembre 2026).
-        $this->assertStringContainsString('With beginners (A1, A2, the assessment), SLOW is right: about two words per second', $rules);
+        // Débutants : lent, moins de deux mots par seconde, comme une dictée ; on laisse le temps de répondre.
+        $this->assertStringContainsString('With beginners (A1, A2, the assessment), under two words per second, like dictating', $rules);
         $this->assertStringContainsString('GIVE TIME: after your question, wait, even through pauses in their answer', $rules);
         $this->assertStringNotContainsString('never too slow', $rules);
         $this->assertDoesNotMatchRegularExpression('/google|gemini|openai|chatgpt/i', $rules.implode(' ', config('teacher.pace.levels')));

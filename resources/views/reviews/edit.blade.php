@@ -12,7 +12,10 @@
     <div class="auth-head rise">
         <span class="icon-bubble icon-bubble-primary"><x-icon name="star" /></span>
         <h1>{{ $review ? 'Modifier mon avis' : 'Donner mon avis' }}</h1>
-        <p>Votre avis aide d'autres personnes à oser commencer, et nous aide à faire mieux.</p>
+        <p>Une minute suffit. Positif ou négatif, votre avis aide d'autres personnes à oser commencer, et nous aide à faire mieux.</p>
+        @if (! $bonusGiven)
+            <p class="small"><x-icon name="gift" /> Merci du temps pris : <strong>{{ $bonusMinutes }} minutes de séance offertes</strong>, automatiquement, quelle que soit votre note.</p>
+        @endif
     </div>
 
     <form method="POST" action="{{ route('reviews.save') }}" class="card review-form">
@@ -58,9 +61,6 @@
 
         <button type="submit" class="btn btn-accent btn-lg btn-block"><x-icon name="check" /> {{ $review ? 'Enregistrer mon avis' : 'Publier mon avis' }}</button>
 
-        @if (! $bonusGiven)
-            <p class="muted small">Merci du temps pris : vous recevez {{ $bonusMinutes }} minutes de séance offertes, quelle que soit votre note.</p>
-        @endif
         <p class="muted small">Positif ou négatif, votre avis est publié tel quel. Une note très basse, ou un texte avec un lien, un numéro ou un mot grossier, est d'abord vérifié par notre équipe. <a href="{{ route('reviews.index') }}">Voir les avis des élèves</a></p>
     </form>
 </x-layout>

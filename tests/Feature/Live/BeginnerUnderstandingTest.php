@@ -57,7 +57,7 @@ class BeginnerUnderstandingTest extends TestCase
                 // Demande d'explication en français, même mal entendue : tout de suite.
                 $this->assertStringContainsString('anything that sounds like "explain in French"', $text, $where);
                 // Lentement avec les débutants, et du temps pour répondre ; accent américain clair.
-                $this->assertStringContainsString('SLOW is right: about two words per second', $text, $where);
+                $this->assertStringContainsString('under two words per second, like dictating', $text, $where);
                 $this->assertStringContainsString('GIVE TIME', $text, $where);
                 $this->assertStringContainsString('a clear, natural American accent', $text, $where);
             }

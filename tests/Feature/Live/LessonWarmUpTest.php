@@ -58,7 +58,7 @@ class LessonWarmUpTest extends TestCase
         $this->assertStringContainsString('WARM-UP (about two minutes at most), a real conversation, ONE question per turn', $text);
         // D'abord comment il va (réponse attendue), une ou deux petites questions, puis ce qu'il a retenu de la veille.
         $this->assertStringContainsString('react naturally ("I\'m fine too!"', $text);
-        $this->assertStringContainsString('Then ONE or TWO small questions about their life, one per turn (A1 to B1: FRENCH FIRST, THEN ENGLISH', $text);
+        $this->assertStringContainsString('Then ONE or TWO small questions about their life, one per turn (ASK IN FRENCH, ANSWER IN ENGLISH', $text);
         $this->assertStringContainsString('what they did last night).', $text);
         $this->assertStringContainsString('(2) CONTINUITY, only if PREVIOUS LESSON below gives a summary (even if it was with another teacher)', $text);
         $this->assertStringContainsString('then a SHORT reminder (one or two sentences) of the key point', $text);
@@ -66,7 +66,7 @@ class LessonWarmUpTest extends TestCase
         $this->assertStringContainsString('the first word as a clue if needed', $text);
         // Devoir vérifié pour de bon (HomeworkAndRevisionTest), sans reproche s'il n'est pas fait.
         $this->assertStringContainsString('then the HOMEWORK CHECK (see PREVIOUS LESSON)', $text);
-        $this->assertStringContainsString('Not done: no reproach', $text);
+        $this->assertStringContainsString('Not done: never cut them off, no reproach', $text);
         $this->assertStringContainsString('- Summary: "I am from Lomé." = Je viens de Lomé.', $text);
         $this->assertStringContainsString('- Homework given: Dites trois phrases sur votre ville.', $text);
         $this->assertStringContainsString('Use them for the CONTINUITY part of the WARM-UP, after the greeting exchange', $text);

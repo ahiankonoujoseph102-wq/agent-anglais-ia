@@ -69,7 +69,7 @@ class HomeworkAndRevisionTest extends TestCase
         // Le lendemain : vérification réelle, fait ou pas fait.
         $this->assertStringContainsString('then the HOMEWORK CHECK (see PREVIOUS LESSON)', $text);
         $this->assertStringContainsString('HOMEWORK CHECK (two minutes at most, one question per turn): ask them to SAY their homework now.', $text);
-        $this->assertStringContainsString('Not done: no reproach', $text);
+        $this->assertStringContainsString('Not done: never cut them off, no reproach', $text);
         $this->assertStringContainsString('then do it TOGETHER now in one minute', $text);
 
         // Conclusion : devoir, quoi réviser, où le retrouver (dit, et écrit sur l'écran de fin).
