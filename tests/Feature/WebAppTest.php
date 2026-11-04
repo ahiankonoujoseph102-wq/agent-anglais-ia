@@ -49,6 +49,14 @@ class WebAppTest extends TestCase
         $this->assertArrayHasKey('512x512 maskable', $sizes);
     }
 
+    public function test_manifest_is_kept_an_hour_by_the_browser(): void
+    {
+        $cache = (string) $this->get('/manifest.webmanifest')->assertOk()->headers->get('Cache-Control');
+
+        $this->assertStringContainsString('public', $cache);
+        $this->assertStringContainsString('max-age=3600', $cache);
+    }
+
     public function test_manifest_lets_android_install_a_real_application_with_its_icons_and_screenshots(): void
     {
         $manifest = $this->get('/manifest.webmanifest')->assertOk()->json();

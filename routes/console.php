@@ -39,6 +39,9 @@ Schedule::command('app:prepare-voice --budget=120')->everyTenMinutes()->withoutO
 // Texte des conversations : effacé après platform.transcripts.keep_days jours (90), chaque nuit.
 Schedule::command('transcripts:purge')->dailyAt('03:10')->withoutOverlapping()->onOneServer();
 
+// Cache en base : les entrées expirées jamais relues (limites d'essais, repères d'un jour…) sont effacées chaque nuit.
+Schedule::command('cache:prune-expired')->dailyAt('03:25')->withoutOverlapping()->onOneServer();
+
 // Alerte de l'administrateur : un accès provisoire se termine dans moins de deux heures sans validation (une seule par paiement).
 Schedule::command('payments:alert-expiring')->everyTenMinutes()->withoutOverlapping()->onOneServer();
 

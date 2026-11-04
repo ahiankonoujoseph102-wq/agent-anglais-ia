@@ -8,6 +8,7 @@ use App\Enums\ProgramLessonStatus;
 use App\Enums\Role;
 use App\Enums\Skill;
 use App\Models\Lesson;
+use App\Models\Program;
 use App\Models\User;
 use App\Support\Live\WorkingTogether;
 use App\Support\Reminders\LessonReminders;
@@ -49,7 +50,12 @@ final class LearnerProgress
         return User::query()
             ->where('role', Role::Learner)
             ->whereHas('activeSubscription')
-            ->with(['activeSubscription', 'activeProgram.currentLesson'])
+            // Comptages chargés en une fois pour toute la liste (sinon plusieurs requêtes par élève).
+            ->with(['activeSubscription', 'activeProgram' => fn ($query) => $query->withCount([
+                'programLessons as lessons_total',
+                'programLessons as lessons_done' => fn ($lessons) => $lessons->where('status', ProgramLessonStatus::Completed),
+            ]), 'activeProgram.currentLesson'])
+            ->withCount(['learnerErrors as open_errors_count' => fn ($errors) => $errors->where('status', ErrorStatus::Open)])
             ->orderBy('name')
             ->get();
     }
@@ -108,12 +114,22 @@ final class LearnerProgress
             'last' => self::lastSession($user),
             'streak' => $user->streakDays(),
             'missed' => LessonReminders::missedDays($user),
-            'progress' => $program?->progressPercent(),
-            'lessons_done' => $program?->programLessons()->where('status', ProgramLessonStatus::Completed)->count(),
-            'lessons_total' => $program?->programLessons()->count(),
+            'progress' => $program === null ? null : self::percent($program),
+            'lessons_done' => $program === null ? null : (int) ($program->lessons_done ?? $program->programLessons()->where('status', ProgramLessonStatus::Completed)->count()),
+            'lessons_total' => $program === null ? null : (int) ($program->lessons_total ?? $program->programLessons()->count()),
             'current' => $current === null ? null : 'Unité '.$current->unit_number.' : '.$current->unit()->title.', leçon '.$current->lesson_number,
-            'open_errors' => $user->openErrors()->count(),
+            'open_errors' => (int) ($user->open_errors_count ?? $user->openErrors()->count()),
         ];
+    }
+
+    /** Avancement du programme, d'après les comptages déjà chargés quand ils existent. */
+    private static function percent(Program $program): int
+    {
+        if (! isset($program->lessons_total, $program->lessons_done)) {
+            return $program->progressPercent();
+        }
+
+        return $program->lessons_total === 0 ? 0 : (int) floor($program->lessons_done * 100 / $program->lessons_total);
     }
 
     /**
