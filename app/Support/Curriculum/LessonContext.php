@@ -135,7 +135,7 @@ class LessonContext
 
             if (filled($previous->homework)) {
                 // Vérifier vraiment le devoir (demande du fondateur, 2 novembre 2026), deux minutes au plus.
-                $lines[] = '- HOMEWORK CHECK (two minutes at most, one question per turn): ask them to SAY their homework now. Done: listen to all of it, correct one or two real mistakes (they say the sentence again), praise precisely what was right, then go on. Not done: no reproach; one short piece of advice in French (« Le mieux : le faire juste après la séance, cinq minutes suffisent. »), then do it TOGETHER now in one minute (two short sentences they say, with your help), then go on.';
+                $lines[] = '- HOMEWORK CHECK (two minutes at most, one question per turn): ask them to SAY their homework now. Done: listen to all of it, correct one or two real mistakes (they say the sentence again), praise precisely what was right, then go on. Not done: never cut them off, no reproach. In French, one short piece of advice (« Le mieux : le faire juste après la séance, cinq minutes suffisent. »), then HOW TO REVISE in two or three concrete tips, in short French (relire le tableau de la séance dans « Mes séances » ; redire chaque phrase à voix haute avec « Réviser à voix haute » ; le lendemain, se poser la question en français et répondre en anglais sans regarder). Then do it TOGETHER now in one minute (two short sentences they say, with your help), then go on.';
             }
         } else {
             $lines[] = '- None: this is the first lesson of the programme (no warm-up today).';

@@ -104,7 +104,7 @@ class TeacherSetupTest extends TestCase
             $this->assertStringContainsString('UNDERSTAND BEFORE REPEATING (A1 to B1, and at any level after a difficulty)', $text);
             $this->assertStringContainsString('never "Repeat after me" before they understand', $text);
             $this->assertStringContainsString('Never make them repeat what they do not understand.', $text);
-            $this->assertStringContainsString('"What does it mean in French?"', $text);
+            $this->assertStringContainsString('ONE tiny question IN FRENCH that they answer IN ENGLISH with the new phrase', $text);
             $this->assertStringContainsString('explain it in FRENCH, STEP BY STEP', $text);
             $this->assertStringContainsString('false friend', $text);
             $this->assertStringContainsString('break it slowly into syllables, say it at normal speed, then the whole sentence', $text);

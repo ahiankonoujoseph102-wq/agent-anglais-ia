@@ -217,34 +217,26 @@ class ReviewsTest extends TestCase
         $this->actingAs($user->fresh())->get('/seance')->assertOk()->assertDontSee('Donner mon avis sur cette séance');
     }
 
-    public function test_the_teacher_asks_at_the_end_of_the_first_and_the_third_session(): void
+    public function test_the_teacher_asks_at_the_end_of_every_session_until_a_review_exists(): void
     {
         $user = $this->subscriber();
-        $first = $user->lessons()->create([
-            'subscription_id' => $user->activeSubscription->id, 'date' => today(), 'allowed_seconds' => 900,
-            'used_seconds' => 0, 'started_at' => now(), 'status' => LessonStatus::InProgress,
-        ]);
-        $this->assertStringContainsString('laissez votre avis dans Mon espace', ReviewAsk::note($user, $first));
-        $first->delete();
-
-        $this->heldLesson($user);
-        $this->heldLesson($user);
-        $third = $user->lessons()->create([
-            'subscription_id' => $user->activeSubscription->id, 'date' => today(), 'allowed_seconds' => 900,
-            'used_seconds' => 0, 'started_at' => now(), 'status' => LessonStatus::InProgress,
-        ]);
-
-        $note = ReviewAsk::note($user, $third);
-        $this->assertStringContainsString('laissez votre avis dans Mon espace', $note);
+        $note = ReviewAsk::note($user);
+        $this->assertStringContainsString('« Donner mon avis »', $note);
+        $this->assertStringContainsString('Mon espace', $note);
+        $this->assertStringContainsString('positif ou négatif', $note);
+        $this->assertStringContainsString('15 minutes offertes', $note);
         $this->assertStringContainsString('« À demain ! »', $note);
-        $this->assertStringContainsString('laissez votre avis', SessionEnd::client('lesson', 900, $note)['conclude']);
+        $this->assertStringNotContainsString(':platform', $note);
+        $this->assertStringContainsString('Donner mon avis', SessionEnd::client('lesson', 900, $note)['conclude']);
 
-        // Pas à la 2e ni à la 4e séance, ni après un avis.
-        $yao = $this->subscriber('Yao Kodjo');
-        $this->heldLesson($yao);
-        $this->assertSame('', ReviewAsk::note($yao, $third));
-        $this->heldLesson($user);
-        $this->assertSame('', ReviewAsk::note($user, $third));
+        // Chaque séance, la 2e et la 4e comprises, tant qu'aucun avis n'existe.
+        foreach (range(1, 4) as $ignored) {
+            $this->heldLesson($user);
+            $this->assertSame($note, ReviewAsk::note($user));
+        }
+
+        $this->send($user, 2);
+        $this->assertSame('', ReviewAsk::note($user->fresh()));
     }
 
     public function test_home_shows_reviews_from_the_first_published_one(): void

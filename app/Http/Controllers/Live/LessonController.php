@@ -236,11 +236,11 @@ class LessonController extends Controller
                 'total' => $lesson->allowed_seconds,
             ],
             // Fin de séance : annonce d'une minute, puis UNE conclusion, d'après le temps restant.
-            // À la fin de la 3e séance tenue, sans avis encore laissé : une phrase pour inviter à donner son avis.
-            // Séance d'essai : l'invitation à choisir une formule, puis (souvent sa seule séance) celle à donner son avis.
+            // Sans avis encore laissé : une phrase pour inviter à donner son avis, à chaque séance.
+            // Séance d'essai : l'invitation à choisir une formule, puis celle à donner son avis.
             'session_end' => SessionEnd::client('lesson', (int) $lesson->allowed_seconds, ($lesson->subscription?->isTrial()
                 ? TeacherSetup::cue('trial_conclude')
-                : '').ReviewAsk::note($user, $lesson)),
+                : '').ReviewAsk::note($user)),
         ]);
     }
 
