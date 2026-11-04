@@ -224,14 +224,14 @@ Sur un téléphone, on ne peut pas lancer d'ordinateur local : on demande la cl�
 
 ## 9. Activer le planificateur de tâches (Scheduler)
 
-Le projet a huit tâches automatiques (la sixième, `payments:alert-expiring`, tourne toutes les dix minutes : voir l'étape 10 ter ; la huitième, `learners:send-invitations`, envoie chaque heure les invitations d'une remise à zéro, voir l'étape 13 bis, et ne fait rien sinon) : fermeture des séances abandonnées (chaque minute), préparation des documents de révision de « Mes cours » (chaque minute, trois séances au plus à chaque passage, jamais deux passages en même temps), fin des abonnements (chaque heure), préparation des messages vocaux qui manquent encore (chaque heure, aucune demande à Google quand tout est prêt), effacement du texte des conversations de plus de 90 jours (chaque nuit à 3 heures 10) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
+Le projet a seize tâches automatiques (liste complète : `php artisan schedule:list` dans l'onglet Commands) : fermeture des séances abandonnées (chaque minute), préparation des documents de révision de « Mes cours » (chaque minute, trois séances au plus à chaque passage, jamais deux passages en même temps), rappels de séance et de fin d'abonnement des élèves (chaque minute), préparation et envoi par e-mail des vidéos (chaque minute ; voir les étapes 13 ter et suivantes), fin des abonnements (chaque heure), alerte de coût par abonné (chaque heure), relances des inscrits et invitations à donner un avis (chaque heure de 6 à 20 heures), résumé des e-mails envoyés aux élèves (chaque heure), invitations d'une remise à zéro (chaque heure, voir l'étape 13 bis, rien sinon), alerte 2 heures avant la fin d'un accès provisoire (toutes les dix minutes, voir l'étape 10 ter), préparation des messages vocaux qui manquent encore (toutes les dix minutes, aucune demande quand tout est prêt), effacement du texte des conversations de plus de 90 jours (chaque nuit à 3 heures 10), nettoyage du cache expiré (chaque nuit à 3 heures 25) et un témoin qui prouve que le planificateur tourne (chaque minute). Il faut activer l'option dans Laravel Cloud :
 
 1. Sur le canvas, touchez la carte **App** (le cluster de l'application).
 2. Activez l'interrupteur **Scheduler**.
 3. Touchez **Save** (ou « Save and redeploy ») puis **Deploy**.
 4. Vous devez voir : un déploiement vert. Laravel Cloud lance alors `php artisan schedule:run` chaque minute.
 
-Pourquoi c'est important : sans le planificateur, une séance dont le navigateur a été fermé n'est jamais fermée ni décomptée. Règle annoncée aux élèves : « Si la connexion est coupée, reprenez votre séance dès que possible : le temps de la coupure est mis en pause, vous ne perdez pas de minutes. » Le planificateur attend donc jusqu'à 10 minutes qu'un élève coupé revienne avant de fermer sa séance.
+Pourquoi c'est important : sans le planificateur, une séance dont le navigateur a été fermé n'est jamais fermée ni décomptée. Règle annoncée aux élèves : « Si la connexion est coupée, reprenez votre séance dès que possible : le temps de la coupure est mis en pause, vous ne perdez pas de minutes. » Le planificateur attend donc jusqu'à 3 minutes qu'un élève coupé revienne (`LIVE_DISCONNECT_PAUSE_MAX_SECONDS`, 180 secondes) avant de fermer sa séance.
 
 ---
 

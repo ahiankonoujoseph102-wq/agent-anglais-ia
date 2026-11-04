@@ -73,7 +73,12 @@ class WebAppController extends Controller
             // Permet au site de savoir que l'application est déjà installée (navigator.getInstalledRelatedApps).
             'related_applications' => [['platform' => 'webapp', 'url' => route('manifest')]],
             'prefer_related_applications' => false,
-        ], 200, ['Content-Type' => 'application/manifest+json'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        ], 200, [
+            'Content-Type' => 'application/manifest+json',
+            // Lu à chaque page (balise du <head>) : gardé une heure par le navigateur, sinon une requête de plus à
+            // chaque page. Aucun contenu personnel (le manifeste est le même pour tous).
+            'Cache-Control' => 'public, max-age=3600',
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     public function offline(): Response

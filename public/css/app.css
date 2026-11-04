@@ -399,6 +399,8 @@ main { overflow-x: clip; }
 .stat .label .icon .d { fill: var(--ib-fill); }
 .stat .value { font-size: var(--fs-2xl); font-weight: var(--fw-heavy); line-height: 1.2; margin-top: 2px; }
 .stat .detail { color: var(--c-muted); font-size: var(--fs-sm); }
+/* Liens dans le détail d'un chiffre (« Mon programme », « Mes séances et mes erreurs ») : zone de toucher de 44 pixels sans changer la mise en page. */
+.stat .detail a { display: inline-block; padding-block: 13px; margin-block: -13px; }
 .small-value { font-size: var(--fs-lg) !important; }
 .next-card { background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-primary-strong) 100%); color: var(--c-on-dark); border: 0; box-shadow: var(--shadow-lg); }
 .next-card h2, .next-card h3 { color: var(--c-on-dark); }
