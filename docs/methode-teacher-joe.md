@@ -361,3 +361,11 @@ L'export anonymisé des conversations n'était pas disponible dans la session de
 - phrases plus longues : une fois la phrase juste, l'élève y ajoute un mot, une raison ou un moment ; félicité précisément ;
 - devoir pas fait : jamais de reproche ni d'interruption ; un conseil (le faire juste après la séance, cinq minutes suffisent), deux ou trois astuces pour réviser (relire le tableau dans « Mes séances », « Réviser à voix haute », se poser la question en français et répondre en anglais sans regarder, le lendemain), puis le devoir fait ensemble en une minute ;
 - avis : une phrase en français à la fin de chaque séance du jour et « Mes cours » tant que l'élève n'en a pas laissé (où : « Mon espace », « Donner mon avis » ; positif ou négatif ; minutes offertes), jamais une demande de bonne note. Pas à l'évaluation gratuite : sa conclusion est déjà longue et la page de résultat invite à donner un avis.
+
+## 13. La voix des séances : français bien dit, anglais clair (4 novembre 2026)
+
+**Constat du fondateur** : en séance, le français sonnait bizarre (accent et intonation étranges), et la voix ne ressemblait pas à celle entendue dans « Essai des voix ».
+
+**Pourquoi** : « Écouter » (« Essai des voix ») passe par le modèle de SYNTHÈSE vocale (voix des vidéos et des messages), alors que les séances passent par le modèle de CONVERSATION en direct : deux moteurs différents, la même voix ne sonne pas pareil. Et « Écouter en séance » ne faisait dire que de l'anglais : impossible d'y juger le français. Aucun fournisseur n'a de réglage d'accent : tout passe par les consignes et le choix de la voix.
+
+**Décisions** : règle unique `teacher.speaking_voice` (marqueur `:speaking_voice` du personnage, toutes les conversations, les deux professeurs) : français comme un natif de France (accent et intonation français, chaque syllabe claire), jamais un accent anglais, jamais espagnol, portugais ni italien ; petite pause au changement de langue ; `teacher.pace` : « never robotic or sing-song ». « Écouter en séance » dit maintenant une phrase de cours en français PUIS en anglais (`teacher.voice_trial.live_text`), avec la même règle : c'est là qu'on choisit la voix des séances.

@@ -341,6 +341,7 @@ class TeacherSetup
             'teacher' => $teacher->name(),
             'virtual_teacher' => $teacher->virtualTeacher(),
             'founder' => (string) config('platform.founder.name'),
+            'speaking_voice' => (string) config('teacher.speaking_voice'),
             // Prénom seulement, jamais un nom de rôle (« Administrateur ») : sinon le professeur salue sans nom.
             'name' => LearnerName::first($user) ?? 'The learner',
             // Évaluation : le nom est TOUJOURS la première question (règle du fondateur), jamais dans la salutation.

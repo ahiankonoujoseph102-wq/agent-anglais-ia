@@ -22,7 +22,8 @@
         Phrase : <span lang="en">« {{ $script }} »</span><br>
         Chaque extrait est créé une seule fois puis gardé ; au plus {{ config('services.gemini.voice_trial_per_hour') }} nouveaux extraits par heure.
         « Écouter » : extrait du modèle de synthèse vocale (la voix des vidéos et des messages).
-        « Écouter en séance » : la même phrase dite par une vraie séance avec cette voix (sans micro), telle que les apprenants l'entendent ;
+        « Écouter en séance » : la vraie voix des séances (sans micro), telle que les apprenants l'entendent, en français PUIS en anglais, pour juger les deux langues : <span>« {{ \App\Support\Live\LiveVoiceSample::phrase($teacher) }} »</span> ;
+        elle peut sonner autrement que « Écouter » (deux moteurs de voix différents) : choisissez la voix des séances avec « Écouter en séance » ;
         raccrochée par le serveur après {{ \App\Support\Live\LiveVoiceSample::SECONDS }} secondes, aucune minute comptée, extrait gardé pour les écoutes suivantes.
     </p>
 
