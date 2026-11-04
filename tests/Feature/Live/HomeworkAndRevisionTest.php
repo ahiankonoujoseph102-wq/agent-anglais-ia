@@ -64,8 +64,9 @@ class HomeworkAndRevisionTest extends TestCase
         $data = $this->actingAs($user)->postJson('/seance/connexion')->assertOk()->json();
         $text = $data['setup']['systemInstruction']['parts'][0]['text'];
 
-        // Devoir donné : à DIRE à la séance suivante, en français.
-        $this->assertStringContainsString('ONE small homework to SAY at the start of the next lesson', $text);
+        // Devoir donné SEULEMENT dans la conclusion, jamais avant (demande du fondateur, 4 novembre 2026).
+        $this->assertStringContainsString('The homework comes ONLY in the conclusion, never earlier.', $text);
+        $this->assertStringNotContainsString('ONE small homework to SAY', $text);
         // Le lendemain : vérification réelle, fait ou pas fait.
         $this->assertStringContainsString('then the HOMEWORK CHECK (see PREVIOUS LESSON)', $text);
         $this->assertStringContainsString('HOMEWORK CHECK (two minutes at most, one question per turn): ask them to SAY their homework now.', $text);
@@ -77,6 +78,9 @@ class HomeworkAndRevisionTest extends TestCase
         $this->assertStringContainsString('the HOMEWORK in clear words', $conclude);
         $this->assertStringContainsString('what to REVISE', $conclude);
         $this->assertStringContainsString(config('platform.lessons.find_note'), $conclude);
+        // Fin : comment réviser, en deux astuces, et le devoir seulement là.
+        $this->assertStringContainsString('and HOW, in two short tips: reread the board in « Mes séances », and say each sentence aloud with « Réviser à voix haute »', $conclude);
+        $this->assertStringContainsString('No homework yet: it comes in the conclusion.', (string) $data['cues']['warning']);
         $this->assertSame(config('platform.lessons.find_note'), $data['session_end']['find_note']);
         $this->assertStringContainsString('télécharger votre vidéo', $data['session_end']['recording']);
         $this->assertStringContainsString('state.config.session_end?.recording', file_get_contents(public_path('js/live-session.js')));
@@ -98,6 +102,8 @@ class HomeworkAndRevisionTest extends TestCase
         $start = $this->actingAs($user)->postJson('/seance/connexion')->assertOk()->json('cues.start');
 
         $this->assertStringContainsString('« Enregistrer ma séance »', (string) $start);
+        // La transcription à l'écran : lire en écoutant (premières séances).
+        $this->assertStringContainsString('« Tout ce que nous disons s\'écrit ici »', (string) $start);
 
         // Deux séances tenues : plus de rappel (le bouton reste à l'écran).
         $other = $this->learner();
@@ -106,6 +112,16 @@ class HomeworkAndRevisionTest extends TestCase
         $later = $this->actingAs($other)->postJson('/seance/connexion')->assertOk()->json('cues.start');
 
         $this->assertStringNotContainsString('« Enregistrer ma séance »', (string) $later);
+        $this->assertStringNotContainsString('Tout ce que nous disons', (string) $later);
+    }
+
+    public function test_the_lesson_screen_points_to_the_transcript(): void
+    {
+        $user = $this->learner();
+
+        $this->actingAs($user)->get('/seance')->assertOk()
+            ->assertSee('class="subtitles-hint"', false)
+            ->assertSee('Tout ce que nous disons s\'écrit ici : écoutez Teacher Joe et lisez en même temps, ses phrases et les vôtres.', false);
     }
 
     public function test_my_sessions_keep_the_board_of_each_lesson_and_my_space_links_to_it(): void

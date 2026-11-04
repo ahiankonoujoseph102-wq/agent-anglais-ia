@@ -320,7 +320,7 @@
                 <p id="record-unsupported" class="recorder-note" hidden>Cet appareil ne permet pas d'enregistrer la séance en vidéo. Votre séance fonctionne normalement.</p>
             @endif
 
-            <div id="subtitles-home"><div id="subtitles" class="subtitles" aria-live="polite" hidden></div></div>
+            <div id="subtitles-home"><div id="subtitles" class="subtitles" aria-live="polite" hidden>{{-- Repère visible : la transcription, à lire en écoutant (premier enfant, jamais retiré par live-session.js). --}}<p class="subtitles-hint"><x-icon name="messages" /> <span>Tout ce que nous disons s'écrit ici : écoutez {{ $teacherName }} et lisez en même temps, ses phrases et les vôtres.</span> <x-icon name="chevron-down" /></p></div></div>
 
             <div id="outcome" class="card" hidden></div>
 

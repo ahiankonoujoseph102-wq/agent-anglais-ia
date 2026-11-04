@@ -209,7 +209,7 @@ class LessonController extends Controller
                     // Séance d'essai gratuite : le professeur la présente en deux phrases (cours, tableau, « Mes cours »).
                     (bool) $lesson->subscription?->isTrial() && ! $resumed => TeacherSetup::cue('trial_lesson', ['minutes' => Trial::minutes()]),
                     default => '',
-                }.($resumed ? '' : self::recordingTip($user, $lesson)),
+                }.($resumed ? '' : self::firstLessonTips($user, $lesson)),
                 // Passage de relais : APRÈS l'échange de salutations (partie « continuité » de l'échauffement).
                 'handoff_note' => self::handoffNote($user, $lesson, $teacher).'.',
                 // Suivi de l'élève payant, en français et avant l'échauffement : e-mail à ajouter, programme peu suivi.
@@ -335,16 +335,16 @@ class LessonController extends Controller
      * revoir) et pose une ou deux questions, une à la fois. Rien sans séance précédente, avec le même professeur, ou sans rien à rapporter.
      */
     /**
-     * Aux premières séances du jour (« comment travailler avec moi »), une phrase en français sur « Enregistrer ma
-     * séance » : réécouter la séance pour réviser. Rien ensuite (le bouton reste à l'écran), ni sans enregistrement.
+     * Aux premières séances du jour (« comment travailler avec moi »), en français : la transcription à l'écran (lire en
+     * écoutant), puis « Enregistrer ma séance » (réécouter la séance pour réviser). Rien ensuite (l'écran les montre).
      */
-    private static function recordingTip(User $user, Lesson $lesson): string
+    private static function firstLessonTips(User $user, Lesson $lesson): string
     {
-        if (! SessionRecording::enabled('lesson') || ! WorkingTogether::isFirst(WorkingTogether::lessonNumber($user, $lesson))) {
+        if (! WorkingTogether::isFirst(WorkingTogether::lessonNumber($user, $lesson))) {
             return '';
         }
 
-        return TeacherSetup::cue('recording_tip');
+        return TeacherSetup::cue('transcript_tip').(SessionRecording::enabled('lesson') ? TeacherSetup::cue('recording_tip') : '');
     }
 
     private static function handoffNote(User $user, Lesson $lesson, Teacher $teacher): string

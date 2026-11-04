@@ -782,8 +782,10 @@ function subtitle(speaker, text, key = null) {
     }
 
     // On garde les 30 dernières répliques : la page reste légère.
-    while (ui.subtitles.children.length > 30) {
-        ui.subtitles.firstElementChild.remove();
+    // Le repère « Tout ce que nous disons s'écrit ici » (.subtitles-hint) reste toujours en haut.
+    const lines = ui.subtitles.querySelectorAll('.line');
+    for (let i = 0; i < lines.length - 30; i++) {
+        lines[i].remove();
     }
 }
 
