@@ -25,14 +25,22 @@ class LiveVoiceSample
     /** Formats gardés : WAV (Gemini, recomposé dans le navigateur) ou WebM (OpenAI, enregistré par le navigateur). */
     public const TYPES = ['wav' => 'audio/wav', 'webm' => 'audio/webm'];
 
-    /** Consigne : la phrase, une fois, sans rien d'autre. */
+    /**
+     * Phrase de « Écouter en séance » : en français puis en anglais (teacher.voice_trial.live_text), pour juger la
+     * vraie voix des séances dans les deux langues.
+     */
+    public static function phrase(Teacher $teacher): string
+    {
+        return strtr((string) config('teacher.voice_trial.live_text'), [':teacher' => $teacher->name(), ':platform' => (string) config('platform.name')]);
+    }
+
+    /** Consigne : la phrase, une fois, sans rien d'autre, avec la même règle de voix qu'en séance. */
     public static function instructions(Teacher $teacher): string
     {
-        $phrase = VoiceSampler::script($teacher)['text'];
-
         return 'You are '.$teacher->name().', an English teacher at '.config('platform.name').'. This is a voice check, not a lesson. '
-            .'When you receive the word START, say EXACTLY the following text, once, in your natural, warm teaching voice, with American English pronunciation, '
-            .'then stop and say nothing else: "'.$phrase.'"';
+            .config('teacher.speaking_voice').' Your English: American pronunciation. A calm, natural teaching tone, never sing-song. '
+            .'When you receive the word START, say EXACTLY the following text, once, in your natural, warm teaching voice, '
+            .'then stop and say nothing else: "'.self::phrase($teacher).'"';
     }
 
     /**
@@ -168,7 +176,7 @@ class LiveVoiceSample
             return null;
         }
 
-        $words = count(preg_split('/\s+/u', trim(VoiceSampler::script($teacher)['text'])) ?: []);
+        $words = count(preg_split('/\s+/u', trim(self::phrase($teacher))) ?: []);
         $pace = ['words' => $words, 'seconds' => round($seconds, 1), 'per_second' => round($words / $seconds, 2)];
         PrivateStorage::disk()->put(self::basePath($provider, $voice, $teacher).'.pace.json', (string) json_encode($pace));
         Cache::put('live-voice-pace:'.self::basePath($provider, $voice, $teacher), $pace, now()->addDay());
