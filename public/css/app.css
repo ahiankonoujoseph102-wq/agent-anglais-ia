@@ -786,6 +786,9 @@ html:not(.js) .teacher-news-later { display: none; }
 .intro-tips li { display: flex; gap: var(--space-2); align-items: flex-start; }
 .intro-tips .icon { color: var(--c-primary); margin-top: 1px; }
 .subtitles { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-lg); padding: var(--space-3); height: 38vh; min-height: 160px; overflow-y: auto; margin-bottom: var(--space-3); box-shadow: var(--shadow-sm); }
+.subtitles-hint { position: sticky; top: calc(-1 * var(--space-3)); z-index: 1; display: flex; align-items: center; gap: var(--space-2); margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-3)) var(--space-2); padding: var(--space-2) var(--space-3); background: var(--c-accent-soft); color: var(--c-primary-strong); font-size: var(--fs-sm); font-weight: var(--fw-heavy); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.subtitles-hint span { flex: 1; }
+.subtitles-hint .icon { flex: none; color: var(--c-accent-strong); }
 .subtitles .line { margin: 0 0 var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius); background: var(--c-bg); animation: rise var(--dur) var(--ease) both; }
 .subtitles .line::before { content: attr(data-speaker) " : "; font-weight: var(--fw-heavy); }
 .line-teacher { background: var(--c-primary-soft) !important; margin-right: var(--space-6) !important; }

@@ -66,7 +66,7 @@ class TeacherPaceTest extends TestCase
         }
 
         foreach (['B1', 'B2'] as $level) {
-            $this->assertStringContainsString('slow to moderate', config("teacher.pace.levels.{$level}"));
+            $this->assertStringContainsString('SLOW (slow to moderate only with an easy item)', config("teacher.pace.levels.{$level}"));
         }
 
         foreach (['C1', 'C2'] as $level) {
