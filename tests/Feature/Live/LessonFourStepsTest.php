@@ -83,7 +83,7 @@ class LessonFourStepsTest extends TestCase
         $this->assertStringContainsString('STEP 1 — LESSON. Teach the board ONE ITEM AT A TIME, in small, lively pieces, never a monologue or a drill', $text);
         $this->assertStringContainsString('EXPLAIN it briefly, in English at the learner\'s level (A1 and A2: its meaning also in a few French words)', $text);
         $this->assertStringContainsString('never a list of verbs to repeat', $text);
-        $this->assertStringContainsString('(5) "Your turn: …"', $text);
+        $this->assertStringContainsString('(5) "Your turn:" a tiny question asked in French', $text);
         $this->assertStringContainsString('never move on, and never start STEP 2 or STEP 3, while it is not understood.', $text);
         // Expliquer, vérifier la compréhension, PUIS faire répéter (jamais l'inverse).
         $this->assertLessThan(strpos($text, '(4) only then "Repeat after me: …"'), strpos($text, '(3) "Do you understand?", then UNDERSTAND BEFORE REPEATING'));

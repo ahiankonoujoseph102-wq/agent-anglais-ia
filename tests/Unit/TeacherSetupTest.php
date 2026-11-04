@@ -278,7 +278,7 @@ class TeacherSetupTest extends TestCase
 
     public function test_pace_follows_the_level_and_lessons_take_more_time_to_correct(): void
     {
-        $this->assertStringContainsString('every word articulated, short sentences, one idea per sentence', config('teacher.pace.rules'));
+        $this->assertStringContainsString('every word articulated, short sentences, ONE idea at a time', config('teacher.pace.rules'));
 
         $user = new User(['name' => 'Afi']);
         $user->level = Level::A2;

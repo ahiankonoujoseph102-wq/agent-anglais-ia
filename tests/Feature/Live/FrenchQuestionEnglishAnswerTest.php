@@ -104,11 +104,11 @@ class FrenchQuestionEnglishAnswerTest extends TestCase
             $this->assertStringContainsString($minutes.' minutes offertes, quelle que soit votre note', $conclude);
             $this->assertStringContainsString('never ask for a good rating', $conclude);
 
-            $user->lessons()->latest('id')->first()->update(['status' => LessonStatus::Completed, 'used_seconds' => 900, 'ended_at' => now()]);
+            $user->lessons()->latest('id')->first()->update(['status' => LessonStatus::Completed, 'used_seconds' => 150, 'ended_at' => now()]);
             $this->heldLesson($user);
         }
 
-        $user->review()->create(['rating' => 3, 'body' => 'Un avis honnête et assez long.', 'status' => 'published', 'kind' => 'subscriber']);
+        $this->actingAs($user)->put(route('reviews.save'), ['rating' => 3, 'body' => 'Un avis honnête : les séances m\'aident beaucoup.', 'consent' => '1']);
         $this->assertStringNotContainsString('Donner mon avis', $this->connectLesson($user->fresh())['session_end']['conclude']);
     }
 
