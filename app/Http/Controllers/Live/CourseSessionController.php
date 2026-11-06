@@ -112,7 +112,7 @@ class CourseSessionController extends Controller
             return $refusal;
         }
 
-        $session->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails());
+        $session->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails(), $request->lostSeconds());
         $active = $session->closeIfOver();
 
         return response()->json([

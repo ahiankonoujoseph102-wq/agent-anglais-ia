@@ -20,7 +20,7 @@
         ] : null,
         // Fin de tour signalée par le navigateur : jamais avant que le silence attendu selon le niveau soit passé
         // (sinon un débutant qui cherche ses mots serait coupé par le navigateur lui-même).
-        'end_of_turn_seconds' => max((float) config('platform.live.end_of_turn_seconds'), \App\Support\Gemini\TeacherSetup::silenceMs(auth()->user() ? \App\Support\Gemini\TeacherSetup::paceLevel($mode === 'assessment' ? 'assessment' : 'lesson', auth()->user()) : 'unknown') / 1000 + 0.5),
+        'end_of_turn_seconds' => max((float) config('platform.live.end_of_turn_seconds'), \App\Support\Gemini\TeacherSetup::silenceMs(auth()->user() ? \App\Support\Gemini\TeacherSetup::paceLevel($mode === 'assessment' ? 'assessment' : 'lesson', auth()->user()) : 'unknown') / 1000 + 1),
         'end_of_turn_silence_seconds' => (float) config('platform.live.end_of_turn_silence_seconds'),
         'instant_seconds' => (float) config('platform.live.instant_seconds'),
         'no_answer_seconds' => (float) config('platform.live.no_answer_seconds'),

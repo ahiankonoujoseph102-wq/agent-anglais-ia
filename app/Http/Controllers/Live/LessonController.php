@@ -252,7 +252,7 @@ class LessonController extends Controller
             return $refusal;
         }
 
-        $lesson->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails());
+        $lesson->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails(), $request->lostSeconds());
         $active = $lesson->closeIfOver();
 
         return response()->json([

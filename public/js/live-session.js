@@ -516,6 +516,11 @@ const state = {
     // Changement de fournisseur déjà demandé (une seule fois, avant la première parole).
     switched: false,
     connected: false,
+    // Le professeur ne répondait plus (relance automatique) : le temps est en pause jusqu'à sa prochaine voix, et les
+    // secondes déjà perdues à l'attendre sont rendues (lost_seconds du signal).
+    teacherStuck: false,
+    lostSeconds: 0,
+    lastTimerAt: 0,
     ending: false,
     reconnecting: false,
     autoReconnects: 0,
@@ -648,12 +653,20 @@ async function heartbeat() {
     const tokens = takeTokens();
     const transcript = takeTranscript();
     // Connexion avec le professeur coupée : le serveur met le temps de séance en pause.
-    const link = state.everReady ? { connected: state.connected } : {};
+    const link = state.everReady ? { connected: state.connected && !state.teacherStuck } : {};
+    const lost = state.lostSeconds;
+
+    if (lost > 0) {
+        link.lost_seconds = lost;
+        state.lostSeconds = 0;
+    }
+
     const result = await post(urls.signal, { ...tokens, ...transcript, ...link });
 
     if (!result.ok) {
         // Le signal sera renvoyé avec les jetons (et les sous-titres) au prochain passage.
         state.tokens.restore(tokens);
+        state.lostSeconds = Math.max(state.lostSeconds, lost);
         state.transcript = (transcript.transcript ?? '') + state.transcript;
 
         return;
@@ -691,12 +704,26 @@ function remainingSeconds() {
     return Math.max(0, Math.round((state.deadline - Date.now()) / 1000));
 }
 
+/** Temps en pause pour un problème de connexion (connexion coupée, ou professeur qui ne répond plus). */
+function connectionPaused() {
+    return state.everReady && !state.ending && (!state.connected || state.teacherStuck);
+}
+
 function renderTimer() {
+    const now = Date.now();
+
+    // Le minuteur s'arrête pendant un problème de connexion : ce temps n'est pas compté (le serveur le confirme).
+    if (connectionPaused() && state.lastTimerAt > 0) {
+        state.deadline += now - state.lastTimerAt;
+    }
+
+    state.lastTimerAt = now;
     const seconds = remainingSeconds();
 
     if (ui.timerLabel) {
         // Après le verdict de l'évaluation : le temps restant est celui du moment des questions.
-        ui.timerLabel.textContent = state.end.questions && !state.pendingReveal ? 'Mini-leçon et questions' : 'Temps restant';
+        ui.timerLabel.textContent = connectionPaused() ? 'Temps en pause (connexion)'
+            : (state.end.questions && !state.pendingReveal ? 'Mini-leçon et questions' : 'Temps restant');
     }
 
     ui.timer.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
@@ -863,6 +890,8 @@ function teacherSoundStarted(at, audioAt = Date.now()) {
 
     state.teacherSounding = true;
     hideWaitNote();
+    // Il parle de nouveau : le temps repart (le prochain signal le dit au serveur).
+    state.teacherStuck = false;
     state.nudgedAt = 0;
     state.cueSentAt = 0;
     state.teacherDown = false;
@@ -1669,6 +1698,13 @@ function watchTurn() {
  * professeur.
  */
 function autoNudge() {
+    // Le temps passé à attendre sa réponse est rendu à l'élève, et le minuteur s'arrête jusqu'à sa prochaine voix.
+    if (!state.teacherStuck) {
+        state.teacherStuck = true;
+        state.lostSeconds = audioConfig.stuck_seconds ?? 20;
+        heartbeat();
+    }
+
     state.nudgedAt = Date.now();
     state.providerActivityAt = Date.now();
     state.awaitingSince = 0;

@@ -491,9 +491,11 @@ return [
         // LA phrase de cette règle, reprise telle quelle partout (écran de séance, conseils, foire aux questions,
         // fiche du site ; le message vocal de bienvenue la dit aussi) : tests/Feature/DisconnectionRuleTextTest.php.
         'disconnect_rule' => 'Si la connexion est coupée, reprenez votre séance dès que possible : le temps de la coupure est mis en pause, vous ne perdez pas de minutes.',
-        // 3 minutes au plus par séance (10 avant le 3 novembre 2026 : le minuteur restait trop longtemps arrêté et des
-        // minutes étaient données en plus).
-        'disconnect_pause_max_seconds' => (int) env('LIVE_DISCONNECT_PAUSE_MAX_SECONDS', 180),
+        // 10 minutes au plus par séance. Décision du fondateur (6 novembre 2026, séance avec plus d'une minute et demie
+        // de silence du professeur) : tout le temps perdu par un problème de connexion est rendu à l'élève, silences du
+        // professeur qui ne répond plus compris (lost_seconds du signal). 3 minutes du 3 au 6 novembre 2026 ; le
+        // minuteur affiche alors « Temps en pause (connexion) » pour qu'on comprenne pourquoi il ne bouge pas.
+        'disconnect_pause_max_seconds' => (int) env('LIVE_DISCONNECT_PAUSE_MAX_SECONDS', 600),
         // Demi-duplex : le micro n'est pas envoyé pendant la voix du professeur, ni
         // pendant ce délai après (sa voix ne doit pas revenir par le haut-parleur).
         'echo_guard_ms' => 400,

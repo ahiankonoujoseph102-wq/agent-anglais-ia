@@ -374,7 +374,7 @@
             </details>
             <details>
                 <summary><x-icon name="gift" /><span>L'évaluation est-elle vraiment gratuite ?</span></summary>
-                <p>Oui. Une évaluation orale par compte, sans paiement ni engagement : {{ $minutes }} minutes pour trouver votre niveau, de A1 à C2. {{ $teacher }} vous fait ensuite une mini-leçon sur une ou deux de vos propres erreurs, puis répond à vos questions en français : {{ \App\Models\Assessment::totalMinutes() }} minutes au plus en tout. Ensuite, vous décidez.</p>
+                <p>Oui. Une évaluation orale par compte, sans rien payer : {{ $minutes }} minutes pour trouver votre niveau, de A1 à C2. {{ $teacher }} vous fait ensuite une mini-leçon sur une ou deux de vos propres erreurs, puis répond à vos questions en français : {{ \App\Models\Assessment::totalMinutes() }} minutes au plus en tout. Ensuite, vous décidez.</p>
             </details>
             <details>
                 <summary><x-icon name="mic" /><span>Comment se passe une séance ?</span></summary>

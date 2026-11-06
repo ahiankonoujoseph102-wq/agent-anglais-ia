@@ -38,7 +38,7 @@ class VoiceConversationTest extends TestCase
                     'endOfSpeechSensitivity' => 'END_SENSITIVITY_HIGH',
                     'prefixPaddingMs' => 300,
                     // Évaluation : un court silence (1 seconde) avant de répondre.
-                    'silenceDurationMs' => 1000,
+                    'silenceDurationMs' => 1400,
                 ],
                 'activityHandling' => 'START_OF_ACTIVITY_INTERRUPTS',
             ];
@@ -53,7 +53,7 @@ class VoiceConversationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('echo_guard_ms', 450)
             ->assertJsonPath('pause_max_seconds', 90)
-            ->assertJsonPath('setup.realtimeInputConfig.automaticActivityDetection.silenceDurationMs', 1000);
+            ->assertJsonPath('setup.realtimeInputConfig.automaticActivityDetection.silenceDurationMs', 1400);
 
         $this->assertStringContainsString('Do not greet them again', $response->json('cues.pause_resume'));
         $this->assertStringContainsString('Do not greet the learner again', $response->json('cues.resume'));
@@ -89,7 +89,7 @@ class VoiceConversationTest extends TestCase
         $this->assertStringContainsString('id="mic-select"', $html);
         $this->assertStringContainsString('Nous ne vous entendons pas. Vérifiez votre micro. Si des écouteurs ou une enceinte Bluetooth sont connectés, portez-les ou déconnectez-les.', $html);
         $this->assertStringContainsString('js/mic-input.js', $html);
-        $this->assertStringContainsString("data-audio='{\"echo_cancellation\":false,\"echo_cancellation_android\":true,\"noise_suppression_android\":true,\"voice_gain\":2.5,\"silent_mic_seconds\":8,\"mic_boost\":{\"max\":40,\"target\":0.05,\"floor\":0.0002,\"noiseCeiling\":0.006},\"end_of_turn_seconds\":2,\"end_of_turn_silence_seconds\":3,\"instant_seconds\":2,\"no_answer_seconds\":8,\"stuck_seconds\":20,\"stuck_reconnect_seconds\":15,\"voice_stuck_seconds\":4,\"voice_gap_hold_seconds\":3,\"greeting_wait_seconds\":5,\"messages\":{", $html);
+        $this->assertStringContainsString("data-audio='{\"echo_cancellation\":false,\"echo_cancellation_android\":true,\"noise_suppression_android\":true,\"voice_gain\":2.5,\"silent_mic_seconds\":8,\"mic_boost\":{\"max\":40,\"target\":0.05,\"floor\":0.0002,\"noiseCeiling\":0.006},\"end_of_turn_seconds\":2.4,\"end_of_turn_silence_seconds\":3,\"instant_seconds\":2,\"no_answer_seconds\":8,\"stuck_seconds\":20,\"stuck_reconnect_seconds\":15,\"voice_stuck_seconds\":4,\"voice_gap_hold_seconds\":3,\"greeting_wait_seconds\":5,\"messages\":{", $html);
     }
 
     public function test_voice_gain_and_echo_cancellation_defaults(): void
