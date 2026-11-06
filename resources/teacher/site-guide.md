@@ -29,7 +29,7 @@ L'apprenant est DÉJÀ sur le site (ou l'application) :platform, sur son télép
 ## Les pages
 
 - Barre du bas (sur téléphone, une fois connecté) : « Mon espace », « Programme », « Séances », « Aide ».
-- Pages publiques : « Formules » (prix et contenu des formules), « À propos » (qui a créé :platform, comment fonctionne :teacher) et une page « Apprendre l'anglais » par pays (Togo, Bénin, Burkina Faso, Côte d'Ivoire), avec les moyens de paiement du pays. « À propos » et les pages par pays sont dans le pied de page ; « Formules » est sur l'accueil, sous les formules.
+- Pages publiques : « Formules » (prix), « À propos » (qui a créé :platform) et une page « Apprendre l'anglais » par pays de paiement (liens en bas de page).
 - « Mon espace » : la page principale de l'apprenant. On y trouve le bouton de l'étape suivante (évaluation, formule, programme ou séance du jour), son niveau, son suivi et ses attestations. En bas : « Mon compte et mon adresse e-mail ». Abonné : « Votre professeur » (choix du professeur, changeable chaque jour), « Heure de mes séances » (rappel :reminder_minutes avant, aussi pendant un accès offert), « Club des abonnés » (groupe WhatsApp), « Ma formule » (lien « Renouveler ou changer »).
 - « Programme » : programme personnel, calendrier et unités.
 - « Séances » : historique, résumés, devoirs, tableaux, erreurs à revoir, « Réviser à voix haute » (écouter, répéter, s'enregistrer).
@@ -79,7 +79,7 @@ Le contenu principal de :platform reste le programme personnel, la séance orale
 
 <!-- pour : assessment -->
 
-1. Créer un compte (« Inscription ») avec son nom, son pays (tous les pays du monde, ou « Autre pays ») et son numéro de téléphone (avec l'indicatif du pays). L'adresse e-mail est facultative.
+1. Créer un compte (« Inscription ») avec son nom, son pays (tous les pays du monde, ou « Autre pays »), son numéro de téléphone (avec l'indicatif du pays) et son adresse e-mail (obligatoire).
 2. L'évaluation orale gratuite avec :teacher : :assessment au maximum, une seule par compte, conduite en anglais. Le niveau (A1 à C2) est annoncé à la fin. Ensuite, pendant :after_verdict au plus (« Mini-leçon et questions » sur le minuteur), :teacher fait une mini-leçon sur une ou deux erreurs de la personne (affichées au Tableau), puis la personne peut poser jusqu'à trois questions, en français ou en anglais ; :teacher répond en français, puis conclut en français. L'évaluation dure donc :assessment_total au plus en tout. La conversation s'arrête alors toute seule et le résultat s'affiche, avec les formules juste en dessous (bouton orange « Choisir … » sous chaque formule, par exemple « Choisir Essentiel » ; la formule recommandée porte le badge « Recommandée »). Le bouton « Voir mon résultat complet » ouvre la page du résultat : le niveau, un court message de :teacher à écouter (« Écouter :teacher »), « Voici votre première leçon avec :teacher » (le tableau de la première leçon du niveau, pour qui n'a pas encore de formule), les formules et « Choisir un autre niveau ». Le niveau apparaît aussi dans « Mon espace ».
 3. Choisir une formule : juste sous le résultat de l'évaluation (bouton orange « Choisir … »), ou plus tard dans « Mon espace », carte « Prochaine étape », bouton « Choisir ma formule ».
 4. Payer par Mobile Money et envoyer la capture d'écran de la confirmation (voir ci-dessous). Si la capture est claire, un accès provisoire de 24 heures s'ouvre tout de suite ; l'équipe vérifie ensuite le paiement.

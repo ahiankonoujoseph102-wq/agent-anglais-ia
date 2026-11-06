@@ -213,12 +213,14 @@ trait IsLiveConversation
     /**
      * @param  array<string, int>  $details  jetons par nature, tours et plus grand contexte (SignalRequest::tokenDetails)
      */
-    public function recordSignal(int $inputTokens = 0, int $outputTokens = 0, ?bool $connected = null, array $details = []): void
+    public function recordSignal(int $inputTokens = 0, int $outputTokens = 0, ?bool $connected = null, array $details = [], int $lostSeconds = 0): void
     {
         if ($this->isInProgress()) {
             // Connexion avec le professeur perdue ou revenue (signal du navigateur), ou long silence du navigateur.
+            // Le professeur ne répondait plus : la pause commence au début de ce silence, pas à la relance (le temps
+            // passé à attendre sa réponse est rendu à l'élève).
             if ($connected === false) {
-                $this->markDisconnected();
+                $this->markDisconnected($lostSeconds > 0 ? now()->subSeconds($lostSeconds)->max($this->started_at) : null);
             } elseif ($connected === true || $this->disconnected_at === null) {
                 $this->markReconnected();
             }

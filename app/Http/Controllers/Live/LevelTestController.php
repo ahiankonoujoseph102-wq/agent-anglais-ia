@@ -120,7 +120,7 @@ class LevelTestController extends Controller
             return $refusal;
         }
 
-        $test->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails());
+        $test->recordSignal($request->inputTokens(), $request->outputTokens(), $request->connected(), $request->tokenDetails(), $request->lostSeconds());
         $active = $test->closeIfOver();
 
         return response()->json([

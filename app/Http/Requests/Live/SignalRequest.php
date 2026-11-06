@@ -29,6 +29,9 @@ class SignalRequest extends FormRequest
             'transcript' => ['nullable', 'string', 'max:8000'],
             // Connexion avec le professeur : false = coupée (le temps de séance est mis en pause), true = revenue.
             'connected' => ['nullable', 'boolean'],
+            // Le professeur ne répondait plus depuis ce nombre de secondes (silence avant la relance automatique) : ce
+            // temps est rendu à l'élève comme une coupure (6 novembre 2026). Plafonné par LOST_SECONDS_MAX.
+            'lost_seconds' => ['nullable', 'integer', 'min:0', 'max:600'],
         ];
     }
 
@@ -42,6 +45,14 @@ class SignalRequest extends FormRequest
         $connected = $this->validated('connected');
 
         return $connected === null ? null : (bool) $connected;
+    }
+
+    /** Plus grand temps sans réponse rendu d'un coup (la relance automatique part après 20 secondes). */
+    public const LOST_SECONDS_MAX = 60;
+
+    public function lostSeconds(): int
+    {
+        return min(self::LOST_SECONDS_MAX, (int) $this->validated('lost_seconds', 0));
     }
 
     public function inputTokens(): int

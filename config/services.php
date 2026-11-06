@@ -207,11 +207,13 @@ return [
             // 2 novembre 2026 (élèves en ligne : professeurs « très lents, pas réactifs ») : chaque silence s'ajoutait
             // au délai de réponse ; ramenés près des valeurs d'avant. La patience avec un débutant passe par les
             // consignes (« laisser le temps de répondre »), pas par un long silence avant chaque réponse.
-            'A1' => (int) env('LIVE_A1_SILENCE_MS', 1200),
-            'A2' => (int) env('LIVE_BEGINNER_SILENCE_MS', 1000),
-            'B1' => (int) env('LIVE_B1_SILENCE_MS', 800),
+            // 6 novembre 2026 (séance du fondateur avec Teacher Rose : elle « parle dedans » quand l'élève cherche ses
+            // mots) : un peu plus de patience, entre les deux réglages précédents.
+            'A1' => (int) env('LIVE_A1_SILENCE_MS', 1600),
+            'A2' => (int) env('LIVE_BEGINNER_SILENCE_MS', 1400),
+            'B1' => (int) env('LIVE_B1_SILENCE_MS', 1100),
             // Évaluation gratuite (niveau inconnu) : comme un débutant.
-            'unknown' => (int) env('LIVE_ASSESSMENT_SILENCE_MS', 1000),
+            'unknown' => (int) env('LIVE_ASSESSMENT_SILENCE_MS', 1400),
             'default' => (int) env('LIVE_SILENCE_MS', 800),
         ],
     ],

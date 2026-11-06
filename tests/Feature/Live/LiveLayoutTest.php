@@ -47,7 +47,7 @@ class LiveLayoutTest extends TestCase
         preg_match("/data-audio='([^']*)'/", $html, $match);
         $audio = json_decode(html_entity_decode($match[1]), true);
         // Fin de tour signalée par le navigateur : jamais avant le silence de l'évaluation (1 seconde) + 0,5, et jamais moins de 2 secondes.
-        $this->assertEquals([2, 2, 8, 20, 4], [$audio['end_of_turn_seconds'], $audio['instant_seconds'], $audio['no_answer_seconds'], $audio['stuck_seconds'], $audio['voice_stuck_seconds']]);
+        $this->assertEquals([2.4, 2, 8, 20, 4], [$audio['end_of_turn_seconds'], $audio['instant_seconds'], $audio['no_answer_seconds'], $audio['stuck_seconds'], $audio['voice_stuck_seconds']]);
         $this->assertSame('Un instant…', $audio['messages']['instant']);
         $this->assertSame('La connexion est un peu lente, Teacher Joe arrive…', $audio['messages']['slow']);
         $this->assertSame('Teacher Joe ne répond pas. Touchez « Relancer Teacher Joe » pour reprendre.', $audio['messages']['stuck']);
