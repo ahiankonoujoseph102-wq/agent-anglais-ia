@@ -2092,6 +2092,10 @@ body.page-public main::after { width: min(240px, 66vw); height: 300px; top: 260p
 .admin-review textarea { width: 100%; }
 /* Choix de la note : cinq étoiles de 44 pixels ; ordre inversé dans le code pour colorer les étoiles avant celle choisie. */
 .review-invite-ask { margin-bottom: var(--space-1); }
+.google-review[hidden] { display: none; }
+.google-review .btn + .btn { margin-top: var(--space-2); }
+.google-review-done { display: block; min-height: 44px; margin: var(--space-2) auto 0; }
+.review-invite-google { margin: var(--space-2) 0 0; text-align: center; }
 .review-invite-stars { display: flex; gap: var(--space-1); margin-bottom: var(--space-3); }
 .review-invite-stars a { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: var(--c-border); border-radius: var(--radius-sm); }
 .review-invite-stars a .icon { width: 32px; height: 32px; fill: currentColor; }
