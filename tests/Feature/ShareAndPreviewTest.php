@@ -136,11 +136,11 @@ class ShareAndPreviewTest extends TestCase
 
     public function test_a_head_request_reads_the_same_robots_rule_as_google(): void
     {
-        foreach (['/', '/a-propos', '/apprendre-anglais/benin'] as $path) {
+        foreach (['/', '/a-propos', '/apprendre-anglais/benin', '/connexion'] as $path) {
             $this->assertNull($this->call('HEAD', $path)->headers->get('X-Robots-Tag'), $path);
         }
 
-        $this->call('HEAD', '/connexion')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        $this->call('HEAD', '/hors-connexion')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 
     public function test_video_previews_are_served_lighter_in_webp(): void

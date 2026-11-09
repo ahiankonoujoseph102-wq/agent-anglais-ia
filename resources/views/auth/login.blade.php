@@ -1,4 +1,4 @@
-<x-layout title="Connexion" narrow>
+<x-layout title="Connexion à votre compte" :description="'Connectez-vous à '.config('platform.name').' avec votre numéro de téléphone pour retrouver '.config('avatar.model.name').', votre séance du jour et votre programme d\'anglais.'" narrow>
     <x-form-aside :label="'Votre professeur, '.config('avatar.model.name')">
         <div class="auth-head rise">
             <span class="icon-bubble icon-bubble-primary"><x-icon name="login" /></span>

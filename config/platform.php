@@ -29,7 +29,7 @@ return [
         'tagline' => 'Votre professeur d\'anglais à l\'oral',
         // Titre de l'accueil pour les moteurs de recherche et le partage : « {nom} · {home_title} »
         // (60 caractères au plus en tout ; :teacher = nom du professeur, config('avatar.model.name')).
-        'home_title' => 'Cours d\'anglais en ligne avec :teacher',
+        'home_title' => 'Apprendre l\'anglais en ligne avec :teacher',
         'logo' => [
             'header' => 'brand/logo-horizontal-320.webp',  // fond clair (320 pixels : affiché à environ 130 pixels)
             'footer' => 'brand/logo-blanc-320.webp',       // fond bleu nuit

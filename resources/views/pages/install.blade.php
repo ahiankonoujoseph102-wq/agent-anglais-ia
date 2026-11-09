@@ -7,7 +7,7 @@
     $teacher = config('avatar.model.name');
 @endphp
 
-<x-layout title="Installer l'application" :description="'Installez '.$platform.' sur votre téléphone pour retrouver '.$teacher.' en un geste.'" narrow>
+<x-layout title="Installer l'application" :description="'Installez l\'application '.$platform.' sur votre téléphone Android ou iPhone pour retrouver '.$teacher.' et vos cours d\'anglais en un geste.'" narrow>
     <div class="auth-head rise">
         <span class="icon-bubble icon-bubble-primary"><x-icon name="download" /></span>
         <h1>Installer l'application</h1>

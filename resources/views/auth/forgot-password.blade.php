@@ -1,4 +1,4 @@
-<x-layout title="Mot de passe oublié" narrow>
+<x-layout title="Mot de passe oublié ? On vous aide" :description="'Mot de passe oublié sur '.config('platform.name').' ? Écrivez-nous sur WhatsApp avec votre numéro : nous vous donnons un mot de passe provisoire.'" narrow>
     <div class="auth-head rise">
         <span class="icon-bubble icon-bubble-primary"><x-icon name="lock" /></span>
         <h1>Mot de passe oublié ?</h1>
