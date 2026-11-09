@@ -46,10 +46,16 @@ class LearnerMail extends Model
 
     public const REVIEW_2 = 'review_2';
 
+    /**
+     * Demande d'avis sur la fiche Google de l'établissement (demande du fondateur, 9 novembre 2026) : UNE fois, à tout
+     * élève inscrit (learners:google-review), e-mail et notification ; aucune récompense (règle de Google).
+     */
+    public const GOOGLE_REVIEW = 'google_review';
+
     public const CAMPAIGNS = [
         self::OFFER, self::NO_ASSESSMENT, self::NO_TRIAL, self::TRIAL_ENDED,
         self::TRIAL_ENDED_2, self::TRIAL_ENDED_3, self::LAPSED_1, self::LAPSED_2, self::LAPSED_3,
-        self::REVIEW_1, self::REVIEW_2,
+        self::REVIEW_1, self::REVIEW_2, self::GOOGLE_REVIEW,
     ];
 
     /** Invitations à laisser un avis : leur propre petit lot par jour (platform.reviews.emails_per_day). */
@@ -72,6 +78,7 @@ class LearnerMail extends Model
         self::LAPSED_3 => 'Formule terminée, dernière relance',
         self::REVIEW_1 => 'Invitation à laisser un avis',
         self::REVIEW_2 => 'Rappel : laisser un avis',
+        self::GOOGLE_REVIEW => 'Avis sur Google',
     ];
 
     public const PENDING = 'pending';

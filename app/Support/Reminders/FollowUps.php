@@ -16,6 +16,7 @@ use App\Support\MailQuota;
 use App\Support\Money;
 use App\Support\Plan;
 use App\Support\Redact;
+use App\Support\Reviews\GoogleReviews;
 use App\Support\Reviews\ReviewInvitations;
 use App\Support\Teachers\Teachers;
 use App\Support\Trial;
@@ -409,6 +410,7 @@ final class FollowUps
         $targeted = match (true) {
             in_array($mail->campaign, LearnerMail::LAPSED, true) => self::lapsedSubscription($user) !== null,
             in_array($mail->campaign, LearnerMail::REVIEWS, true) => ReviewInvitations::wanted($user),
+            $mail->campaign === LearnerMail::GOOGLE_REVIEW => $user->role === Role::Learner,
             default => self::prospects()->whereKey($user->id)->exists(),
         };
 
@@ -465,6 +467,10 @@ final class FollowUps
     {
         if (in_array($campaign, LearnerMail::REVIEWS, true)) {
             return ReviewInvitations::content($campaign, $user);
+        }
+
+        if ($campaign === LearnerMail::GOOGLE_REVIEW) {
+            return GoogleReviews::content($user);
         }
 
         $stage = self::stage($user);

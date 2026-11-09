@@ -364,6 +364,9 @@ return [
     ],
 
     'reviews' => [
+        // Lien public « laisser un avis » de la fiche Google de l'établissement (learners:google-review, /avis-google).
+        // Aucune récompense en échange d'un avis Google (règle de Google) : jamais de minutes offertes pour celui-ci.
+        'google_url' => env('GOOGLE_REVIEW_URL', 'https://g.page/r/CfH06o_5Vb82EAI/review'),
         'min_characters' => 20,
         'max_characters' => 500,
         // Note jusqu'à laquelle l'avis attend l'administrateur (1 ou 2 étoiles : « très négatif »).
