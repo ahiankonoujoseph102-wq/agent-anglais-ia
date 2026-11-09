@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Reviews\SaveReviewRequest;
+use App\Support\Reviews\GoogleReviews;
 use App\Support\Reviews\Reviews;
 use App\Support\Reviews\TimeBonuses;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +24,12 @@ class ReviewController extends Controller
             'canReview' => Reviews::canReview($request->user()),
             'bonusMinutes' => intdiv(TimeBonuses::seconds(), 60),
         ]);
+    }
+
+    /** Lien de la notification « avis sur Google » (une notification n'ouvre que les adresses du site). */
+    public function google(): RedirectResponse
+    {
+        return redirect()->away(GoogleReviews::url());
     }
 
     public function edit(Request $request): View|RedirectResponse

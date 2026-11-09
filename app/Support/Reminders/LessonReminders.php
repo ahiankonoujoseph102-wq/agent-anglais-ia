@@ -8,16 +8,13 @@ use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
 use App\Mail\LessonReminderMail;
 use App\Mail\SubscriptionEndedMail;
-use App\Models\LearnerPushSubscription;
 use App\Models\LearnerReminder;
 use App\Models\Program;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\Alerts\AdminAlerts;
 use App\Support\Alerts\AlertBuilder;
-use App\Support\Alerts\PushTransport;
 use App\Support\Alerts\Redact;
-use App\Support\Alerts\WebPushTransport;
 use App\Support\Countries;
 use App\Support\DailyTime;
 use App\Support\Duration;
@@ -644,32 +641,7 @@ final class LessonReminders
      */
     private function push(User $user, array $message): string
     {
-        if (! WebPushTransport::configured()) {
-            return 'skipped';
-        }
-
-        $devices = LearnerPushSubscription::query()->where('user_id', $user->id)->get();
-
-        if ($devices->isEmpty()) {
-            return 'none';
-        }
-
-        $transport = app(PushTransport::class);
-        $payload = $message;
-        $ok = false;
-
-        foreach ($devices as $device) {
-            $result = $transport->send($device, $payload);
-
-            if ($result->sent) {
-                $ok = true;
-                $device->forceFill(['last_sent_at' => now()])->save();
-            } elseif ($result->gone) {
-                $device->delete();
-            }
-        }
-
-        return $ok ? 'sent' : 'failed';
+        return LearnerPush::send($user, $message);
     }
 
     /**

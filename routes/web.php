@@ -111,6 +111,7 @@ Route::get('/a/{code}', AmbassadorLinkController::class)->where('code', '[A-Za-z
 Route::get('/devenir-ambassadeur', [AmbassadorJoinController::class, 'show'])->name('ambassador.join');
 // Avis des élèves : publiés tels qu'ils ont été écrits (positifs comme négatifs), réponse de l'équipe dessous.
 Route::get('/avis', [ReviewController::class, 'index'])->name('reviews.index');
+Route::get('/avis-google', [ReviewController::class, 'google'])->name('reviews.google');
 
 Route::middleware('guest')->group(function () {
     Route::get('/inscription', [RegisteredUserController::class, 'create'])->name('register');
