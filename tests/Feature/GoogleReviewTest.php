@@ -82,6 +82,43 @@ class GoogleReviewTest extends TestCase
         $this->get('/avis-google')->assertRedirect('https://g.page/r/CfH06o_5Vb82EAI/review');
     }
 
+    private function assessed(): User
+    {
+        $user = User::factory()->create(['name' => 'Kofi Mensah', 'welcomed_at' => now()]);
+        $user->assessment()->create(['allowed_seconds' => 300, 'used_seconds' => 300, 'level' => 'A2', 'status' => 'completed']);
+
+        return $user;
+    }
+
+    public function test_my_space_points_to_google_before_and_after_a_review_on_the_site(): void
+    {
+        $user = $this->assessed();
+
+        // Pas encore d'avis : l'invitation du site porte le lien vers Google.
+        $this->actingAs($user)->get('/espace')->assertOk()
+            ->assertSee('Vous préférez Google ?')
+            ->assertSee(route('reviews.google'), false)
+            ->assertDontSee('id="google-review-title"', false);
+
+        $this->actingAs($user)->put(route('reviews.save'), ['rating' => 5, 'body' => 'Teacher Joe est patient, je parle enfin anglais sans honte.', 'consent' => '1']);
+
+        // Avis donné sur le site : la carte Google, toujours visible, propose de le copier.
+        $this->actingAs($user)->get('/espace')->assertOk()
+            ->assertSee('Votre avis sur Google')
+            ->assertSee('data-dismissible="google-review"', false)
+            ->assertSee('Copier mon avis')
+            ->assertSee('data-copy="Teacher Joe est patient', false)
+            ->assertSeeText('C\'est fait, merci')
+            ->assertDontSee('minutes de séance offertes pour votre avis Google');
+    }
+
+    public function test_the_team_never_sees_the_google_card(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->get('/espace')->assertDontSee('Votre avis sur Google');
+    }
+
     public function test_a_notification_is_sent_to_the_learner_phones_at_launch(): void
     {
         config([

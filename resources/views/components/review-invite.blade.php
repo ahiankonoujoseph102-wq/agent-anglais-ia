@@ -23,5 +23,6 @@
             @endfor
         </div>
         <a class="btn btn-outline btn-block" href="{{ route('reviews.edit') }}"><x-icon name="star" /> Donner mon avis</a>
+        <p class="small review-invite-google">Vous préférez Google ? <a href="{{ route('reviews.google') }}" target="_blank" rel="noopener">Laisser mon avis sur notre page Google<span class="sr-only"> (s'ouvre dans un nouvel onglet)</span></a></p>
     </section>
 @endif

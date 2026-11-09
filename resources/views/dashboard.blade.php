@@ -188,6 +188,9 @@
          prochaine étape (demande du fondateur, 2 novembre 2026 : il fallait défiler pour le trouver). --}}
     <x-review-invite class="rise" />
 
+    {{-- Avis sur Google : élève qui a déjà donné son avis sur le site (il peut le copier), caché par « C'est fait ». --}}
+    <x-google-review class="rise" />
+
     {{-- Club des abonnés : abonné payant actif seulement, juste sous la prochaine étape (le plus visible sans lui
          prendre sa place). --}}
     <x-club-invite class="rise" />
