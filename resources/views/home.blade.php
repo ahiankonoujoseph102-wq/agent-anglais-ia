@@ -16,7 +16,7 @@
     $coursesIcon = $hasAccess ? 'book' : 'mic';
 @endphp
 
-<x-layout install :description="'Apprenez à parler anglais sur votre téléphone avec '.$teacher.', professeur d\'anglais en ligne. Débutant ou avancé : évaluation orale gratuite de '.config('platform.assessment.max_minutes').' minutes.'">
+<x-layout install :description="'Apprendre l\'anglais en ligne sur votre téléphone avec '.$teacher.' : cours d\'anglais à l\'oral, débutant ou avancé. Évaluation orale gratuite de '.config('platform.assessment.max_minutes').' minutes.'">
     {{--
         Haut de page : Teacher Joe, une accroche courte et le bouton orange, visibles sans faire défiler, même sur un
         petit téléphone (360 × 640). Sur téléphone, l'image de Teacher Joe passe en bandeau en haut (même fichier, aucun

@@ -34,7 +34,7 @@ class InstallPromptTest extends TestCase
         foreach ([null, User::factory()->create()] as $user) {
             $response = $user ? $this->actingAs($user)->get('/installer-l-application') : $this->get('/installer-l-application');
             $response->assertOk()
-                ->assertSee('<meta name="robots" content="noindex, nofollow">', false)
+                ->assertSee('<meta name="robots" content="index, follow">', false)
                 ->assertSeeText("Installer l'application")
                 ->assertSeeText('Installez Talkami pour retrouver Teacher Joe en un geste')
                 ->assertSeeText('Sur Android')
@@ -55,7 +55,7 @@ class InstallPromptTest extends TestCase
                 ->assertSee('data-install-button data-install-now hidden', false);
         }
 
-        $this->assertNotContains(url('/installer-l-application'), Seo::sitemapUrls());
+        $this->assertContains(url('/installer-l-application'), Seo::sitemapUrls());
     }
 
     public function test_the_install_link_is_always_in_the_menu_and_the_footer(): void

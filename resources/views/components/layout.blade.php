@@ -200,7 +200,7 @@
                 // Repères des pages publiques (refonte, point 4) : « Vous êtes ici » en haut, retour en haut en bas. Pas
                 // sur l'inscription (formulaire court, bouton visible sans défiler) ni sur Contact (page courte).
                 $routeName = request()->route()?->getName();
-                $crumb = in_array($routeName, ['register', 'contact'], true) ? null : Seo::currentCrumb();
+                $crumb = in_array($routeName, ['register', 'contact', 'login', 'password.forgot'], true) ? null : Seo::currentCrumb();
                 $backToTop = $crumb !== null || $routeName === 'guides.show';
             @endphp
             @if ($crumb !== null)

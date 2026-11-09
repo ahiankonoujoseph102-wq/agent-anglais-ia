@@ -58,6 +58,9 @@ class SeoTest extends TestCase
         '/devenir-ambassadeur' => 'https://talkami.net/devenir-ambassadeur',
         '/contact' => 'https://talkami.net/contact',
         '/inscription' => 'https://talkami.net/inscription',
+        '/connexion' => 'https://talkami.net/connexion',
+        '/mot-de-passe-oublie' => 'https://talkami.net/mot-de-passe-oublie',
+        '/installer-l-application' => 'https://talkami.net/installer-l-application',
         '/confidentialite' => 'https://talkami.net/confidentialite',
     ];
 
@@ -99,7 +102,7 @@ class SeoTest extends TestCase
 
         $this->assertCount(count(self::PUBLIC_PAGES), array_unique($titles), 'Un titre par page.');
         $this->assertCount(count(self::PUBLIC_PAGES), array_unique($descriptions), 'Une description par page.');
-        $this->assertSame('Talkami · Cours d\'anglais en ligne avec Teacher Joe', $titles[0]);
+        $this->assertSame('Talkami · Apprendre l\'anglais en ligne avec Teacher Joe', $titles[0]);
     }
 
     public function test_the_google_search_console_tag_appears_only_when_the_variable_is_filled(): void
@@ -299,8 +302,7 @@ class SeoTest extends TestCase
             [$admin, route('admin.payments.pending')],
             [$admin, route('admin.users.index')],
             [$admin, route('admin.voice-diagnostic.index')],
-            [null, route('login')],
-            [null, route('password.forgot')],
+            [$learner, route('password.change')],
             [null, '/page-qui-n-existe-pas'],
         ];
 

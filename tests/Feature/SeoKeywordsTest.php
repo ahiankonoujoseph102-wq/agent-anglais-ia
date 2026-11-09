@@ -26,7 +26,7 @@ class SeoKeywordsTest extends TestCase
     public function test_each_public_page_targets_its_own_searches(): void
     {
         $expected = [
-            '/' => ['Talkami', 'Teacher Joe', 'Cours d\'anglais en ligne'],
+            '/' => ['Talkami', 'Teacher Joe', 'Apprendre l\'anglais en ligne'],
             '/a-propos' => ['Joseph Ahiankonou', 'fondateur'],
             '/formules' => ['prix', 'cours d\'anglais en ligne'],
             '/comment-ca-marche' => ['Apprendre l\'anglais sur téléphone'],

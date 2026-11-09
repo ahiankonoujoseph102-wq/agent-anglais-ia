@@ -13,12 +13,12 @@ use Illuminate\Http\Request;
  * pour que les adresses partagées restent justes quel que soit le domaine (talkami.net…).
  * Seules les pages publiques de INDEXABLE_ROUTES sont indexées (sitemap.xml, canonique, Open Graph) ;
  * toutes les autres (espace apprenant, séances, paiement, « Mes cours », bienvenue, administration,
- * connexion, erreurs) portent noindex.
+ * erreurs) portent noindex.
  */
 final class Seo
 {
     /** Pages publiques indexées, dans l'ordre du sitemap (« country » : une page par pays, CountryPage). */
-    public const INDEXABLE_ROUTES = ['home', 'plans', 'about', 'how', 'reviews.index', 'courses-help', 'interview', 'guides.index', 'guides.show', 'country', 'ambassador.join', 'contact', 'register', 'privacy'];
+    public const INDEXABLE_ROUTES = ['home', 'plans', 'about', 'how', 'reviews.index', 'courses-help', 'interview', 'guides.index', 'guides.show', 'country', 'ambassador.join', 'contact', 'register', 'login', 'password.forgot', 'install', 'privacy'];
 
     /** Types de données structurées autorisés : aucune note, aucun avis, aucun nombre d'apprenants. */
     public const SCHEMA_TYPES = ['Organization', 'WebSite', 'Person', 'Service', 'Offer', 'FAQPage', 'Question', 'Answer', 'ContactPoint', 'PostalAddress', 'Country', 'Article', 'BreadcrumbList', 'ListItem', 'WebPage', 'ContactPage', 'AboutPage', 'VideoObject'];
@@ -37,6 +37,9 @@ final class Seo
         'ambassador.join' => 'Devenir ambassadeur',
         'contact' => 'Contact',
         'register' => 'Inscription',
+        'login' => 'Connexion',
+        'password.forgot' => 'Mot de passe oublié',
+        'install' => 'Installer l\'application',
         'privacy' => 'Confidentialité',
     ];
 
@@ -49,7 +52,7 @@ final class Seo
     /** Débuts d'adresse des pages privées, fermés aux robots (robots.txt). */
     public const PRIVATE_PATHS = [
         '/admin', '/espace', '/bienvenue', '/compte', '/abonnement', '/paiements', '/evaluation', '/programme',
-        '/mes-cours', '/mes-seances', '/bilan-niveau', '/seance', '/attestations', '/mot-de-passe', '/deconnexion',
+        '/mes-cours', '/mes-seances', '/bilan-niveau', '/seance', '/attestations', '/mot-de-passe/', '/deconnexion',
     ];
 
     /**
