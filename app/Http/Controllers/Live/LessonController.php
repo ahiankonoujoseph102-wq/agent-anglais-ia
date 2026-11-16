@@ -173,7 +173,7 @@ class LessonController extends Controller
             WorkingTogether::lessonNumber($user, $lesson), $teacher);
 
         try {
-            $token = $live->request($setup, $deadline, $lesson, $request->failedProvider());
+            $token = $live->request($setup, $deadline, $lesson, $request->failedProvider(), exhausted: $request->exhaustedProvider());
         } catch (GeminiUnavailable $e) {
             report($e);
 

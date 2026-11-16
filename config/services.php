@@ -192,6 +192,8 @@ return [
         'providers' => array_values(array_filter(array_map('trim', explode(',', strtolower((string) env('LIVE_PROVIDERS', 'gemini,gemini2,gemini3,openai')))))),
         // Après une limite (429, limite du jour) ou une clé refusée, le fournisseur est mis de côté pendant ce temps.
         'pause_seconds' => 300,
+        // Clé qui a fermé une séance à sa LIMITE (signalée par le navigateur) : mise de côté plus longtemps.
+        'quota_pause_seconds' => (int) env('LIVE_QUOTA_PAUSE_SECONDS', 1800),
         // Une séance peut changer de fournisseur seulement dans ce délai après son début (rien n'a été dit).
         'switch_window_seconds' => 120,
         // Coût estimé par minute de séance, pour la page « Consommation » (Gemini : 0 en mode gratuit).
