@@ -56,12 +56,13 @@ class LiveConnection
      *
      * @param  array<string, mixed>  $setup
      * @param  string|null  $failed  fournisseur auquel le navigateur n'a pas pu se connecter (aucune parole échangée)
+     * @param  string|null  $exhausted  fournisseur qui a fermé la connexion à sa limite (signalé par le navigateur)
      * @param  int  $mayExtendBy  secondes que la séance peut encore gagner (évaluation avant son verdict)
      * @return array{provider: string, expires_at: Carbon, valid_until?: Carbon, token?: string, websocket_url?: string}
      *
      * @throws LiveUnavailable
      */
-    public function request(array $setup, Carbon $deadline, Assessment|CourseSession|Lesson|LevelTest|null $conversation = null, ?string $failed = null, int $mayExtendBy = 0): array
+    public function request(array $setup, Carbon $deadline, Assessment|CourseSession|Lesson|LevelTest|null $conversation = null, ?string $failed = null, int $mayExtendBy = 0, ?string $exhausted = null): array
     {
         $current = $conversation?->liveProvider();
 
@@ -76,7 +77,14 @@ class LiveConnection
             LiveLog::failure($failed, 'Connexion du navigateur', 'Connexion impossible avant la première parole.');
         }
 
-        if ($current === null) {
+        if ($exhausted !== null && in_array($exhausted, LiveProviders::all(), true)) {
+            // Le fournisseur a fermé la connexion à sa LIMITE : Google ne le dit qu'au navigateur (le jeton, lui, est
+            // toujours accordé). Il est mis de côté, et la séance, même commencée, continue chez le suivant (les
+            // autres clés Gemini comprises : chaque clé a sa propre limite) ; lui-même seulement en dernier recours.
+            LiveLog::failure($exhausted, 'Séance en direct', 'Limite atteinte : connexion fermée par le fournisseur.', null, true);
+            LiveProviders::pause($exhausted, (int) config('services.live.quota_pause_seconds', 1800));
+            $providers = [...LiveProviders::ordered([$exhausted]), $exhausted];
+        } elseif ($current === null) {
             $providers = LiveProviders::ordered($failed !== null ? LiveProviders::unreachable($failed) : []) ?: LiveProviders::ordered();
         } elseif ($failed === $current && $conversation->canSwitchProvider()) {
             // Rien n'a été dit : la séance peut encore commencer chez le fournisseur suivant (s'il y en a un).

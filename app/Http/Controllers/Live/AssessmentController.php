@@ -169,7 +169,8 @@ class AssessmentController extends Controller
         try {
             // Avant le verdict, le jeton couvre aussi la mini-leçon et les questions : aucun renouvellement en route.
             $token = $live->request($setup, $deadline, $assessment, $request->failedProvider(),
-                $assessment?->level === null ? Assessment::afterVerdictSeconds() : 0);
+                $assessment?->level === null ? Assessment::afterVerdictSeconds() : 0,
+                $request->exhaustedProvider());
         } catch (GeminiUnavailable $e) {
             report($e);
 

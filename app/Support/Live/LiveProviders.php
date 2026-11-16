@@ -166,9 +166,9 @@ final class LiveProviders
         }
     }
 
-    public static function pause(string $name): void
+    public static function pause(string $name, ?int $seconds = null): void
     {
-        $seconds = (int) config('services.live.pause_seconds', 300);
+        $seconds ??= (int) config('services.live.pause_seconds', 300);
 
         if ($seconds <= 0) {
             return;

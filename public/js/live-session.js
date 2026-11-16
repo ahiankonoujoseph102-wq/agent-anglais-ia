@@ -448,6 +448,8 @@ const INPUT_RATE = 16000;
 // Fondu à l'arrêt de la voix (interruption, pause), en secondes : pas de clic.
 const STOP_FADE = 0.015;
 const MAX_AUTO_RECONNECTS = 2;
+// Fournisseurs à leur limite essayés l'un après l'autre (trois clés Gemini, puis OpenAI) avant d'arrêter la séance.
+const MAX_QUOTA_SWITCHES = 4;
 // Retard ajouté à la voix du professeur (lecture labiale du professeur 3D).
 const OUTPUT_DELAY = 0.08;
 // Textes de l'attente et des coupures (config/platform.php → live.messages).
@@ -1782,7 +1784,9 @@ function nudgeTeacher() {
 async function connect({ planned = false, failed = null } = {}) {
     setStatus(planned ? 'En conversation' : `${teacherName} arrive…`);
 
-    const result = await post(urls.connect, { handle: state.resumeHandle, failed });
+    // Fournisseur fermé à sa limite : le serveur le met de côté et donne le suivant (autre clé comprise).
+    const exhausted = state.exhaustedProvider ?? null;
+    const result = await post(urls.connect, { handle: state.resumeHandle, failed, exhausted });
 
     if (!result.ok) {
         if (planned && state.connected) {
@@ -1805,6 +1809,7 @@ async function connect({ planned = false, failed = null } = {}) {
         return;
     }
 
+    state.exhaustedProvider = null;
     const isResume = state.everReady;
     // Le fournisseur a refusé la reconnexion : la même séance continue chez le suivant.
     const switched = isResume && state.config?.provider !== undefined && result.data.provider !== state.config.provider;
@@ -2184,6 +2189,17 @@ function handlersFor(transport, { planned, isResume, switched = false }) {
                 return;
             }
 
+            // Fournisseur à sa limite dès la connexion : le serveur le met de côté et donne le suivant
+            // (une autre clé Gemini comprise : chaque clé a sa propre limite), quelques fois au plus.
+            if (isQuotaClose(info) && !planned && !state.ending && (state.quotaSwitches ?? 0) < MAX_QUOTA_SWITCHES) {
+                state.quotaSwitches = (state.quotaSwitches ?? 0) + 1;
+                state.exhaustedProvider = transport.provider;
+                setStatus(`${teacherName} arrive…`);
+                connect();
+
+                return;
+            }
+
             // Connexion impossible avant la première parole : la séance commence chez l'autre fournisseur
             // (le serveur décide ; une seule fois, jamais en cours de séance).
             if (!state.spoke && !state.switched && !planned && !state.ending) {
@@ -2458,6 +2474,11 @@ async function handleFunctionCall(call) {
     }
 }
 
+/** Connexion fermée par le fournisseur parce qu'il est à sa limite (quota, crédit, trop de demandes). */
+function isQuotaClose(info) {
+    return Boolean(info?.quota) || /quota|exhausted|rate limit|insufficient/i.test(info?.reason ?? '');
+}
+
 function onClose(event) {
     state.connected = false;
     ui.turn.hidden = true;
@@ -2482,9 +2503,18 @@ function onClose(event) {
 
     // Fournisseur à sa limite en pleine séance : rien de technique pour l'élève ; la séance s'arrête proprement
     // (temps en pause), message sur le professeur et « Reprendre la séance » dans deux minutes au plus.
-    if (/quota|exhausted|rate limit/i.test(event.reason ?? '')) {
-        state.teacherDown = true;
-        state.autoReconnects = MAX_AUTO_RECONNECTS;
+    // Fournisseur à sa limite en pleine séance : la séance continue tout de suite chez le suivant (le serveur met
+    // cette clé de côté) ; après quelques essais, elle s'arrête proprement (temps en pause, « Reprendre la séance »).
+    if (isQuotaClose(event)) {
+        state.exhaustedProvider = state.transport?.provider ?? null;
+        state.quotaSwitches = (state.quotaSwitches ?? 0) + 1;
+
+        if (state.quotaSwitches > MAX_QUOTA_SWITCHES) {
+            state.teacherDown = true;
+            state.autoReconnects = MAX_AUTO_RECONNECTS;
+        } else {
+            state.autoReconnects = Math.min(state.autoReconnects, MAX_AUTO_RECONNECTS - 1);
+        }
     }
 
     stopPlayback();
