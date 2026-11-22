@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\LiveTrialController;
 use App\Http\Controllers\Admin\OriginController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\PresentationVideoController;
+use App\Http\Controllers\Admin\RestoredMinutesController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SubscriberController;
@@ -275,6 +276,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/inscrits/{user}/mot-de-passe', [UserController::class, 'temporaryPassword'])->middleware('confirm:password.temporary')->name('users.password');
     Route::post('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'store'])->middleware('confirm:access.grant')->name('users.grant');
     Route::delete('/inscrits/{user}/acces-offert', [GrantedAccessController::class, 'destroy'])->middleware('confirm:access.revoke')->name('users.revoke');
+    Route::post('/inscrits/{user}/minutes', [RestoredMinutesController::class, 'store'])->name('users.minutes');
     // Programme d'ambassadeurs : nommer, renouveler le mois gratuit, retirer, accord d'un parent.
     Route::get('/ambassadeurs', [AdminAmbassadorController::class, 'index'])->name('ambassadors.index');
     Route::post('/inscrits/{user}/ambassadeur', [AdminAmbassadorController::class, 'appoint'])->middleware('confirm:ambassador.appoint')->name('users.ambassador');
