@@ -121,4 +121,35 @@ class LessonRejoinTest extends TestCase
 
         $this->assertStringNotContainsString('WHERE WE STOPPED', $this->startCue($user));
     }
+
+    public function test_a_lesson_stopped_by_a_long_pause_is_resumed_in_a_new_session(): void
+    {
+        $user = $this->learner();
+        $this->startCue($user);
+        $lesson = $user->lessons()->firstOrFail();
+        $this->lines($user, $lesson);
+
+        // La page arrête la séance (pause de plus de deux minutes) : fin sans bilan.
+        $this->actingAs($user)->postJson('/seance/fin')->assertOk();
+        $this->assertNull($lesson->fresh()->reported_at);
+
+        $cue = $this->startCue($user);
+
+        $this->assertSame(2, $user->lessons()->count());
+        $this->assertStringContainsString('"Welcome back!"', $cue);
+        $this->assertStringContainsString('Teacher: Very good!', $cue);
+    }
+
+    public function test_the_page_resumes_after_a_pause_and_never_alarms_during_it(): void
+    {
+        $js = file_get_contents(public_path('js/live-session.js'));
+
+        // Connexion fermée pendant la pause : rouverte à la reprise, sans message de coupure.
+        $this->assertStringContainsString('state.reconnectOnResume = true;', $js);
+        // « Reprendre la séance » sort aussi de la pause.
+        $this->assertMatchesRegularExpression('/function resumeSession\(\) \{[\s\S]*?state\.paused = false;/', $js);
+        // Pause trop longue : la séance du jour et « Mes cours » proposent de reprendre, minutes gardées.
+        $this->assertStringContainsString('Vos minutes non utilisées restent disponibles aujourd', $js);
+        $this->assertStringContainsString("label: 'Reprendre ma séance'", $js);
+    }
 }

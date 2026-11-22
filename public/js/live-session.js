@@ -488,6 +488,8 @@ const MESSAGES = {
     // Jamais « limite » ni « fournisseur » pour l'élève : un petit problème de connexion, revenir dans deux minutes.
     quota: `${teacherName} a un petit problème de connexion. Revenez dans deux minutes au plus : votre temps non utilisé reste disponible.`,
     pauseTooLong: 'La pause a duré trop longtemps : la conversation est terminée. Le temps déjà utilisé est décompté.',
+    // Séance du jour et « Mes cours » : la séance s'arrête, mais les minutes non utilisées restent pour aujourd'hui.
+    pauseStopped: 'La pause a duré plus de :minutes minutes : la séance s\'est arrêtée. Vos minutes non utilisées restent disponibles aujourd\'hui.',
     slow: WAIT.slow,
     stuck: WAIT.stuck,
     stuckAuto: WAIT.stuck_auto ?? WAIT.stuck,
@@ -1010,6 +1012,21 @@ function showPhaseNote(phase) {
  * commandes, AVANT le résumé, et la page y descend doucement (saut direct si l'élève a demandé moins d'animations),
  * focus sur son titre. Jamais pendant que le professeur parle : seulement quand la conversation est finie.
  */
+/** Séances qu'on peut rouvrir le jour même sur le temps du jour (pas l'évaluation, unique, ni le bilan de niveau). */
+const RESUMABLE_MODES = ['lesson', 'course'];
+
+/** Carte « La suite » d'une séance arrêtée par une pause trop longue : la reprendre tout de suite. */
+function resumeAfterPause(seconds, name = teacherName, href = window.location.pathname) {
+    const minutes = Math.max(1, Math.floor(seconds / 60));
+
+    return {
+        title: 'Votre séance s\'est arrêtée pendant la pause',
+        text: `Il vous reste ${minutes} minute${minutes > 1 ? 's' : ''} aujourd'hui. Touchez « Reprendre ma séance » : ${name} reprendra là où vous vous étiez arrêté.`,
+        href,
+        label: 'Reprendre ma séance',
+    };
+}
+
 function showNext({ title, text, href, label } = {}) {
     const next = $('suite');
 
@@ -2519,6 +2536,15 @@ function onClose(event) {
 
     stopPlayback();
 
+    // En pause : l'élève n'attend rien du professeur. Aucune alerte ni reconnexion maintenant : la connexion est
+    // rouverte quand il touche « Reprendre ».
+    if (state.paused) {
+        state.reconnectOnResume = true;
+        logEvent('reconnect', 'à la reprise (connexion fermée pendant la pause)');
+
+        return;
+    }
+
     if (state.autoReconnects < MAX_AUTO_RECONNECTS) {
         state.autoReconnects++;
         state.turns.reset();
@@ -2682,7 +2708,9 @@ function tick() {
 
     // Le temps continue pendant la pause : au-delà de la limite, on termine proprement.
     if (state.paused && Date.now() - state.pausedAt > state.config.pause_max_seconds * 1000) {
-        finish('pause', MESSAGES.pauseTooLong);
+        finish('pause', RESUMABLE_MODES.includes(mode)
+            ? MESSAGES.pauseStopped.replace(':minutes', String(Math.round(state.config.pause_max_seconds / 60)))
+            : MESSAGES.pauseTooLong);
     }
 }
 
@@ -2821,6 +2849,19 @@ function togglePause() {
     } else {
         setStatus('En conversation');
         unmuteVoiceStream();
+
+        // Connexion fermée pendant la pause : elle est rouverte maintenant (le professeur reprend là où il était).
+        if (state.reconnectOnResume || !state.connected) {
+            state.reconnectOnResume = false;
+            state.autoReconnects = 0;
+            state.turns.reset();
+            stageAlert(MESSAGES.reconnecting);
+            connect();
+            renderTurn();
+
+            return;
+        }
+
         // L'apprenant n'a rien entendu pendant la pause : le professeur reprend sa question.
         cue(resumeCue('pause'));
     }
@@ -2876,6 +2917,8 @@ async function finish(reason, message = '') {
     }
 
     state.ending = true;
+    // Minutes de cette séance encore libres au moment de l'arrêt (pause trop longue : proposées pour reprendre).
+    const leftSeconds = remainingSeconds();
     state.timers.forEach(clearInterval);
     clearTimeout(state.renewal);
 
@@ -2949,6 +2992,11 @@ async function finish(reason, message = '') {
 
     // La suite : en haut de la colonne, avant le résumé (texte adapté au résultat : niveau, bilan réussi…).
     // Conversation jamais commencée (connexion refusée) : seulement le lien de retour.
+    // Arrêtée par une pause trop longue : la même page rouvre la séance, le professeur reprend là où il était.
+    if (reason === 'pause' && RESUMABLE_MODES.includes(mode) && leftSeconds >= (state.config?.min_start_seconds ?? 120)) {
+        state.next = resumeAfterPause(leftSeconds);
+    }
+
     if (state.config && state.everReady) {
         showNext(state.next ?? {});
     } else {
@@ -3016,6 +3064,17 @@ ui.stop.addEventListener('click', async () => {
 });
 function resumeSession() {
     ui.resume.hidden = true;
+
+    // « Reprendre la séance » touché pendant une pause : l'élève veut continuer, la pause s'arrête aussi.
+    if (state.paused) {
+        state.paused = false;
+        state.reconnectOnResume = false;
+        setPressed(ui.pause, false);
+        ui.pauseNote.hidden = true;
+        unmuteVoiceStream();
+        logEvent('resume');
+    }
+
     stageAlert(MESSAGES.reconnecting);
     state.autoReconnects = 0;
     state.turns.reset();
