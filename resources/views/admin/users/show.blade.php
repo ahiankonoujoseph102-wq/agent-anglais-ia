@@ -235,6 +235,28 @@
         </section>
     @endif
 
+    {{-- Minutes rendues aujourd'hui : l'élève n'a pas pu faire sa séance (panne, coupure). App\Support\Admin\RestoredMinutes. --}}
+    @can('admin-route', 'admin.users.minutes')
+    @php($minutesRefusal = \App\Support\Admin\RestoredMinutes::refusal($user))
+    @php($minutesGiven = \App\Support\Admin\RestoredMinutes::today($user))
+    @php($minutesLeft = $minutesRefusal ? null : $user->remainingSecondsToday(false))
+    <section class="card" id="minutes" aria-labelledby="minutes-title">
+        <h2 id="minutes-title">Rendre des minutes aujourd'hui</h2>
+        <p class="muted small">Si l'élève n'a pas pu faire sa séance (problème de connexion, professeur qui ne répondait plus), rendez-lui ses minutes tout de suite. Elles s'ajoutent à son temps d'aujourd'hui seulement ; demain, son temps du jour revient de lui-même.</p>
+
+        @if ($minutesRefusal)
+            <p>{{ $minutesRefusal }}</p>
+        @else
+            <p>Il lui reste aujourd'hui : <strong>{{ \App\Support\Duration::format((int) $minutesLeft) }}</strong>{{ $minutesGiven > 0 ? ', dont '.$minutesGiven.' minutes déjà rendues aujourd\'hui' : '' }}.</p>
+            <form method="post" action="{{ route('admin.users.minutes', $user) }}" class="stack">
+                @csrf
+                <x-input type="number" name="minutes" label="Minutes à rendre" :value="old('minutes', $user->activeSubscription->daily_minutes)" min="1" max="{{ \App\Support\Admin\RestoredMinutes::MAX_MINUTES }}" required />
+                <button type="submit" class="btn btn-accent"><x-icon name="clock" /> Rendre ces minutes maintenant</button>
+            </form>
+        @endif
+    </section>
+    @endcan
+
     {{-- Accès offert (démonstrations) : offrir, retirer, historique. Jamais un paiement ni un revenu. --}}
     @can('admin-route', 'admin.users.grant')
     <section class="card" id="acces-offert" aria-labelledby="grant-title">
