@@ -44,7 +44,9 @@ final class LessonRejoin
         return $user->lessons()
             ->where('program_lesson_id', $programLesson->id)
             ->whereDate('date', today())
-            ->where('status', LessonStatus::Interrupted)
+            // Interrompue (coupure, page fermée) ou arrêtée par la page sans bilan (pause trop longue, arrêt) :
+            // la leçon n'est pas finie, le professeur la reprend.
+            ->whereIn('status', [LessonStatus::Interrupted, LessonStatus::Completed])
             ->whereNull('reported_at')
             ->where('started_at', '>=', now()->subHours(self::HOURS))
             ->latest('id')
